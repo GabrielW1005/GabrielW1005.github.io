@@ -26,7 +26,7 @@
     $('step').disabled=running||completed||sim.t>=MAX_TIME-1e-8;
     $('run-status').textContent=completed?'Challenge complete':sim.t>=MAX_TIME-1e-8?'120 s · reset to try again':running?'Experiment running':sim.t>0?'Paused':'Ready to roll';
     $('run-status').classList.toggle('running',running);
-    $('scene-note').textContent=sim.t===0?(mode==='match'?'Follow the dashed speed curve below':'Drag the car to set its starting point'):'← / → to drive · ↓ to brake · Space to pause';
+    $('scene-note').textContent=sim.t===0&&!running?(mode==='match'?'Follow the dashed speed curve below':'Drag the car to set its starting point'):'← / → to drive · ↓ to brake · Space to pause';
   }
   function reset(){
     running=false;completed=false;parkHold=0;matchError=0;hoverTime=null;clearInputs();
