@@ -109,7 +109,7 @@
     constructor(track,settings={},x=6,v=0) {
       this.track=track; this.settings={gravity:9.81,motor:2,brake:6,allowFlight:false,...settings};
       this.s=track.sAtX(x); this.startS=this.s; this.v=v; this.t=0; this.distance=0; this.a=0;
-      this.air=null;this.crashed=false;this.landed=0;this.jumps=0;
+      this.air=null;this.crashed=false;this.missed=false;this.missedAt=null;this.landed=0;this.jumps=0;
       if(!track.hasGround(x)&&this.settings.allowFlight)this.launch();
     }
     step(dt,input={motor:0,brake:false}) {
@@ -166,13 +166,27 @@
         this.air=position(t);this.t+=t;
       };
       const end=position(dt),ground=this.track.atX(end.x);
+      // A failed jump continues under gravity. The pit wall removes horizontal
+      // velocity at impact; it does not freeze the cart in midair.
+      if(this.missed){
+        advance(dt);
+        // Cosmetic tilt toward the open pit; orientation does not affect motion.
+        this.air.angle+=(this.missedDirection*Math.PI/2-this.air.angle)*(1-Math.exp(-3*dt));
+        if(this.air.y<-24||(g===0&&this.t-this.missedAt>=3))this.crashed=true;
+        return;
+      }
       const intersects=t=>{const p=position(t);return this.track.hasGround(p.x)&&p.y<=this.track.atX(p.x).y;};
       if(this.track.hasGround(end.x)&&end.y<=ground.y+1e-10&&(end.vy-end.vx*ground.slope<0||!this.track.hasGround(start.x))){
         let lo=0,hi=dt;
         for(let i=0;i<36;i++){const mid=(lo+hi)/2;if(intersects(mid))hi=mid;else lo=mid;}
         const hitTime=(lo+hi)/2;advance(hitTime);
         const p=this.air,surface=this.track.atX(p.x);
-        if(p.y<surface.y-1e-5){this.crashed=true;return;}
+        if(p.y<surface.y-1e-5){
+          this.missed=true;this.missedAt=this.t;this.missedDirection=Math.sign(p.vx)||1;
+          // Keep the point just inside the gap to avoid numerical re-contact.
+          p.x-=Math.sign(p.vx)*1e-7;p.vx=0;
+          this.stepAir(dt-hitTime,input);return;
+        }
         const norm=Math.hypot(1,surface.slope);
         this.s=this.track.sAtX(p.x);this.v=(p.vx+p.vy*surface.slope)/norm;
         this.air=null;this.landed++;
@@ -185,12 +199,12 @@
       if(this.air){
         const p=this.air,speed=Math.hypot(p.vx,p.vy),a=speed?-this.settings.gravity*p.vy/speed:0;
         return {t:this.t,s:this.s,x:p.x,y:p.y,v:Math.sign(p.vx||1)*speed,speed,distance:this.distance,displacement:this.s-this.startS,a,
-          vx:p.vx,vy:p.vy,ax:0,ay:-this.settings.gravity,airborne:true,angle:p.angle,crashed:this.crashed};
+          vx:p.vx,vy:p.vy,ax:0,ay:-this.settings.gravity,airborne:true,angle:p.angle,missed:this.missed,crashed:this.crashed};
       }
       const p=this.track.atS(this.s), a=acceleration(this.track,this.s,this.v,this.settings,input);
       return {t:this.t,s:this.s,x:p.x,y:p.y,v:this.v,speed:Math.abs(this.v),distance:this.distance,displacement:this.s-this.startS,a,
         vx:this.v*p.tx,vy:this.v*p.ty,
-        ax:a*p.tx-this.v*this.v*p.curvature*p.ty,ay:a*p.ty+this.v*this.v*p.curvature*p.tx,airborne:false,angle:Math.atan(p.slope),crashed:this.crashed};
+        ax:a*p.tx-this.v*this.v*p.curvature*p.ty,ay:a*p.ty+this.v*this.v*p.curvature*p.tx,airborne:false,angle:Math.atan(p.slope),missed:this.missed,crashed:this.crashed};
     }
   }
   const targetSpeed=t=>t<2 ? 2*t : t<5 ? 4 : t<7 ? 2*(7-t) : 0;
