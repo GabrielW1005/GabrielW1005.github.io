@@ -1,7 +1,7 @@
 {
   "name": "motion-lab",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "A canvas physics playground for learning motion graphs",
-  "scripts": { "test": "node --test tests/physics.test.cjs", "dev": "node preview.cjs" }
+  "scripts": { "test": "node --test tests/*.test.cjs", "dev": "node preview.cjs" }
 }
