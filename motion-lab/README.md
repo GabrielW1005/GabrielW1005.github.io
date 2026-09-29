@@ -7,7 +7,7 @@ A full-window physics playground for exploring distance–time and speed–time 
 Open `index.html` directly, or serve this directory from a static web host. Relative asset paths work in a GitHub Pages subdirectory.
 
 - **Explore:** drive a repeating adventure course with bumps, ramps, dips, gaps, and jumps. Choose rolling terrain or the simpler flat road, downhill, valley, and hill tracks in **Course & forces**. Adjust gravity, terrain height, initial velocity, and airborne motion.
-- **Graph challenges:** 14 short challenges progress from speeding up, coasting, and slowing down to concave-up and concave-down distance and speed graphs. Gold dashes show an example shape; the live trace stays visible beside the car.
+- **Graph challenges:** 14 short challenges progress from speeding up, coasting, and slowing down to concave-up and concave-down distance and speed graphs. Gold dashes show an example shape; the live trace stays visible beside the car. Use **Minimize** to shrink the challenge panel into a compact bar and give the driving canvas more room. The title, completed score, and Next challenge button remain available; **Expand** restores the instructions, score slider, and challenge list. The panel stays minimized across challenges until you expand it, without interrupting a run.
 - **Park the car:** stop in the marked zone for two seconds.
 
 The desktop layout fills the window, with **Time vs. distance** and **Time vs. speed** stacked on the right. Time remains on the horizontal axis of both graphs. **Full screen** uses the browser's native full-screen mode where supported. On narrow phones, the graphs move below the driving controls.

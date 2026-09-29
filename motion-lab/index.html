@@ -5,7 +5,7 @@
  <meta name="description" content="Drive over bumps, dips, and jumps while watching live motion graphs. Practice graph shapes in 14 adjustable physics challenges.">
  <title>Motion Lab — Drive & Discover</title>
  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233e5cf5'/%3E%3Cpath d='M7 23V9m0 14h19M9 20l6-8 5 5 6-10' fill='none' stroke='white' stroke-width='2.5'/%3E%3C/svg%3E">
- <link rel="stylesheet" href="./styles.css?v=3"><script src="./physics.js?v=3" defer></script><script src="./challenges.js?v=3" defer></script><script src="./app.js?v=3" defer></script>
+ <link rel="stylesheet" href="./styles.css?v=4"><script src="./physics.js?v=3" defer></script><script src="./challenges.js?v=3" defer></script><script src="./app.js?v=4" defer></script>
 </head>
 <body>
  <header class="site-header">
@@ -16,10 +16,12 @@
  <main class="workspace">
   <section class="driving-workspace" aria-label="Driving experiment">
    <section id="challenge" class="challenge" hidden aria-label="Graph challenge">
-    <div class="challenge-top"><div><span class="eyebrow" id="challenge-count">CHALLENGE 1 / 14</span><h2 id="challenge-title"></h2></div><button id="next-challenge" class="primary-button" disabled>Next challenge</button></div>
+    <div class="challenge-top"><div class="challenge-heading"><div class="challenge-meta"><span class="eyebrow" id="challenge-count">CHALLENGE 1 / 14</span><span id="challenge-summary" class="challenge-summary" role="status" hidden></span></div><h2 id="challenge-title"></h2></div><div class="challenge-actions"><button id="toggle-challenge" class="secondary-button" aria-expanded="true" aria-controls="challenge-details" title="Minimize challenge details">▴ Minimize</button><button id="next-challenge" class="primary-button" disabled>Next challenge</button></div></div>
+    <div id="challenge-details">
     <p id="challenge-description"></p>
     <div class="challenge-options"><label for="passing-score">Unlock score</label><input id="passing-score" aria-label="Required percentage to unlock the next challenge" type="range" min="1" max="100" step="1" value="65"><output id="passing-score-output" for="passing-score">65%</output><span>Adjust any time · each phase needs an attempt</span></div>
     <div class="challenge-bottom"><div class="challenge-progress" id="challenge-progress" aria-label="Choose an unlocked challenge"></div><span id="challenge-result" role="status">Match the shape, roughly.</span></div>
+    </div>
    </section>
    <section id="parking" class="parking-bar" hidden><div><strong>Precision parking</strong><span>Stop in the gold zone at x = 34–38 m for 2 seconds.</span></div><strong id="parking-result" role="status">Find the zone</strong></section>
    <div class="simulation-card">

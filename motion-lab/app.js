@@ -8,6 +8,7 @@
  const config={kind:'adventure',height:7,gravity:9.81,motor:3.5,initialV:0,startX:6,allowFlight:true};
  let track,sim,mode='explore',running=false,ended=false,ticks=0,samples=[],parkHold=0;
  let levelIndex=0,unlocked=0,passedLevels=new Set(),lastResult=null,savedExplore=null;
+ let challengeCollapsed=false;
  let passingScore=65;
  try{const saved=localStorage.getItem('motion-lab-passing-score');if(saved!==null&&Number.isFinite(Number(saved)))passingScore=clamp(Math.round(Number(saved)),1,100);}catch{}
  let accumulator=0,lastFrame=0,lastPaint=0,hoverTime=null,cameraLeft=-5,cameraBottom=-6,view=null,dragPointer=null;
@@ -50,11 +51,22 @@
   $('target-hint').textContent=mode==='match'?'Match the shape. Exact heights are flexible; '+passingScore+'% unlocks the next challenge.':'Time is on the horizontal axis of both graphs.';
   if(mode!=='match')return;
   const l=level();$('challenge-count').textContent='CHALLENGE '+(levelIndex+1)+' / '+levels.length;$('challenge-title').textContent=l.title;$('challenge-description').textContent=l.instruction;
+  syncChallengeDisplay();
   $('challenge').classList.toggle('success',Boolean(lastResult?.passed));
   $('challenge-result').textContent=lastResult?lastResult.score+'% · '+lastResult.feedback+(passedLevels.has(levelIndex)&&!lastResult.passed?' (Previously unlocked.)':''):'Match the shape, roughly.';
   $('next-challenge').disabled=!passedLevels.has(levelIndex);$('next-challenge').textContent=levelIndex===levels.length-1?'Explore the course':'Next challenge';
   $('challenge-progress').replaceChildren();
   levels.forEach((l,i)=>{const b=document.createElement('button');b.textContent=passedLevels.has(i)?'✓':i+1;b.className=(i===levelIndex?'current ':'')+(passedLevels.has(i)?'passed':'');b.disabled=i>unlocked;b.title=l.title;b.setAttribute('aria-label','Challenge '+(i+1)+': '+l.title);if(i===levelIndex)b.setAttribute('aria-current','step');b.addEventListener('click',()=>selectLevel(i));$('challenge-progress').append(b);});
+ }
+ function syncChallengeDisplay(){
+  $('challenge').classList.toggle('is-collapsed',challengeCollapsed);
+  $('challenge-details').hidden=challengeCollapsed;
+  $('toggle-challenge').setAttribute('aria-expanded',String(!challengeCollapsed));
+  $('toggle-challenge').textContent=challengeCollapsed?'▾ Expand':'▴ Minimize';
+  $('toggle-challenge').title=challengeCollapsed?'Expand challenge details':'Minimize challenge details';
+  $('challenge-title').title=level().title;
+  $('challenge-summary').hidden=!challengeCollapsed||!lastResult;
+  $('challenge-summary').textContent=lastResult?lastResult.score+'% · '+(lastResult.passed?'Passed':passedLevels.has(levelIndex)?'Unlocked':'Try again'):'';
  }
  function reset(){
   running=false;ended=false;parkHold=0;lastResult=null;hoverTime=null;clearInputs();
@@ -205,6 +217,7 @@
   if(mode==='match'&&ended)gradeAttempt();else syncChallenge();
  });
  $('next-challenge').addEventListener('click',()=>{if(!passedLevels.has(levelIndex))return;if(levelIndex===levels.length-1)selectMode('explore');else selectLevel(levelIndex+1);});
+ $('toggle-challenge').addEventListener('click',()=>{challengeCollapsed=!challengeCollapsed;syncChallengeDisplay();paint();});
  for(const [id,action] of [['drive-left','left'],['drive-right','right'],['brake','brake']]){
   const b=$(id);
   b.addEventListener('pointerdown',e=>{if(e.button!==0||ended)return;e.preventDefault();b.setPointerCapture(e.pointerId);pointerMap.set(e.pointerId,action);syncDrive();if(!running)setRunning(true);});
