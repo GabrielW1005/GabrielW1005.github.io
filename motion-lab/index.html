@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#132b42">
+  <meta name="description" content="Drive a car over ramps, explore gravity, and discover the connection between motion and live distance–time and speed–time graphs.">
+  <title>Motion Lab — Drive. Observe. Discover.</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233e5cf5'/%3E%3Cpath d='M7 23V9m0 14h19M9 20l6-8 5 5 6-10' fill='none' stroke='white' stroke-width='2.5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./physics.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 23V9m0 14h19M9 20l6-8 5 5 6-10"/></svg></span><h1>Motion <span>Lab</span></h1><span class="header-divider"></span><span class="header-caption">A playground for physics</span></div>
+    <button class="quiet-button" id="model-button"><span aria-hidden="true">ⓘ</span> How it works</button>
+  </header>
+  <main>
+    <div class="workspace-heading"><div><span class="eyebrow">EXPERIMENT 01 / MOTION</span><h2>Take motion for a spin.</h2></div><div class="mode-switch" role="group" aria-label="Activity"><button data-mode="explore" aria-pressed="true">Explore</button><button data-mode="park" aria-pressed="false">Park the car</button><button data-mode="match" aria-pressed="false">Match the graph</button></div></div>
+    <div id="challenge" class="challenge" hidden><div><strong id="challenge-title"></strong><p id="challenge-description"></p></div><div class="challenge-result" id="challenge-result" role="status"></div></div>
+    <div class="lab-grid">
+      <section class="experiment" aria-label="Car and live graphs">
+        <div class="simulation-card">
+          <div class="scene-heading"><span class="scene-title"><span class="tiny-square"></span><span id="track-title">The valley</span></span><span id="run-status" class="status">Ready to roll</span></div>
+          <div class="scene-wrap"><canvas id="scene" aria-label="Side view of the car on the track. Use the drive buttons below or the arrow keys to move it.">Your browser needs HTML canvas support to display this simulation.</canvas><div class="scene-note" id="scene-note">Drag the car to set its starting point</div><div class="scene-scale">1 grid square = 5 m</div></div>
+          <div class="readouts">
+            <div><span>Time</span><strong id="time-value">0.00 <small>s</small></strong></div>
+            <div><span>Distance traveled</span><strong id="distance-value">0.00 <small>m</small></strong></div>
+            <div><span>Speed</span><strong id="speed-value">0.00 <small>m/s</small></strong></div>
+            <div><span>Track velocity</span><strong id="velocity-value">0.00 <small>m/s</small></strong></div>
+            <div><span>Track acceleration</span><strong id="acceleration-value">0.00 <small>m/s²</small></strong></div>
+          </div>
+          <div class="transport"><div class="transport-main"><button id="play" class="primary-button"><span aria-hidden="true">▶</span> Run</button><button id="reset" class="secondary-button"><span aria-hidden="true">↺</span> Reset</button><button id="step" class="secondary-button" title="Advance by 0.1 seconds while paused">Step <span class="step-unit">0.1 s</span></button></div><label class="playback-label" for="playback">Playback <select id="playback"><option value="0.5">½×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label></div>
+          <div class="drive-bar"><span class="drive-caption">HOLD TO DRIVE</span><div class="drive-buttons"><button id="drive-left" class="drive-button"><span aria-hidden="true">←</span> Left <kbd>A</kbd></button><button id="brake" class="drive-button brake-button">Brake <kbd>↓</kbd></button><button id="drive-right" class="drive-button">Right <span aria-hidden="true">→</span> <kbd>D</kbd></button></div><span class="coast-caption" id="drive-state">Release to coast</span></div>
+        </div>
+        <div class="graphs">
+          <section class="graph-card"><div class="graph-header"><h3><span class="legend-line distance-line"></span>Distance vs. time</h3><span class="graph-value" id="distance-graph-value">0.00 m</span></div><canvas id="distance-graph" aria-label="Live graph of total distance traveled in meters versus time in seconds"></canvas><p class="graph-caption">A steeper line means a greater speed.</p></section>
+          <section class="graph-card"><div class="graph-header"><h3><span class="legend-line speed-line"></span>Speed vs. time</h3><span class="graph-value teal" id="speed-graph-value">0.00 m/s</span></div><canvas id="speed-graph" aria-label="Live graph of speed in meters per second versus time in seconds"></canvas><p class="graph-caption" id="speed-caption">A horizontal line means constant speed.</p></section>
+        </div>
+        <div class="under-graphs"><span id="graph-hint">Hover or touch a graph to inspect a moment.</span><span>Time runs along the horizontal axis.</span></div>
+      </section>
+      <aside class="setup-panel" aria-labelledby="setup-title">
+        <div class="panel-heading"><h2 id="setup-title">Set up your experiment</h2><span class="eyebrow">01—03</span></div>
+        <fieldset id="track-settings"><legend><span class="section-number">01</span> Choose a track</legend><div class="track-options">
+          <button class="track-option" data-track="flat" aria-pressed="false"><svg viewBox="0 0 90 24" aria-hidden="true"><path d="M4 17H86"/></svg><span>Flat road</span></button>
+          <button class="track-option" data-track="ramp" aria-pressed="false"><svg viewBox="0 0 90 24" aria-hidden="true"><path d="M4 5H22C42 5 44 21 66 21H86"/></svg><span>Downhill</span></button>
+          <button class="track-option" data-track="valley" aria-pressed="true"><svg viewBox="0 0 90 24" aria-hidden="true"><path d="M4 5C23 5 24 21 38 21H51C66 21 65 5 86 5"/></svg><span>The valley</span></button>
+          <button class="track-option" data-track="hill" aria-pressed="false"><svg viewBox="0 0 90 24" aria-hidden="true"><path d="M4 21C25 21 24 5 39 5H51C66 5 64 21 86 21"/></svg><span>Over the hill</span></button>
+        </div><label class="range-label" for="height">Ramp height <output id="height-output">8 m</output></label><input id="height" aria-label="Ramp height" type="range" min="2" max="12" step="1" value="8"><div class="range-ends"><span>2 m</span><span>12 m</span></div></fieldset>
+        <fieldset id="initial-settings"><legend><span class="section-number">02</span> Starting conditions</legend><label class="range-label" for="initial-speed">Initial track velocity <output id="initial-speed-output">0 m/s</output></label><input id="initial-speed" aria-label="Initial track velocity" type="range" min="-8" max="8" step="0.5" value="0"><div class="range-ends"><span>← −8 m/s</span><span>+8 m/s →</span></div><p class="field-note">Drag the car before a run to change its starting position.</p></fieldset>
+        <fieldset><legend><span class="section-number">03</span> Forces</legend><label class="range-label" for="motor">Motor acceleration <output id="motor-output">2.0 m/s²</output></label><input id="motor" aria-label="Motor acceleration" type="range" min="0.5" max="6" step="0.5" value="2"><div class="range-ends"><span>Gentle</span><span>Strong</span></div><label class="range-label gravity-label" for="gravity">Gravity <output id="gravity-output">9.81 m/s²</output></label><select id="gravity"><option value="9.81">Earth · 9.81 m/s²</option><option value="1.62">Moon · 1.62 m/s²</option><option value="3.71">Mars · 3.71 m/s²</option><option value="0">No gravity · 0 m/s²</option></select><p class="field-note">Motor and gravity act together. Release the motor to coast.</p></fieldset>
+        <div class="lab-note"><span class="note-icon" aria-hidden="true">?</span><div><strong id="think-title">Try this</strong><p id="think-text">Roll into the valley. Where is the car fastest? What do the two graphs do there?</p></div></div>
+        <p class="reset-note" id="settings-note" role="status">Track, height, gravity, and initial velocity changes start a new run.</p>
+      </aside>
+    </div>
+    <footer><span><strong>Motion Lab</strong> · Make a prediction. Give it a try.</span><span>Ideal cart · no air resistance · SI units</span></footer>
+  </main>
+  <dialog id="model-dialog"><div class="dialog-heading"><h2>The physics behind the drive</h2><button id="close-model" aria-label="Close physics explanation">✕</button></div><div class="dialog-body"><p>The car is an <strong>ideal cart constrained to a smooth track</strong>. It always follows the road, even at high speeds. There are no jumps, collisions, air resistance, or wheel rotational inertia.</p><h3>What makes it accelerate?</h3><p>Along the track, <strong>a = a<sub>motor</sub> − g sin(θ) + a<sub>brake</sub></strong>. The angle θ is positive when the track rises to the right. Gravity accelerates the car downhill; it can slow an uphill car until it reverses. Releasing the motor applies no motor force.</p><p>The brake opposes motion at up to <strong id="brake-explanation">6 m/s²</strong>. Once stopped, it holds the car if it can balance the other forces. The car's mass cancels because the controls specify acceleration (force per unit mass).</p><h3>Read the graphs</h3><ul><li><strong>Distance</strong> is the total path length traveled, including up and down ramps. It never decreases, even when the car reverses.</li><li><strong>Speed</strong> is the magnitude of velocity and is never negative. The slope of the distance graph is speed; the area under the speed graph is distance.</li><li><strong>Track velocity</strong> is positive toward the right and negative toward the left. <strong>Track acceleration</strong> is the signed change of that velocity. On a curve, the car also has acceleration due to changing direction.</li><li>On the speed graph, a positive slope means speeding up and a negative slope means slowing down. That slope is not always the signed track acceleration.</li></ul><h3>Controls</h3><p>Hold <strong>← / A</strong> or <strong>→ / D</strong> to apply the motor. Hold <strong>↓ / S</strong> to brake. <strong>Space</strong> runs or pauses; <strong>R</strong> resets. The buttons also work by touch. When paused, <strong>Step</strong> advances 0.1 simulated seconds. Playback speed changes viewing speed, not the physics.</p><p>Changing the track, height, gravity, or initial velocity resets the run. Motor acceleration can be changed during a run. A run pauses after 120 simulated seconds so graphs stay readable.</p><p class="technical-note">Integrated in fixed 1/240 s steps using fourth-order Runge–Kutta, with stops and reversals resolved within a step. Wheel rotation is visual only. <a href="https://openstax.org/books/physics/pages/5-4-inclined-planes" target="_blank" rel="noopener">Read about gravity on an incline</a>.</p></div></dialog>
+</body>
+</html>
