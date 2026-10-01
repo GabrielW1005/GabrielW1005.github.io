@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#153c33">
+  <meta name="description" content="A live cell-cycle adventure for middle school. Eat, make ATP, manage osmosis, and guide mitosis to grow a colony.">
+  <title>Cell Quest · A tiny world. A big adventure.</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%239ee1b1' stroke='%23153c33' stroke-width='4' d='M55 30c5 18-14 32-31 27S2 39 7 22 31 1 45 10s6 12 10 20'/%3E%3Ccircle fill='%23b6a1e0' cx='30' cy='29' r='13'/%3E%3C/svg%3E">
+  <style>
+:root{--ink:#163c33;--muted:#688077;--cream:#f6f6ed;--paper:#fffef6;--line:#dce5d9;--green:#234b3e;--mint:#b0e1b5;--coral:#ed7b53;--yellow:#edd478;--purple:#bba4d8;--blue:#9cd1dc;--radius:22px;font-family:'Trebuchet MS',Arial,sans-serif;color:var(--ink);background:var(--cream);font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}button,a,input{-webkit-tap-highlight-color:transparent}button{font:inherit;color:inherit;cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #bb623a;outline-offset:4px}button:disabled{opacity:.48;cursor:default}button{border:0}button[hidden],[hidden]{display:none!important}a{color:inherit}.topbar{max-width:1500px;margin:auto;padding:22px 36px;display:flex;align-items:center;gap:34px;border-bottom:1px solid var(--line)}.brand{text-decoration:none;font-size:22px;letter-spacing:-.8px;font-weight:800;display:flex;gap:6px;align-items:center}.brand b{font-weight:400}.brand-mark{background:var(--mint);border-radius:44% 56% 61% 39%;width:38px;height:36px;display:grid;place-items:center;font-size:27px;margin-right:5px}.course-tag,.eyebrow{font-size:10px;letter-spacing:1.8px;font-weight:800}.course-tag{color:var(--muted)}.top-actions{margin-left:auto;display:flex;gap:22px;align-items:center}.quiet,.icon-button,.text-button{background:transparent}.quiet{font-size:13px}.quiet span{margin-left:7px}.icon-button{font-size:21px}.intro-line{display:flex;align-items:center;justify-content:space-between;margin:32px 0 26px}.intro-line h1{font-size:34px;letter-spacing:-1.3px;margin:9px 0 0;font-weight:700}.intro-line p{font-size:14px;color:var(--muted);line-height:1.6;margin:0}.mobile-break{display:none}main{max-width:1500px;padding:0 36px;margin:auto}.game-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px}.mission-panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:25px 22px;display:flex;flex-direction:column}.panel-heading{display:flex;align-items:center;justify-content:space-between}.chapter{color:var(--muted);font-size:10px}.mission-panel h2{font-size:24px;line-height:1.16;letter-spacing:-.6px;margin:18px 0 10px}.mission-panel>p{font-size:12px;line-height:1.6;margin:0;color:var(--muted)}.mission-list{list-style:none;padding:0;margin:20px 0 18px;display:grid;gap:14px}.mission-list li{display:flex;align-items:center;gap:10px;font-size:12px;line-height:1.4}.check{width:20px;height:20px;border-radius:50%;background:#eaf0e6;display:grid;place-items:center;flex-shrink:0;font-size:11px;color:var(--muted)}li.done .check{background:var(--green);color:var(--mint)}li.done>span:last-child{color:var(--muted)}.colony-card{padding:14px 16px;background:#eaf3e6;border-radius:15px;display:flex;align-items:center;justify-content:space-between}.colony-card .eyebrow{font-size:9px;letter-spacing:1.2px}.colony-card strong{display:block;font-size:29px;line-height:1.5;letter-spacing:-1px}.colony-card small{font-size:13px;letter-spacing:0;font-weight:400}.colony-graphic{font-size:35px;color:#548b63;position:relative}.colony-graphic i{font-size:25px;position:absolute;left:-17px;top:16px;color:#80b28b;font-style:normal}.cell-selector{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 7px}.cell-selector button{min-width:32px;min-height:32px;border-radius:50%;background:#edf2e8;font-size:12px}.cell-selector button[aria-pressed=true]{background:var(--green);color:var(--paper)}.group-button{font-size:11px;align-self:flex-start;background:transparent;padding:3px 0;border-bottom:1px dotted #8a9e91}.science-note{display:flex;gap:9px;margin:20px 0 24px;font-size:11px;line-height:1.55;color:var(--muted)}.science-note p{margin:0}.note-icon{font-size:18px;color:#688559}.divide-button,.primary-button{background:var(--coral);padding:15px 19px;border-radius:12px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:14px}.divide-button{margin-top:auto;width:100%;padding:14px 12px;font-size:12px}.requirements{font-size:9px!important;margin:8px 0 0!important;text-align:center;line-height:1.5!important}.play-area{min-width:0}.resource-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:13px}.resource{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;gap:11px;align-items:center;position:relative;overflow:hidden;min-height:78px}.resource-icon{font-size:25px;color:#bb9355;display:block}.resource span:not(.resource-icon){font-size:10px;color:var(--muted);display:block;margin-bottom:5px}.resource strong{font-size:22px;line-height:1;letter-spacing:-.5px}.resource.energy{background:#f3e8b8;border-color:#e9dfad}.resource .oxygen{font-size:19px;color:#6c9aa5}.resource .glucose{color:#ce8962}.resource .water{color:#699db1}.meter{position:absolute;left:0;bottom:0;height:3px;background:#e8ede5;width:100%}.meter i{height:3px;display:block;width:40%;background:#7fac96;transition:width .3s}.energy .meter i{background:#b49341}.pond-wrap{height:470px;position:relative;border-radius:20px;overflow:hidden;background:#daf0e5;border:1px solid #c6dfcf;touch-action:none}.pond-wrap canvas{display:block;width:100%;height:100%;cursor:crosshair}.pond-heading{position:absolute;left:20px;top:18px;display:flex;align-items:center;gap:8px;font-size:9px;font-weight:800;letter-spacing:1.2px;pointer-events:none}.live-dot{width:6px;height:6px;border-radius:50%;background:#467e61;box-shadow:0 0 0 4px #467e6122}.region{font-size:10px;letter-spacing:0;font-weight:400;margin-left:6px;background:#f9fff1bd;border-radius:20px;padding:6px 9px}.pond-status{position:absolute;right:18px;top:20px;display:flex;gap:10px;font-size:10px;background:#f9fff1bd;padding:7px 10px;border-radius:20px;pointer-events:none}.pond-message{position:absolute;bottom:20px;left:20px;max-width:calc(100% - 205px);padding:11px 14px;background:#fffef5e8;border-radius:10px;font-size:11px;line-height:1.45;pointer-events:none;box-shadow:0 3px 18px #325f4210}.mini-map{position:absolute;right:18px;bottom:18px;width:150px;height:55px;border-radius:9px;border:2px solid #fffef4;display:flex;justify-content:space-around;align-items:flex-end;padding-bottom:6px;font-size:7px;letter-spacing:.5px;background:linear-gradient(90deg,#b5dfed 0 27%,#b9dfc1 27% 75%,#d7c3e2 75%);pointer-events:none}.mini-map i{position:absolute;width:7px;height:7px;border:1px solid var(--paper);background:var(--green);border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%)}.action-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.action-bar button{padding:12px 10px;display:flex;gap:9px;align-items:center;border-radius:12px;background:var(--paper);border:1px solid var(--line);text-align:left;transition:background .15s,transform .15s}.action-bar button:hover:not(:disabled){background:#e6f0dc;transform:translateY(-2px)}kbd{font:10px 'Trebuchet MS',sans-serif;letter-spacing:.5px;border:1px solid #d7dfcf;border-bottom-width:2px;border-radius:5px;padding:3px 5px;display:inline-block;background:#f6f8ee}.action-bar kbd{width:26px;height:29px;display:grid;place-items:center;font-size:12px;flex-shrink:0}.action-bar button>span{font-size:11px;font-weight:700}.action-bar small{display:block;font-size:8px;font-weight:400;color:var(--muted);margin-top:5px;line-height:1.4}.play-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:10px;color:var(--muted);gap:10px}.play-footer kbd{font-size:9px;padding:1px 3px}.play-footer button{background:transparent;font-size:10px;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}.cycle-strip{display:flex;gap:28px;align-items:center;border:1px solid var(--line);border-radius:17px;margin-top:22px;padding:18px 24px;background:var(--paper)}.cycle-title{min-width:180px}.cycle-title strong{display:block;font-size:13px;margin-top:7px}.cycle-title strong span{font-weight:400;font-size:10px;color:var(--muted)}.stage-track{flex:1;display:flex;align-items:center;gap:5px}.stage-track span{flex:1;position:relative;padding-top:13px;font-size:8px;text-align:center;color:var(--muted)}.stage-track span:before{content:'';height:4px;position:absolute;top:0;left:0;right:0;border-radius:5px;background:#e4eadf}.stage-track span.active:before{background:#79a786}.stage-track span.active{color:var(--ink);font-weight:700}.cycle-strip>button{font-size:10px;white-space:nowrap;background:transparent;text-decoration:underline;text-underline-offset:3px}footer{display:flex;gap:20px;justify-content:space-between;color:var(--muted);padding:23px 0;font-size:10px}footer button{font-size:10px;color:var(--muted);background:transparent}.touch-pad{display:none}
+dialog{color:var(--ink);background:var(--paper);border:1px solid #c9d8c5;border-radius:24px;padding:30px;max-height:90vh;max-width:calc(100vw - 30px);box-shadow:0 20px 100px #153c3340}dialog::backdrop{background:#123f3870;backdrop-filter:blur(5px)}dialog h2{font-size:29px;letter-spacing:-.8px;line-height:1.15;margin:16px 0}dialog p{font-size:13px;line-height:1.65;color:var(--muted)}.welcome-dialog{width:850px;padding:0;overflow:auto}.welcome-dialog[open]{display:grid;grid-template-columns:.9fr 1.1fr}.welcome-art{background:#cde6bc;position:relative;min-height:490px;overflow:hidden;display:grid;place-items:center}.welcome-content{padding:38px 34px}.welcome-content h2{font-size:39px;letter-spacing:-1.3px;margin:15px 0}.welcome-content>p{font-size:13px}.welcome-steps{display:grid;gap:12px;margin:25px 0;font-size:12px}.welcome-steps b{font-size:10px;display:inline-grid;place-items:center;margin-right:10px;background:#eaf1e3;width:27px;height:27px;border-radius:50%}.welcome-hint{font-size:11px!important}.welcome-content .primary-button{margin-top:22px;width:100%}.small-note{font-size:10px!important}.hero-cell{width:255px;height:275px;background:#acd9a8;border:5px solid #5b915e;border-radius:48% 52% 63% 37% / 41% 35% 65% 59%;box-shadow:inset 15px 13px 0 #c0e7b7,12px 16px 0 #88b87955;position:relative;transform:rotate(-15deg);animation:bob 6s ease-in-out infinite}.hero-nucleus{position:absolute;width:105px;height:105px;left:70px;top:77px;background:#cbb6e5;border:3px solid #977daf;border-radius:50%;box-shadow:inset 5px 6px 0 #ddc9ed}.hero-nucleus i{position:absolute;left:22px;top:29px;width:48px;height:32px;border:4px solid #9b7fb4;border-right:0;border-bottom:0;border-radius:50%;transform:rotate(55deg)}.hero-nucleus i:nth-child(2){top:42px;left:32px;transform:rotate(130deg);width:45px;height:25px}.hero-nucleus i:nth-child(3){left:45px;top:22px;width:30px;height:44px;transform:rotate(-30deg)}.hero-mito{position:absolute;width:51px;height:26px;background:#f1ae74;border:3px solid #bd8057;border-radius:45%;transform:rotate(-35deg)}.hero-mito:after{content:'∿∿';position:absolute;top:-2px;left:6px;font-size:25px;color:#bd8057}.m1{left:29px;top:63px}.m2{right:31px;bottom:44px;transform:rotate(45deg)}.hero-vacuole{position:absolute;width:44px;height:44px;border:3px solid #77adab;background:#a2d4d0;border-radius:50%;left:41px;bottom:40px}.hero-eye{position:absolute;width:6px;height:6px;left:210px;top:83px;border-radius:50%;background:#639269;box-shadow:12px 40px 0 #78a674,-27px -39px 0 #7eab70,-163px 104px 0 #7eab70}.art-dot{position:absolute;border-radius:50%;background:#82b78655}.d1{width:70px;height:70px;top:-14px;left:40px}.d2{width:30px;height:30px;bottom:80px;left:17px}.d3{width:50px;height:50px;right:-10px;top:70px}.art-caption{position:absolute;bottom:33px;font-size:10px;font-style:italic;color:#4f7d54}.quiz-dialog{width:530px}.quiz-kicker{display:flex;justify-content:space-between;font-size:10px;letter-spacing:1.4px;color:#7a856d}.quiz-dialog h2{font-size:25px;margin-top:25px;line-height:1.3}.quiz-choices{display:grid;gap:9px;margin:22px 0}.quiz-choices button{background:#f1f4e9;border:1px solid #dfe7d5;border-radius:12px;display:flex;align-items:center;text-align:left;padding:14px;gap:13px;font-size:13px;line-height:1.4}.quiz-choices button .letter{font-size:11px;flex-shrink:0;background:#fffef6;width:25px;height:25px;border-radius:50%;display:grid;place-items:center}.quiz-choices button.wrong{background:#fae9de;border-color:#efbea1}.quiz-choices button.correct{background:#dcecd5;border-color:#a3c091}.quiz-choices button:disabled{opacity:1}.quiz-choices button:disabled:not(.correct):not(.wrong){opacity:.55}#quiz-feedback{font-size:12px;line-height:1.6;border-radius:10px}#quiz-feedback:not(:empty){padding:13px;background:#ecf2e4;margin-bottom:16px}.quiz-dialog .primary-button{width:100%}.text-button{display:block;font-size:12px;padding:14px 0;text-decoration:underline;text-underline-offset:4px}.division-dialog{width:870px;padding:25px 30px}.division-top,.dialog-top{display:flex;align-items:center;justify-content:space-between;gap:15px}.division-top .quiet{font-size:11px}.division-heading{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:22px}.division-heading h2{margin:5px 0 15px;font-size:30px}.division-heading .eyebrow{font-size:9px;color:var(--muted)}.count-pill{font-size:10px;background:#edf0e4;padding:9px 12px;border-radius:20px;max-width:210px;text-align:center;line-height:1.5}.division-canvas-wrap{height:340px;position:relative;background:#eaf1df;border-radius:16px;overflow:hidden}.division-canvas-wrap canvas{width:100%;height:100%;display:block}.division-legend{position:absolute;bottom:10px;left:16px;font-size:9px;color:var(--muted);pointer-events:none}.division-info{display:grid;grid-template-columns:1.6fr 1fr;gap:22px;padding:8px 0}.division-info p{font-size:12px;margin:9px 0}.division-info p:last-child{font-size:11px;color:#52745a;border-left:2px solid #b2c59f;padding-left:15px}.division-track{display:flex;gap:5px;margin:10px 0 20px}.division-track span{flex:1;min-width:0;font-size:9px;text-align:center;padding:8px 2px;border-radius:6px;background:#eef2e6;color:var(--muted)}.division-track span.active{background:var(--green);color:var(--paper)}.division-track span.done{background:#d7e8cc;color:var(--ink)}.division-bottom{display:flex;gap:20px;align-items:center;justify-content:space-between}.division-bottom>span{font-size:11px;color:var(--muted)}.division-bottom .primary-button{font-size:12px;flex-shrink:0}.guide-dialog{width:780px}.close-button{background:transparent;font-size:28px;line-height:1}.guide-tabs{display:flex;gap:8px;margin:22px 0}.guide-tabs button{background:#edf2e6;border-radius:9px;padding:10px 15px;font-size:12px}.guide-tabs button[aria-pressed=true]{background:var(--green);color:var(--paper)}.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px}.guide-entry{border-top:1px solid var(--line);padding-top:12px}.guide-entry h3{font-size:14px;margin:0 0 6px}.guide-entry p{font-size:12px;margin:0 0 13px}.model-note{padding:16px;background:#eef2e6;border-radius:12px;margin-top:20px}.model-note p{font-size:11px;margin:5px 0}.sources{font-size:10px;display:flex;flex-wrap:wrap;gap:15px;margin-top:15px}.settings-dialog{width:500px}.setting{display:flex;align-items:center;gap:30px;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--line);font-size:13px}.setting small{display:block;line-height:1.6;font-size:11px;color:var(--muted);margin-top:7px}.setting input{width:20px;height:20px;accent-color:var(--green);flex-shrink:0}.settings-dialog .primary-button{margin-top:22px;width:100%}.finish-dialog{width:490px;text-align:center}.finish-dialog h2{font-size:36px}.finish-art{font-size:38px;color:#72a365;margin:22px 0 8px;line-height:1.1}.finish-dialog .primary-button{width:100%;margin-top:22px}.finish-dialog .text-button{margin:auto}.finish-stats{display:flex;justify-content:center;gap:25px;margin:20px 0;font-size:11px}.finish-stats strong{display:block;font-size:23px;margin-bottom:5px}.rescue-dialog{width:450px}.rescue-dialog .primary-button{width:100%;margin-top:23px}.paused .pond-wrap:after{content:'Expedition paused';position:absolute;inset:0;display:grid;place-items:center;background:#dff0dfb0;font-size:24px;font-weight:700;pointer-events:none}.reduced-motion .hero-cell{animation:none}@keyframes bob{50%{transform:rotate(-7deg) translateY(-8px)}}
+@media(min-width:1400px){.pond-wrap{height:515px}.mission-panel{padding:28px}.game-layout{grid-template-columns:280px minmax(0,1fr)}.action-bar button{padding:15px}.action-bar button>span{font-size:12px}.action-bar small{font-size:9px}}
+@media(max-width:1100px){main{padding:0 22px}.topbar{padding:20px 22px;gap:20px}.game-layout{grid-template-columns:220px minmax(0,1fr);gap:15px}.mission-panel{padding:20px 16px}.resource{padding:12px 9px;gap:7px}.resource strong{font-size:20px}.resource-icon{font-size:21px}.action-bar{grid-template-columns:repeat(2,1fr)}.pond-wrap{height:465px}.pond-status{top:52px;left:19px;right:auto}.cycle-strip{gap:18px;padding:17px}.cycle-title{min-width:160px}.cycle-strip>button{display:none}}
+@media(max-width:800px){.course-tag{display:none}.intro-line h1{font-size:29px}.intro-line p{font-size:12px}.game-layout{grid-template-columns:1fr}.mission-panel{display:grid;grid-template-columns:1.3fr 1fr;gap:0 25px;padding:20px}.panel-heading{grid-column:1/-1}.mission-panel h2{margin:13px 0 8px;font-size:21px}.mission-panel>p{grid-column:1;grid-row:3}.mission-list{grid-column:2;grid-row:2/4;margin:13px 0;gap:10px}.colony-card{grid-column:1;grid-row:4;padding:10px 14px;margin-top:15px}.colony-card strong{font-size:24px}.cell-selector{grid-column:2;grid-row:4;align-self:center}.group-button{grid-column:2;grid-row:5;align-self:start;justify-self:start}.science-note{display:none}.divide-button{grid-column:2;grid-row:6;margin-top:14px}.requirements{grid-column:2;grid-row:7}.resource-bar{margin-top:0}.pond-wrap{height:460px}.action-bar{grid-template-columns:repeat(4,1fr)}.action-bar button{gap:7px;padding:10px 7px}.action-bar small{font-size:8px}.action-bar button>span{font-size:10px}.cycle-strip{display:block}.stage-track{margin-top:17px}.cycle-title{display:flex;gap:15px;align-items:center}.cycle-title strong{margin:0}.welcome-dialog{width:670px}.welcome-content{padding:28px}.welcome-content h2{font-size:32px}.welcome-art{min-height:500px}.hero-cell{transform:scale(.85) rotate(-15deg)}.division-dialog{padding:24px}.division-info{gap:17px}}
+@media(max-width:550px){main{padding:0 14px}.topbar{padding:15px 14px;gap:10px}.brand{font-size:17px}.brand-mark{width:29px;height:29px;font-size:22px}.top-actions{gap:12px}.quiet{font-size:11px}.icon-button{font-size:20px}.intro-line{margin:23px 0 20px}.intro-line h1{font-size:27px;line-height:1.1}.intro-line .eyebrow{font-size:8px;letter-spacing:1.2px}.intro-line>p{display:none}.mobile-break{display:block}.mission-panel{gap:0 15px;padding:16px;border-radius:17px}.mission-panel h2{font-size:20px}.mission-panel>p{font-size:10px}.mission-list li{font-size:10px;gap:6px}.mission-list{gap:9px}.check{width:17px;height:17px;font-size:9px}.mission-panel .eyebrow{font-size:8px;letter-spacing:1.2px}.colony-card{padding:9px 12px}.colony-card strong{font-size:22px}.colony-card small{font-size:11px}.divide-button{font-size:10px;padding:13px 10px;border-radius:9px}.requirements{font-size:8px!important}.resource-bar{gap:6px}.resource{gap:5px;border-radius:11px;padding:12px 7px;min-height:70px}.resource-icon{display:none}.resource span:not(.resource-icon){font-size:8px}.resource strong{font-size:19px}.pond-wrap{height:430px;border-radius:16px}.pond-heading{font-size:8px;left:13px;top:15px;gap:6px;letter-spacing:.9px}.region{font-size:8px;padding:5px 6px;margin-left:3px}.pond-status{left:13px;top:45px;font-size:8px;gap:9px}.pond-message{left:11px;bottom:11px;font-size:10px;max-width:calc(100% - 24px);width:calc(100% - 24px);padding:10px}.mini-map{width:109px;height:41px;bottom:66px;right:12px;font-size:6px}.touch-pad{display:grid;grid-template-columns:repeat(3,31px);grid-template-rows:repeat(2,31px);gap:4px;position:absolute;bottom:68px;left:13px}.touch-pad button{width:31px;height:31px;background:#f8fff0d9;border-radius:7px;font-size:18px;border:1px solid #d6e4ce}.touch-pad button:nth-child(1){grid-column:2}.touch-pad button:nth-child(2){grid-column:1;grid-row:2}.touch-pad button:nth-child(3){grid-column:2;grid-row:2}.touch-pad button:nth-child(4){grid-column:3;grid-row:2}.action-bar{grid-template-columns:1fr 1fr;gap:7px}.action-bar button{padding:12px 10px;gap:9px;min-height:54px}.action-bar button>span{font-size:11px}.action-bar small{font-size:8px}.play-footer{font-size:8px}.play-footer kbd{font-size:7px}.play-footer>span{max-width:80%;line-height:1.8}.cycle-strip{padding:15px;margin-top:17px}.cycle-title{display:block}.cycle-title .eyebrow{font-size:8px}.cycle-title strong{margin-top:7px}.stage-track span{font-size:7px}.stage-track{gap:3px}footer{font-size:8px;gap:10px;line-height:1.6;flex-wrap:wrap}footer>span:nth-child(2){display:none}.welcome-dialog[open]{display:block}.welcome-art{min-height:160px;height:160px}.hero-cell{width:165px;height:175px;transform:rotate(-15deg);position:absolute;top:-23px}.hero-nucleus{width:69px;height:69px;left:44px;top:54px}.hero-nucleus i{transform:scale(.6) rotate(55deg);left:2px;top:10px}.hero-nucleus i:nth-child(2){left:12px;top:25px;transform:scale(.6) rotate(130deg)}.hero-nucleus i:nth-child(3){left:26px;top:5px;transform:scale(.6) rotate(-30deg)}.hero-mito{transform:scale(.65) rotate(-35deg)}.m1{left:3px;top:32px}.m2{right:4px;bottom:8px}.hero-vacuole{width:28px;height:28px;left:22px;bottom:23px}.hero-eye{display:none}.art-caption{bottom:12px;font-size:9px}.welcome-content{padding:23px}.welcome-content h2{font-size:31px;margin:10px 0}.welcome-content>p{font-size:12px}.welcome-steps{margin:15px 0;gap:8px}.welcome-content .primary-button{margin-top:16px}.welcome-content .small-note{margin-bottom:0}dialog{padding:24px;max-height:92vh;border-radius:20px}.quiz-dialog h2{font-size:23px}.quiz-choices button{font-size:12px;padding:12px}.division-dialog{padding:18px}.division-top .eyebrow{font-size:8px;letter-spacing:1px}.division-top .quiet{font-size:9px}.division-heading{gap:10px;margin-top:17px}.division-heading h2{font-size:26px}.count-pill{font-size:8px;max-width:120px;padding:7px}.division-canvas-wrap{height:320px}.division-info{display:block;padding:3px 0}.division-info p{font-size:11px;margin:11px 0}.division-info p:last-child{font-size:10px;padding-left:10px}.division-track{gap:2px;margin-bottom:13px}.division-track span{font-size:6px;padding:7px 1px}.division-bottom{display:block}.division-bottom>span{font-size:10px;display:block;margin-bottom:12px}.division-bottom .primary-button{width:100%;padding:12px}.guide-dialog h2{font-size:25px}.guide-tabs{gap:5px}.guide-tabs button{font-size:10px;padding:10px}.guide-grid{grid-template-columns:1fr;gap:5px}.guide-entry p{font-size:12px}.finish-dialog h2{font-size:31px}.finish-stats{gap:15px}}
+@media(prefers-reduced-motion:reduce){.hero-cell{animation:none}*{scroll-behavior:auto!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Cell Quest home"><span class="brand-mark">◉</span> CELL <b>QUEST</b></a>
+    <span class="course-tag">LIFE SCIENCE / GRADE 7</span>
+    <div class="top-actions"><button id="guide-button" class="quiet">Field guide <span>↗</span></button><button id="pause-button" class="quiet" disabled>Pause <span>Ⅱ</span></button><button id="settings-button" class="icon-button" aria-label="Settings">⚙</button></div>
+  </header>
+  <main>
+    <div class="intro-line"><div><span class="eyebrow">SMALL CELL. BIG POSSIBILITIES.</span><h1>A tiny world.<br class="mobile-break"> A big adventure.</h1></div><p>Find food. Make energy.<br>Become a whole colony.</p></div>
+    <div class="game-layout">
+      <aside class="mission-panel">
+        <div class="panel-heading"><span class="eyebrow">YOUR EXPEDITION</span><span class="chapter" id="chapter">01 / 03</span></div>
+        <h2 id="mission-title">Fuel your first cell</h2>
+        <p id="mission-description">Eat algae, turn glucose into ATP, and clear out leftovers. Then you’re ready to divide.</p>
+        <ol id="mission-list" class="mission-list"></ol>
+        <div class="colony-card"><div><span class="eyebrow">YOUR COLONY</span><strong id="colony-count">1 <small>cell</small></strong></div><span class="colony-graphic">◉<i>◉</i></span></div>
+        <div id="cell-selector" class="cell-selector" aria-label="Choose a cell"></div>
+        <button id="group-button" class="group-button" aria-pressed="false">Move selected cell</button>
+        <div class="science-note"><span class="note-icon">✦</span><p id="science-tip">Your cell is a model of an amoeba-like protist. Its nucleus holds DNA; its mitochondria help make ATP.</p></div>
+        <button id="divide-button" class="divide-button" disabled><span>Begin cell division</span><span>↗</span></button>
+        <p id="division-requirements" class="requirements">Grow to 100% · 70 ATP · 2 glucose</p>
+      </aside>
+      <section class="play-area" aria-label="Cell adventure">
+        <div class="resource-bar">
+          <div class="resource energy"><span class="resource-icon">ϟ</span><div><span>ATP energy</span><strong id="atp-value">48</strong></div><div class="meter"><i id="atp-meter"></i></div></div>
+          <div class="resource"><span class="resource-icon oxygen">O₂</span><div><span>Oxygen</span><strong id="oxygen-value">85</strong></div><div class="meter"><i id="oxygen-meter"></i></div></div>
+          <div class="resource"><span class="resource-icon glucose">⬡</span><div><span>Glucose</span><strong id="glucose-value">1</strong></div><div class="meter"><i id="glucose-meter"></i></div></div>
+          <div class="resource"><span class="resource-icon water">◈</span><div><span>Water balance</span><strong id="water-value">100%</strong></div><div class="meter"><i id="water-meter"></i></div></div>
+        </div>
+        <div class="pond-wrap" id="pond-wrap">
+          <canvas id="pond" aria-label="Living pond: move your cell with WASD or arrow keys, or click to swim. E eats, R makes ATP, X releases waste, V pumps excess water." role="img"></canvas>
+          <div class="pond-heading"><span class="live-dot"></span><span>THE LIVING POND</span><span class="region" id="region">Balanced water</span></div>
+          <div class="pond-status"><span id="health-label">Membrane 100%</span><span id="growth-label">Growth 20%</span><span id="waste-label">Waste 0</span></div>
+          <div class="pond-message" id="pond-message" role="status" aria-live="polite">Swim toward a green algae cluster. Press E to engulf it.</div>
+          <div class="mini-map" id="mini-map" aria-label="Pond map: freshwater left, balanced water center, salty water right"><span>FRESH</span><span>BALANCED</span><span>SALTY</span><i id="map-marker"></i></div>
+          <div class="touch-pad" aria-label="Movement controls"><button data-direction="up" aria-label="Swim up">↑</button><button data-direction="left" aria-label="Swim left">←</button><button data-direction="down" aria-label="Swim down">↓</button><button data-direction="right" aria-label="Swim right">→</button></div>
+        </div>
+        <div class="action-bar">
+          <button id="eat-button"><kbd>E</kbd><span>Engulf food<small>Endocytosis · 4 ATP</small></span></button>
+          <button id="respire-button"><kbd>R</kbd><span>Make ATP<small>Respiration · glucose + O₂</small></span></button>
+          <button id="exo-button"><kbd>X</kbd><span>Release waste<small>Exocytosis · 3 ATP</small></span></button>
+          <button id="pump-button"><kbd>V</kbd><span>Pump water<small>Vacuole · 4 ATP</small></span></button>
+        </div>
+        <div class="play-footer"><span><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> or click to swim · <kbd>Tab</kbd> switches cells</span><button id="labels-button" aria-pressed="true">Labels on</button></div>
+      </section>
+    </div>
+    <section class="cycle-strip" aria-label="Cell cycle progress"><div class="cycle-title"><span class="eyebrow">THE CELL CYCLE</span><strong id="cycle-label">Interphase <span>· Grow & copy DNA</span></strong></div><div id="stage-track" class="stage-track"></div><button id="cycle-guide-button">Explore the stages ↗</button></section>
+    <footer><span>Learn by living a cell’s life.</span><span>A simplified scientific model · No account needed</span><button id="restart-button">New expedition</button></footer>
+  </main>
+  <dialog id="welcome-dialog" class="welcome-dialog">
+    <div class="welcome-art" aria-hidden="true"><div class="hero-cell"><div class="hero-nucleus"><i></i><i></i><i></i></div><span class="hero-mito m1"></span><span class="hero-mito m2"></span><span class="hero-vacuole"></span><span class="hero-eye"></span></div><span class="art-dot d1"></span><span class="art-dot d2"></span><span class="art-dot d3"></span><span class="art-caption">Meet your microscopic main character.</span></div>
+    <div class="welcome-content"><span class="eyebrow">WELCOME TO THE POND</span><h2>Life starts with<br>one little cell.</h2><p>Play as an amoeba-like cell. Eat, manage your energy, survive changes in water, and divide into a colony of four cells.</p><div class="welcome-steps"><span><b>01</b> Explore & eat</span><span><b>02</b> Learn & divide</span><span><b>03</b> Grow your colony</span></div><p class="welcome-hint">Use WASD, arrow keys, or click to swim. Answer science questions to keep your adventure going. You can retry every question.</p><button id="start-button" class="primary-button">Let’s get microscopic <span>→</span></button><p class="small-note">Your progress saves on this device when storage is available.</p><button id="resume-button" class="quiet" hidden>Continue saved expedition →</button></div>
+  </dialog>
+  <dialog id="quiz-dialog" class="quiz-dialog" aria-labelledby="quiz-title"><div class="quiz-kicker"><span>✦ SCIENCE CHECKPOINT</span><span id="quiz-count">01</span></div><h2 id="quiz-title"></h2><p id="quiz-context"></p><div id="quiz-choices" class="quiz-choices"></div><div id="quiz-feedback" aria-live="polite"></div><button id="quiz-continue" class="primary-button" hidden>Continue adventure →</button><button id="quiz-hint" class="text-button">Need a hint?</button></dialog>
+  <dialog id="division-dialog" class="division-dialog" aria-labelledby="division-title"><div class="division-top"><span class="eyebrow">CELL DIVISION / CLOSE-UP LAB</span><button id="division-pause" class="quiet">Pause animation Ⅱ</button></div><div class="division-heading"><div><span id="division-kicker" class="eyebrow"></span><h2 id="division-title"></h2></div><span id="chromosome-count" class="count-pill"></span></div><div class="division-canvas-wrap"><canvas id="division-canvas" role="img" aria-label="Animated cell division with labeled chromosomes and spindle fibers"></canvas><div id="division-legend" class="division-legend">A model cell with 4 chromosomes</div></div><div class="division-info"><p id="division-description"></p><p id="division-fact"></p></div><div id="division-track" class="division-track"></div><div class="division-bottom"><span id="division-wait">Watch what changes. Then check your understanding.</span><button id="division-next" class="primary-button" disabled>Check understanding →</button></div></dialog>
+  <dialog id="guide-dialog" class="guide-dialog" aria-labelledby="guide-title"><div class="dialog-top"><span class="eyebrow">YOUR POCKET FIELD GUIDE</span><button id="guide-close" class="close-button" aria-label="Close field guide">×</button></div><h2 id="guide-title">A little science goes a long way.</h2><div class="guide-tabs"><button data-guide-tab="structures" aria-pressed="true">Cell & energy</button><button data-guide-tab="cycle" aria-pressed="false">Cell cycle</button><button data-guide-tab="controls" aria-pressed="false">How to play</button></div><div id="guide-content"></div></dialog>
+  <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title"><div class="dialog-top"><span class="eyebrow">MAKE YOURSELF AT HOME</span><button id="settings-close" class="close-button" aria-label="Close settings">×</button></div><h2 id="settings-title">Expedition settings</h2><label class="setting"><span>Gentle pond<small>Predators move more slowly and water changes are gentler.</small></span><input id="gentle-toggle" type="checkbox" checked></label><label class="setting"><span>Reduce decorative motion<small>Keep the science animations, quiet the floating scenery.</small></span><input id="motion-toggle" type="checkbox"></label><button id="save-button" class="primary-button">Save & return →</button><p id="save-status" class="small-note"></p></dialog>
+  <dialog id="finish-dialog" class="finish-dialog" aria-labelledby="finish-title"><span class="eyebrow">EXPEDITION COMPLETE</span><div class="finish-art">◉ ◉<br>◉ ◉</div><h2 id="finish-title">One cell.<br>A whole new colony.</h2><p>You fueled life, managed water, and guided DNA into daughter cells. Keep exploring, or save a learning report.</p><div id="finish-stats"></div><button id="report-button" class="primary-button">Download learning report ↗</button><button id="keep-playing" class="text-button">Keep exploring →</button></dialog>
+  <dialog id="rescue-dialog" class="rescue-dialog"><span class="eyebrow">A FRESH START</span><h2>Your cell needs a little help.</h2><p>Low energy, predators, or water imbalance damaged its membrane. The pond has a recovery spot: your colony survives, and you can try again.</p><button id="rescue-button" class="primary-button">Return to balanced water →</button></dialog>
+  <dialog id="restart-dialog" class="settings-dialog"><span class="eyebrow">NEW EXPEDITION</span><h2>Start a fresh colony?</h2><p>This replaces your saved progress on this device.</p><button id="restart-confirm" class="primary-button">Start again →</button><button id="restart-cancel" class="text-button">Keep this expedition</button></dialog>
+<script>
+/* Original grade-seven learning content for the Cell Quest teaching model. */
+window.CellContent = {
+  stages: [
+    {
+      id: "G1", title: "G1 · Grow & gather", kicker: "Interphase · first growth phase",
+      description: "Your cell grows, takes in nutrients, and builds the materials it needs. Its DNA is spread out as chromatin inside the nucleus.",
+      goal: "Gather food, make ATP, and grow before copying DNA.",
+      fact: "Model count: 4 chromosomes, each with one DNA copy."
+    },
+    {
+      id: "S", title: "S · Copy the DNA", kicker: "Interphase · DNA synthesis",
+      description: "Each chromosome's DNA is copied during S phase. The two copies are sister chromatids, held together at the centromere region.",
+      goal: "Build a complete second copy of the DNA.",
+      fact: "After S: 4 duplicated chromosomes containing 8 chromatids."
+    },
+    {
+      id: "G2", title: "G2 · Get ready", kicker: "Interphase · final preparations",
+      description: "Your cell grows more and makes proteins needed for division. It checks that DNA copying is complete before mitosis begins.",
+      goal: "Finish preparations and keep enough ATP for division.",
+      fact: "The DNA has already been copied; G2 does not copy it again."
+    },
+    {
+      id: "prophase", title: "Prophase · Pack & prepare", kicker: "Mitosis · chromosomes become visible",
+      description: "Chromatin coils into compact chromosomes, and the spindle begins to form. This model also includes nuclear envelope breakdown and spindle attachment, usually called prometaphase.",
+      goal: "Watch the chromosomes condense and the spindle form.",
+      fact: "Each X-shaped duplicated chromosome has 2 sister chromatids."
+    },
+    {
+      id: "metaphase", title: "Metaphase · Meet in the middle", kicker: "Mitosis · line up",
+      description: "Duplicated chromosomes line up across the middle of the cell. Spindle fibers from opposite ends connect to the two sisters near their centromeres.",
+      goal: "Line up all 4 duplicated chromosomes at the cell's middle.",
+      fact: "Sister chromatids are still joined at this stage."
+    },
+    {
+      id: "anaphase", title: "Anaphase · Pull apart", kicker: "Mitosis · separate DNA copies",
+      description: "Sister chromatids separate and move toward opposite ends of the cell. Once separated, each former chromatid is called a chromosome.",
+      goal: "Send one copy of every chromosome to each end.",
+      fact: "Now 8 chromosomes in one cell: 4 heading to each end."
+    },
+    {
+      id: "telophase", title: "Telophase · Two nuclei", kicker: "Mitosis · rebuild the nuclei",
+      description: "A new nuclear envelope forms around each set of chromosomes. The chromosomes begin to loosen back into chromatin.",
+      goal: "Build 2 nuclei, each holding a complete DNA set.",
+      fact: "Nuclear division is ending; the cytoplasm still needs to finish splitting."
+    },
+    {
+      id: "cytokinesis", title: "Cytokinesis · Split into two", kicker: "Divide the cytoplasm",
+      description: "The cell membrane pinches inward as the cytoplasm separates. You now have two daughter cells, each with a nucleus and its own membrane.",
+      goal: "Finish the split, then choose a daughter cell to control.",
+      fact: "Each daughter has 4 chromosomes, matching the starting cell's number."
+    }
+  ],
+  questions: {
+    tutorial: {
+      prompt: "You are an amoeba-like pond cell. What makes this a eukaryotic cell?",
+      choices: ["It has a nucleus containing DNA.", "It has no cell membrane.", "It is always part of an animal.", "It cannot use energy."],
+      answer: 0,
+      explanation: "A eukaryotic cell has a nucleus and other membrane-bound organelles. This pond protist is a whole single-celled organism.",
+      hint: "Look for the compartment that holds most of the cell's DNA."
+    },
+    endocytosis: {
+      prompt: "Your cell wraps its membrane around a large food particle. What process is this?",
+      choices: ["Osmosis", "Mitosis", "Endocytosis, specifically phagocytosis", "Exocytosis"],
+      answer: 2,
+      explanation: "Phagocytosis is a type of endocytosis: the membrane surrounds a large particle and brings it into a food vesicle. This active process needs energy.",
+      hint: "The food is being brought into the cell, inside a membrane sac."
+    },
+    respiration: {
+      prompt: "Which ingredients does your cell use for aerobic cellular respiration?",
+      choices: ["Carbon dioxide and water", "Glucose and oxygen", "ATP and chromosomes", "Sunlight and salt"],
+      answer: 1,
+      explanation: "Aerobic respiration uses glucose and oxygen, producing carbon dioxide and water while transferring energy to ATP. It starts in the cytoplasm; many later steps happen in mitochondria.",
+      hint: "One ingredient is a food sugar; the other is a gas that diffuses into your cell."
+    },
+    exocytosis: {
+      prompt: "A vesicle fuses with your membrane and releases undigested food waste outside. What is this?",
+      choices: ["DNA replication", "Osmosis", "Endocytosis", "Exocytosis"],
+      answer: 3,
+      explanation: "Exocytosis moves vesicle contents out of the cell. Small carbon dioxide molecules from respiration leave by diffusion instead.",
+      hint: "The vesicle is releasing material to the exterior."
+    },
+    osmosis_in: {
+      prompt: "The surrounding water has fewer dissolved solutes than your cell. If those solutes cannot cross, what is the net movement of water?",
+      choices: ["Water moves into the cell.", "Water moves out of the cell.", "All water stops moving.", "Water turns into ATP."],
+      answer: 0,
+      explanation: "By osmosis, water moves overall toward the side with more dissolved solutes. This dilute outside solution is hypotonic, so the cell takes in water.",
+      hint: "The cell's interior has the higher solute concentration."
+    },
+    osmosis_out: {
+      prompt: "Your cell enters water with a higher concentration of dissolved salt than its interior. What happens overall?",
+      choices: ["The cell copies its DNA immediately.", "Water moves out, and the cell may shrink.", "Salt becomes a sister chromatid.", "Water must move in, making the cell swell."],
+      answer: 1,
+      explanation: "A saltier outside solution is hypertonic. Water moves out by osmosis toward that higher solute concentration, so the cell can shrink.",
+      hint: "Follow water toward the side with more dissolved solute."
+    },
+    G1: {
+      prompt: "What is your cell mainly doing during G1, the first part of interphase?",
+      choices: ["Pulling sister chromatids apart", "Forming two new nuclei", "Growing and building cell materials", "Splitting into four daughter cells"],
+      answer: 2,
+      explanation: "G1 is a growth and working phase. The cell gathers nutrients and builds materials before copying its DNA in S phase.",
+      hint: "G1 happens before DNA copying and before mitosis."
+    },
+    S: {
+      prompt: "Your cell starts with 4 chromosomes. After DNA copying in S phase, which count is correct?",
+      choices: ["2 chromosomes with no DNA", "8 separate chromosomes in two cells", "4 chromosomes with no copies", "4 duplicated chromosomes containing 8 chromatids"],
+      answer: 3,
+      explanation: "Each chromosome now contains two sister chromatids. Because each pair is still joined, the chromosome count remains 4, but there are 8 chromatids.",
+      hint: "Copying doubles the DNA amount before the sisters separate."
+    },
+    G2: {
+      prompt: "The DNA has been copied. What should happen during G2 before mitosis?",
+      choices: ["Check the copied DNA and finish division preparations.", "Discard half of the chromosomes.", "Skip all energy use.", "Copy the whole DNA set a second time."],
+      answer: 0,
+      explanation: "G2 prepares the cell for mitosis, including making needed proteins and checking that DNA copying is complete. The DNA is not copied again during G2.",
+      hint: "G2 is the final preparation phase of interphase."
+    },
+    prophase: {
+      prompt: "Long, loose chromatin becomes compact, visible chromosomes. Which stage is beginning?",
+      choices: ["Cytokinesis", "Prophase", "S phase", "G1"],
+      answer: 1,
+      explanation: "During prophase, chromosomes condense and the spindle starts to form. This game groups the following prometaphase events with prophase.",
+      hint: "This is the first stage of mitosis."
+    },
+    metaphase: {
+      prompt: "You see 4 duplicated chromosomes lined up at the cell's middle. Which mitosis stage is this?",
+      choices: ["Anaphase", "Telophase", "Metaphase", "G2"],
+      answer: 2,
+      explanation: "During metaphase, duplicated chromosomes line up in the middle. Their sister chromatids remain joined until anaphase starts.",
+      hint: "Think: metaphase, middle."
+    },
+    anaphase: {
+      prompt: "What moves toward opposite ends of your cell during anaphase?",
+      choices: ["Only the cell membrane", "Food vesicles instead of DNA", "Whole sister pairs that stay joined", "Separated sister chromatids, now called chromosomes"],
+      answer: 3,
+      explanation: "The sisters separate during anaphase. Each becomes a chromosome, and one copy of each original chromosome moves to each end.",
+      hint: "Anaphase pulls the DNA copies apart."
+    },
+    telophase: {
+      prompt: "What important change happens during telophase?",
+      choices: ["Two nuclear envelopes form around the chromosome sets.", "The cell copies all its DNA for the first time.", "All chromosomes line up at the middle again.", "Both DNA sets are destroyed."],
+      answer: 0,
+      explanation: "Telophase rebuilds nuclei around the two DNA sets, and the chromosomes begin to loosen. Mitosis is finishing.",
+      hint: "Think: two new nuclei."
+    },
+    cytokinesis: {
+      prompt: "Mitosis has separated the DNA into two nuclei. What does cytokinesis separate?",
+      choices: ["The sister chromatids again", "The cytoplasm into two daughter cells", "Oxygen into carbon dioxide", "The centromere into food"],
+      answer: 1,
+      explanation: "Cytokinesis divides the cytoplasm and completes the formation of two separate daughter cells. Each daughter in this model has 4 chromosomes.",
+      hint: "Nuclear division and the final splitting of the cell are different processes."
+    },
+    periodic: [
+      {
+        prompt: "What are sister chromatids?",
+        choices: ["Two different daughter cells", "Two unrelated food particles", "The two DNA copies of one duplicated chromosome", "The two sides of the cell membrane"],
+        answer: 2,
+        explanation: "Sister chromatids are the two matching copies made when a chromosome's DNA is copied in S phase. They remain joined until anaphase.",
+        hint: "A duplicated X-shaped chromosome is made of two sisters."
+      },
+      {
+        prompt: "Which part is the region where sister chromatids are held together?",
+        choices: ["Lysosome", "Cell membrane", "Food vacuole", "Centromere"],
+        answer: 3,
+        explanation: "The centromere is the chromosome region where the sisters remain joined. Spindle fibers attach to structures at this region during division.",
+        hint: "Look at the joined center of an X-shaped chromosome."
+      },
+      {
+        prompt: "Which list shows the parts of interphase in the correct order?",
+        choices: ["G1, S, G2", "Metaphase, anaphase, telophase", "Cytokinesis, prophase, S", "G2, G1, anaphase"],
+        answer: 0,
+        explanation: "Interphase includes G1 growth, S-phase DNA copying, and G2 preparations. It is an active part of the cell cycle.",
+        hint: "Grow first, copy DNA next, and prepare last."
+      },
+      {
+        prompt: "Which order correctly follows the four mitosis stages shown in this game?",
+        choices: ["Anaphase, prophase, telophase, metaphase", "Prophase, metaphase, anaphase, telophase", "Telophase, G1, S, metaphase", "Metaphase, cytokinesis, prophase, anaphase"],
+        answer: 1,
+        explanation: "Chromosomes condense in prophase, line up in metaphase, separate in anaphase, and enter new nuclei in telophase.",
+        hint: "Pack, middle, apart, two nuclei."
+      },
+      {
+        prompt: "Your cell has divided. Why does each daughter need a complete DNA set?",
+        choices: ["To stop water from ever moving", "To replace its membrane with DNA", "To have the instructions needed for cell activities", "To avoid needing food or ATP"],
+        answer: 2,
+        explanation: "DNA holds instructions for making proteins and carrying out cell activities. Mitosis distributes a complete copied set to each new nucleus.",
+        hint: "DNA is an information molecule."
+      },
+      {
+        prompt: "The parent started with 4 chromosomes. How many should each daughter have after mitosis and cytokinesis?",
+        choices: ["1", "2", "8", "4"],
+        answer: 3,
+        explanation: "The DNA was copied before division and the copies were separated evenly. Each daughter keeps the parent's chromosome number: 4 in this model.",
+        hint: "Each daughter receives one copy of every original chromosome."
+      },
+      {
+        prompt: "What is ATP's main job in your cell?",
+        choices: ["Transfer usable energy to cell processes", "Store the complete DNA instructions", "Make all matter from nothing", "Replace the cell membrane"],
+        answer: 0,
+        explanation: "ATP transfers energy to processes such as movement, transport, and building cell materials. Respiration helps replenish ATP using energy from food.",
+        hint: "The ATP meter fuels your cell's actions."
+      },
+      {
+        prompt: "Which organelle carries out many later steps of aerobic respiration?",
+        choices: ["Golgi apparatus", "Mitochondrion", "Centromere", "Nucleus"],
+        answer: 1,
+        explanation: "Many later respiration steps occur in mitochondria. Glycolysis, the first breakdown stage of glucose, takes place in the cytoplasm.",
+        hint: "Look for the bean-shaped organelle with folded inner membranes."
+      },
+      {
+        prompt: "Oxygen is more concentrated outside your cell than inside. How can it enter?",
+        choices: ["Only by mitosis", "Only inside a food vesicle", "By passive diffusion across the membrane", "By cytokinesis"],
+        answer: 2,
+        explanation: "Oxygen can diffuse across the cell membrane from higher to lower concentration. This transport does not require the cell to spend ATP.",
+        hint: "Small oxygen molecules can cross without being engulfed."
+      },
+      {
+        prompt: "What happens to carbon dioxide produced by your cell's respiration?",
+        choices: ["It must be stored in chromosomes.", "It becomes the cell's new nucleus.", "It is always removed inside a waste vesicle.", "It can diffuse out through the membrane."],
+        answer: 3,
+        explanation: "Carbon dioxide is a small gas molecule that can diffuse out of the cell. The game's exocytosis action removes undigested material in vesicles.",
+        hint: "Carbon dioxide uses the same kind of passive transport as oxygen."
+      },
+      {
+        prompt: "Which organelle helps digest material inside a food vesicle?",
+        choices: ["Lysosome", "Centromere", "Nuclear envelope", "Ribosome"],
+        answer: 0,
+        explanation: "Lysosomes contain digestive enzymes that break food into smaller molecules. Some of those nutrients can then fuel respiration or help build the cell.",
+        hint: "This organelle is the cell's digestive helper."
+      },
+      {
+        prompt: "Your freshwater pond cell is taking in extra water. What does its contractile vacuole do?",
+        choices: ["Copies the cell's DNA", "Collects and expels excess water", "Stores all of the chromosomes", "Changes water into glucose"],
+        answer: 1,
+        explanation: "Many freshwater protists use contractile vacuoles to remove excess water. Maintaining this water balance requires energy.",
+        hint: "The cell needs to avoid becoming too swollen."
+      },
+      {
+        prompt: "Which movement is osmosis?",
+        choices: ["Sister chromatids moving along spindle fibers", "Food entering a membrane vesicle", "Water crossing a selectively permeable membrane", "A daughter cell swimming away"],
+        answer: 2,
+        explanation: "Osmosis is the passive movement of water across a selectively permeable membrane. It is different from moving food in a vesicle.",
+        hint: "The substance moving is water."
+      },
+      {
+        prompt: "Which structure makes proteins for growth and repair?",
+        choices: ["Cell membrane", "Contractile vacuole", "Centromere", "Ribosome"],
+        answer: 3,
+        explanation: "Ribosomes assemble proteins from amino acids using genetic instructions. Cells need proteins for structures, enzymes, and many activities.",
+        hint: "Tiny dots in cell diagrams often represent these protein builders."
+      },
+      {
+        prompt: "What does the Golgi apparatus mainly do?",
+        choices: ["Modify, sort, and package cell products", "Separate sister chromatids", "Copy all of the DNA", "Turn salt into ATP"],
+        answer: 0,
+        explanation: "The Golgi apparatus modifies and packages materials such as proteins into vesicles for delivery. Different organelles have different jobs.",
+        hint: "Think of packaging and delivery inside the cell."
+      },
+      {
+        prompt: "What role does the cell membrane play?",
+        choices: ["It contains no proteins.", "It separates the cell from its surroundings and helps control what crosses.", "It is the same structure as a chromosome.", "It is completely open to every substance."],
+        answer: 1,
+        explanation: "The membrane is selectively permeable: different substances cross in different ways. It also changes shape during endocytosis and exocytosis.",
+        hint: "It forms the boundary of your cell."
+      },
+      {
+        prompt: "Why does your amoeba-like cell spend ATP when it moves?",
+        choices: ["Water can move only if ATP is spent.", "Its DNA is copied every time it turns.", "Changing its shape and moving its cell structures require energy.", "ATP is a kind of prey."],
+        answer: 2,
+        explanation: "An amoeba extends pseudopods using its cytoskeleton and flowing cytoplasm. These active movements depend on energy.",
+        hint: "Moving the cell is work."
+      },
+      {
+        prompt: "You control several daughter cells in the pond. What do they represent here?",
+        choices: ["One new organ in a human body", "One multicellular animal", "Four stages of one chromosome", "A population of separate single-celled organisms"],
+        answer: 3,
+        explanation: "Each daughter is a separate amoeba-like organism. Having several nearby cells does not automatically make a multicellular organism.",
+        hint: "Each cell has its own membrane and can live independently."
+      },
+      {
+        prompt: "Why is interphase important even though the cell is not yet splitting?",
+        choices: ["The cell grows, works, and prepares a complete DNA copy.", "The cell is completely inactive.", "Its chromosomes have already been thrown away.", "It stops needing nutrients."],
+        answer: 0,
+        explanation: "Interphase is busy: the cell carries out normal activities, grows, copies DNA, and prepares for division. It is not a resting or inactive stage.",
+        hint: "A cell has a lot to prepare before producing daughters."
+      },
+      {
+        prompt: "Your cell has plenty of glucose but very little oxygen. What should you expect from its aerobic respiration?",
+        choices: ["Oxygen is irrelevant, so nothing changes.", "ATP production from aerobic respiration is limited.", "The glucose turns directly into a daughter cell.", "All ATP is now made by the nucleus."],
+        answer: 1,
+        explanation: "Aerobic respiration depends on oxygen as well as fuel. Low oxygen limits this pathway even when glucose is available.",
+        hint: "Aerobic means that the pathway uses oxygen."
+      },
+      {
+        prompt: "During anaphase in this 4-chromosome model, 8 chromosomes are briefly in one cell. Why?",
+        choices: ["G2 copied the entire DNA set again.", "The cell swallowed 4 chromosomes from prey.", "The separated sisters are now each counted as chromosomes.", "The membrane has already split into 8 daughter cells."],
+        answer: 2,
+        explanation: "Sister chromatids become individual chromosomes when they separate. Four move to each end, so each finished daughter will have 4.",
+        hint: "The counting name changes when the sisters separate."
+      },
+      {
+        prompt: "What is the difference between mitosis and cytokinesis?",
+        choices: ["Both words mean oxygen diffusion.", "Mitosis makes food; cytokinesis makes ATP.", "Mitosis happens only in predators.", "Mitosis separates the nuclear DNA; cytokinesis divides the cytoplasm."],
+        answer: 3,
+        explanation: "Mitosis distributes the copied chromosomes into two nuclei. Cytokinesis separates the cell's cytoplasm into daughter cells; the processes often overlap.",
+        hint: "One process is nuclear division, and the other finishes splitting the cell."
+      }
+    ]
+  },
+  fieldGuide: [
+    { term: "Your pond cell", text: "An amoeba-like freshwater protist: one eukaryotic cell is a whole organism. This is a teaching model, not a specific species or a model of every cell type." },
+    { term: "Cell cycle", text: "The sequence of growth, DNA copying, and division. Interphase includes G1, S, and G2; mitosis and cytokinesis produce daughter cells." },
+    { term: "Interphase", text: "An active period when the cell does normal work, grows, copies DNA in S phase, and prepares for division. It is not an inactive rest." },
+    { term: "Chromosome & chromatin", text: "A chromosome is DNA packaged with proteins. It is loose chromatin during interphase and becomes compact for mitosis; chromosomes are not always X-shaped." },
+    { term: "Sister chromatids", text: "The two matching DNA copies of one duplicated chromosome. They form during S phase and remain joined until they separate in anaphase." },
+    { term: "Centromere", text: "The chromosome region where sister chromatids are held together. Spindle fibers connect to attachment structures called kinetochores at this region." },
+    { term: "Mitosis", text: "Division of the nuclear DNA into two complete sets. The four stages shown here are prophase, metaphase, anaphase, and telophase." },
+    { term: "Prophase", text: "Chromosomes condense and the spindle starts forming. For this four-stage model, the following prometaphase events—nuclear envelope breakdown and spindle attachment—are grouped here." },
+    { term: "Metaphase", text: "Duplicated chromosomes line up at the cell's middle. Opposite spindle poles are attached to opposite sisters; the sisters remain joined." },
+    { term: "Anaphase", text: "Sister chromatids separate and travel to opposite ends. Once separated, each is called a chromosome." },
+    { term: "Telophase", text: "New nuclear envelopes surround the two chromosome sets. Chromosomes loosen, and the spindle is taken apart." },
+    { term: "Cytokinesis", text: "Division of the cytoplasm into separate daughter cells. The game finishes the split after telophase; in many real cells, cytokinesis begins earlier and overlaps mitosis." },
+    { term: "Daughter cells", text: "The cells produced by a parent cell's division, normally with matching DNA and the same chromosome number. Here they are independent single-celled organisms, so your group is a population." },
+    { term: "Chromosome counting", text: "This model starts with 4 chromosomes: 2 long purple and 2 short orange. After S there are 4 duplicated chromosomes with 8 chromatids; during anaphase there are 8 chromosomes, 4 at each end; each daughter finishes with 4." },
+    { term: "Cell membrane", text: "The flexible, selectively permeable boundary that separates the cell from the pond. It contains lipids and proteins and can form or fuse with vesicles." },
+    { term: "Nucleus", text: "The membrane-bound compartment holding most of the cell's DNA. Its nuclear envelope breaks down during this division model and forms again around each new DNA set." },
+    { term: "Cytoplasm", text: "The cell contents outside the nucleus, including organelles and the fluid cytosol. Glycolysis begins glucose breakdown in the cytosol." },
+    { term: "Mitochondrion", text: "An organelle with folded inner membranes where many later steps of aerobic respiration occur. It helps transfer energy from food into ATP." },
+    { term: "Ribosome", text: "A small structure that builds proteins from amino acids. Proteins are needed for growth, enzymes, movement, and division." },
+    { term: "Golgi apparatus", text: "A stack of membrane compartments that modifies, sorts, and packages materials such as proteins. Vesicles carry the packaged products to their destinations." },
+    { term: "Lysosome", text: "An enzyme-filled compartment that digests food and recycles cell materials. Digestion supplies smaller nutrients, including sugars, and leaves some undigested waste." },
+    { term: "Vesicle", text: "A small membrane-bound sac that carries materials. Food enters in a vesicle; undigested material can leave when a waste vesicle fuses with the cell membrane." },
+    { term: "Endocytosis & phagocytosis", text: "Endocytosis brings material into the cell in a membrane sac and requires energy. Phagocytosis is the form that engulfs large particles or prey, as your pond cell does." },
+    { term: "Exocytosis", text: "A vesicle fuses with the cell membrane and releases its contents outside. The game uses it for undigested food waste; respiratory carbon dioxide exits by diffusion." },
+    { term: "ATP", text: "A molecule that transfers usable energy to cell processes. ATP is replenished by metabolism and spent on active tasks; it does not create new matter." },
+    { term: "Cellular respiration", text: "Aerobic respiration uses glucose and oxygen and produces carbon dioxide and water while transferring energy to ATP. It begins in the cytoplasm, with many later steps in mitochondria." },
+    { term: "Diffusion", text: "Net movement from higher toward lower concentration due to random molecular motion. Oxygen and carbon dioxide cross the membrane this way without an ATP transport cost." },
+    { term: "Osmosis", text: "Water moving across a selectively permeable membrane. In this model, net water movement is toward the side with more solute that cannot cross: into the cell in dilute water and out in salty water." },
+    { term: "Contractile vacuole", text: "Many freshwater protists collect and expel excess water with this organelle, using energy to maintain water balance. Typical animal cells do not have contractile vacuoles." },
+    { term: "Pseudopods & cytoskeleton", text: "An amoeba extends temporary projections called pseudopods to move or surround food. Its internal protein framework, the cytoskeleton, helps change its shape and form the mitotic spindle." },
+    { term: "Predator & prey", text: "A predator consumes another organism; that organism is its prey. Your pond cell eats smaller food organisms and can be eaten by a larger predator." },
+    { term: "Model limits", text: "Cell shapes, colors, sizes, speeds, ATP costs, and resource amounts are simplified game units. Real cells do not choose answers or division phases; organelles move, and mitosis timing varies among organisms." }
+  ],
+  sourceLinks: [
+    { title: "OpenStax · The cell cycle", url: "https://openstax.org/books/biology-2e/pages/10-2-the-cell-cycle" },
+    { title: "OpenStax · Endocytosis and exocytosis", url: "https://openstax.org/books/biology-2e/pages/5-4-bulk-transport" },
+    { title: "OpenStax · Diffusion and osmosis", url: "https://openstax.org/books/biology-2e/pages/5-2-passive-transport" },
+    { title: "OpenStax · Cellular respiration", url: "https://openstax.org/books/biology-2e/pages/7-1-energy-in-living-systems" }
+  ]
+};
+
+</script>
+<script>
+(function () {
+  'use strict';
+
+  // Everything is drawn in CSS pixels. The caller may scale the backing store for DPR.
+  const TAU = Math.PI * 2;
+  const INK = '#143c50';
+  // Teaching model: one long purple homologous pair and one short orange pair.
+  // Each chromosome's identical sisters keep the same color during division.
+  const DNA = ['#b767e7', '#b767e7', '#f1a141', '#f1a141'];
+  const chromosomeLength = (index, scale) => scale * (index < 2 ? 1.25 : .80);
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = t => t * t * (3 - 2 * t);
+  const seed = id => Number.isFinite(Number(id)) ? Number(id) : String(id || '').split('').reduce((n, c) => n + c.charCodeAt(0), 0);
+
+  function circle(ctx, x, y, r, fill, stroke, lw = 2) {
+    ctx.beginPath(); ctx.arc(x, y, Math.max(0.01, r), 0, TAU);
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
+  }
+  function ellipse(ctx, x, y, rx, ry, rotation, fill, stroke, lw = 2) {
+    ctx.beginPath(); ctx.ellipse(x, y, Math.max(.01, rx), Math.max(.01, ry), rotation, 0, TAU);
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
+  }
+  function line(ctx, points, color, width = 2, dash) {
+    ctx.beginPath(); ctx.moveTo(points[0][0], points[0][1]);
+    points.slice(1).forEach(p => ctx.lineTo(p[0], p[1]));
+    ctx.strokeStyle = color; ctx.lineWidth = width;
+    ctx.setLineDash(dash || []); ctx.stroke(); ctx.setLineDash([]);
+  }
+  function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.stroke(); }
+  }
+  function label(ctx, text, x, y, options = {}) {
+    const size = options.size || 12;
+    ctx.save(); ctx.font = `600 ${size}px "Trebuchet MS", ui-rounded, system-ui, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const width = ctx.measureText(text).width + 20;
+    roundRect(ctx, x - width / 2, y - size / 2 - 6, width, size + 12, 8, options.fill || '#fffffff0', options.stroke || '#b9d7dd');
+    ctx.fillStyle = options.color || INK; ctx.fillText(text, x, y + .5); ctx.restore();
+  }
+  function annotation(ctx, text, x, y, tx, ty, size = 12) {
+    line(ctx, [[x, y], [x, y + (ty > y ? 10 : -10)], [tx, ty]], '#496979', 1.3);
+    circle(ctx, tx, ty, 2.2, '#496979'); label(ctx, text, x, y, { size });
+  }
+
+  function membrane(ctx, x, y, rx, ry, time, fill, wobble = .025) {
+    ctx.beginPath();
+    for (let i = 0; i <= 120; i++) {
+      const a = i / 120 * TAU;
+      const wave = 1 + Math.sin(a * 5 + time * 1.6) * wobble + Math.sin(a * 3 - time) * wobble * .6;
+      const px = x + Math.cos(a) * rx * wave;
+      const py = y + Math.sin(a) * ry * wave;
+      if (!i) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+    ctx.strokeStyle = '#1e8292'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.save(); ctx.clip();
+    ctx.beginPath(); ctx.ellipse(x - rx * .06, y - ry * .10, rx * .87, ry * .86, 0, 0, TAU);
+    ctx.strokeStyle = '#b2fff390'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+  }
+
+  function mito(ctx, x, y, size, angle = 0, alpha = 1) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.globalAlpha *= alpha;
+    ctx.beginPath(); ctx.moveTo(-size * .78, -size * .24);
+    ctx.bezierCurveTo(-size * .5, -size * .74, size * .65, -size * .64, size * .84, 0);
+    ctx.bezierCurveTo(size * 1.04, size * .7, -size * .58, size * .73, -size * .78, size * .2);
+    ctx.quadraticCurveTo(-size * .96, 0, -size * .78, -size * .24);
+    ctx.fillStyle = '#ffc773'; ctx.fill(); ctx.strokeStyle = '#b97235'; ctx.lineWidth = Math.max(1.1, size * .11); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-size * .57, -.10 * size);
+    ctx.bezierCurveTo(-size * .25, -size * .3, -size * .47, size * .38, -size * .17, size * .3);
+    ctx.bezierCurveTo(size * .11, size * .2, -size * .18, -size * .45, size * .12, -size * .32);
+    ctx.bezierCurveTo(size * .34, -size * .18, size * .1, size * .39, size * .43, size * .26);
+    ctx.quadraticCurveTo(size * .7, .17 * size, size * .55, -size * .14);
+    ctx.strokeStyle = '#c47b36'; ctx.lineWidth = Math.max(1, size * .09); ctx.stroke();
+    ctx.restore();
+  }
+  function golgi(ctx, x, y, size, time) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(-.3);
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath(); ctx.moveTo(-size * .55, i * size * .18);
+      ctx.quadraticCurveTo(0, size * .24 + i * size * .16, size * .55, i * size * .18 - size * .08);
+      ctx.strokeStyle = i % 2 ? '#e88086' : '#dc6e85'; ctx.lineWidth = size * .13; ctx.lineCap = 'round'; ctx.stroke();
+    }
+    circle(ctx, size * .82 + Math.sin(time) * size * .08, size * .22, size * .12, '#fa9eb2', '#dc6e85', 1);
+    circle(ctx, -size * .78, size * .56, size * .1, '#fa9eb2', '#dc6e85', 1); ctx.restore();
+  }
+  function nucleus(ctx, x, y, r, time, alpha = 1, chromatin = true) {
+    ctx.save(); ctx.globalAlpha *= alpha;
+    const grad = ctx.createRadialGradient(x - r * .3, y - r * .4, 1, x, y, r);
+    grad.addColorStop(0, '#ebe6ff'); grad.addColorStop(1, '#b6a2ed');
+    circle(ctx, x, y, r, grad, '#7964b5', 2);
+    circle(ctx, x - r * .28, y + r * .15, r * .21, '#9580cf');
+    if (chromatin) {
+      for (let j = 0; j < 4; j++) {
+        ctx.beginPath();
+        for (let k = 0; k <= 36; k++) {
+          const a = k / 36 * TAU * 1.55;
+          const px = x + Math.cos(a + j * 1.7) * r * (.25 + .16 * Math.sin(a * 2 + j + time * .15));
+          const py = y + Math.sin(a * 1.1 + j * 1.7) * r * (.5 + .13 * Math.cos(a * 2));
+          if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = DNA[j]; ctx.lineWidth = r > 40 ? 2.4 : 1.4; ctx.globalAlpha = alpha * .85; ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function worldCell(ctx, cell, selected, time) {
+    const water = Number.isFinite(cell.water) ? cell.water : 50;
+    const r = cell.r || 48;
+    const swelling = .90 + clamp(water, 0, 100) / 100 * .2;
+    const rx = r * swelling;
+    const ry = rx * .91;
+    ctx.save(); ctx.translate(cell.x, cell.y);
+    ellipse(ctx, 0, ry * .82, rx * .91, ry * .29, 0, '#23434b22');
+    const g = ctx.createRadialGradient(-r * .3, -r * .4, r * .1, 0, 0, r * 1.15);
+    g.addColorStop(0, '#cefff4'); g.addColorStop(.58, '#7fe5d7'); g.addColorStop(1, '#42bea9');
+    membrane(ctx, 0, 0, rx, ry, time + seed(cell.id), g, .043);
+    // Pseudopods are membrane extensions, not legs or cilia.
+    ctx.save(); ctx.globalAlpha = .8;
+    const a = time * .4 + seed(cell.id);
+    for (let j = 0; j < 2; j++) {
+      const angle = a + j * 3.4;
+      ellipse(ctx, Math.cos(angle) * rx * .81, Math.sin(angle) * ry * .8, rx * .22, rx * .14, angle, '#91eadb', '#298f99', 1.3);
+    }
+    ctx.restore();
+    nucleus(ctx, -r * .12, -r * .11, r * .31, time);
+    mito(ctx, r * .45, -r * .32, r * .16, .5 + Math.sin(time) * .05);
+    mito(ctx, -r * .50, r * .24, r * .16, -.65);
+    golgi(ctx, r * .30, r * .27, r * .22, time);
+    circle(ctx, -r * .11, r * .53, r * (.095 + Math.sin(time * 2) * .012), '#e1ffff', '#58afb2', 1.3);
+    circle(ctx, r * .55, r * .19, r * .063, '#f6ecad', '#c29d5f', 1);
+    circle(ctx, -r * .51, -r * .34, r * .054, '#efbfc6', '#c97f9c', 1);
+    for (let j = 0; j < 10; j++) {
+      const an = j * 2.39;
+      const rr = r * (.47 + (j % 3) * .07);
+      circle(ctx, Math.cos(an) * rr, Math.sin(an) * rr * .88, r * .021, '#467f8760');
+    }
+    // Subtle expressive eyes are an intentional cartoon layer; organelles remain visible.
+    if (selected) {
+      circle(ctx, r * .13, -r * .02, 2.1, INK);
+      circle(ctx, r * .26, -r * .02, 2.1, INK);
+      ctx.beginPath(); ctx.arc(r * .20, r * .07, r * .045, .12, Math.PI - .12);
+      ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.setLineDash([5, 6]); circle(ctx, 0, 0, rx + 11, null, '#ffdf86', 2); ctx.setLineDash([]);
+      const atp = clamp((cell.atp || 0) / 100, 0, 1);
+      ctx.beginPath(); ctx.arc(0, 0, rx + 16, -Math.PI / 2, -Math.PI / 2 + TAU * atp);
+      ctx.strokeStyle = '#f8d56b'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.stroke();
+    }
+    ctx.restore();
+    return { r: rx, nr: r * .31 };
+  }
+
+  function glucose(ctx, x, y, time, id) {
+    ctx.save(); ctx.translate(x, y + Math.sin(time * 1.5 + id) * 3); ctx.rotate(time * .15 + id);
+    ctx.beginPath();
+    for (let j = 0; j < 6; j++) { const a = j / 6 * TAU; const px = Math.cos(a) * 10, py = Math.sin(a) * 10; if (!j) ctx.moveTo(px, py); else ctx.lineTo(px, py); }
+    ctx.closePath(); ctx.fillStyle = '#f9dc7d'; ctx.fill(); ctx.strokeStyle = '#ba944a'; ctx.lineWidth = 1.7; ctx.stroke();
+    circle(ctx, -3, -3, 2, '#fff2ba'); ctx.restore();
+  }
+  function algae(ctx, x, y, time, id) {
+    ctx.save(); ctx.translate(x, y + Math.sin(time + id) * 2); ctx.rotate(Math.sin(time * .6 + id) * .1);
+    line(ctx, [[0, 11], [0, -12]], '#368a68', 2);
+    for (let j = 0; j < 3; j++) {
+      const yy = 6 - j * 7;
+      ellipse(ctx, -5, yy, 7.5, 3.8, .5, '#72d795', '#328a69', 1.2);
+      ellipse(ctx, 5, yy - 3, 7.5, 3.8, -.5, '#9be5a5', '#328a69', 1.2);
+    }
+    ctx.restore();
+  }
+  function bacterium(ctx, x, y, time, id) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(time * .7 + id) * .5);
+    ctx.beginPath(); ctx.moveTo(-14, 0);
+    ctx.bezierCurveTo(-24, -8, -25, 10, -34, Math.sin(time * 7 + id) * 5);
+    ctx.strokeStyle = '#74bfbe'; ctx.lineWidth = 1.5; ctx.stroke();
+    roundRect(ctx, -14, -7, 28, 14, 7, '#c3efb0', '#55947c');
+    // Bacteria have DNA in a nucleoid; they have no membrane-bound nucleus.
+    ctx.beginPath(); ctx.moveTo(-8, 1);
+    ctx.bezierCurveTo(-5, -7, 2, 5, 7, -1); ctx.bezierCurveTo(10, 7, -2, -4, -6, 3);
+    ctx.strokeStyle = '#7b83b5'; ctx.lineWidth = 1.4; ctx.stroke();
+    circle(ctx, 9, -2, 1.5, '#376b69');
+    ctx.restore();
+  }
+  function predator(ctx, x, y, time, id) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(1.8, 1.8); ctx.rotate(Math.sin(time * .7 + id) * .12);
+    ellipse(ctx, 0, 21, 36, 10, 0, '#3c23472a');
+    ctx.beginPath();
+    for (let j = 0; j < 30; j++) {
+      const a = j / 30 * TAU;
+      const rr = j % 2 ? 31 : 37 + Math.sin(time * 3 + j) * 2;
+      const xx = Math.cos(a) * rr, yy = Math.sin(a) * rr * .78;
+      if (!j) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy);
+    }
+    ctx.closePath(); ctx.fillStyle = '#f08b9c'; ctx.fill(); ctx.strokeStyle = '#b55f7c'; ctx.lineWidth = 2.4; ctx.stroke();
+    ellipse(ctx, -10, -7, 7, 8, .1, '#fff4e9', '#b55f7c', 1);
+    ellipse(ctx, 10, -7, 7, 8, -.1, '#fff4e9', '#b55f7c', 1);
+    circle(ctx, -8, -5, 2.7, '#71435d'); circle(ctx, 8, -5, 2.7, '#71435d');
+    ctx.beginPath(); ctx.moveTo(-7, 10); ctx.quadraticCurveTo(0, 4, 7, 10);
+    ctx.strokeStyle = '#8d415f'; ctx.lineWidth = 2.3; ctx.lineCap = 'round'; ctx.stroke();
+    ctx.restore();
+  }
+  function visible(x, y, camera, w, h, padding = 90) {
+    return Math.abs(x - camera.x) < w / 2 + padding && Math.abs(y - camera.y) < h / 2 + padding;
+  }
+
+  function drawWorld(ctx, state, w, h, t) {
+    const time = Number.isFinite(t) ? t : 0;
+    const camera = state.camera || { x: 1100, y: 750 };
+    const world = state.world || { width: 2200, height: 1500 };
+    ctx.save(); ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#d1e8d5'; ctx.fillRect(0, 0, w, h);
+    ctx.translate(w / 2 - camera.x, h / 2 - camera.y);
+    const water = ctx.createLinearGradient(0, 0, world.width, world.height);
+    water.addColorStop(0, '#c5f0f5'); water.addColorStop(.27, '#beeacf'); water.addColorStop(.5, '#b4e3c8'); water.addColorStop(.73, '#c2dfc7'); water.addColorStop(1, '#d5d3ed');
+    ctx.fillStyle = water; roundRect(ctx, 0, 0, world.width, world.height, 90, water, '#78aaa5');
+    ctx.save();
+    const zones = [{ x: 0, w: 600, c: '#a7e4ff36' }, { x: 600, w: 1050, c: '#8acd8b18' }, { x: 1650, w: world.width - 1650, c: '#cda5f24d' }];
+    zones.forEach(z => { ctx.fillStyle = z.c; ctx.fillRect(z.x, 0, z.w, world.height); });
+    // Dissolved solute grows denser toward the salty side of the pond.
+    for (let i = 0; i < 180; i++) {
+      const x = ((i * 157.3 + 91) % world.width);
+      const y = ((i * 311.9 + 143) % world.height);
+      if (!visible(x, y, camera, w, h, 10)) continue;
+      circle(ctx, x + Math.sin(time * .4 + i) * 3, y + Math.cos(time * .3 + i) * 2, 1.1 + (i % 3) * .4, '#4a969b24');
+      if (x > 1650) {
+        circle(ctx, x + 12, y + 17, 1.8, '#897eae42'); circle(ctx, x - 18, y - 11, 1.8, '#897eae32');
+      }
+    }
+    ctx.globalAlpha = .20; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+    const left = Math.floor((camera.x - w / 2) / 190) * 190 - 190;
+    const top = Math.floor((camera.y - h / 2) / 150) * 150 - 150;
+    for (let xx = left; xx < camera.x + w / 2 + 190; xx += 190) {
+      for (let yy = top; yy < camera.y + h / 2 + 150; yy += 150) {
+        ctx.beginPath();
+        const shift = Math.sin(time * .3 + xx) * 10;
+        ctx.moveTo(xx, yy + shift); ctx.bezierCurveTo(xx + 35, yy - 13 + shift, xx + 85, yy + 35, xx + 140, yy + 15);
+        ctx.bezierCurveTo(xx + 190, yy - 5, xx + 210, yy + 55, xx + 175, yy + 70); ctx.stroke();
+      }
+    }
+    ctx.restore();
+    [600, 1650].forEach(x => {
+      line(ctx, [[x, 20], [x, world.height - 20]], '#79aaa52d', 2, [8, 12]);
+    });
+    // Natural pond borders establish the play area without hard grid tiles.
+    for (let i = 0; i < 24; i++) {
+      const x = 35 + i * (world.width - 70) / 23;
+      for (const y of [24, world.height - 24]) {
+        if (visible(x, y, camera, w, h, 80)) {
+          ellipse(ctx, x, y, 26 + (i % 4) * 4, 17, i * .7, '#77b69b', '#649c88', 1.5);
+          ellipse(ctx, x - 6, y - 3, 8, 4, .2, '#acd4b3');
+        }
+      }
+    }
+    (state.foods || []).forEach(f => {
+      if (!visible(f.x, f.y, camera, w, h)) return;
+      if (f.type === 'algae') algae(ctx, f.x, f.y, time, Number(f.id) || 0);
+      else glucose(ctx, f.x, f.y, time, Number(f.id) || 0);
+    });
+    (state.prey || []).forEach(b => { if (visible(b.x, b.y, camera, w, h)) bacterium(ctx, b.x, b.y, time, Number(b.id) || 0); });
+    (state.predators || []).forEach(p => { if (visible(p.x, p.y, camera, w, h)) predator(ctx, p.x, p.y, time, Number(p.id) || 0); });
+    let selected;
+    (state.cells || []).forEach(c => {
+      if (!visible(c.x, c.y, camera, w, h)) return;
+      worldCell(ctx, c, c.id === state.selectedId, time);
+      if (c.id === state.selectedId) selected = c;
+    });
+    if (selected && state.labels) {
+      const r = selected.r || 48;
+      annotation(ctx, 'Nucleus', selected.x - r - 42, selected.y - r - 25, selected.x - r * .12, selected.y - r * .2, 11);
+      annotation(ctx, 'Mitochondrion', selected.x + r + 64, selected.y - r - 23, selected.x + r * .45, selected.y - r * .32, 11);
+      annotation(ctx, 'Cell membrane', selected.x + r + 64, selected.y + r + 21, selected.x + r * .81, selected.y + r * .36, 11);
+      annotation(ctx, 'Contractile vacuole', selected.x - r - 68, selected.y + r + 24, selected.x - r * .11, selected.y + r * .53, 11);
+    }
+    const action = state.action;
+    if (action) {
+      const ax = action.x ?? selected?.x ?? 0, ay = action.y ?? selected?.y ?? 0;
+      const tt = clamp(action.time || 0, 0, 1.8);
+      const alpha = clamp(1 - tt / 1.8, 0, 1);
+      ctx.save(); ctx.globalAlpha = alpha;
+      if (action.type === 'respire') {
+        for (let j = 0; j < 6; j++) {
+          const a = j / 6 * TAU + tt;
+          const x = ax + Math.cos(a) * (25 + tt * 45), y = ay + Math.sin(a) * (25 + tt * 45);
+          ctx.fillStyle = '#e8be45'; ctx.beginPath(); ctx.moveTo(x + 2, y - 7); ctx.lineTo(x - 5, y + 1); ctx.lineTo(x, y + 1); ctx.lineTo(x - 2, y + 8); ctx.lineTo(x + 6, y - 1); ctx.lineTo(x + 1, y - 1); ctx.closePath(); ctx.fill();
+        }
+      } else if (action.type === 'pump') {
+        for (let j = 0; j < 8; j++) { const a = j / 8 * TAU; circle(ctx, ax + Math.cos(a) * (35 + tt * 55), ay + Math.sin(a) * (35 + tt * 55), 3.2, '#e5fdff', '#61bdcc', 1); }
+      } else if (action.type === 'endo' || action.type === 'exo') {
+        // Animate a membrane-bound vesicle: engulf inward, or fuse and release outward.
+        const cr = selected?.r || 48;
+        const cellX = selected?.x ?? ax, cellY = selected?.y ?? ay;
+        const direction = Math.hypot(ax - cellX, ay - cellY) > 5 ? Math.atan2(ay - cellY, ax - cellX) : -.22;
+        ctx.save(); ctx.translate(cellX, cellY); ctx.rotate(direction);
+        const vesicleR = cr * .22;
+        if (action.type === 'endo') {
+          const capture = clamp(tt / .8, 0, 1);
+          const vx = lerp(cr * 1.14, cr * .50, ease(clamp((tt - .35) / .95, 0, 1)));
+          if (capture < .85) {
+            ctx.beginPath(); ctx.moveTo(cr * .78, -vesicleR * 1.3);
+            ctx.bezierCurveTo(cr * 1.43, -vesicleR * 1.5, cr * 1.46, vesicleR * 1.5, cr * .78, vesicleR * 1.3);
+            ctx.fillStyle = '#a7efdf'; ctx.fill(); ctx.strokeStyle = '#258d97'; ctx.lineWidth = 2.2; ctx.stroke();
+          }
+          circle(ctx, vx, 0, vesicleR, '#dcf8bf', capture > .55 ? '#5b9f87' : null, 2);
+          algae(ctx, vx, 0, time, 0);
+          if (tt > .55 && state.labels) label(ctx, 'Food vesicle', vx, -vesicleR - 16, { size: 10 });
+        } else {
+          const fuse = clamp(tt / .95, 0, 1);
+          const vx = lerp(cr * .45, cr * .94, ease(fuse));
+          if (fuse < .96) {
+            circle(ctx, vx, 0, vesicleR, '#edd7f4', '#9b79b3', 2);
+            for (let j = 0; j < 4; j++) circle(ctx, vx + Math.cos(j * 1.7) * vesicleR * .48, Math.sin(j * 1.7) * vesicleR * .48, 2.8, '#ba86ca');
+          } else {
+            for (let j = 0; j < 5; j++) {
+              const angle = (j - 2) * .28;
+              const dist = (tt - .85) * 64;
+              circle(ctx, cr + Math.cos(angle) * dist, Math.sin(angle) * dist, 3.4, '#ba86ca', '#9965ad', 1);
+            }
+          }
+          if (state.labels) label(ctx, 'Vesicle releases waste', cr * 1.05, -vesicleR - 17, { size: 10 });
+        }
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+    (state.particles || []).forEach(p => {
+      const lifeRatio = p.maxLife ? clamp(p.life / p.maxLife, 0, 1) : .8;
+      ctx.save(); ctx.globalAlpha = lifeRatio;
+      if (p.text) {
+        ctx.font = '700 15px "Trebuchet MS", system-ui, sans-serif'; ctx.textAlign = 'center';
+        ctx.lineWidth = 3.5; ctx.strokeStyle = '#ffffffd9'; ctx.strokeText(p.text, p.x, p.y);
+        ctx.fillStyle = p.color || '#277a79'; ctx.fillText(p.text, p.x, p.y);
+      } else circle(ctx, p.x, p.y, 3, p.color || '#fbdb82');
+      ctx.restore();
+    });
+    ctx.restore();
+  }
+
+  // Each duplicated chromosome has two chromatids joined at one centromere.
+  function chromosomeX(ctx, x, y, scale, color, spread = 1, angle = 0) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.lineCap = 'round';
+    const arm = scale * .43 * spread;
+    // A left and a right sister, crossing only at the centromere.
+    const paths = [
+      [[-arm, -scale], [-scale * .13, -scale * .30], [0, 0], [-scale * .13, scale * .32], [-arm, scale]],
+      [[arm, -scale], [scale * .13, -scale * .30], [0, 0], [scale * .13, scale * .32], [arm, scale]]
+    ];
+    paths.forEach(p => { line(ctx, p, '#655178', scale * .36); line(ctx, p, color, scale * .25); });
+    circle(ctx, 0, 0, scale * .19, '#fff2b9', '#866640', Math.max(1, scale * .05));
+    ctx.restore();
+  }
+  function chromosomeSingle(ctx, x, y, scale, color, direction) {
+    ctx.save(); ctx.translate(x, y); ctx.lineCap = 'round';
+    // During anaphase the centromere leads toward its spindle pole.
+    const paths = [[direction * scale * .60, -scale], [0, 0], [direction * scale * .60, scale]];
+    line(ctx, paths, '#655178', scale * .32); line(ctx, paths, color, scale * .23);
+    circle(ctx, 0, 0, scale * .16, '#fff2b9', '#866640', 1); ctx.restore();
+  }
+  function centrosome(ctx, x, y, size, time, alpha = 1) {
+    ctx.save(); ctx.globalAlpha = alpha;
+    for (let j = 0; j < 8; j++) { const a = j / 8 * TAU + time * .03; line(ctx, [[x + Math.cos(a) * size * .45, y + Math.sin(a) * size * .45], [x + Math.cos(a) * size * 1.25, y + Math.sin(a) * size * 1.25]], '#5a98b878', 1.3); }
+    roundRect(ctx, x - size * .55, y - size * .19, size * 1.1, size * .38, 2, '#f2ba63', '#ad803e');
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 2);
+    roundRect(ctx, -size * .5, -size * .17, size, size * .34, 2, '#fbd484', '#ad803e'); ctx.restore(); ctx.restore();
+  }
+  function spindle(ctx, poleX, poleY, points, alpha = 1) {
+    ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = '#4c9fc0'; ctx.lineWidth = 1.6;
+    points.forEach(point => {
+      ctx.beginPath(); ctx.moveTo(poleX, poleY);
+      ctx.quadraticCurveTo((poleX + point[0]) / 2, poleY + (point[1] - poleY) * .16, point[0], point[1]); ctx.stroke();
+    }); ctx.restore();
+  }
+  function divisionOrganelles(ctx, cx, cy, r, time, spread = 0) {
+    mito(ctx, cx - r * .46, cy + r * .52, r * .092, -.6);
+    mito(ctx, cx + r * .47, cy - r * .47, r * .095, .6);
+    mito(ctx, cx + r * .53, cy + r * .46, r * .082, -.4);
+    golgi(ctx, cx - r * .48, cy - r * .48, r * .13, time);
+    for (let j = 0; j < 15; j++) { const a = j * 2.39; const rr = r * (.73 + (j % 3) * .06); circle(ctx, cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * .77, Math.max(1.3, r * .010), '#548c9950'); }
+  }
+  function nucleusCopying(ctx, cx, cy, nr, progress, time) {
+    nucleus(ctx, cx, cy, nr, time, 1, false);
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, nr * .92, 0, TAU); ctx.clip();
+    for (let j = 0; j < 4; j++) {
+      const baseY = cy - nr * .56 + j * nr * .36;
+      // Chromosomes remain diffuse chromatin while DNA is being copied.
+      for (let sister = 0; sister < 2; sister++) {
+        const copyFraction = sister ? progress : 1;
+        if (copyFraction <= 0) continue;
+        ctx.beginPath();
+        for (let k = 0; k <= 50 * copyFraction; k++) {
+          const extent = j < 2 ? .72 : .50;
+          const xx = cx - nr * extent + k / 50 * nr * extent * 2;
+          const yy = baseY + Math.sin(k * .26 + j * 1.8 + time * .14) * nr * .09 + sister * nr * .062;
+          if (!k) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy);
+        }
+        ctx.strokeStyle = DNA[j]; ctx.lineWidth = 2.5; ctx.globalAlpha = sister ? .67 : 1; ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+  function daughterNucleus(ctx, x, y, nr, p, time) {
+    // Four single chromosomes decondense into chromatin inside each new nucleus.
+    nucleus(ctx, x, y, nr, time, .4 + .6 * p, false);
+    for (let j = 0; j < 4; j++) {
+      const yj = y - nr * .50 + j * nr * .33;
+      ctx.save(); ctx.globalAlpha = 1 - p;
+      chromosomeSingle(ctx, x + (j % 2 ? 1 : -1) * nr * .09, yj, chromosomeLength(j, nr * .16), DNA[j], -1); ctx.restore();
+      ctx.save(); ctx.globalAlpha = p; ctx.beginPath();
+      for (let k = 0; k <= 35; k++) {
+        const extent = j < 2 ? .68 : .45;
+        const px = x - nr * extent + k / 35 * nr * extent * 2;
+        const py = yj + Math.sin(k * .47 + j + time * .12) * nr * .09;
+        if (!k) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.strokeStyle = DNA[j]; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    }
+  }
+  function pinchingCell(ctx, cx, cy, rx, ry, p, time) {
+    // Cleavage pinches from both sides; the two daughter cells form only at the end.
+    const waist = ry * (1 - .94 * p);
+    const sep = rx * .48;
+    const g = ctx.createLinearGradient(cx - rx, cy - ry, cx + rx, cy + ry);
+    g.addColorStop(0, '#d1fff1'); g.addColorStop(1, '#61d1bd');
+    ctx.beginPath(); ctx.moveTo(cx, cy - waist);
+    ctx.bezierCurveTo(cx - sep * .7, cy - ry * .72, cx - rx * .95, cy - ry * 1.06, cx - rx, cy);
+    ctx.bezierCurveTo(cx - rx * .95, cy + ry * 1.06, cx - sep * .7, cy + ry * .72, cx, cy + waist);
+    ctx.bezierCurveTo(cx + sep * .7, cy + ry * .72, cx + rx * .95, cy + ry * 1.06, cx + rx, cy);
+    ctx.bezierCurveTo(cx + rx * .95, cy - ry * 1.06, cx + sep * .7, cy - ry * .72, cx, cy - waist);
+    ctx.closePath(); ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = '#258d97'; ctx.lineWidth = 3; ctx.stroke();
+    return { waist, sep };
+  }
+
+  function drawDivision(ctx, phase, p, t, w, h) {
+    p = ease(clamp(p || 0, 0, 1));
+    const time = Number.isFinite(t) ? t : 0;
+    const narrow = w < 570;
+    const fontSize = narrow ? 10 : 12;
+    const r = Math.min(w * (narrow ? .34 : .245), h * .34, 170);
+    const cx = w / 2, cy = h * .50;
+    const leftX = Math.max(65, cx - r - (narrow ? 16 : 68));
+    const rightX = Math.min(w - 70, cx + r + (narrow ? 16 : 68));
+    const topY = Math.max(22, cy - r - 31), bottomY = Math.min(h - 25, cy + r + 28);
+    ctx.save(); ctx.clearRect(0, 0, w, h);
+    const bg = ctx.createLinearGradient(0, 0, w, h); bg.addColorStop(0, '#f3fcf8'); bg.addColorStop(1, '#eff7fd');
+    roundRect(ctx, 1, 1, w - 2, h - 2, 20, bg);
+    for (let j = 0; j < 18; j++) { const x = (j * 157.91 + 39) % w, y = (j * 93.41 + 22) % h; circle(ctx, x, y, 2.5 + j % 4, '#6cb8c712'); }
+    const isInterphase = ['G1', 'S', 'G2'].includes(phase);
+    const elongation = ['anaphase', 'telophase'].includes(phase) ? 1 + .14 * (phase === 'anaphase' ? p : 1) : 1;
+    const rx = r * elongation, ry = r * .91;
+    const grad = ctx.createRadialGradient(cx - r * .25, cy - r * .35, r * .05, cx, cy, r * 1.3);
+    grad.addColorStop(0, '#d7fff4'); grad.addColorStop(.65, '#a2eee0'); grad.addColorStop(1, '#67ccbb');
+    ellipse(ctx, cx, cy + ry * .94, rx * .82, 12, 0, '#70a39815');
+    if (phase === 'cytokinesis') {
+      if (p > .97) {
+        const dr = r * .64;
+        membrane(ctx, cx - dr * .94, cy, dr * .92, dr, time, grad, .015);
+        membrane(ctx, cx + dr * .94, cy, dr * .92, dr, time + 1, grad, .015);
+        daughterNucleus(ctx, cx - dr * .94, cy, dr * .39, 1, time);
+        daughterNucleus(ctx, cx + dr * .94, cy, dr * .39, 1, time);
+        mito(ctx, cx - dr * 1.18, cy + dr * .58, dr * .13, -.6);
+        mito(ctx, cx + dr * 1.18, cy + dr * .58, dr * .13, .6);
+        golgi(ctx, cx - dr * .7, cy - dr * .5, dr * .17, time);
+        golgi(ctx, cx + dr * 1.12, cy - dr * .5, dr * .17, time);
+        annotation(ctx, 'Daughter cell', cx - dr * 1.1, bottomY, cx - dr * 1.1, cy + dr * .62, fontSize);
+        annotation(ctx, 'Daughter cell', cx + dr * 1.1, bottomY, cx + dr * 1.1, cy + dr * .62, fontSize);
+        label(ctx, 'Same DNA • 4 chromosomes each', cx, topY, { size: fontSize });
+      } else {
+        const pinch = pinchingCell(ctx, cx, cy, r * 1.17, ry, p, time);
+        daughterNucleus(ctx, cx - r * .56, cy, r * .29, 1, time);
+        daughterNucleus(ctx, cx + r * .56, cy, r * .29, 1, time);
+        mito(ctx, cx - r * .76, cy + r * .38, r * .10, -.6);
+        mito(ctx, cx + r * .76, cy + r * .38, r * .10, .6);
+        annotation(ctx, 'Cleavage furrow', cx, topY, cx, cy - pinch.waist, fontSize);
+        label(ctx, 'Cytoplasm divides into two cells', cx, bottomY, { size: fontSize });
+      }
+      ctx.restore(); return;
+    }
+    membrane(ctx, cx, cy, rx, ry, time, grad, .012);
+    divisionOrganelles(ctx, cx, cy, r, time);
+    const poleL = cx - r * .79, poleR = cx + r * .79;
+    const chromScale = r * .095;
+    const ys = [-.44, -.145, .145, .44].map(y => cy + y * r);
+    if (isInterphase) {
+      const nr = r * .49;
+      const copied = phase === 'G1' ? 0 : phase === 'S' ? p : 1;
+      nucleusCopying(ctx, cx, cy, nr, copied, time);
+      centrosome(ctx, cx + r * .55, cy + r * .05, r * .055, time);
+      if (phase === 'G2' || (phase === 'S' && p > .55)) centrosome(ctx, cx + r * .64, cy + r * .18, r * .055, time);
+      annotation(ctx, 'Nuclear envelope', leftX, topY, cx - nr * .71, cy - nr * .69, fontSize);
+      annotation(ctx, phase === 'G1' ? 'DNA is diffuse chromatin' : phase === 'S' ? 'DNA is being copied' : 'DNA has been copied', rightX, topY + (narrow ? 32 : 0), cx + nr * .34, cy - nr * .3, fontSize);
+      label(ctx, phase === 'G1' ? 'Grow • gather food • make ATP' : phase === 'S' ? 'Each chromosome is copied once' : 'Prepare for mitosis', cx, bottomY, { size: fontSize });
+      annotation(ctx, 'Mitochondrion', leftX, bottomY - (narrow ? 30 : 0), cx - r * .46, cy + r * .52, fontSize);
+    } else if (phase === 'prophase') {
+      const progress = p;
+      const positions = [
+        [cx - r * .23, cy - r * .28], [cx + r * .23, cy - r * .20],
+        [cx - r * .21, cy + r * .25], [cx + r * .23, cy + r * .24]
+      ];
+      if (progress < .78) {
+        ctx.save(); ctx.globalAlpha = 1 - progress * .85;
+        circle(ctx, cx, cy, r * .50, '#bba3e91c', '#8874bb', 2);
+        ctx.setLineDash(progress > .4 ? [6, 7] : []); circle(ctx, cx, cy, r * .52, null, '#8874bb', 2); ctx.setLineDash([]); ctx.restore();
+      }
+      centrosome(ctx, lerp(cx + r * .55, poleL, progress), cy, r * .065, time);
+      centrosome(ctx, lerp(cx + r * .66, poleR, progress), cy, r * .065, time);
+      spindle(ctx, poleL, cy, positions.slice(0, 2), progress * .55);
+      spindle(ctx, poleR, cy, positions.slice(2, 4), progress * .55);
+      positions.forEach((xy, i) => chromosomeX(ctx, xy[0], xy[1], chromosomeLength(i, chromScale * 1.35), DNA[i], 1, (i % 2 ? .17 : -.14)));
+      annotation(ctx, 'Sister chromatids', leftX, topY, positions[0][0] - chromScale * .5, positions[0][1] - chromScale * .9, fontSize);
+      annotation(ctx, 'Centromere', rightX, topY, positions[1][0], positions[1][1], fontSize);
+      label(ctx, progress < .65 ? 'Chromosomes condense • envelope breaks down' : '4 duplicated chromosomes • spindle forms', cx, bottomY, { size: fontSize });
+    } else if (phase === 'metaphase') {
+      ctx.save(); ctx.setLineDash([4, 5]); line(ctx, [[cx, cy - r * .73], [cx, cy + r * .73]], '#73979b80', 1.2, [4, 5]); ctx.restore();
+      const points = ys.map(y => [cx, y]);
+      spindle(ctx, poleL, cy, points); spindle(ctx, poleR, cy, points);
+      centrosome(ctx, poleL, cy, r * .065, time); centrosome(ctx, poleR, cy, r * .065, time);
+      ys.forEach((y, i) => chromosomeX(ctx, cx, y, chromosomeLength(i, chromScale), DNA[i]));
+      annotation(ctx, 'Sister chromatids', leftX, topY, cx - chromScale * .41, ys[0] - chromScale * .8, fontSize);
+      annotation(ctx, 'Centromere', rightX, topY, cx, ys[1], fontSize);
+      annotation(ctx, 'Spindle fibers', leftX, bottomY, cx - r * .4, cy + r * .24, fontSize);
+      annotation(ctx, 'Cell equator', rightX, bottomY, cx, cy + r * .62, fontSize);
+    } else if (phase === 'anaphase') {
+      const dist = lerp(r * .10, r * .57, p);
+      const leftPoints = ys.map(y => [cx - dist, y * 1 + (cy - y) * p * .32]);
+      const rightPoints = ys.map(y => [cx + dist, y * 1 + (cy - y) * p * .32]);
+      spindle(ctx, poleL, cy, leftPoints); spindle(ctx, poleR, cy, rightPoints);
+      centrosome(ctx, poleL, cy, r * .065, time); centrosome(ctx, poleR, cy, r * .065, time);
+      leftPoints.forEach((xy, i) => chromosomeSingle(ctx, xy[0], xy[1], chromosomeLength(i, chromScale * .92), DNA[i], 1));
+      rightPoints.forEach((xy, i) => chromosomeSingle(ctx, xy[0], xy[1], chromosomeLength(i, chromScale * .92), DNA[i], -1));
+      annotation(ctx, 'Centromere leads', leftX, topY, leftPoints[0][0], leftPoints[0][1], fontSize);
+      annotation(ctx, 'Daughter chromosomes', rightX, topY + (narrow ? 32 : 0), rightPoints[1][0] + chromScale * .5, rightPoints[1][1] - chromScale * .6, fontSize);
+      label(ctx, '4 chromosomes move to each pole', cx, bottomY, { size: fontSize });
+    } else if (phase === 'telophase') {
+      spindle(ctx, poleL, cy, ys.map(y => [cx - r * .53, y]), .7 * (1 - p));
+      spindle(ctx, poleR, cy, ys.map(y => [cx + r * .53, y]), .7 * (1 - p));
+      const nr = r * .31;
+      daughterNucleus(ctx, cx - r * .51, cy, nr, p, time);
+      daughterNucleus(ctx, cx + r * .51, cy, nr, p, time);
+      annotation(ctx, 'Nuclear envelopes reform', cx, topY, cx - r * .51 - nr * .65, cy - nr * .72, fontSize);
+      label(ctx, 'Two nuclei • chromosomes loosen into chromatin', cx, bottomY, { size: fontSize });
+    }
+    ctx.restore();
+  }
+
+  window.CellArt = { drawWorld, drawDivision };
+})();
+
+</script>
+<script>
+/* Cell Quest — dependency-free browser game. All costs and timing are teaching-game units. */
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const C = window.CellContent, Art = window.CellArt;
+  const SAVE_KEY = 'cell-quest-v1';
+  const WORLD = {width:2200,height:1500};
+  const keys = new Set();
+  const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+  const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
+  const rand = (a,b) => a+Math.random()*(b-a);
+  let state, started = false, paused = false, division = null, quiz = null;
+  const modalReturnFocus = new WeakMap();
+  let last = performance.now(), frameTime = 0, hudTime = 0, saveTime = 0;
+  let canvasW = 800, canvasH = 470, divisionW = 780, divisionH = 340;
+  let quizSerial = 0, nextId = 2, nextObject = 1, target = null, saved = null;
+  let settings = {gentle:true,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches};
+  const ctx = $('pond').getContext('2d');
+  const dctx = $('division-canvas').getContext('2d');
+  const dialogs = [...document.querySelectorAll('dialog')];
+  function cell(id,x,y,opts={}) {return {id,x,y,r:49,atp:48,oxygen:85,glucose:1,waste:0,water:100,health:100,growth:20,replicated:false,hitCooldown:0,...opts};}
+  function makeFood(type,x=rand(100,2100),y=rand(100,1400)) {return {id:nextObject++,type,x,y};}
+  function fresh() {
+    nextId=2;nextObject=1;
+    state={version:1,cells:[cell(1,1080,760)],selectedId:1,foods:[],prey:[],predators:[],particles:[],camera:{x:1080,y:760},world:WORLD,action:null,labels:true,pointer:{x:0,y:0},group:false,elapsed:0,quizDue:65,periodicIndex:0,learned:{},stats:{eaten:0,respired:0,released:0,pumped:0,prey:0,divisions:0,questions:0,attempts:0,correctFirst:0},visited:{fresh:false,salty:false},completed:false};
+    for(let i=0;i<72;i++) state.foods.push(makeFood(i%3===0?'glucose':'algae'));
+    state.foods.push(makeFood('algae',1175,730),makeFood('algae',960,840),makeFood('algae',1110,930),makeFood('glucose',1060,660));
+    for(let i=0;i<12;i++) state.prey.push({id:nextObject++,x:rand(130,2070),y:rand(130,1370),angle:rand(0,Math.PI*2),seed:Math.random()*10});
+    for(let i=0;i<4;i++) state.predators.push({id:nextObject++,x:[350,1930,1600,500][i],y:[400,650,1220,1250][i],angle:0});
+    target=null;division=null;quiz=null;paused=false;keys.clear();document.body.classList.remove('paused');
+    updateHUD();
+  }
+  function current() {return state.cells.find(c=>c.id===state.selectedId)||state.cells[0];}
+  function anyDialog() {return dialogs.some(d=>d.open);}
+  function playing() {return started&&!paused&&!anyDialog()&&!division;}
+  function message(text) {if($('pond-message').textContent!==text)$('pond-message').textContent=text;}
+  function burst(text,c=current(),color='#335b43') {state.particles.push({x:c.x,y:c.y-55,life:1.8,maxLife:1.8,text,color});}
+  function action(type) {const c=current();state.action={type,time:0,x:c.x,y:c.y};}
+  function selectCell(id) {state.selectedId=id;target=null;updateHUD();}
+  function modal(d) {keys.clear();target=null;if(!d.open){modalReturnFocus.set(d,document.activeElement);d.showModal();}}
+  function close(d) {if(d.open)d.close();keys.clear();const previous=modalReturnFocus.get(d);if(previous?.isConnected) previous.focus({preventScroll:true});}
+  function showQuiz(key,onComplete,context='') {
+    const q=typeof key==='string'?C.questions[key]:key;
+    if(!q) {onComplete?.();return;}
+    const choices=q.choices.map((label,original)=>({label,original})).sort(()=>Math.random()-.5);
+    quiz={q,key,onComplete,attempts:0,done:false};quizSerial++;
+    $('quiz-title').textContent=q.prompt;$('quiz-context').textContent=context;$('quiz-context').hidden=!context;
+    $('quiz-count').textContent=String(quizSerial).padStart(2,'0');$('quiz-feedback').textContent='';
+    $('quiz-continue').hidden=true;$('quiz-hint').hidden=false;
+    $('quiz-choices').replaceChildren();
+    choices.forEach((choice,i)=>{
+      const b=document.createElement('button');b.type='button';
+      const letter=document.createElement('span');letter.className='letter';letter.textContent=String.fromCharCode(65+i);
+      const label=document.createElement('span');label.textContent=choice.label;b.append(letter,label);
+      b.addEventListener('click',()=>{
+        if(quiz.done)return;
+        quiz.attempts++;state.stats.attempts++;
+        if(choice.original===q.answer){
+          quiz.done=true;state.stats.questions++;if(quiz.attempts===1)state.stats.correctFirst++;
+          b.classList.add('correct');$('quiz-feedback').textContent='Yes! '+q.explanation;
+          [...$('quiz-choices').children].forEach(el=>el.disabled=true);
+          $('quiz-continue').hidden=false;$('quiz-hint').hidden=true;$('quiz-continue').focus();
+        }else{
+          b.classList.add('wrong');b.disabled=true;
+          $('quiz-feedback').textContent='Try again. '+q.hint;
+        }
+      });$('quiz-choices').append(b);
+    });modal($('quiz-dialog'));
+  }
+  function learn(key,fn,context) {if(state.learned[key])fn?.();else showQuiz(key,()=>{state.learned[key]=true;fn?.();save();},context);}
+  $('quiz-hint').addEventListener('click',()=>{$('quiz-feedback').textContent=quiz.q.hint;});
+  $('quiz-continue').addEventListener('click',()=>{if(!quiz?.done)return;const callback=quiz.onComplete;quiz=null;close($('quiz-dialog'));callback?.();updateHUD();checkCompletion();});
+  $('quiz-dialog').addEventListener('cancel',e=>e.preventDefault());
+  $('division-dialog').addEventListener('cancel',e=>e.preventDefault());
+  $('rescue-dialog').addEventListener('cancel',e=>e.preventDefault());
+  $('welcome-dialog').addEventListener('cancel',e=>e.preventDefault());
+  function eat() {
+    if(!playing())return;const c=current();
+    if(c.atp<4){message('Engulfing needs 4 ATP. Press R to use stored glucose, or touch a sugar crystal for passive transport.');return;}
+    const candidates=[...state.foods.filter(f=>f.type==='algae').map(f=>({...f,kind:'food'})),...state.prey.map(p=>({...p,kind:'prey'}))].sort((a,b)=>distance(c,a)-distance(c,b));
+    const food=candidates[0];if(!food||distance(c,food)>c.r+72){message('Get closer to a green algae cluster or a tiny striped prey organism, then press E.');return;}
+    c.atp-=4;c.glucose=clamp(c.glucose+(food.kind==='prey'?3:3),0,30);c.waste++;c.growth=clamp(c.growth+24,0,100);state.stats.eaten++;
+    if(food.kind==='prey'){state.prey=state.prey.filter(p=>p.id!==food.id);state.stats.prey++;}else state.foods=state.foods.filter(f=>f.id!==food.id);
+    state.foods.push(makeFood('algae'));action('endo');burst('+3 glucose · food vesicle');
+    message('Endocytosis! Your membrane encloses food; lysosome enzymes digest it. Some undigested waste remains.');
+    learn('endocytosis',null,'You just engulfed a food particle.');updateHUD();
+  }
+  function respire() {
+    if(!playing())return;const c=current();
+    if(c.glucose<1){message('You need glucose. Engulf food with E, or swim over a sugar crystal to take up glucose through transport proteins.');return;}
+    if(c.oxygen<6){message('You need oxygen. Wait as oxygen diffuses from the oxygen-rich pond into your cell.');return;}
+    if(c.atp>=132){message('Your ATP reserves are nearly full. Spend energy on movement, transport, or division.');return;}
+    c.glucose--;c.oxygen-=6;c.atp=clamp(c.atp+24,0,140);c.growth=clamp(c.growth+6,0,100);state.stats.respired++;action('respire');burst('+24 ATP',c,'#997032');
+    message('Glucose + oxygen → carbon dioxide + water; energy transfers to ATP. CO₂ diffuses out. +24 game ATP.');
+    learn('respiration',null,'You used nutrients to replenish ATP.');updateHUD();
+  }
+  function exocytose() {
+    if(!playing())return;const c=current();
+    if(c.waste<1){message('No undigested food waste to release yet. First engulf some food.');return;}
+    if(c.atp<3){message('Exocytosis needs 3 ATP. Press R to replenish ATP.');return;}
+    const amount=c.waste;c.atp-=3;c.waste=0;c.health=clamp(c.health+5,0,100);state.stats.released++;action('exo');burst('Waste vesicle → outside');
+    message('Exocytosis! A waste vesicle fuses with your cell membrane and releases undigested leftovers.');
+    learn('exocytosis',null,`You released ${amount} unit${amount===1?'':'s'} of undigested food waste.`);updateHUD();
+  }
+  function pump() {
+    if(!playing())return;const c=current();
+    if(c.water<=105){message('Your contractile vacuole pumps excess water. Try it after freshwater makes your cell swell above 105%.');return;}
+    if(c.atp<4){message('Pumping excess water uses 4 ATP. Replenish ATP with R first.');return;}
+    c.atp-=4;c.water=Math.max(100,c.water-27);state.stats.pumped++;action('pump');burst('Excess water expelled');
+    message('Your contractile vacuole collected and expelled excess water, using energy. Return to balanced water for a break.');updateHUD();checkCompletion();
+  }
+  const stageCounts=['4 chromosomes · 4 DNA copies','DNA copying → 8 chromatids','4 duplicated chromosomes · 8 chromatids','4 duplicated chromosomes · 8 chromatids','4 duplicated chromosomes · 8 chromatids','8 chromosomes · 4 at each end','2 nuclei · 4 chromosomes each','2 daughter cells · 4 chromosomes each'];
+  function canDivide() {const c=current();return c.growth>=100&&c.atp>=70&&c.glucose>=2&&c.health>=45&&c.water>=65&&c.water<=135&&state.stats.eaten>=2&&state.stats.released>=1&&state.stats.respired>=2&&state.cells.length<8;}
+  function beginDivision() {
+    if(!playing()||!canDivide())return;
+    division={index:0,progress:0,time:0,animationPaused:false,parentId:current().id};
+    target=null;modal($('division-dialog'));renderStage();
+  }
+  function renderStage() {
+    const stage=C.stages[division.index];
+    $('division-title').textContent=stage.title;$('division-kicker').textContent=stage.kicker;
+    $('division-description').textContent=stage.description;$('division-fact').textContent=stage.fact;
+    $('chromosome-count').textContent=stageCounts[division.index];
+    $('division-next').disabled=true;$('division-next').textContent='Check understanding →';
+    $('division-wait').textContent=stage.goal;$('division-pause').textContent='Pause animation Ⅱ';
+    $('division-track').replaceChildren();
+    C.stages.forEach((s,i)=>{const el=document.createElement('span');el.textContent=['G1','S','G2','Prophase','Metaphase','Anaphase','Telophase','Cytokinesis'][i];el.className=i===division.index?'active':i<division.index?'done':'';$('division-track').append(el);});
+    $('cycle-label').textContent=stage.title;updateTrack(division.index);
+  }
+  $('division-next').addEventListener('click',()=>{
+    if(!division||division.progress<1)return;
+    const stage=C.stages[division.index];showQuiz(stage.id,()=>{
+      state.learned[stage.id]=true;
+      if(division.index===7)finishDivision();
+      else {division.index++;division.progress=0;division.time=0;division.animationPaused=false;renderStage();}
+    },stage.fact);
+  });
+  $('division-pause').addEventListener('click',()=>{if(!division)return;division.animationPaused=!division.animationPaused;$('division-pause').textContent=division.animationPaused?'Resume animation ▷':'Pause animation Ⅱ';});
+  function finishDivision() {
+    const parent=state.cells.find(c=>c.id===division.parentId);const remaining=parent.atp-52;
+    const daughter1=cell(parent.id,clamp(parent.x-57,60,2140),parent.y,{atp:remaining/2,oxygen:parent.oxygen/2,glucose:Math.floor(parent.glucose/2),waste:Math.floor(parent.waste/2),water:100,health:parent.health,growth:25});
+    const daughter2=cell(nextId++,clamp(parent.x+57,60,2140),parent.y,{atp:remaining/2,oxygen:parent.oxygen/2,glucose:parent.glucose-daughter1.glucose,waste:parent.waste-daughter1.waste,water:100,health:parent.health,growth:25});
+    state.cells=state.cells.filter(c=>c.id!==parent.id);state.cells.push(daughter1,daughter2);state.stats.divisions++;state.selectedId=daughter2.id;
+    state.elapsed+=1;division=null;close($('division-dialog'));burst('Two daughter cells!');
+    message('Two daughter cells, each with matching DNA! Click a cell or its number to control it. Each can grow and divide again.');
+    $('science-tip').textContent='Your daughter cells are independent single-celled organisms. A growing colony is a population, not one multicellular animal.';
+    updateHUD();save();checkCompletion();
+  }
+  function updateTrack(index=0) {
+    $('stage-track').replaceChildren();C.stages.forEach((s,i)=>{const el=document.createElement('span');el.textContent=['G1','S','G2','Prophase','Metaphase','Anaphase','Telophase','Cytokinesis'][i];el.className=i===index?'active':'';$('stage-track').append(el);});
+  }
+  let colonySignature='';
+  function updateHUD() {
+    if(!state)return;const c=current();
+    $('atp-value').textContent=Math.floor(c.atp);$('oxygen-value').textContent=Math.round(c.oxygen);$('glucose-value').textContent=c.glucose;$('water-value').textContent=Math.round(c.water)+'%';
+    $('atp-meter').style.width=(c.atp/140*100)+'%';$('oxygen-meter').style.width=c.oxygen+'%';$('glucose-meter').style.width=Math.min(100,c.glucose/12*100)+'%';$('water-meter').style.width=clamp(c.water/2,0,100)+'%';
+    $('water-meter').style.background=c.water>140||c.water<60?'#cf815d':'#79a99c';
+    $('health-label').textContent='Membrane '+Math.round(c.health)+'%';$('growth-label').textContent='Growth '+Math.floor(c.growth)+'%';$('waste-label').textContent='Waste '+c.waste;
+    $('region').textContent=c.x<600?'Freshwater · water enters':c.x>1650?'Salty water · water leaves':'Balanced water';
+    $('map-marker').style.left=c.x/WORLD.width*100+'%';$('map-marker').style.top=c.y/WORLD.height*100+'%';
+    $('colony-count').innerHTML=state.cells.length+' <small>'+ (state.cells.length===1?'cell':'cells')+'</small>';
+    const signature=state.cells.map(c=>c.id).join(',')+'/'+state.selectedId;
+    if(signature!==colonySignature){colonySignature=signature;$('cell-selector').replaceChildren();state.cells.forEach(c=>{const b=document.createElement('button');b.textContent=c.id;b.setAttribute('aria-label',`Control cell ${c.id}`);b.setAttribute('aria-pressed',String(c.id===state.selectedId));b.addEventListener('click',()=>selectCell(c.id));$('cell-selector').append(b);});}
+    $('group-button').textContent=state.group?'Move colony together':'Move selected cell';$('group-button').setAttribute('aria-pressed',String(state.group));$('group-button').disabled=state.cells.length<2;
+    $('divide-button').disabled=!started||!canDivide();
+    $('division-requirements').textContent=state.cells.length>=8?'Colony limit: 8 cells. Keep exploring!':c.health<45?'Repair your membrane in balanced water.':c.water<65||c.water>135?'Balance your water before division.':state.stats.released<1?'Release food waste at least once.':'Grow to 100% · 70 ATP · 2 glucose';
+    $('labels-button').textContent=state.labels?'Labels on':'Labels off';$('labels-button').setAttribute('aria-pressed',String(state.labels));
+    let goals;
+    if(state.cells.length<2){$('chapter').textContent='01 / 03';$('mission-title').textContent='Fuel your first cell';$('mission-description').textContent='Eat algae, turn glucose into ATP, and clear out leftovers. Then you’re ready to divide.';goals=[['Engulf food twice',state.stats.eaten>=2],['Make ATP twice',state.stats.respired>=2],['Release food waste',state.stats.released>=1],['Grow & divide',state.stats.divisions>=1]];}
+    else if(state.cells.length<4){$('chapter').textContent='02 / 03';$('mission-title').textContent='Build your colony';$('mission-description').textContent='Control either daughter cell. Feed it, fuel it, and divide again. Build a population of four cells.';goals=[['Control your daughter cells',true],['Grow a colony of 4',state.cells.length>=4],['Engulf a small prey cell',state.stats.prey>=1]];}
+    else{$('chapter').textContent='03 / 03';$('mission-title').textContent='Master the pond';$('mission-description').textContent='Explore both water zones. Notice osmosis, pump excess water, and keep your growing colony alive.';goals=[['Grow a colony of 4',true],['Visit freshwater',state.visited.fresh],['Pump excess water',state.stats.pumped>=1],['Visit salty water',state.visited.salty],['Engulf a prey cell',state.stats.prey>=1]];}
+    $('mission-list').replaceChildren();for(const [text,done] of goals){const li=document.createElement('li');li.className=done?'done':'';const check=document.createElement('span');check.className='check';check.textContent=done?'✓':'○';const label=document.createElement('span');label.textContent=text;li.append(check,label);$('mission-list').append(li);}
+    if(!division){$('cycle-label').innerHTML='Interphase <span>· Grow & copy DNA</span>';updateTrack();}
+    for(const id of ['eat-button','respire-button','exo-button','pump-button'])$(id).disabled=!started;
+  }
+  function update(dt) {
+    const c=current();state.elapsed+=dt;
+    let mx=(keys.has('arrowright')||keys.has('d')?1:0)-(keys.has('arrowleft')||keys.has('a')?1:0);
+    let my=(keys.has('arrowdown')||keys.has('s')?1:0)-(keys.has('arrowup')||keys.has('w')?1:0);
+    if(mx||my)target=null;
+    if(!mx&&!my&&target){const dx=target.x-c.x,dy=target.y-c.y,len=Math.hypot(dx,dy);if(len<8)target=null;else{mx=dx/len;my=dy/len;}}
+    const len=Math.hypot(mx,my);if(len){mx/=len;my/=len;}
+    const movingCells=state.group?state.cells:[c];
+    for(const unit of movingCells){if(len&&unit.atp>0){const speed=unit.atp<8?65:120;unit.x=clamp(unit.x+mx*speed*dt,60,WORLD.width-60);unit.y=clamp(unit.y+my*speed*dt,60,WORLD.height-60);unit.atp=Math.max(0,unit.atp-.65*dt);}}
+    for(const unit of state.cells){
+      unit.oxygen=clamp(unit.oxygen+2.5*dt,0,100);unit.hitCooldown=Math.max(0,unit.hitCooldown-dt);
+      const osmosisSpeed=settings.gentle?2.2:3.6;
+      if(unit.x<600)unit.water=clamp(unit.water+osmosisSpeed*dt,25,190);
+      else if(unit.x>1650)unit.water=clamp(unit.water-osmosisSpeed*dt,25,190);
+      else unit.water+=clamp(100-unit.water,-1.6*dt,1.6*dt);
+      unit.r=44+unit.growth/12+(unit.water-100)*.1;
+      if(unit.water>145||unit.water<55)unit.health-=dt*(settings.gentle?1.6:3);
+      else if(unit.x>=600&&unit.x<=1650&&unit.waste<5)unit.health=clamp(unit.health+1.4*dt,0,100);
+      if(unit.waste>=6)unit.health-=dt*.5;
+      for(const f of [...state.foods])if(f.type==='glucose'&&distance(f,unit)<unit.r+12&&unit.glucose<30){unit.glucose++;unit.growth=clamp(unit.growth+9,0,100);state.foods=state.foods.filter(v=>v.id!==f.id);state.foods.push(makeFood('glucose'));if(unit.id===c.id){burst('+1 glucose',unit);message('A sugar crystal enters through membrane transport proteins down its concentration gradient. Now try R to make ATP.');}}
+      if(unit.atp<4&&unit.glucose===0&&!state.foods.some(f=>f.type==='glucose'&&distance(f,unit)<unit.r+12))state.foods.push(makeFood('glucose',unit.x+rand(-12,12),unit.y+rand(-12,12)));
+      if(unit.health<=0){if(unit.id===c.id){modal($('rescue-dialog'));return;}unit.x=1100;unit.y=rand(620,920);unit.water=100;unit.health=60;}
+    }
+    for(const p of state.prey){p.angle+=Math.sin(state.elapsed+p.seed)*dt*.7;p.x=clamp(p.x+Math.cos(p.angle)*18*dt,90,2110);p.y=clamp(p.y+Math.sin(p.angle)*18*dt,90,1410);if(p.x===90||p.x===2110||p.y===90||p.y===1410)p.angle+=Math.PI;}
+    while(state.prey.length<12)state.prey.push({id:nextObject++,x:rand(130,2070),y:rand(130,1370),angle:rand(0,6.28),seed:rand(0,10)});
+    for(const p of state.predators){const dist=distance(p,c);if(dist<330){p.angle=Math.atan2(c.y-p.y,c.x-p.x);const speed=settings.gentle?38:72;p.x+=Math.cos(p.angle)*speed*dt;p.y+=Math.sin(p.angle)*speed*dt;}else{p.angle+=dt*.18;p.x=clamp(p.x+Math.cos(p.angle)*12*dt,70,2130);p.y=clamp(p.y+Math.sin(p.angle)*12*dt,70,1430);}if(dist<c.r+62&&c.hitCooldown<=0){c.health-=settings.gentle?12:20;c.hitCooldown=2;c.atp=Math.max(0,c.atp-3);const angle=Math.atan2(c.y-p.y,c.x-p.x);c.x=clamp(c.x+Math.cos(angle)*28,60,2140);c.y=clamp(c.y+Math.sin(angle)*28,60,1440);burst('Predator! Swim away.',c,'#bc6547');message('A larger predator is hunting your cell. Swim away! Balanced water helps your membrane recover.');}}
+    if(c.x<600&&!state.visited.fresh){state.visited.fresh=true;learn('osmosis_in',null,'You entered dilute freshwater. Watch your water balance rise.');message('Freshwater is hypotonic: net water moves IN. Watch for swelling, then use V to expel excess water.');}
+    if(c.x>1650&&!state.visited.salty){state.visited.salty=true;learn('osmosis_out',null,'You entered water with a higher salt concentration.');message('Salty water is hypertonic: net water moves OUT. Return to balanced water before your cell shrinks too much.');}
+    if(state.action){state.action.time+=dt;if(state.action.time>1.8)state.action=null;}
+    for(const p of state.particles){p.life-=dt;p.y-=15*dt;}state.particles=state.particles.filter(p=>p.life>0);
+    if(c.water>135)message('Your cell is swelling! Press V to pump excess water, then return to balanced water.');
+    else if(c.water<65)message('Your cell is losing too much water! Swim back to the balanced region. The vacuole only removes water.');
+    if(!anyDialog()&&state.elapsed>=state.quizDue){state.quizDue=state.elapsed+80;const question=C.questions.periodic[state.periodicIndex%C.questions.periodic.length];state.periodicIndex++;showQuiz(question,null,'Pause the pond. Put your cell knowledge to work.');}
+    checkCompletion();
+  }
+  function checkCompletion() {
+    if(!started||state.completed||anyDialog()||division)return;
+    if(state.cells.length>=4&&state.visited.fresh&&state.visited.salty&&state.stats.pumped>=1&&state.stats.prey>=1){state.completed=true;renderFinish();modal($('finish-dialog'));save();}
+  }
+  function renderFinish() {const s=state.stats;$('finish-stats').innerHTML=`<div class="finish-stats"><div><strong>${state.cells.length}</strong>living cells</div><div><strong>${s.divisions}</strong>divisions</div><div><strong>${s.questions}</strong>checkpoints passed</div></div>`;}
+  function resizeCanvas(el,context) {const r=el.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);el.width=Math.round(r.width*dpr);el.height=Math.round(r.height*dpr);context.setTransform(dpr,0,0,dpr,0,0);return [r.width,r.height];}
+  new ResizeObserver(()=>{[canvasW,canvasH]=resizeCanvas($('pond'),ctx);}).observe($('pond-wrap'));
+  new ResizeObserver(()=>{if($('division-dialog').open)[divisionW,divisionH]=resizeCanvas($('division-canvas'),dctx);}).observe(document.querySelector('.division-canvas-wrap'));
+  function frame(now) {
+    const dt=Math.min(.05,(now-last)/1000);last=now;frameTime+=dt;
+    if(playing())update(dt);
+    if(division&&$('division-dialog').open){
+      if(!$('quiz-dialog').open&&!division.animationPaused){division.time+=dt;division.progress=clamp(division.time/(settings.reduced?3:6),0,1);}
+      if(division.progress>=1){$('division-next').disabled=false;$('division-wait').textContent='Ready? Answer correctly to move to the next stage.';}
+      Art.drawDivision(dctx,C.stages[division.index].id,division.progress,settings.reduced?0:frameTime,divisionW,divisionH);
+    }
+    const c=current();const lerp=1-Math.exp(-dt*5);state.camera.x+=(c.x-state.camera.x)*lerp;state.camera.y+=(c.y-state.camera.y)*lerp;
+    Art.drawWorld(ctx,state,canvasW,canvasH,settings.reduced?0:frameTime);
+    hudTime+=dt;saveTime+=dt;if(hudTime>.25){updateHUD();hudTime=0;}if(saveTime>10){save();saveTime=0;}
+    requestAnimationFrame(frame);
+  }
+  function save() {
+    if(!started||division||quiz)return;
+    try{const payload={...state,particles:[],action:null,settings,nextId,nextObject,quizSerial};localStorage.setItem(SAVE_KEY,JSON.stringify(payload));$('save-status').textContent='Expedition saved on this device.';}catch{$('save-status').textContent='This browser cannot save progress. You can still play and download a report.';}
+  }
+  function restore(payload) {
+    state=payload;state.world=WORLD;state.particles=[];state.action=null;settings={...settings,...payload.settings};nextId=payload.nextId||Math.max(...state.cells.map(c=>c.id))+1;nextObject=payload.nextObject||1000;quizSerial=payload.quizSerial||0;target=null;colonySignature='';updateHUD();
+  }
+  function startGame(resume=false) {
+    if(resume&&saved)restore(saved);else fresh();started=true;close($('welcome-dialog'));$('pause-button').disabled=false;applySettings();updateHUD();
+    if(resume)message('Welcome back! Your pond expedition continues.');else showQuiz('tutorial',()=>{state.learned.tutorial=true;message('Swim to a green algae cluster and press E. Then press R to replenish ATP.');save();});
+  }
+  function applySettings() {$('gentle-toggle').checked=settings.gentle;$('motion-toggle').checked=settings.reduced;document.body.classList.toggle('reduced-motion',settings.reduced);}
+  $('start-button').addEventListener('click',()=>startGame(false));$('resume-button').addEventListener('click',()=>startGame(true));
+  $('eat-button').addEventListener('click',eat);$('respire-button').addEventListener('click',respire);$('exo-button').addEventListener('click',exocytose);$('pump-button').addEventListener('click',pump);$('divide-button').addEventListener('click',beginDivision);
+  $('group-button').addEventListener('click',()=>{state.group=!state.group;updateHUD();});
+  $('labels-button').addEventListener('click',()=>{state.labels=!state.labels;updateHUD();});
+  function togglePause() {if(!started||division)return;paused=!paused;keys.clear();document.body.classList.toggle('paused',paused);$('pause-button').innerHTML=paused?'Resume <span>▷</span>':'Pause <span>Ⅱ</span>';save();}
+  $('pause-button').addEventListener('click',togglePause);
+  document.addEventListener('keydown',e=>{
+    if(!started||anyDialog())return;const k=e.key.toLowerCase();
+    if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].includes(k)){e.preventDefault();keys.add(k);}
+    if(e.repeat)return;
+    if(k==='e')eat();if(k==='r')respire();if(k==='x')exocytose();if(k==='v')pump();if(k===' '){e.preventDefault();togglePause();}
+    if(k==='tab'&&['BODY','CANVAS'].includes(document.activeElement.tagName)){e.preventDefault();const i=state.cells.findIndex(c=>c.id===state.selectedId);selectCell(state.cells[(i+1)%state.cells.length].id);}
+  });
+  document.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());
+  document.addEventListener('visibilitychange',()=>{keys.clear();last=performance.now();if(document.hidden)save();});
+  $('pond').addEventListener('pointerdown',e=>{
+    if(!playing())return;const r=$('pond').getBoundingClientRect();const p={x:e.clientX-r.left+state.camera.x-canvasW/2,y:e.clientY-r.top+state.camera.y-canvasH/2};
+    const clicked=state.cells.find(c=>distance(c,p)<c.r);if(clicked&&clicked.id!==state.selectedId)selectCell(clicked.id);else target=p;
+    state.pointer=p;
+  });
+  for(const button of document.querySelectorAll('[data-direction]')){
+    const key={up:'w',down:'s',left:'a',right:'d'}[button.dataset.direction];
+    button.addEventListener('pointerdown',e=>{if(!playing())return;e.preventDefault();button.setPointerCapture(e.pointerId);keys.add(key);});
+    for(const event of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(event,()=>keys.delete(key));
+  }
+  function guide(tab='structures') {
+    [...document.querySelectorAll('[data-guide-tab]')].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.guideTab===tab)));
+    const panel=$('guide-content');panel.replaceChildren();
+    if(tab==='controls'){
+      const entries=[['Swim & select','Move with WASD, arrow keys, or click a destination. On touch screens use the arrow pad or tap the pond. Click a cell or its number to control it; move the colony together with the group button.'],['Eat, fuel, & release','Get close to algae or tiny striped prey, then E: engulf for 4 ATP. Digestion supplies 3 glucose and leaves 1 waste. R: spend 1 glucose and 6 oxygen for 24 game ATP. X: release food waste for 3 ATP. Touch sugar crystals for passive glucose transport.'],['Manage your water','The blue freshwater region is on the left; the salty purple region is on the right. In freshwater, water enters and the cell swells. Press V above 105% to expel 27 water units for 4 ATP. In salty water, water leaves: return to balanced water to recover.'],['Grow & divide','Reach 100% growth, 70 ATP, at least 2 glucose, healthy membrane, and balanced water. Make ATP twice and release food waste at least once. Begin cell division, watch each stage, then answer correctly to continue. Division spends 52 game ATP; remaining resources split between daughters.'],['Your expedition','Grow four cells, engulf a prey organism, visit both water zones, and pump excess water. You can keep playing up to eight cells. All checkpoints allow retries and hints. Space pauses the pond.'],['Progress & recovery','Progress saves to this browser when storage is available, except during a division animation. A damaged cell returns to a recovery spot with a starter nutrient reserve. No login, student name, or personal data is requested.']];
+      renderEntries(entries.map(([term,text])=>({term,text})),panel);
+    }else if(tab==='cycle')renderEntries(C.fieldGuide.filter((_,i)=>i>=1&&i<=13),panel);
+    else renderEntries(C.fieldGuide.filter((_,i)=>i===0||i>=14),panel);
+    const note=document.createElement('div');note.className='model-note';note.innerHTML='<strong>About this model</strong><p>Colors, speeds, sizes, and resource costs help make cell processes visible. These are game units, not measured cell quantities. This generic protist uses a familiar open-mitosis teaching model; cell division varies across species.</p><p>Cellular respiration: glucose + oxygen → carbon dioxide + water, with energy transferred to ATP. CO₂ exits by diffusion; exocytosis removes vesicle contents.</p>';panel.append(note);
+    const links=document.createElement('div');links.className='sources';C.sourceLinks.forEach(s=>{const a=document.createElement('a');a.href=s.url;a.textContent=s.title;a.target='_blank';a.rel='noopener noreferrer';links.append(a);});panel.append(links);
+    modal($('guide-dialog'));
+  }
+  function renderEntries(entries,panel) {const grid=document.createElement('div');grid.className='guide-grid';entries.forEach(item=>{const entry=document.createElement('div');entry.className='guide-entry';const h=document.createElement('h3');h.textContent=item.term;const p=document.createElement('p');p.textContent=item.text;entry.append(h,p);grid.append(entry);});panel.append(grid);}
+  $('guide-button').addEventListener('click',()=>guide());$('cycle-guide-button').addEventListener('click',()=>guide('cycle'));
+  $('guide-close').addEventListener('click',()=>close($('guide-dialog')));document.querySelectorAll('[data-guide-tab]').forEach(b=>b.addEventListener('click',()=>guide(b.dataset.guideTab)));
+  $('settings-button').addEventListener('click',()=>{applySettings();modal($('settings-dialog'));});$('settings-close').addEventListener('click',()=>close($('settings-dialog')));
+  $('save-button').addEventListener('click',()=>{settings.gentle=$('gentle-toggle').checked;settings.reduced=$('motion-toggle').checked;applySettings();save();close($('settings-dialog'));});
+  $('rescue-button').addEventListener('click',()=>{const c=current();c.x=1100;c.y=750;c.health=75;c.water=100;c.atp=Math.max(c.atp,25);c.glucose=Math.max(c.glucose,2);c.waste=0;target=null;close($('rescue-dialog'));message('Recovered with a starter nutrient reserve. Make ATP, avoid predators, and monitor your water.');updateHUD();save();});
+  $('keep-playing').addEventListener('click',()=>close($('finish-dialog')));
+  $('report-button').addEventListener('click',()=>{
+    const s=state.stats;const accuracy=s.attempts?Math.round(s.questions/s.attempts*100):0;
+    const report=`CELL QUEST — LEARNING REPORT\n\nExpedition time: ${Math.floor(state.elapsed/60)} min ${Math.floor(state.elapsed%60)} sec\nLiving cells: ${state.cells.length}\nCompleted divisions: ${s.divisions}\nFood engulfed: ${s.eaten}\nRespiration actions: ${s.respired}\nWaste releases: ${s.released}\nVacuole pumps: ${s.pumped}\nPrey engulfed: ${s.prey}\nFreshwater explored: ${state.visited.fresh?'Yes':'No'}\nSalty water explored: ${state.visited.salty?'Yes':'No'}\n\nSCIENCE CHECKPOINTS\nQuestions passed: ${s.questions}\nAnswer attempts: ${s.attempts}\nFirst-attempt correct: ${s.correctFirst}\nCorrect answers / attempts: ${accuracy}%\nStages passed: ${C.stages.filter(stage=>state.learned[stage.id]).map(stage=>stage.title).join(', ')}\n\nMODEL NOTES\nFour teaching chromosomes. Cells are independent protists in a population. ATP, water, and other resource amounts are game units. This local report is student-controlled and is not an authenticated assessment record.\n`;
+    const blob=new Blob([report],{type:'text/plain'});const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download='cell-quest-learning-report.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
+  $('restart-button').addEventListener('click',()=>modal($('restart-dialog')));$('restart-cancel').addEventListener('click',()=>close($('restart-dialog')));
+  $('restart-confirm').addEventListener('click',()=>{close($('restart-dialog'));fresh();started=true;try{localStorage.removeItem(SAVE_KEY);}catch{}showQuiz('tutorial',()=>{state.learned.tutorial=true;save();});});
+  document.querySelector('.brand').addEventListener('click',e=>{e.preventDefault();if(started)guide('controls');});
+  window.addEventListener('pagehide',save);
+  fresh();
+  try{const p=JSON.parse(localStorage.getItem(SAVE_KEY));if(p?.version===1&&Array.isArray(p.cells)&&p.cells.length&&p.stats&&p.visited){saved=p;$('resume-button').hidden=false;}}catch{}
+  // Read-only diagnostic snapshot is useful for automated playtesting and classroom troubleshooting.
+  window.CellQuest={snapshot:()=>JSON.parse(JSON.stringify(state)),get phase(){return division?C.stages[division.index].id:null;}};
+  modal($('welcome-dialog'));applySettings();requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>
