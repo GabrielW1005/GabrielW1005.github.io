@@ -3,6 +3,12 @@
 (function(root) {
   'use strict';
   const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+  const MOTOR_RATE=.5;
+  const rampMotor=(strength,direction,seconds)=>clamp(strength+clamp(direction,-1,1)*MOTOR_RATE*Math.max(0,seconds),.25,6);
+  function externalAcceleration(settings,input={}) {
+    const thrust=settings.thrustersEnabled ? settings.thrust/settings.mass : 0;
+    return {ax:clamp(input.thrustX||0,-1,1)*thrust,ay:clamp(input.thrustY||0,-1,1)*thrust-settings.gravity};
+  }
   function ease(t) { t=clamp(t,0,1); return t*t*t*(10+t*(-15+6*t)); }
   function easeD(t) { return t<=0 || t>=1 ? 0 : 30*t*t*(t-1)*(t-1); }
   function easeDD(t) { return t<=0 || t>=1 ? 0 : 60*t*(2*t*t-3*t+1); }
@@ -90,7 +96,8 @@
     }
   }
   function baseAcceleration(track,s,settings,input) {
-    return (input.motor || 0)*settings.motor - settings.gravity*track.atS(s).ty;
+    const p=track.atS(s),f=externalAcceleration(settings,input);
+    return (input.motor || 0)*settings.motor+f.ax*p.tx+f.ay*p.ty;
   }
   function acceleration(track,s,v,settings,input) {
     const a=baseAcceleration(track,s,settings,input);
@@ -107,15 +114,17 @@
   }
   class Simulation {
     constructor(track,settings={},x=6,v=0) {
-      this.track=track; this.settings={gravity:9.81,motor:2,brake:6,allowFlight:false,...settings};
+      this.track=track; this.settings={gravity:9.81,motor:2,brake:6,allowFlight:false,mass:100,thrust:1200,thrustersEnabled:false,...settings};
+      if(!(this.settings.mass>0)||!Number.isFinite(this.settings.mass))throw new Error('Mass must be positive and finite');
       this.s=track.sAtX(x); this.startS=this.s; this.v=v; this.t=0; this.distance=0; this.a=0;
       this.air=null;this.crashed=false;this.missed=false;this.missedAt=null;this.landed=0;this.jumps=0;
       if(!track.hasGround(x)&&this.settings.allowFlight)this.launch();
+      if(Number.isFinite(settings.startY))this.air={x,y:settings.startY,vx:v,vy:settings.initialVy||0,angle:0};
     }
     step(dt,input={motor:0,brake:false}) {
       if(dt<=1e-12||this.crashed)return;
       if(this.air){this.stepAir(dt,input);return;}
-      if(this.settings.allowFlight&&!this.supported(this.s,this.v)){this.launch();this.stepAir(dt,input);return;}
+      if(this.settings.allowFlight&&!this.supported(this.s,this.v,input)){this.launch();this.stepAir(dt,input);return;}
       const s0=this.s, v0=this.v, base=baseAcceleration(this.track,s0,this.settings,input);
       this.a=acceleration(this.track,s0,v0,this.settings,input);
       if(input.brake && Math.abs(v0)<1e-10 && Math.abs(base)<=this.settings.brake) {
@@ -134,9 +143,9 @@
         if(remaining>1e-12) this.step(remaining,input);
         return;
       }
-      if(this.settings.allowFlight&&!this.supported(end.s,end.v)){
+      if(this.settings.allowFlight&&!this.supported(end.s,end.v,input)){
         let lo=0,hi=dt;
-        for(let i=0;i<32;i++){const mid=(lo+hi)/2,p=rk(this.track,s0,v0,mid,this.settings,input,sign);if(this.supported(p.s,p.v))lo=mid;else hi=mid;}
+        for(let i=0;i<32;i++){const mid=(lo+hi)/2,p=rk(this.track,s0,v0,mid,this.settings,input,sign);if(this.supported(p.s,p.v,input))lo=mid;else hi=mid;}
         const eventTime=(lo+hi)/2,p=rk(this.track,s0,v0,eventTime,this.settings,input,sign);
         this.distance+=Math.abs(p.s-s0);this.s=p.s;this.v=p.v;this.t+=eventTime;
         this.launch();this.stepAir(dt-eventTime,input);return;
@@ -145,9 +154,9 @@
       this.distance+=Math.abs(this.s-s0); this.t+=dt;
       this.a=acceleration(this.track,this.s,this.v,this.settings,input);
     }
-    supported(s,v) {
-      const p=this.track.atS(s);
-      return this.track.hasGround(p.x)&&this.settings.gravity*p.tx+v*v*p.curvature>=-1e-7;
+    supported(s,v,input={}) {
+      const p=this.track.atS(s),f=externalAcceleration(this.settings,input);
+      return this.track.hasGround(p.x)&&v*v*p.curvature+f.ax*p.ty-f.ay*p.tx>=-1e-7;
     }
     launch() {
       const p=this.track.atS(this.s);
@@ -156,25 +165,22 @@
     stepAir(dt,input) {
       if(dt<=1e-12)return;
       const start={...this.air},g=this.settings.gravity;
-      const position=t=>({x:start.x+start.vx*t,y:start.y+start.vy*t-.5*g*t*t,vx:start.vx,vy:start.vy-g*t,angle:start.angle});
+      let {ax,ay}=externalAcceleration(this.settings,input);
+      // A wall can push the point away but cannot pull it into the rock.
+      if(this.wall&&start.y<this.wall.top-1e-7&&Math.abs(start.x-this.wall.x)<1e-5){
+        if(start.vx*this.wall.direction>0)start.vx=0;
+        if(ax*this.wall.direction>0)ax=0;
+      }
+      const position=t=>({x:start.x+start.vx*t+.5*ax*t*t,y:start.y+start.vy*t+.5*ay*t*t,vx:start.vx+ax*t,vy:start.vy+ay*t,angle:start.angle});
       const advance=t=>{
-        // Simpson integration of speed, including the vertex of a vertical jump.
-        const speed=q=>Math.hypot(start.vx,start.vy-g*q);
+        const speed=q=>Math.hypot(start.vx+ax*q,start.vy+ay*q);
         const integral=(a,b)=>(b-a)/6*(speed(a)+4*speed((a+b)/2)+speed(b));
-        const turn=g>0?start.vy/g:-1;
+        const aa=ax*ax+ay*ay,turn=aa?-(start.vx*ax+start.vy*ay)/aa:-1;
         this.distance+=turn>0&&turn<t?integral(0,turn)+integral(turn,t):integral(0,t);
         this.air=position(t);this.t+=t;
+        if(this.missed)this.air.angle+=(this.missedDirection*Math.PI/2-this.air.angle)*(1-Math.exp(-3*t));
       };
       const end=position(dt),ground=this.track.atX(end.x);
-      // A failed jump continues under gravity. The pit wall removes horizontal
-      // velocity at impact; it does not freeze the cart in midair.
-      if(this.missed){
-        advance(dt);
-        // Cosmetic tilt toward the open pit; orientation does not affect motion.
-        this.air.angle+=(this.missedDirection*Math.PI/2-this.air.angle)*(1-Math.exp(-3*dt));
-        if(this.air.y<-24||(g===0&&this.t-this.missedAt>=3))this.crashed=true;
-        return;
-      }
       const intersects=t=>{const p=position(t);return this.track.hasGround(p.x)&&p.y<=this.track.atX(p.x).y;};
       if(this.track.hasGround(end.x)&&end.y<=ground.y+1e-10&&(end.vy-end.vx*ground.slope<0||!this.track.hasGround(start.x))){
         let lo=0,hi=dt;
@@ -182,24 +188,27 @@
         const hitTime=(lo+hi)/2;advance(hitTime);
         const p=this.air,surface=this.track.atX(p.x);
         if(p.y<surface.y-1e-5){
-          this.missed=true;this.missedAt=this.t;this.missedDirection=Math.sign(p.vx)||1;
-          // Keep the point just inside the gap to avoid numerical re-contact.
-          p.x-=Math.sign(p.vx)*1e-7;p.vx=0;
+          if(!this.missed)this.missedAt=this.t;
+          this.missed=true;this.missedDirection=Math.sign(p.vx)||Math.sign(ax)||1;
+          this.wall={x:p.x,direction:this.missedDirection,top:surface.y};
+          p.x-=this.missedDirection*1e-7;p.vx=0;
           this.stepAir(dt-hitTime,input);return;
         }
         const norm=Math.hypot(1,surface.slope);
         this.s=this.track.sAtX(p.x);this.v=(p.vx+p.vy*surface.slope)/norm;
-        this.air=null;this.landed++;
+        this.air=null;this.wall=null;this.missed=false;this.missedAt=null;this.landed++;
         this.step(dt-hitTime,input);return;
       }
       advance(dt);
-      if(this.air.y<-24)this.crashed=true;
+      if(this.air.y<-24||(this.missed&&!this.settings.thrustersEnabled&&g===0&&this.t-this.missedAt>=3))this.crashed=true;
     }
     snapshot(input={motor:0,brake:false}) {
       if(this.air){
-        const p=this.air,speed=Math.hypot(p.vx,p.vy),a=speed?-this.settings.gravity*p.vy/speed:0;
+        const p=this.air,speed=Math.hypot(p.vx,p.vy);let {ax,ay}=externalAcceleration(this.settings,input);
+        if(this.wall&&p.y<this.wall.top-1e-7&&Math.abs(p.x-this.wall.x)<1e-5&&ax*this.wall.direction>0)ax=0;
+        const a=speed?(ax*p.vx+ay*p.vy)/speed:0;
         return {t:this.t,s:this.s,x:p.x,y:p.y,v:Math.sign(p.vx||1)*speed,speed,distance:this.distance,displacement:this.s-this.startS,a,
-          vx:p.vx,vy:p.vy,ax:0,ay:-this.settings.gravity,airborne:true,angle:p.angle,missed:this.missed,crashed:this.crashed};
+          vx:p.vx,vy:p.vy,ax,ay,airborne:true,angle:p.angle,missed:this.missed,crashed:this.crashed};
       }
       const p=this.track.atS(this.s), a=acceleration(this.track,this.s,this.v,this.settings,input);
       return {t:this.t,s:this.s,x:p.x,y:p.y,v:this.v,speed:Math.abs(this.v),distance:this.distance,displacement:this.s-this.startS,a,
@@ -208,7 +217,7 @@
     }
   }
   const targetSpeed=t=>t<2 ? 2*t : t<5 ? 4 : t<7 ? 2*(7-t) : 0;
-  const api={Track,Simulation,geometry,acceleration,targetSpeed,clamp};
+  const api={Track,Simulation,geometry,acceleration,targetSpeed,clamp,externalAcceleration,rampMotor,MOTOR_RATE};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   else root.MotionPhysics=api;
 })(typeof globalThis==='undefined'?this:globalThis);

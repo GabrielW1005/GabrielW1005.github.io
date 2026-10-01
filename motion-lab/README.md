@@ -1,101 +1,98 @@
 # Motion Lab
 
-A full-window physics playground for exploring distance–time and speed–time graphs. Built with HTML, CSS, JavaScript, and Canvas 2D. No dependencies, accounts, build step, remote fonts, tracking, or student data storage.
+A full-window physics playground built with HTML, CSS, JavaScript, and Canvas 2D. Drive, fire thrusters, and learn from live distance–time and speed–time graphs. No dependencies, accounts, build step, remote fonts, tracking, or student data storage.
 
-## Play
+Play at **https://gabrielw1005.github.io/motion-lab/**, open `index.html`, or serve this directory with a static web host.
 
-Open `index.html` directly, or serve this directory from a static web host. Relative asset paths work in a GitHub Pages subdirectory.
+## Controls and activities
 
-- **Explore:** drive a repeating adventure course with bumps, ramps, dips, gaps, and jumps. Choose rolling terrain or the simpler flat road, downhill, valley, and hill tracks in **Course & forces**. Adjust gravity, terrain height, initial velocity, and airborne motion.
-- **Graph challenges:** 14 short challenges progress from speeding up, coasting, and slowing down to concave-up and concave-down distance and speed graphs. Gold dashes show an example shape; the live trace stays visible beside the car. Use **Minimize** to shrink the challenge panel into a compact bar and give the driving canvas more room. The title, completed score, and Next challenge button remain available; **Expand** restores the instructions, score slider, and challenge list. The panel stays minimized across challenges until you expand it, without interrupting a run.
-- **Park the car:** stop in the marked zone for two seconds.
+- **Left / Right arrows:** hold to drive the wheels. **Down arrow:** brake. Release to coast.
+- **J / L:** hold to smoothly decrease / increase motor acceleration, including while driving. The rate is 0.5 m/s² per simulated second, with limits 0.25–6 m/s². While paused, strength changes with real time. The slider also works during a run.
+- **W / A / S / D:** hold for up / left / down / right thrust in fixed screen directions. Four nozzles show flames opposite the applied force. Simultaneous jets add as vectors; opposing jets cancel. The **Thrusters** switch enables or hides all four modules.
+- **Space:** pause/resume. **R:** reset. **Step:** advance 0.1 simulated seconds while paused. On-screen controls support touch and keyboard activation.
 
-The desktop layout fills the window, with **Time vs. distance** and **Time vs. speed** stacked on the right. Time remains on the horizontal axis of both graphs. **Full screen** uses the browser's native full-screen mode where supported. On narrow phones, the graphs move below the driving controls.
+**Explore** includes a repeating adventure course with bumps, ramps, dips, gaps, and jumps. Course & forces offers other terrain, initial horizontal velocity, gravity, and thrust force. The car's mass is 100 kg. Thrusters automatically enable airborne motion; disable them before selecting the optional ideal track guide. Course changes reset the experiment; motor and thrust adjustments work during a run. Drag the car before starting an exploration to change its starting point.
 
-Hold **Left Arrow** or **Right Arrow** to drive. Hold **S / Down Arrow** to brake. Release to coast. **Space** pauses or resumes, **R** resets, and **Step** advances 0.1 simulated seconds while paused. On-screen buttons support touch and keyboard activation. Drag the car before starting an exploration to change its starting point.
+**Graph challenges** has 28 levels in two sets. The first level in each set is immediately available. All starting motor strengths, velocities, gravity, and thruster forces load automatically. Thruster challenges disable the wheel motor. Gold dashes show an attainable example; exact graph heights need not match. **Park the car** asks students to stop in the marked zone for two seconds.
 
-The **Motor strength** slider works during a run. Use **A** and **D** to decrease or increase strength while holding a driving key. This lets students bend a speed graph by gradually changing acceleration. Settings that change the course reset the experiment. Playback speed changes the viewing rate, not the equations or graph time units.
+The desktop view fills the window, with **Time vs. distance** above **Time vs. speed** on the right. Time is the horizontal axis on both graphs. The gravity panel stays outside the play area above the graphs and shows the current gravity name, acceleration, mass, and thrust. On narrow phones, the graphs move below the controls. Full screen uses the browser's full-screen mode where available.
 
-Runs stop after 120 simulated seconds. Graph challenges stop at their prescribed duration. Moving away from the page automatically pauses the experiment and releases controls.
+## Scoring
 
-## Forgiving challenge progression
+The unlock percentage is adjustable only from **90% to 100%**, default **90%**. Previous saved values below 90% are clamped to 90%. The selected percentage is remembered on this device when local browser storage is available. A completed attempt is regraded immediately if the threshold changes.
 
-The **Unlock score** slider sets the required shape score from **1% to 100%**, with **65%** as the default. Adjust it before, during, or after an attempt; a finished attempt is reassessed immediately without rerunning it. The chosen percentage is remembered on this device when local browser storage is available. Exact heights, distances, and peak speeds do not have to match the target. The scorer trims phase boundaries to allow slightly early or late transitions and looks for the intended rising, falling, or moving-at-steady-speed behavior. Stopped phases require speed to be near zero. Each phase must still be attempted; a stationary car cannot pass by drawing a flat line. Feedback identifies what to try again.
+Every completed attempt displays its percentage, including 0%, in the challenge header. **Minimize** keeps the score and Next challenge button visible while freeing canvas space. Reset preserves the last score until another attempt finishes. The collapsed state persists when switching challenges. Unlocks and attempt results last for the current open page.
 
-The sequence is:
+Scoring examines rising/falling speed, moving at steady speed, stopping, and concavity. Phase boundaries are trimmed to tolerate small timing errors; amplitudes are flexible. Every phase needs an attempt, so a flat stationary trace cannot pass a moving challenge. Specified thruster phases also require the correct jet for most of the scored interval. Feedback identifies a weak phase.
 
-1. Speed up, then coast.
-2. Slow down, then coast.
-3. Speed up, coast, then slow down.
-4. Make a distance graph concave up by increasing speed.
-5. Make a distance graph concave down while still moving forward by decreasing speed.
-6. Make a speed graph concave up by gradually increasing motor acceleration.
-7. Make a speed graph concave down, while speed still rises, by gradually decreasing motor acceleration.
-8. Cruise, boost, then cruise at a higher speed.
-9. Slow down, cruise, then speed up again.
-10. Stop, wait, then start moving again.
-11. Make a distance graph straight, concave up, then straight again.
-12. Switch a distance graph from concave up to concave down.
-13. Bend a speed graph upward, then coast.
-14. Switch a rising speed graph from concave up to concave down.
+### Motor graphs, 1–14
 
-Completed challenges stay unlocked while the page remains open, even if the required percentage is raised afterward. Reloading the page starts a new session. Challenge roads are flat so students can isolate the relationship between acceleration, speed, and distance.
+Speed up/coast; slow down/coast; rise/coast/fall; concave-up distance; concave-down distance; concave-up speed; concave-down speed; cruise/boost/cruise; slow/cruise/accelerate; stop/wait/go; straight/curved/straight distance; switching distance concavity; curved speed/coast; switching speed concavity.
 
-## Physics and interpretation
+### Thrusters and gravity, 15–28
 
-The car is an ideal point-mass cart on a smooth, fixed two-dimensional track. Rotating wheels are decorative; their moment of inertia, suspension, air drag, and rolling friction are omitted. Motor and braking controls specify force per unit mass.
+15. Moon: fall freely, then balance gravity with 162 N upward thrust.
+16. Mars: fall freely, then balance gravity with 371 N.
+17. Earth: fall freely, then balance gravity with 981 N.
+18. Moon: launch with 400 N, then release and slow while climbing.
+19. Mars: launch with 800 N, then release.
+20. Earth: launch with 1600 N, then release.
+21. Zero gravity: thrust right, coast, then thrust left to slow down.
+22. Zero gravity: reverse horizontally; distance bends down then up.
+23. Zero gravity: use downward thrust to stop an upward-moving car and reverse.
+24. Gravity lab: Moon → Mars → Earth switches with a fixed 371 N jet.
+25. Gravity lab: increase gravity smoothly; falling speed becomes concave up.
+26. Gravity lab: decrease gravity with downward thrust; rising speed becomes concave down.
+27. Earth: slow a descent using upward thrust, then release.
+28. Mars: accelerate downward, then use upward thrust to brake the descent.
 
-Grounded position is integrated in signed arc length `s`. Increasing `s` points to the right. For local slope angle `theta`:
+Changing-gravity challenges are explicitly artificial experiments, not instantaneous journeys between planets. Their target traces come from the same physical simulation, preset forces, gravity schedules, and controls as the student's run. Moon/Mars/Earth values are representative near-surface accelerations, treated as spatially uniform.
+
+## Physics and units
+
+The car is an ideal point mass on a fixed two-dimensional road. Wheels and tilt are decorative. The model omits air drag, rolling resistance, suspension, wheel inertia, fuel depletion, torque, and bounce. Motor strength means tangential force per unit mass in m/s². Jets are ideal stabilized actuators with force in newtons.
+
+For net directional thrust `(Fx,Fy)`, mass `m`, and downward gravity `g`, free flight uses:
+
+```text
+ax = Fx/m
+ay = Fy/m - g
+x(t+dt) = x(t) + vx*dt + ax*dt²/2
+vx(t+dt) = vx(t) + ax*dt
+```
+
+The same position/velocity equations apply to y. Wheels cannot drive or brake in the air. For example, 1200 N / 100 kg gives 12 m/s² upward thrust acceleration; on Earth the resulting vertical acceleration is 12 − 9.81 = 2.19 m/s² upward. A 981 N jet balances Earth gravity without changing vertical velocity.
+
+On the ground, let `T` be the unit tangent, `N` the upward unit normal, `k` signed curvature, and `v` signed speed along the road:
 
 ```text
 ds/dt = v
-dv/dt = motor_direction * motor_acceleration - g*sin(theta) + brake_acceleration
+at = motor_direction*motor_strength + (Fx/m, Fy/m - g)·T + braking
+acceleration = at*T + v²*k*N
+normal_support/m = v²*k - (Fx/m, Fy/m - g)·N
 ```
 
-The brake opposes velocity at up to 6 m/s² in Explore; each graph challenge specifies its own braking acceleration. It stops at zero instead of pushing the car backward. At rest, it balances other tangential forces if they do not exceed its capacity. Reversal and stop events are located within each timestep by bisection.
+The car leaves the road at a gap or when contact would require negative normal support. Upward thrust exceeding weight lifts the car from level ground. The brake opposes velocity without reversing it; at rest it balances tangential forces up to its capacity. Explore uses 6 m/s² braking; challenges preset their own values.
 
-Tracks use smooth quintic transitions with continuous slope and curvature. A Simpson-integrated arc-length lookup table at 0.01 m horizontal spacing maps between `x` and `s`. Fourth-order Runge–Kutta integrates grounded motion in fixed 1/240 s steps. Graphs sample at 20 Hz, with the live endpoint rendered between samples. Simulated time advances only by integrated steps. Brief frame stalls are capped instead of allowing inaccurate large timesteps.
+Landings remove velocity into the surface and retain the tangential component, representing an ideal inelastic impact. A pit wall removes inward horizontal velocity and supports inward forces. Vertical motion and outward thrust remain possible, so a missed jump can be recovered using thrusters. The camera follows falling motion until y < −24 m. With jets disabled and zero gravity, a missed jump ends after three seconds. All runs end by 120 simulated seconds. Impulses at impacts are not displayed as finite acceleration values.
 
-With **Allow airborne jumps** enabled, the car leaves the road at a gap or when staying on a crest would require a negative normal support force. It retains its instantaneous tangent velocity. During flight, horizontal velocity is constant and vertical acceleration is `-g`; the motor and brake have no effect in the air. Ballistic position and velocity use the constant-acceleration equations. Landings remove velocity into the road and retain its tangential component: an ideal inelastic landing with no bounce. If the car hits a gap's far wall below the landing, the ideal inelastic wall impact removes horizontal velocity and retains vertical velocity. The car then falls under gravity into the pit while the camera and graphs follow its motion. The run ends only after the car falls below -24 m, allowing time to see the failed jump. With zero gravity, the car drifts for three seconds after a wall impact before the run ends. Cosmetic car tilt does not alter the physics. Disabling jumps keeps the car constrained to the track, including the dashed guide spanning a gap.
+**Distance (m)** accumulates the entire path on the ground and in the air, including both legs of a reversal. It never decreases. **Speed (m/s)** is `sqrt(vx² + vy²)`. Horizontal and vertical velocity retain their signs. **Acceleration size (m/s²)** is the full vector magnitude, including acceleration caused by turning along the road. Time is simulated seconds. Thus distance's slope equals speed, and the area under speed equals distance.
 
-**Distance** accumulates the length of the traveled path on the ground and in the air. It starts at zero, counts reversals, and never decreases. **Speed** is the magnitude of velocity. Horizontal and vertical velocity readouts show the signed components. **Acceleration size** is the full vector magnitude, including the acceleration required to turn along a curve. The instantaneous landing or wall-impact impulse is not represented as a finite acceleration readout.
+Smooth quintic terrain has continuous slope and curvature. A Simpson-integrated arc-length table with 0.01 m horizontal spacing maps x to signed road distance. Ground motion uses fourth-order Runge–Kutta at a fixed 1/240 s step. Stops, reversals, launches, and contacts are located within the step. Flight uses constant-acceleration steps and integrated vector speed; gravity ramps and motor changes use midpoint acceleration. Graphs sample at 20 Hz with a live endpoint. Brief frame stalls are capped instead of creating large, inaccurate steps. Playback speed changes the viewing rate, not physics or units. Both spatial axes use the same scale.
 
-On the ground:
+References: [OpenStax forces](https://openstax.org/books/university-physics-volume-1/pages/5-6-common-forces), [NASA planet comparison](https://solarsystem.nasa.gov/planet-compare/), and [NASA Moon data](https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html).
 
-```text
-velocity = v * tangent
-acceleration = tangential_acceleration * tangent + v² * curvature * normal
-```
+## Development and publication
 
-Road markers indicate horizontal `x`; the distance graph measures the traveled path. Both canvas spatial axes use the same scale. Adventure and rolling terrain repeat seamlessly; the other tracks extend horizontally at their ends.
+- `index.html`, `styles.css`: accessible interface and responsive layout.
+- `physics.js`: independent browser/Node physics engine.
+- `challenges.js`: 28 challenges, presets, reference traces, and shape assessment.
+- `app.js`: controls, progression, animation, and graphs.
+- `tests/*.test.cjs`: analytical physics and scoring regression checks.
+- `preview.cjs`: optional dependency-free development server.
 
-References: [OpenStax inclined planes](https://openstax.org/books/physics/pages/5-4-inclined-planes) and [projectile motion](https://openstax.org/books/university-physics-volume-1/pages/4-3-projectile-motion).
+Run `npm test` or `npm run dev` with Node.js. Node is not required to play or publish. The 41 tests cover acceleration, braking, reversals, energy conservation, road geometry, flight, landings, missed jumps, forces, support/lift-off, motor ramps, changing gravity, wall recovery, scoring limits, and reference challenges. The valley energy test limits absolute energy-per-mass error to 0.0002 J/kg over 45 simulated seconds.
 
-## Files and development
+Optional feature-detected WebMCP tools read, run, pause, reset, and step the experiment through the same actions as the UI. Browsers without WebMCP work normally.
 
-- `index.html` — interface, accessible controls, and model explanation
-- `styles.css` — full-window responsive layout
-- `physics.js` — independent physics engine, usable in a browser or Node
-- `challenges.js` — 14 target curves and forgiving shape assessment
-- `app.js` — controls, progression, animation, and live graphs
-- `tests/*.test.cjs` — numerical physics and challenge-scoring checks
-- `preview.cjs` — optional dependency-free local development server
-
-With Node.js installed:
-
-```sh
-npm test
-npm run dev
-```
-
-Visit `http://localhost:4173`. Node is not required to play or publish the game.
-
-The 30 tests cover analytical acceleration, coasting, braking, reversals, inclines, energy conservation, arc mapping, periodic courses, loss of contact, ballistic flight, landings, missed jumps, rough graph matches, incorrect graph shapes, adjustable thresholds, stop-and-go behavior, and physical reachability of every new challenge. The valley test limits absolute energy-per-mass error to 0.0002 J/kg over 45 simulated seconds.
-
-Optional, feature-detected WebMCP tools read the experiment or run, pause, reset, and step it through the same UI actions. Browsers without WebMCP work normally.
-
-## GitHub Pages
-
-This project is published from `motion-lab/` within `GabrielW1005/GabrielW1005.github.io` at **https://gabrielw1005.github.io/motion-lab/**.
-
-Commit all five web files together: `index.html`, `styles.css`, `physics.js`, `challenges.js`, and `app.js`. GitHub Pages publishes the repository's `main` branch. The remaining files provide documentation, tests, and optional local development support.
+Publish all five web files together to `motion-lab/` in `GabrielW1005/GabrielW1005.github.io`. GitHub Pages deploys the repository's `main` branch. Documentation and tests accompany the source.

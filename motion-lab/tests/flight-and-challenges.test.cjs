@@ -1,7 +1,7 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {Track,Simulation}=require('../physics.js');
-const {levels,assess,target}=require('../challenges.js');
+const {levels,assess,target,referenceSamples}=require('../challenges.js');
 const dt=1/240;
 function near(actual,expected,tol=1e-7){assert.ok(Math.abs(actual-expected)<tol,`${actual} != ${expected}`);}
 function advance(s,t,input={motor:0,brake:false}){for(let i=0;i<Math.round(t/dt);i++)s.step(dt,input);return s.snapshot();}
@@ -60,12 +60,12 @@ function samples(level,speed){
  for(let i=0;i<=Math.round(level.duration*20);i++){const t=i/20,v=Math.max(0,speed(t));if(i)distance+=(previous+v)/2*.05;data.push({t,speed:v,distance});previous=v;}
  return data;
 }
-test('all 14 intended graph shapes pass',()=>{
- assert.equal(levels.length,14);
- for(const l of levels){const r=assess(l,samples(l,l.speed));assert.ok(r.passed,`${l.id}: ${JSON.stringify(r)}`);}
+test('all 28 intended graph shapes pass even at a 100 percent threshold',()=>{
+ assert.equal(levels.length,28);
+ for(const l of levels){const r=assess(l,l.reference?referenceSamples(l):samples(l,l.speed),100);assert.ok(r.passed,`${l.id}: ${JSON.stringify(r)}`);}
 });
 test('rough shape matches with different heights, moderate timing error, and a little wiggle pass',()=>{
- for(const l of levels){
+ for(const l of levels.slice(0,14)){
   const data=samples(l,t=>.7*l.speed(Math.max(0,t-.35))+.035*Math.sin(t*4));
   const r=assess(l,data);assert.ok(r.passed,`${l.id}: ${JSON.stringify(r)}`);
  }
@@ -86,9 +86,9 @@ test('incomplete or invalid runs cannot unlock a challenge',()=>{
  assert.ok(!assess(l,[]).passed);assert.ok(!assess(l,[{t:0,speed:NaN,distance:0}]).passed);
 });
 test('the chosen unlock percentage regrades the same rough attempt without changing its score',()=>{
- const l=levels[0],data=samples(l,t=>2*Math.min(t,1.4));
- const easy=assess(l,data,65),strict=assess(l,data,100);
- assert.ok(easy.score>=65&&easy.score<100);assert.equal(easy.score,strict.score);assert.ok(easy.passed);assert.ok(!strict.passed);
+ const l=levels[0],data=samples(l,t=>2*Math.min(t,1.6));
+ const easy=assess(l,data,90),strict=assess(l,data,100);
+ assert.ok(easy.score>=90&&easy.score<100);assert.equal(easy.score,strict.score);assert.ok(easy.passed);assert.ok(!strict.passed);
  assert.ok(assess(l,data,easy.score).passed);assert.ok(!assess(l,data,easy.score+1).passed);
  assert.ok(!assess(l,samples(l,()=>0),1).passed);
 });
@@ -98,11 +98,11 @@ test('stop-and-go requires stopping rather than merely coasting',()=>{
  assert.ok(!assess(l,samples(l,t=>l.speed(t)+2),1).passed);
 });
 test('all distance targets have a derivative matching their physical speed',()=>{
- for(const l of levels.filter(l=>l.graph==='distance'))for(let t=.01;t<l.duration-.01;t+=.037){
+ for(const l of levels.filter(l=>l.graph==='distance'&&!l.reference))for(let t=.01;t<l.duration-.01;t+=.037){
   const h=1e-5;near((target(l,t+h)-target(l,t-h))/(2*h),l.speed(t),2e-5);
  }
 });
-test('each new challenge can be passed by driving the actual simulation',()=>{
+test('the added motor challenges can be passed by driving the actual simulation',()=>{
  const controls={
   'coast-rise-coast':t=>({motor:t>=3&&t<6?1:0}),
   'down-up':t=>({motor:t>=5?1:0,brake:t<3}),
@@ -112,10 +112,10 @@ test('each new challenge can be passed by driving the actual simulation',()=>{
   'speed-bend-coast':t=>({motor:t<6?1:0,power:.5+.5*t}),
   'speed-two-bends':t=>({motor:1,power:t<5?.5+.5*t:3-.5*(t-5)})
  };
- for(const l of levels.slice(7)){
+ for(const l of levels.slice(7,14)){
   const sim=new Simulation(new Track('flat'),{motor:l.motor,brake:l.brake},6,l.initialV),data=[sim.snapshot()];
   for(let i=0;i<Math.round(l.duration/dt);i++){
-   const command=controls[l.id](i*dt);if(command.power!==undefined)sim.settings.motor=Math.round(command.power*4)/4;
+   const command=controls[l.id]((i+.5)*dt);if(command.power!==undefined)sim.settings.motor=command.power;
    sim.step(dt,command);if((i+1)%12===0)data.push(sim.snapshot());
   }
   const r=assess(l,data);assert.ok(r.passed,`${l.id}: ${JSON.stringify(r)}`);

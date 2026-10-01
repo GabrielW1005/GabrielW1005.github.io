@@ -1,28 +1,41 @@
 /* Motion Lab: full-window driving, live graphs, and approximate shape challenges. */
 (() => {
  'use strict';
- const {Track,Simulation,clamp}=window.MotionPhysics;
- const {levels,target,assess}=window.MotionChallenges;
+ const {Track,Simulation,clamp,rampMotor}=window.MotionPhysics;
+ const {levels,target,assess,gravityName,environment,makeSimulation}=window.MotionChallenges;
  const $=id=>document.getElementById(id),DT=1/240,MAX_TIME=120;
  const trackNames={adventure:'Adventure course',rollers:'Rolling hills',flat:'Flat road',ramp:'Downhill',valley:'The valley',hill:'Over the hill'};
- const config={kind:'adventure',height:7,gravity:9.81,motor:3.5,initialV:0,startX:6,allowFlight:true};
+ const config={kind:'adventure',height:7,gravity:9.81,motor:3.5,initialV:0,startX:6,allowFlight:true,thrusters:true,thrust:1200,mass:100};
  let track,sim,mode='explore',running=false,ended=false,ticks=0,samples=[],parkHold=0;
- let levelIndex=0,unlocked=0,passedLevels=new Set(),lastResult=null,savedExplore=null;
+ let levelIndex=0,unlockedLevels=new Set([0,14]),passedLevels=new Set(),lastResult=null,savedExplore=null;
+ const attemptResults=new Map();
  let challengeCollapsed=false;
- let passingScore=65;
- try{const saved=localStorage.getItem('motion-lab-passing-score');if(saved!==null&&Number.isFinite(Number(saved)))passingScore=clamp(Math.round(Number(saved)),1,100);}catch{}
+ let passingScore=90;
+ try{const saved=localStorage.getItem('motion-lab-passing-score');if(saved!==null&&Number.isFinite(Number(saved)))passingScore=clamp(Math.round(Number(saved)),90,100);}catch{}
  let accumulator=0,lastFrame=0,lastPaint=0,hoverTime=null,cameraLeft=-5,cameraBottom=-6,view=null,dragPointer=null;
  const keySet=new Set(),pointerMap=new Map();
  const level=()=>levels[levelIndex];
  const fmt=(value,n=2)=>(Math.abs(value)<.5*10**-n?0:value).toFixed(n);
  function input(){
-  let left=keySet.has('ArrowLeft'),right=keySet.has('ArrowRight'),brake=keySet.has('ArrowDown')||keySet.has('s');
-  for(const a of pointerMap.values()){left ||= a==='left';right ||= a==='right';brake ||= a==='brake';}
-  return {motor:Number(right)-Number(left),brake};
+  const held=(key,action)=>keySet.has(key)||[...pointerMap.values()].includes(action);
+  const wheelAllowed=mode!=='match'||!level().thrusters;
+  const jets={left:config.thrusters&&held('a','thrust-left'),right:config.thrusters&&held('d','thrust-right'),up:config.thrusters&&held('w','thrust-up'),down:config.thrusters&&held('s','thrust-down')};
+  return {motor:wheelAllowed?(Number(held('ArrowRight','right'))-Number(held('ArrowLeft','left'))):0,
+   brake:wheelAllowed&&held('ArrowDown','brake'),jets,thrustX:Number(jets.right)-Number(jets.left),thrustY:Number(jets.up)-Number(jets.down),
+   power:wheelAllowed?(Number(held('l','power-up'))-Number(held('j','power-down'))):0};
  }
+ function sampleNow(command=input()){return {...sim.snapshot(command),thrustX:command.thrustX||0,thrustY:command.thrustY||0};}
  function syncDrive(){
   const i=input();$('drive-left').classList.toggle('active',i.motor<0);$('drive-right').classList.toggle('active',i.motor>0);$('brake').classList.toggle('active',i.brake);
-  $('drive-state').textContent=sim?.crashed?'Missed landing · reset to retry':sim?.missed?(config.gravity?'Missed jump · falling into the pit':'Missed jump · drifting without gravity'):sim?.air?'Airborne · gravity only':i.brake?'Braking':i.motor?'Motor on · A less strength / D more':'Hold ←/→ to drive · release to coast · ↓ to brake';
+  for(const direction of ['left','right','up','down'])$('thrust-'+direction).classList.toggle('active',i.jets[direction]);
+  $('power-down').classList.toggle('active',i.power<0);$('power-up').classList.toggle('active',i.power>0);
+  const firing=Object.values(i.jets).some(Boolean);
+  $('drive-state').textContent=sim?.crashed?'Missed landing · reset to retry':firing?'Thrusters firing · forces add to gravity':sim?.missed?'Missed jump · use thrusters to recover, or reset':sim?.air?'Airborne · wheels cannot push':i.brake?'Wheel brake on':i.motor?'Motor on · hold J / L to adjust strength':'← / → wheels · ↓ brake · W/A/S/D thrusters';
+ }
+ function syncEnvironment(){
+  const e=mode==='match'?environment(level(),sim.t):{value:config.gravity,name:gravityName(config.gravity),note:'Gravity acts downward'};
+  $('gravity-name').textContent=e.name;$('gravity-value').textContent=e.value.toFixed(2)+' m/s² ↓';$('gravity-note').textContent=e.note;
+  $('force-note').textContent='Mass: '+config.mass+' kg · '+(config.thrusters?'Each jet: '+config.thrust+' N ('+fmt(config.thrust/config.mass)+' m/s²)':'Thrusters off');
  }
  function clearInputs(){keySet.clear();pointerMap.clear();syncDrive();}
  function setRunning(value){running=Boolean(value)&&!ended;if(!running)clearInputs();accumulator=0;lastFrame=0;syncControls();}
@@ -30,16 +43,20 @@
   $('play').textContent=running?'Ⅱ Pause':'▶ '+(sim.t>0?'Resume':'Run');$('play').disabled=ended;$('step').disabled=running||ended;
   $('run-status').textContent=sim.crashed?'Missed landing':ended?'Run complete':!running&&sim.t>0?'Paused':sim.missed?(config.gravity?'Falling into pit':'Drifting'):running?'Running':'Ready to roll';
   $('run-status').classList.toggle('running',running);
-  $('scene-note').textContent=sim.crashed?'Reset and try a little more speed for the jump.':sim.missed?'Missed the landing — watch what gravity does.':ended?'Reset to try again, or choose your next challenge.':mode==='match'?'Follow the graph shape and the shaded time phases.':sim.t===0&&!running?'Hold Right to drive · drag the car before starting':'← / → drive · A / D strength · ↓ brake';
+  $('scene-note').textContent=sim.crashed?'Reset and try a little more speed for the jump.':sim.missed?'Missed the landing — watch what gravity does.':ended?'Reset to try again, or choose your next challenge.':mode==='match'?(level().thrusters?'W/A/S/D thrust · follow the shaded phases':'Hold arrows to drive · J/L smoothly adjust motor strength'):sim.t===0&&!running?'Hold Right to drive · drag the car before starting':'← / → drive · J / L strength · W/A/S/D thrust';
  }
- function syncMotor(){config.motor=clamp(config.motor,.25,6);$('motor').value=config.motor;$('motor-output').textContent=fmt(config.motor,2).replace(/0$/,'')+' m/s²';if(sim)sim.settings.motor=config.motor;}
+ function syncMotor(){config.motor=clamp(config.motor,.25,6);$('motor').value=config.motor;$('motor-output').textContent=fmt(config.motor,2)+' m/s²';if(sim)sim.settings.motor=config.motor;}
  function syncSettings(){
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   document.querySelectorAll('[data-track]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.track===config.kind));b.disabled=mode==='match';});
   $('height').value=config.height;$('height-output').textContent=config.height+' m';$('height').disabled=mode==='match'||config.kind==='flat';
   $('initial-speed').value=config.initialV;$('initial-speed-output').textContent=(config.initialV>0?'+':'')+config.initialV+' m/s';$('initial-speed').disabled=mode==='match';
-  $('gravity').value=config.gravity;$('gravity').disabled=mode==='match';$('allow-jumps').checked=config.allowFlight;$('allow-jumps').disabled=mode==='match';
-  $('settings-note').textContent=mode==='match'?'This challenge uses a flat road and a fixed starting velocity. Adjust Motor strength while driving.':'Changing these settings starts a new run. Motor strength can be adjusted while driving.';
+  $('gravity').value=config.gravity;$('gravity').disabled=mode==='match';$('allow-jumps').checked=config.allowFlight;$('allow-jumps').disabled=mode==='match'||config.thrusters;
+  $('thrusters-enabled').checked=config.thrusters;$('thrusters-enabled').disabled=mode==='match';
+  $('thruster-buttons').hidden=!config.thrusters;$('thrust-force').value=config.thrust;$('thrust-output').textContent=config.thrust+' N';$('thrust-force').disabled=mode==='match';
+  const jetsOnly=mode==='match'&&level().thrusters;
+  for(const id of ['motor','power-down','power-up','drive-left','drive-right','brake'])$(id).disabled=Boolean(jetsOnly);
+  $('settings-note').textContent=mode==='match'?(jetsOnly?'Gravity, initial velocity, and thrust are preset for this challenge. Use W/A/S/D; wheels are disabled.':'Starting motor strength is preset. Hold J/L to change it smoothly while driving.'):'Course settings reset the run. Motor strength and thrust force can be adjusted while running.';
   $('track-title').textContent=trackNames[config.kind];syncMotor();
  }
  function syncChallenge(){
@@ -53,10 +70,12 @@
   const l=level();$('challenge-count').textContent='CHALLENGE '+(levelIndex+1)+' / '+levels.length;$('challenge-title').textContent=l.title;$('challenge-description').textContent=l.instruction;
   syncChallengeDisplay();
   $('challenge').classList.toggle('success',Boolean(lastResult?.passed));
-  $('challenge-result').textContent=lastResult?lastResult.score+'% · '+lastResult.feedback+(passedLevels.has(levelIndex)&&!lastResult.passed?' (Previously unlocked.)':''):'Match the shape, roughly.';
+  const previous=attemptResults.get(level().id);
+  $('challenge-result').textContent=lastResult?lastResult.score+'% · '+lastResult.feedback:previous?'Last attempt: '+previous.score+'% · Try again to improve your shape.':'Your percentage will appear here after each attempt.';
   $('next-challenge').disabled=!passedLevels.has(levelIndex);$('next-challenge').textContent=levelIndex===levels.length-1?'Explore the course':'Next challenge';
   $('challenge-progress').replaceChildren();
-  levels.forEach((l,i)=>{const b=document.createElement('button');b.textContent=passedLevels.has(i)?'✓':i+1;b.className=(i===levelIndex?'current ':'')+(passedLevels.has(i)?'passed':'');b.disabled=i>unlocked;b.title=l.title;b.setAttribute('aria-label','Challenge '+(i+1)+': '+l.title);if(i===levelIndex)b.setAttribute('aria-current','step');b.addEventListener('click',()=>selectLevel(i));$('challenge-progress').append(b);});
+  const chapter=levelIndex<14?0:14;$('challenge-chapter').value=chapter;
+  levels.forEach((l,i)=>{if(i<chapter||i>=chapter+14)return;const b=document.createElement('button');b.textContent=passedLevels.has(i)?'✓':i+1;b.className=(i===levelIndex?'current ':'')+(passedLevels.has(i)?'passed':'');b.disabled=!unlockedLevels.has(i);b.title=l.title;b.setAttribute('aria-label','Challenge '+(i+1)+': '+l.title);if(i===levelIndex)b.setAttribute('aria-current','step');b.addEventListener('click',()=>selectLevel(i));$('challenge-progress').append(b);});
  }
  function syncChallengeDisplay(){
   $('challenge').classList.toggle('is-collapsed',challengeCollapsed);
@@ -65,14 +84,19 @@
   $('toggle-challenge').textContent=challengeCollapsed?'▾ Expand':'▴ Minimize';
   $('toggle-challenge').title=challengeCollapsed?'Expand challenge details':'Minimize challenge details';
   $('challenge-title').title=level().title;
-  $('challenge-summary').hidden=!challengeCollapsed||!lastResult;
-  $('challenge-summary').textContent=lastResult?lastResult.score+'% · '+(lastResult.passed?'Passed':passedLevels.has(levelIndex)?'Unlocked':'Try again'):'';
+  const result=lastResult||attemptResults.get(level().id);
+  $('challenge-summary').hidden=false;
+  $('challenge-summary').textContent=result?(lastResult?'Score: ':'Last: ')+result.score+'% · '+(result.passed?'Passed':'Try again'):'Score: —';
  }
  function reset(){
   running=false;ended=false;parkHold=0;lastResult=null;hoverTime=null;clearInputs();
-  if(mode==='match'){const l=level();Object.assign(config,{kind:'flat',initialV:l.initialV,motor:l.motor,startX:6,allowFlight:false});}
-  track=new Track(config.kind,config.height);sim=new Simulation(track,{gravity:config.gravity,motor:config.motor,brake:mode==='match'?level().brake:6,allowFlight:config.allowFlight},config.startX,config.initialV);
-  ticks=0;accumulator=0;lastFrame=0;samples=[sim.snapshot()];cameraLeft=-5;cameraBottom=-6;
+  if(mode==='match'){
+   const l=level();Object.assign(config,{kind:l.kind||'flat',height:l.height||7,initialV:l.initialV,motor:l.motor,startX:6,allowFlight:Boolean(l.thrusters),gravity:environment(l,0).value,thrusters:Boolean(l.thrusters),thrust:l.thrust||1200,mass:100});
+   sim=makeSimulation(l);track=sim.track;
+  }else{
+   track=new Track(config.kind,config.height);sim=new Simulation(track,{gravity:config.gravity,motor:config.motor,brake:6,allowFlight:config.allowFlight,mass:config.mass,thrust:config.thrust,thrustersEnabled:config.thrusters},config.startX,config.initialV);
+  }
+  ticks=0;accumulator=0;lastFrame=0;samples=[sampleNow()];cameraLeft=-5;cameraBottom=-6;
   $('parking-result').textContent='Find the zone';$('notice').textContent='Space pauses · R resets';
   syncSettings();syncChallenge();syncControls();paint();
  }
@@ -81,11 +105,12 @@
   if(next==='match')savedExplore={...config};else if(mode==='match'&&savedExplore){Object.assign(config,savedExplore);savedExplore=null;}
   mode=next;if(mode==='park')config.startX=6;reset();
  }
- function selectLevel(i){if(!Number.isInteger(i)||i<0||i>=levels.length||i>unlocked)throw new Error('Challenge is locked');levelIndex=i;reset();}
- function appendFinalSample(){if(Math.abs(samples.at(-1).t-sim.t)>1e-8)samples.push(sim.snapshot(input()));}
+ function selectLevel(i){if(!Number.isInteger(i)||i<0||i>=levels.length||!unlockedLevels.has(i))throw new Error('Challenge is locked');levelIndex=i;reset();}
+ function appendFinalSample(){if(Math.abs(samples.at(-1).t-sim.t)>1e-8)samples.push(sampleNow());}
  function gradeAttempt(){
   lastResult=assess(level(),samples,passingScore);
-  if(lastResult.passed){passedLevels.add(levelIndex);unlocked=Math.min(levels.length-1,Math.max(unlocked,levelIndex+1));}
+  attemptResults.set(level().id,lastResult);
+  if(lastResult.passed){passedLevels.add(levelIndex);if(levelIndex+1<levels.length)unlockedLevels.add(levelIndex+1);}
   syncChallenge();
  }
  function finishRun(){
@@ -96,7 +121,12 @@
  function advance(count){
   for(let j=0;j<count&&!ended;j++){
    const wasMissed=sim.missed;
-   sim.settings.motor=config.motor;sim.step(DT,input());ticks++;if(ticks%12===0)samples.push(sim.snapshot(input()));
+   const command=input(),nextMotor=rampMotor(config.motor,command.power,DT);
+   sim.settings.motor=(config.motor+nextMotor)/2;
+   if(mode==='match')sim.settings.gravity=environment(level(),sim.t+DT/2).value;
+   sim.step(DT,command);config.motor=nextMotor;sim.settings.motor=config.motor;
+   if(mode==='match'){config.gravity=environment(level(),sim.t).value;sim.settings.gravity=config.gravity;}
+   ticks++;if(ticks%12===0)samples.push(sampleNow(command));
    if(sim.missed!==wasMissed)syncControls();
    if(sim.crashed){finishRun();break;}
    if(mode==='park'){
@@ -156,9 +186,24 @@
    line(ctx,[[ax,ay],[ex,ey]],'#86e5dd',2);line(ctx,[[ex-ux*7-uy*4,ey-uy*7+ux*4],[ex,ey],[ex-ux*7+uy*4,ey-uy*7-ux*4]],'#86e5dd',2);
    ctx.fillStyle='#aaece7';ctx.font='12px ui-sans-serif,system-ui';ctx.textAlign='center';ctx.fillText(fmt(s.speed,1)+' m/s',(ax+ex)/2,(ay+ey)/2-10);
   }
-  ctx.textAlign='right';ctx.font='11px ui-sans-serif,system-ui';ctx.fillStyle='#9fb8ce';ctx.fillText('g = '+config.gravity.toFixed(2)+' m/s²',w-16,18);
-  $('position-label').textContent='x = '+fmt(s.x,1)+' m';$('flight-status').hidden=!s.airborne;$('flight-status').textContent=s.crashed?'Missed landing':s.missed?(config.gravity?'Falling':'Drifting'):'Airborne';
+  renderThrusters(ctx,s,cx,cy,scale);
+  $('position-label').textContent='x = '+fmt(s.x,1)+' m · y = '+fmt(s.y,1)+' m';$('flight-status').hidden=!s.airborne;$('flight-status').textContent=s.crashed?'Missed landing':s.missed?(config.gravity?'Falling':'Drifting'):'Airborne';
   $('scene').style.cursor=sim.t===0&&!running&&mode==='explore'?'grab':'default';
+ }
+ function renderThrusters(ctx,s,cx,cy,scale){
+  if(!config.thrusters)return;
+  const jets=input().jets,centerY=cy-1.1*scale;
+  for(const [direction,fx,fy] of [['left',-1,0],['right',1,0],['up',0,1],['down',0,-1]]){
+   const ex=-fx,ey=fy,offset=(fx?2.12:1.45)*scale,x=cx+ex*offset,y=centerY+ey*offset;
+   ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(ey,ex));ctx.scale(scale,scale);
+   rounded(ctx,-.16,-.29,.53,.58,.08,'#8fabbc');rounded(ctx,.23,-.22,.2,.44,.03,'#354f63');
+   if(jets[direction]){
+    const length=1.25+.22*Math.sin(s.t*65+fx*3+fy*5)+.15*Math.sin(s.t*109);
+    ctx.beginPath();ctx.moveTo(.43,-.22);ctx.quadraticCurveTo(.8,-.35,.43+length,0);ctx.quadraticCurveTo(.8,.35,.43,.22);ctx.closePath();ctx.fillStyle='#ff943a';ctx.fill();
+    ctx.beginPath();ctx.moveTo(.43,-.12);ctx.lineTo(.43+length*.72,0);ctx.lineTo(.43,.12);ctx.closePath();ctx.fillStyle='#ffe7a0';ctx.fill();
+   }
+   ctx.restore();
+  }
  }
  function niceMax(value){const pow=10**Math.floor(Math.log10(Math.max(value,1e-9))),n=value/pow;return (n<=1?1:n<=2?2:n<=4?4:n<=5?5:n<=8?8:10)*pow;}
  function sampleAt(t){
@@ -199,40 +244,47 @@
   $('graph-hint').textContent=hoverTime===null?'Hover or touch either graph to inspect a moment.':'At '+fmt(hoverTime)+' s · '+fmt(sampleAt(hoverTime).distance)+' m · '+fmt(sampleAt(hoverTime).speed)+' m/s';
   $('phase-cue').hidden=mode!=='match'||ended;
   if(mode==='match'&&!ended){const phase=level().phases.find(p=>s.t<p.to)||level().phases.at(-1);$('phase-cue').textContent=phase.label+' · '+Math.max(0,Math.ceil(phase.to-s.t))+' s';}
-  syncDrive();
+  syncDrive();syncMotor();syncEnvironment();
  }
  function frame(now){
-  if(lastFrame&&running){accumulator+=Math.min((now-lastFrame)/1000,.1)*Number($('playback').value);const count=Math.min(48,Math.floor(accumulator/DT));if(count){advance(count);accumulator=Math.max(0,accumulator-count*DT);}}
+  const elapsed=lastFrame?Math.min((now-lastFrame)/1000,.1):0;
+  if(!running&&input().power){config.motor=rampMotor(config.motor,input().power,elapsed);syncMotor();}
+  if(lastFrame&&running){accumulator+=elapsed*Number($('playback').value);const count=Math.min(48,Math.floor(accumulator/DT));if(count){advance(count);accumulator=Math.max(0,accumulator-count*DT);}}
   lastFrame=now;if(now-lastPaint>1000/40){paint();lastPaint=now;}requestAnimationFrame(frame);
  }
  $('play').addEventListener('click',()=>setRunning(!running));$('reset').addEventListener('click',reset);$('step').addEventListener('click',()=>{if(!running&&!ended){advance(24);syncControls();paint();}});
  document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>selectMode(b.dataset.mode)));
  document.querySelectorAll('[data-track]').forEach(b=>b.addEventListener('click',()=>{config.kind=b.dataset.track;config.startX=6;reset();}));
  for(const [id,key] of [['height','height'],['initial-speed','initialV'],['gravity','gravity']])$(id).addEventListener('input',e=>{config[key]=Number(e.target.value);reset();});
- $('allow-jumps').addEventListener('change',e=>{config.allowFlight=e.target.checked;reset();});
+ $('allow-jumps').addEventListener('change',e=>{config.allowFlight=config.thrusters||e.target.checked;reset();});
  $('motor').addEventListener('input',e=>{config.motor=Number(e.target.value);syncMotor();});
  $('passing-score').addEventListener('input',e=>{
-  passingScore=clamp(Math.round(Number(e.target.value)),1,100);
+  passingScore=clamp(Math.round(Number(e.target.value)),90,100);
   try{localStorage.setItem('motion-lab-passing-score',String(passingScore));}catch{}
   if(mode==='match'&&ended)gradeAttempt();else syncChallenge();
  });
  $('next-challenge').addEventListener('click',()=>{if(!passedLevels.has(levelIndex))return;if(levelIndex===levels.length-1)selectMode('explore');else selectLevel(levelIndex+1);});
+ $('challenge-chapter').addEventListener('change',e=>selectLevel(Number(e.target.value)));
+ $('thrusters-enabled').addEventListener('change',e=>{config.thrusters=e.target.checked;sim.settings.thrustersEnabled=config.thrusters;if(config.thrusters){config.allowFlight=true;sim.settings.allowFlight=true;}syncSettings();paint();});
+ $('thrust-force').addEventListener('input',e=>{config.thrust=Number(e.target.value);sim.settings.thrust=config.thrust;$('thrust-output').textContent=config.thrust+' N';paint();});
  $('toggle-challenge').addEventListener('click',()=>{challengeCollapsed=!challengeCollapsed;syncChallengeDisplay();paint();});
- for(const [id,action] of [['drive-left','left'],['drive-right','right'],['brake','brake']]){
-  const b=$(id);
-  b.addEventListener('pointerdown',e=>{if(e.button!==0||ended)return;e.preventDefault();b.setPointerCapture(e.pointerId);pointerMap.set(e.pointerId,action);syncDrive();if(!running)setRunning(true);});
+ const holds=[['drive-left','left','ArrowLeft'],['drive-right','right','ArrowRight'],['brake','brake','ArrowDown'],['thrust-left','thrust-left','a'],['thrust-right','thrust-right','d'],['thrust-up','thrust-up','w'],['thrust-down','thrust-down','s'],['power-down','power-down','j'],['power-up','power-up','l']];
+ for(const [id,action,key] of holds){
+  const b=$(id),isPower=key==='j'||key==='l';
+  const begin=()=>{syncDrive();if(!isPower&&!running)setRunning(true);};
+  b.addEventListener('pointerdown',e=>{if(e.button!==0||b.disabled||(!isPower&&ended))return;e.preventDefault();b.setPointerCapture(e.pointerId);pointerMap.set(e.pointerId,action);begin();});
   const release=e=>{pointerMap.delete(e.pointerId);syncDrive();};b.addEventListener('pointerup',release);b.addEventListener('pointercancel',release);b.addEventListener('lostpointercapture',release);
-  b.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat&&!ended){e.preventDefault();keySet.add(action==='left'?'ArrowLeft':action==='right'?'ArrowRight':'s');syncDrive();if(!running)setRunning(true);}});
-  b.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();keySet.delete(action==='left'?'ArrowLeft':action==='right'?'ArrowRight':'s');syncDrive();}});
+  b.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat&&!b.disabled&&(isPower||!ended)){e.preventDefault();keySet.add(key);begin();}});
+  b.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();keySet.delete(key);syncDrive();}});
  }
  window.addEventListener('keydown',e=>{
   if($('model-dialog').open||$('settings-dialog').open||e.altKey||e.ctrlKey||e.metaKey)return;
   const k=e.key.length===1?e.key.toLowerCase():e.key;
-  // Arrow keys still adjust a focused slider; A/D always adjust motor power.
   if(['SELECT','TEXTAREA'].includes(e.target.tagName))return;
-  if(['a','d','[',']'].includes(k)){e.preventDefault();config.motor+=k==='a'||k==='['?-.25:.25;syncMotor();return;}
+  if(k==='j'||k==='l'){e.preventDefault();if(mode!=='match'||!level().thrusters)keySet.add(k);return;}
+  if(['w','a','s','d'].includes(k)){e.preventDefault();if(e.repeat||ended||!config.thrusters)return;keySet.add(k);syncDrive();if(!running)setRunning(true);return;}
   if(e.target.tagName==='INPUT')return;
-  if(['ArrowLeft','ArrowRight','ArrowDown','s'].includes(k)){e.preventDefault();if(e.repeat||ended)return;keySet.add(k);syncDrive();if(!running)setRunning(true);}
+  if(['ArrowLeft','ArrowRight','ArrowDown'].includes(k)){e.preventDefault();if(e.repeat||ended||(mode==='match'&&level().thrusters))return;keySet.add(k);syncDrive();if(!running)setRunning(true);}
   else if(k===' '&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)setRunning(!running);}
   else if(k==='r'&&!e.repeat){e.preventDefault();reset();}
  });
@@ -260,7 +312,7 @@
  window.addEventListener('resize',paint);reset();requestAnimationFrame(frame);
  if(document.modelContext?.registerTool){
   const lifecycle=new AbortController(),register=t=>{try{Promise.resolve(document.modelContext.registerTool(t,{signal:lifecycle.signal})).catch(()=>{});}catch{}};
-  register({name:'read_motion_experiment',description:'Read the active experiment, current SI measurements, challenge result, and unlocked progress.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>({mode,running,settings:{...config},measurements:sim.snapshot(input()),challenge:mode==='match'?{index:levelIndex+1,total:levels.length,unlocked:unlocked+1,passingScore,result:lastResult}:null})});
+  register({name:'read_motion_experiment',description:'Read the active experiment, current SI measurements, challenge result, and unlocked progress.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>({mode,running,settings:{...config},measurements:sim.snapshot(input()),challenge:mode==='match'?{index:levelIndex+1,total:levels.length,unlocked:[...unlockedLevels].map(i=>i+1),passingScore,result:lastResult||attemptResults.get(level().id)||null}:null})});
   register({name:'control_motion_experiment',description:'Run, pause, reset, or step the current experiment by 0.1 simulated seconds.',inputSchema:{type:'object',properties:{action:{type:'string',enum:['run','pause','reset','step']}},required:['action'],additionalProperties:false},annotations:{readOnlyHint:false},execute:({action})=>{if(!['run','pause','reset','step'].includes(action))throw new Error('Invalid action');if(action==='run')setRunning(true);if(action==='pause')setRunning(false);if(action==='reset')reset();if(action==='step'){if(running||ended)throw new Error('Pause or reset before stepping');advance(24);syncControls();}paint();return {running,measurements:sim.snapshot(input())};}});
   window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
  }
