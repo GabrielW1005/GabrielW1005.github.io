@@ -13,6 +13,7 @@
   function easeD(t) { return t<=0 || t>=1 ? 0 : 30*t*t*(t-1)*(t-1); }
   function easeDD(t) { return t<=0 || t>=1 ? 0 : 60*t*(2*t*t-3*t+1); }
   function geometry(kind,height,x) {
+    if(kind==='incline')return {y:height-.2*x,slope:-.2,second:0};
     if(kind==='adventure') x=((x%220)+220)%220;
     if(kind==='rollers') x=((x%84)+84)%84;
     let y=0, slope=0, second=0;
@@ -66,6 +67,7 @@
       return result;
     }
     sAtX(x) {
+      if(this.kind==='incline')return x*Math.hypot(1,.2);
       if(this.period) {
         const period=Math.floor(x/this.period),local=x-period*this.period;
         return period*this.arc.at(-1)+this.localSAtX(local);
@@ -79,6 +81,10 @@
       return this.arc[i]*(1-t)+this.arc[i+1]*t-this.origin;
     }
     atS(s) {
+      if(this.kind==='incline'){
+        const norm=Math.hypot(1,.2),x=s/norm;
+        return {x,...this.atX(x),tx:1/norm,ty:-.2/norm,curvature:0};
+      }
       let period=0;
       if(this.period){period=Math.floor(s/this.arc.at(-1));s-=period*this.arc.at(-1);}
       const a=s+this.origin;

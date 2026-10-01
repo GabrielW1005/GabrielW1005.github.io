@@ -4,7 +4,7 @@
  const {Track,Simulation,clamp,rampMotor}=window.MotionPhysics;
  const {levels,target,assess,gravityName,environment,makeSimulation}=window.MotionChallenges;
  const $=id=>document.getElementById(id),DT=1/240,MAX_TIME=120;
- const trackNames={adventure:'Adventure course',rollers:'Rolling hills',flat:'Flat road',ramp:'Downhill',valley:'The valley',hill:'Over the hill'};
+ const trackNames={adventure:'Adventure course',rollers:'Rolling hills',flat:'Flat road',ramp:'Downhill',valley:'The valley',hill:'Over the hill',incline:'Long downhill · 1-in-5 slope'};
  const config={kind:'adventure',height:7,gravity:9.81,motor:3.5,initialV:0,startX:6,allowFlight:true,thrusters:true,thrust:1200,mass:100};
  let track,sim,mode='explore',running=false,ended=false,ticks=0,samples=[],parkHold=0;
  let levelIndex=0,unlockedLevels=new Set([0,14]),passedLevels=new Set(),lastResult=null,savedExplore=null;
@@ -15,22 +15,23 @@
  let accumulator=0,lastFrame=0,lastPaint=0,hoverTime=null,cameraLeft=-5,cameraBottom=-6,view=null,dragPointer=null;
  const keySet=new Set(),pointerMap=new Map();
  const level=()=>levels[levelIndex];
+ const horizontalChallenge=()=>mode==='match'&&Boolean(level().horizontalOnly);
  const fmt=(value,n=2)=>(Math.abs(value)<.5*10**-n?0:value).toFixed(n);
  function input(){
   const held=(key,action)=>keySet.has(key)||[...pointerMap.values()].includes(action);
-  const wheelAllowed=mode!=='match'||!level().thrusters;
-  const jets={left:config.thrusters&&held('a','thrust-left'),right:config.thrusters&&held('d','thrust-right'),up:config.thrusters&&held('w','thrust-up'),down:config.thrusters&&held('s','thrust-down')};
-  return {motor:wheelAllowed?(Number(held('ArrowRight','right'))-Number(held('ArrowLeft','left'))):0,
-   brake:wheelAllowed&&held('ArrowDown','brake'),jets,thrustX:Number(jets.right)-Number(jets.left),thrustY:Number(jets.up)-Number(jets.down),
-   power:wheelAllowed?(Number(held('l','power-up'))-Number(held('j','power-down'))):0};
+  const verticalAllowed=!horizontalChallenge();
+  const jets={left:config.thrusters&&held('a','thrust-left'),right:config.thrusters&&held('d','thrust-right'),up:config.thrusters&&verticalAllowed&&held('w','thrust-up'),down:config.thrusters&&verticalAllowed&&held('s','thrust-down')};
+  return {motor:Number(held('ArrowRight','right'))-Number(held('ArrowLeft','left')),
+   brake:held('ArrowDown','brake'),jets,thrustX:Number(jets.right)-Number(jets.left),thrustY:Number(jets.up)-Number(jets.down),
+   power:Number(held('l','power-up'))-Number(held('j','power-down'))};
  }
- function sampleNow(command=input()){return {...sim.snapshot(command),thrustX:command.thrustX||0,thrustY:command.thrustY||0};}
+ function sampleNow(command=input()){return {...sim.snapshot(command),thrustX:command.thrustX||0,thrustY:command.thrustY||0,motor:command.motor||0,brake:Boolean(command.brake),power:command.power||0};}
  function syncDrive(){
   const i=input();$('drive-left').classList.toggle('active',i.motor<0);$('drive-right').classList.toggle('active',i.motor>0);$('brake').classList.toggle('active',i.brake);
   for(const direction of ['left','right','up','down'])$('thrust-'+direction).classList.toggle('active',i.jets[direction]);
   $('power-down').classList.toggle('active',i.power<0);$('power-up').classList.toggle('active',i.power>0);
   const firing=Object.values(i.jets).some(Boolean);
-  $('drive-state').textContent=sim?.crashed?'Missed landing · reset to retry':firing?'Thrusters firing · forces add to gravity':sim?.missed?'Missed jump · use thrusters to recover, or reset':sim?.air?'Airborne · wheels cannot push':i.brake?'Wheel brake on':i.motor?'Motor on · hold J / L to adjust strength':'← / → wheels · ↓ brake · W/A/S/D thrusters';
+  $('drive-state').textContent=sim?.crashed?'Missed landing · reset to retry':firing?'Thrusters firing · forces add to gravity':sim?.missed?'Missed jump · use thrusters to recover, or reset':sim?.air?'Airborne · wheels cannot push':i.brake?'Wheel brake on':i.motor?'Motor on · hold J / L to adjust strength':horizontalChallenge()?'D boost · A slow · arrows drive · J/L motor strength':'← / → wheels · ↓ brake · W/A/S/D thrusters';
  }
  function syncEnvironment(){
   const e=mode==='match'?environment(level(),sim.t):{value:config.gravity,name:gravityName(config.gravity),note:'Gravity acts downward'};
@@ -43,7 +44,7 @@
   $('play').textContent=running?'Ⅱ Pause':'▶ '+(sim.t>0?'Resume':'Run');$('play').disabled=ended;$('step').disabled=running||ended;
   $('run-status').textContent=sim.crashed?'Missed landing':ended?'Run complete':!running&&sim.t>0?'Paused':sim.missed?(config.gravity?'Falling into pit':'Drifting'):running?'Running':'Ready to roll';
   $('run-status').classList.toggle('running',running);
-  $('scene-note').textContent=sim.crashed?'Reset and try a little more speed for the jump.':sim.missed?'Missed the landing — watch what gravity does.':ended?'Reset to try again, or choose your next challenge.':mode==='match'?(level().thrusters?'W/A/S/D thrust · follow the shaded phases':'Hold arrows to drive · J/L smoothly adjust motor strength'):sim.t===0&&!running?'Hold Right to drive · drag the car before starting':'← / → drive · J / L strength · W/A/S/D thrust';
+  $('scene-note').textContent=sim.crashed?'Reset and try a little more speed for the jump.':sim.missed?'Missed the landing — watch what gravity does.':ended?'Reset to try again, or choose your next challenge.':mode==='match'?(level().thrusters?'Travel right · A/D thrust · arrows drive · J/L strength':'Hold arrows to drive · J/L smoothly adjust motor strength'):sim.t===0&&!running?'Hold Right to drive · drag the car before starting':'← / → drive · J / L strength · W/A/S/D thrust';
  }
  function syncMotor(){config.motor=clamp(config.motor,.25,6);$('motor').value=config.motor;$('motor-output').textContent=fmt(config.motor,2)+' m/s²';if(sim)sim.settings.motor=config.motor;}
  function syncSettings(){
@@ -54,9 +55,10 @@
   $('gravity').value=config.gravity;$('gravity').disabled=mode==='match';$('allow-jumps').checked=config.allowFlight;$('allow-jumps').disabled=mode==='match'||config.thrusters;
   $('thrusters-enabled').checked=config.thrusters;$('thrusters-enabled').disabled=mode==='match';
   $('thruster-buttons').hidden=!config.thrusters;$('thrust-force').value=config.thrust;$('thrust-output').textContent=config.thrust+' N';$('thrust-force').disabled=mode==='match';
-  const jetsOnly=mode==='match'&&level().thrusters;
-  for(const id of ['motor','power-down','power-up','drive-left','drive-right','brake'])$(id).disabled=Boolean(jetsOnly);
-  $('settings-note').textContent=mode==='match'?(jetsOnly?'Gravity, initial velocity, and thrust are preset for this challenge. Use W/A/S/D; wheels are disabled.':'Starting motor strength is preset. Hold J/L to change it smoothly while driving.'):'Course settings reset the run. Motor strength and thrust force can be adjusted while running.';
+  for(const id of ['motor','power-down','power-up','drive-left','drive-right','brake'])$(id).disabled=false;
+  for(const id of ['thrust-up','thrust-down']){$(id).hidden=horizontalChallenge();$(id).disabled=horizontalChallenge();}
+  $('thruster-buttons').setAttribute('aria-label',horizontalChallenge()?'Hold A or D for horizontal thrust':'Hold to fire a directional thruster');
+  $('settings-note').textContent=mode==='match'?(level().thrusters?'Starting motor strength, gravity, velocity, and thrust are preset. Use A/D and the wheel motor as each phase directs. Keep traveling right.':'Starting motor strength is preset. Hold J/L to change it smoothly while driving.'):'Course settings reset the run. Motor strength and thrust force can be adjusted while running.';
   $('track-title').textContent=trackNames[config.kind];syncMotor();
  }
  function syncChallenge(){
@@ -194,6 +196,7 @@
   if(!config.thrusters)return;
   const jets=input().jets,centerY=cy-1.1*scale;
   for(const [direction,fx,fy] of [['left',-1,0],['right',1,0],['up',0,1],['down',0,-1]]){
+   if(horizontalChallenge()&&fy)continue;
    const ex=-fx,ey=fy,offset=(fx?2.12:1.45)*scale,x=cx+ex*offset,y=centerY+ey*offset;
    ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(ey,ex));ctx.scale(scale,scale);
    rounded(ctx,-.16,-.29,.53,.58,.08,'#8fabbc');rounded(ctx,.23,-.22,.2,.44,.03,'#354f63');
@@ -281,10 +284,10 @@
   if($('model-dialog').open||$('settings-dialog').open||e.altKey||e.ctrlKey||e.metaKey)return;
   const k=e.key.length===1?e.key.toLowerCase():e.key;
   if(['SELECT','TEXTAREA'].includes(e.target.tagName))return;
-  if(k==='j'||k==='l'){e.preventDefault();if(mode!=='match'||!level().thrusters)keySet.add(k);return;}
-  if(['w','a','s','d'].includes(k)){e.preventDefault();if(e.repeat||ended||!config.thrusters)return;keySet.add(k);syncDrive();if(!running)setRunning(true);return;}
+  if(k==='j'||k==='l'){e.preventDefault();keySet.add(k);return;}
+  if(['w','a','s','d'].includes(k)){e.preventDefault();if(e.repeat||ended||!config.thrusters||(horizontalChallenge()&&(k==='w'||k==='s')))return;keySet.add(k);syncDrive();if(!running)setRunning(true);return;}
   if(e.target.tagName==='INPUT')return;
-  if(['ArrowLeft','ArrowRight','ArrowDown'].includes(k)){e.preventDefault();if(e.repeat||ended||(mode==='match'&&level().thrusters))return;keySet.add(k);syncDrive();if(!running)setRunning(true);}
+  if(['ArrowLeft','ArrowRight','ArrowDown'].includes(k)){e.preventDefault();if(e.repeat||ended)return;keySet.add(k);syncDrive();if(!running)setRunning(true);}
   else if(k===' '&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)setRunning(!running);}
   else if(k==='r'&&!e.repeat){e.preventDefault();reset();}
  });

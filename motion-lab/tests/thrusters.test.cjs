@@ -47,7 +47,7 @@ test('switching gravity changes acceleration without an impulse in velocity',()=
  sim.settings.gravity=9.81;const last=advance(sim,1,{thrustY:1});near(last.vy,-11.34);
 });
 test('a linear gravity ramp gives the analytical quadratic velocity and cubic position',()=>{
- const l=levels.find(l=>l.id==='gravity-ramp-up'),sim=makeSimulation(l),jerk=(3.71-1.62)/6;
+ const l={id:'vertical-ramp-regression',duration:6,initialV:0,motor:2,brake:2,thrusters:true,thrust:162,startY:100,initialVy:-3,gravityRamp:{from:1.62,to:3.71,label:'Test ramp'}},sim=makeSimulation(l),jerk=(3.71-1.62)/6;
  for(let i=0;i<6/dt;i++){sim.settings.gravity=environment(l,(i+.5)*dt).value;sim.step(dt,{thrustY:1});}
  const p=sim.snapshot();near(p.vy,-3-jerk*6**2/2);near(p.y,100-3*6-jerk*6**3/6,5e-6);
  near(p.distance,100-p.y,1e-7);
@@ -78,10 +78,44 @@ test('all new reference runs stay finite and match distance to integrated speed'
  }
 });
 test('the scoring threshold is limited to 90–100 and thruster phases need the specified control',()=>{
- const l=levels.find(l=>l.id==='moon-balance'),trace=referenceSamples(l);
+ const l=levels.find(l=>l.id==='track-boost-coast-brake'),trace=referenceSamples(l);
  assert.equal(assess(l,trace,1).threshold,90);assert.equal(assess(l,trace,120).threshold,100);
  assert.equal(assess(l,trace,NaN).threshold,90);
  const fake=trace.map(p=>({...p,thrustX:0,thrustY:0}));assert.ok(!assess(l,fake,90).passed);
  assert.ok(!assess(l,trace.slice(0,-10),90).passed);
  assert.equal(levels[5].motor,.5);assert.equal(levels[6].motor,4);
+});
+
+
+test('every thruster challenge starts on the road and completes traveling right with A/D only',()=>{
+ for(const l of levels.slice(14)){
+  assert.ok(l.horizontalOnly,l.id);assert.equal(l.startY,undefined,l.id);
+  const data=referenceSamples(l);assert.ok(data.at(-1).x>data[0].x+20,l.id);
+  for(const p of data){assert.ok(p.vx>=-1e-8,l.id);assert.equal(p.airborne,false,l.id);assert.equal(p.thrustY||0,0,l.id);}
+ }
+});
+test('long downhill arc coordinates and tangential forces remain exact beyond the lookup bounds',()=>{
+ const track=new Track('incline',24),norm=Math.hypot(1,.2);
+ for(const x of [-1000,-20,6,90,1000]){const p=track.atS(track.sAtX(x));near(p.x,x);near(p.y,24-.2*x);near(p.tx,1/norm);near(p.ty,-.2/norm);}
+ const sim=new Simulation(track,{allowFlight:true,thrustersEnabled:true,thrust:74.2,gravity:3.71},6,6);
+ const initial=sim.snapshot(),p=advance(sim,4,{thrustX:-1});near(p.speed,6);near(p.distance,24);near(p.a,0);near(p.x,initial.x+24/norm);
+});
+test('the two driving gravity ramps match analytical speed and distance on a constant slope',()=>{
+ for(const id of ['track-gravity-ramp-up','track-gravity-ramp-down']){
+  const l=levels.find(l=>l.id===id),data=referenceSamples(l),p=data.at(-1),norm=Math.hypot(1,.2),u=l.reference(0);
+  const a0=(u.motor||0)*l.motor+(u.thrustX*l.thrust/100+.2*l.gravityRamp.from)/norm;
+  const jerk=.2*(l.gravityRamp.to-l.gravityRamp.from)/(norm*l.duration),t=l.duration;
+  near(p.speed,l.initialV+a0*t+.5*jerk*t*t);
+  near(p.distance,l.initialV*t+.5*a0*t*t+jerk*t*t*t/6,4e-6);
+ }
+});
+test('combined motor/thruster phases require both controls, with a physically balanced cruise',()=>{
+ const l=levels.find(l=>l.id==='track-motor-counterthrust'),data=referenceSamples(l);
+ for(const p of data.filter(p=>p.t>3.05&&p.t<5.95)){near(p.speed,8);near(p.ax,0);assert.equal(p.motor,1);assert.equal(p.thrustX,-1);}
+ assert.ok(!assess(l,data.map(p=>({...p,motor:0})),90).passed);
+ assert.ok(!assess(l,data.map(p=>({...p,thrustX:0})),90).passed);
+});
+test('a matching speed shape cannot pass by driving backward',()=>{
+ const l=levels[14],backward=referenceSamples(l).map(p=>({...p,x:12-p.x,vx:-p.vx}));
+ const r=assess(l,backward,90);assert.equal(r.passed,false);assert.match(r.feedback,/traveling right/);
 });

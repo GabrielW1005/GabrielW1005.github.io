@@ -58,67 +58,67 @@
    speed:t=>t<5?.5*t+.25*t*t:8.75+3*(t-5)-.25*(t-5)**2}
  ];
  const phase=(from,to,type,label,control,hint)=>({from,to,type,label,control,hint});
- const jetLevel=(id,title,gravity,thrust,duration,startY,initialVy,phases,reference,instruction,extra={})=>({id,title,gravity,thrust,duration,startY,initialVy,initialV:0,motor:2,brake:2,graph:'speed',thrusters:true,phases,reference,instruction,...extra});
+ const driveLevel=(id,title,gravity,thrust,duration,initialV,phases,reference,instruction,extra={})=>({id,title,gravity,thrust,duration,initialV,motor:2,brake:2,graph:'speed',thrusters:true,horizontalOnly:true,phases,reference,instruction,...extra});
  levels.push(
-  jetLevel('moon-balance','Moon: fall, then steady',1.62,162,7,100,-4,
-   [phase(0,3,'rise','Release jets · speed up falling'),phase(3,7,'flat','Hold W · balance Moon gravity','up','Hold W: 162 N balances the 100 kg car’s weight on the Moon.')],
-   t=>({thrustY:t>=3?1:0}),
-   'Press Run. Fall freely for 3 s, then hold W. The preset 162 N upward thrust balances Moon gravity: the car keeps falling at a constant speed.'),
-  jetLevel('mars-balance','Mars: fall, then steady',3.71,371,6,140,-3,
-   [phase(0,2,'rise','Release jets · fall faster'),phase(2,6,'flat','Hold W · balance Mars gravity','up','Hold W: 371 N balances the car’s weight on Mars.')],
-   t=>({thrustY:t>=2?1:0}),
-   'Press Run, then hold W after 2 s. Mars gravity is stronger, so this challenge presets 371 N of thrust to keep the falling speed constant.'),
-  jetLevel('earth-balance','Earth: fall, then steady',9.81,981,6,180,-2,
-   [phase(0,2,'rise','Release jets · Earth free fall'),phase(2,6,'flat','Hold W · balance Earth gravity','up','Hold W: 981 N balances the car’s weight on Earth.')],
-   t=>({thrustY:t>=2?1:0}),
-   'Press Run and watch Earth gravity steepen the speed graph. After 2 s, hold W: 981 N upward balances gravity without stopping the falling car.'),
-  jetLevel('moon-launch','Moon: rocket up, then release',1.62,400,6,undefined,0,
-   [phase(0,3,'rise','Hold W · accelerate upward','up'),phase(3,6,'fall','Release W · gravity slows the climb')],
-   t=>({thrustY:t<3?1:0}),
-   'Hold W for 3 s, then release. The 400 N jet lifts the car against Moon gravity. Its speed falls after release even while it is still going up.'),
-  jetLevel('mars-launch','Mars: rocket up, then release',3.71,800,6,undefined,0,
-   [phase(0,3,'rise','Hold W · launch on Mars','up'),phase(3,6,'fall','Release W · slow the climb')],
-   t=>({thrustY:t<3?1:0}),
-   'Hold W for 3 s, then release. This Mars launch uses 800 N. The target includes Mars gravity during both powered flight and the unpowered climb.'),
-  jetLevel('earth-launch','Earth: a stronger launch',9.81,1600,4.5,undefined,0,
-   [phase(0,3,'rise','Hold W · launch on Earth','up'),phase(3,4.5,'fall','Release W · gravity slows the climb')],
-   t=>({thrustY:t<3?1:0}),
-   'Hold W for 3 s, then release for 1.5 s. The preset 1600 N jet lifts this 100 kg car on Earth. Gravity keeps acting while the jet fires.'),
-  jetLevel('space-push-coast','Zero gravity: push, coast, brake',0,200,9,12,0,
-   [phase(0,3,'rise','Hold D · push right','right'),phase(3,6,'flat','Release all jets · coast'),phase(6,9,'fall','Hold A · oppose the motion','left')],
+  driveLevel('track-boost-coast-brake','Thrust right, coast, slow down',9.81,200,9,2,
+   [phase(0,3,'rise','Hold D · boost right','right'),phase(3,6,'flat','Release all controls · coast','coast'),phase(6,9,'fall','Hold A · slow down, still moving right','left')],
    t=>({thrustX:t<3?1:t<6?0:-1}),
-   'Use D to push right for 3 s, release all jets for 3 s, then use A to slow down. In zero gravity, no thrust means constant velocity.'),
-  jetLevel('space-reverse','Zero gravity: reverse horizontally',0,200,4,12,0,
-   [phase(0,2,'distance-down','Hold A · slow rightward motion','left'),phase(2,4,'distance-up','Keep A held · speed up to the left','left')],
+   'Drive left to right: hold D for 3 s, release for 3 s, then hold A for 3 s. A pushes left to slow the car while it keeps rolling right. No wheel motor is needed.'),
+  driveLevel('track-cruise-boost','Moon road: cruise, boost, cruise',1.62,150,9,3,
+   [phase(0,3,'flat','Press Run · coast','coast'),phase(3,6,'rise','Hold D · speed up','right'),phase(6,9,'flat','Release D · cruise faster','coast')],
+   t=>({thrustX:t>=3&&t<6?1:0}),
+   'Press Run, coast for 3 s, hold D for 3 s, then release. The car travels right along a flat road. Moon gravity acts downward, so it does not change horizontal acceleration here.'),
+  driveLevel('track-a-braking','Mars road: brake with A',3.71,200,7,12,
+   [phase(0,3,'fall','Hold A · reduce rightward speed','left'),phase(3,7,'flat','Release A · keep rolling right','coast')],
+   t=>({thrustX:t<3?-1:0}),
+   'The car starts moving right at 12 m/s. Hold A for 3 s, then release and coast. A is a leftward force, not a command to instantly move left.'),
+  driveLevel('track-distance-boost','Distance: boost, then cruise',9.81,150,8,2,
+   [phase(0,4,'distance-up','Hold D · distance gets steeper','right'),phase(4,8,'flat','Release D · straight distance line','coast')],
+   t=>({thrustX:t<4?1:0}),
+   'Hold D for 4 s, then release. Keep traveling right: increasing speed curves the distance graph upward, then coasting makes it straight.',{graph:'distance'}),
+  driveLevel('track-distance-slow-boost','Distance: slow, then boost',1.62,150,6,10,
+   [phase(0,3,'distance-down','Hold A · flatten the distance curve','left'),phase(3,6,'distance-up','Switch to D · steepen the distance curve','right')],
+   t=>({thrustX:t<3?-1:1}),
+   'Start rolling right at 10 m/s. Hold A for 3 s, then switch to D for 3 s. The car keeps moving right while the distance graph changes from concave down to concave up.',{graph:'distance'}),
+  driveLevel('track-motor-boost','Motor, extra thrust, then coast',9.81,150,9,0,
+   [phase(0,3,'rise','Hold Right arrow · wheel motor','motor-right'),phase(3,6,'rise','Right arrow + D · combine both forces',['motor-right','right']),phase(6,9,'flat','Release both · coast','coast')],
+   t=>({motor:t<6?1:0,thrustX:t>=3&&t<6?1:0}),
+   'Hold Right arrow for 3 s. Keep it held and add D for the next 3 s to make the speed graph steeper. Release both for the final 3 s. The motor starts at 1.50 m/s².',{motor:1.5}),
+  driveLevel('track-motor-counterthrust','Motor versus a braking thruster',3.71,200,9,2,
+   [phase(0,3,'rise','Hold Right arrow · speed up','motor-right'),phase(3,6,'flat','Right arrow + A · balance the forces',['motor-right','left']),phase(6,9,'fall','Release Right; keep A · slow down','left')],
+   t=>({motor:t<6?1:0,thrustX:t>=3?-1:0}),
+   'Hold Right arrow for 3 s, then add A for 3 s. The preset motor and leftward jet balance, so the car keeps moving right at constant speed. Finally release Right but keep A for 3 s.',{motor:2}),
+  driveLevel('track-motor-curve-up','Motor + D: bend speed upward',9.81,100,7,1,
+   [phase(0,7,'speed-up','Right arrow + D + L · increase motor strength',['motor-right','right'])],
+   ()=>({motor:1,thrustX:1,power:1}),
+   'Hold Right arrow and D throughout. Also hold L to smoothly increase motor strength from its preset 0.50 m/s². Both forces push right; increasing motor strength makes speed concave up.',{motor:.5}),
+  driveLevel('track-motor-curve-down','Motor + A: bend speed downward',9.81,100,7,1,
+   [phase(0,7,'speed-down','Right arrow + A + J · reduce motor strength',['motor-right','left'])],
+   ()=>({motor:1,thrustX:-1,power:-1}),
+   'Hold Right arrow and A throughout, and hold J to reduce motor strength from 5.00 m/s². The motor still overcomes the leftward jet, so speed rises more and more slowly.',{motor:5}),
+  driveLevel('track-moon-downhill','Moon ramp: roll, then boost',1.62,200,9,2,
+   [phase(0,5,'rise','Press Run · roll downhill under gravity','coast'),phase(5,9,'rise','Hold D · add a rightward boost','right')],
+   t=>({thrustX:t>=5?1:0}),
+   'Press Run and roll down the ramp for 5 s, then hold D for 4 s. Even with the motor off, Moon gravity speeds the car up downhill. D adds a horizontal force.',{kind:'incline',height:18}),
+  driveLevel('track-mars-downhill','Mars ramp: D, then A',3.71,200,8,6,
+   [phase(0,4,'rise','Hold D · boost down the ramp','right'),phase(4,8,'fall','Switch to A · slow the descent','left')],
+   t=>({thrustX:t<4?1:-1}),
+   'Hold D for 4 s down the Mars ramp, then switch to A for 4 s. The 200 N leftward jet is strong enough to reduce speed despite downhill gravity. Keep moving right.',{kind:'incline',height:24}),
+  driveLevel('track-gravity-switch','Ramp: Moon → Mars → Earth',1.62,74.2,10,6,
+   [phase(0,4,'fall','Moon · hold A to slow down','left'),phase(4,7,'flat','Mars · keep A held to balance the slope','left'),phase(7,10,'rise','Earth · keep A held as gravity wins','left')],
    ()=>({thrustX:-1}),
-   'The car starts moving right at 4 m/s. Hold A throughout: it stops, reverses, and speeds up leftward. Total distance keeps increasing through the reversal.',{initialV:4,graph:'distance'}),
-  jetLevel('space-down','Zero gravity: up, stop, down',0,200,6,60,6,
-   [phase(0,3,'fall','Hold S · slow the upward motion','down'),phase(3,6,'rise','Keep S held · speed up downward','down')],
-   ()=>({thrustY:-1}),
-   'The car starts moving upward at 6 m/s. Hold S throughout. A downward force first reduces its speed, then increases its speed after it reverses.'),
-  jetLevel('gravity-switch','Gravity lab: Moon → Mars → Earth',1.62,371,7.5,250,-2,
-   [phase(0,2,'rise','Moon · release jets'),phase(2,4.5,'flat','Mars · hold W','up','Hold W when Mars gravity begins; 371 N balances it.'),phase(4.5,7.5,'rise','Earth · keep W held','up')],
-   t=>({thrustY:t>=2?1:0}),
-   'A simulated gravity switch happens at 2 s and 4.5 s. Start with no jets, then hold W from 2 s onward. The same 371 N balances Mars gravity but cannot balance Earth gravity.',
-   {gravitySchedule:[{at:0,value:1.62,name:'Moon'},{at:2,value:3.71,name:'Mars'},{at:4.5,value:9.81,name:'Earth'}]}),
-  jetLevel('gravity-ramp-up','Gravity lab: increasing gravity',1.62,162,6,100,-3,
-   [phase(0,6,'speed-up','Hold W · gravity grows stronger','up','Keep W held as simulated gravity increases; the falling speed should bend upward.')],
-   ()=>({thrustY:1}),
-   'Hold W throughout. In this artificial gravity experiment, g rises smoothly from Moon to Mars strength. The preset 162 N initially balances gravity, then becomes insufficient.',
-   {gravityRamp:{from:1.62,to:3.71,label:'Moon → Mars'}}),
-  jetLevel('gravity-ramp-down','Gravity lab: decreasing gravity',9.81,200,6,220,-3,
-   [phase(0,6,'speed-down','Hold S · gravity gets weaker','down','Hold S while gravity decreases: falling speed still rises, but less steeply.')],
-   ()=>({thrustY:-1}),
-   'Hold S throughout. Simulated gravity gradually decreases from Earth to Mars strength. Your constant downward thrust and the weakening gravity make speed rise less and less steeply.',
-   {gravityRamp:{from:9.81,to:3.71,label:'Earth → Mars'}}),
-  jetLevel('earth-descent-brake','Earth: brake a descent with thrust',9.81,1200,6,120,-12,
-   [phase(0,4,'fall','Hold W · slow the descent','up'),phase(4,6,'rise','Release W · fall faster again')],
-   t=>({thrustY:t<4?1:0}),
-   'The car starts falling at 12 m/s. Hold W for 4 s: the upward thrust is stronger than its weight, so it slows down. Release W to accelerate downward again.'),
-  jetLevel('mars-dive-brake','Mars: dive, then brake',3.71,800,6,160,-2,
-   [phase(0,2,'rise','Hold S · downward thrust','down'),phase(2,6,'fall','Hold W · upward thrust','up')],
-   t=>({thrustY:t<2?-1:1}),
-   'Hold S for 2 s to add downward thrust to Mars gravity. Then hold W for 4 s to reduce the falling speed. Watch the signed vertical velocity as well as speed.')
+   'Hold A throughout while driving right down a 1-in-5 ramp. This artificial gravity lab switches to Mars at 4 s and Earth at 7 s. The preset 74.2 N jet slows you on the Moon, balances the Mars slope, and cannot balance the Earth slope.',
+   {kind:'incline',height:24,gravitySchedule:[{at:0,value:1.62,name:'Moon'},{at:4,value:3.71,name:'Mars'},{at:7,value:9.81,name:'Earth'}]}),
+  driveLevel('track-gravity-ramp-up','Ramp: stronger gravity, steeper speed',1.62,100,8,2,
+   [phase(0,8,'speed-up','Right arrow + D · gravity grows stronger',['motor-right','right'])],
+   ()=>({motor:1,thrustX:1}),
+   'Hold Right arrow and D down the ramp. Motor strength and thrust stay fixed while simulated gravity rises smoothly from Moon to Earth strength. The increasing downhill pull bends the speed graph upward.',
+   {kind:'incline',height:24,motor:1,gravityRamp:{from:1.62,to:9.81,label:'Moon → Earth'}}),
+  driveLevel('track-gravity-ramp-down','Ramp: weaker gravity, gentler speed',9.81,100,8,2,
+   [phase(0,8,'speed-down','Hold D · gravity grows weaker','right')],
+   ()=>({thrustX:1}),
+   'Hold D while rolling right down the ramp. In this artificial experiment, gravity decreases smoothly from Earth to Moon strength. Speed still rises, but less steeply, making the graph concave down.',
+   {kind:'incline',height:24,gravityRamp:{from:9.81,to:1.62,label:'Earth → Moon'}})
  );
  function gravityName(g){return Math.abs(g-9.81)<.001?'Earth':Math.abs(g-1.62)<.001?'Moon':Math.abs(g-3.71)<.001?'Mars':g===0?'Zero gravity':'Custom gravity';}
  function environment(level,t=0){
@@ -134,9 +134,10 @@
   if(traces.has(level.id))return traces.get(level.id);
   const sim=makeSimulation(level),first=level.reference(0),data=[{...sim.snapshot(first),...first}];
   for(let i=0;i<Math.round(level.duration*240);i++){
-   const t=i/240,command=level.reference(t);
+   const t=i/240,command=level.reference(t),motor=sim.settings.motor,nextMotor=Physics.rampMotor(motor,command.power||0,1/240);
+   sim.settings.motor=(motor+nextMotor)/2;
    sim.settings.gravity=environment(level,t+1/480).value;sim.step(1/240,command);
-   sim.settings.gravity=environment(level,(i+1)/240).value;
+   sim.settings.motor=nextMotor;sim.settings.gravity=environment(level,(i+1)/240).value;
    if((i+1)%12===0)data.push({...sim.snapshot(command),...command});
   }
   traces.set(level.id,data);return data;
@@ -181,17 +182,19 @@
    let score=phaseScore(p,samples);
    if(p.control){
     const trim=Math.min(.65,(p.to-p.from)*.17),section=samples.filter(s=>s.t>=p.from+trim&&s.t<=p.to-trim);
-    const correct=s=>p.control==='up'?s.thrustY>0:p.control==='down'?s.thrustY<0:p.control==='right'?s.thrustX>0:s.thrustX<0;
+    const controls=Array.isArray(p.control)?p.control:[p.control];
+    const correct=s=>controls.every(c=>c==='motor-right'?s.motor>0:c==='coast'?!(s.motor||s.brake||s.thrustX||s.thrustY):c==='up'?s.thrustY>0:c==='down'?s.thrustY<0:c==='right'?s.thrustX>0:s.thrustX<0);
     score*=section.length?clamp(section.filter(correct).length/section.length/.6):0;
    }
-   return {label:p.label,type:p.type,score,hint:p.hint||(p.control?'Use the '+{up:'W',down:'S',left:'A',right:'D'}[p.control]+' thruster during this phase.':null)};
+   return {label:p.label,type:p.type,score,hint:p.hint||(p.control?'During this phase: '+p.label+'.':null)};
   });
   const score=Math.round(100*parts.reduce((sum,p)=>sum+p.score,0)/parts.length);
   const complete=samples.at(-1).t>=level.duration-.1;
-  const passed=complete&&score>=threshold&&parts.every(p=>p.score>=.25);
+  const forward=!level.horizontalOnly||(samples.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.vx))&&samples.at(-1).x>samples[0].x+1&&samples.filter(p=>p.vx<-.2).length<=samples.length*.02);
+  const passed=complete&&forward&&score>=threshold&&parts.every(p=>p.score>=.25);
   const weak=parts.reduce((a,b)=>a.score<b.score?a:b);
   const tips={rise:'Try making the rising part climb a little more.',fall:'Try slowing down more during the falling part.',flat:'Release both motor and brake during the coasting part, and keep rolling.',stop:'Brake all the way to zero and wait through the stopped section.','distance-up':'Speed up so your distance graph gets steeper.','distance-down':'Slow down while moving so your distance graph gets less steep.','speed-up':'Hold L to raise strength while holding Right, so your speed graph bends upward.','speed-down':'Hold J to lower strength while holding Right, so your speed keeps rising more gently.'};
-  return {score,passed,parts,threshold,feedback:passed?'Close enough — you made the right shape!':!complete?'Finish the whole graph before checking your match.':weak.hint||tips[weak.type]};
+  return {score,passed,parts,threshold,feedback:passed?'Close enough — you made the right shape!':!complete?'Finish the whole graph before checking your match.':!forward?'Keep traveling right along the track. Release A before the car reverses.':weak.hint||tips[weak.type]};
  }
  const api={levels,target,assess,phaseScore,gravityName,environment,makeSimulation,referenceSamples};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.MotionChallenges=api;
 })(typeof globalThis==='undefined'?this:globalThis);
