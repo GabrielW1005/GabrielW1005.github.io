@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10151d"><meta name="description" content="A touch-friendly Newtonian physics game. 15 challenges, an open lab, and no login.">
+<title>Newton Lab · A physics playground</title>
+<style>
+:root{color-scheme:dark;--bg:#10151d;--panel:#171e29;--ink:#eef3fc;--muted:#a5b2c6;--line:#2c394c;--blue:#5ca4ff;--red:#f2756e;--yellow:#f1ce57}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden}button,input,textarea{font:inherit}button{cursor:pointer;touch-action:manipulation}button{border:0;color:inherit;background:none}button:focus-visible,input:focus-visible,textarea:focus-visible,canvas:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:4px}button:disabled{opacity:.42;cursor:default}button,summary{-webkit-tap-highlight-color:transparent}button[hidden],[hidden]{display:none!important}#app{height:100dvh;display:flex;flex-direction:column;max-width:1600px;margin:auto}.topbar{height:76px;flex-shrink:0;padding:0 36px;display:flex;align-items:center;border-bottom:1px solid #253043;gap:24px}.brand{display:flex;align-items:center;gap:12px;letter-spacing:1.5px;font-size:14px;font-weight:650;padding:8px 0}.brand-mark{font-size:20px;letter-spacing:-2px;border:1px solid #44546c;border-radius:8px;width:37px;height:37px;display:grid;place-content:center;position:relative}.brand-mark span{position:absolute;right:3px;top:1px;font-size:11px;color:var(--blue)}.lab{color:var(--muted);font-weight:400}.mode-switch{display:flex;padding:4px;background:#1c2532;border-radius:9px;margin-left:auto}.mode-switch button{padding:8px 18px;font-size:13px;border-radius:6px;color:var(--muted);height:40px}.mode-switch .selected{background:#34445a;color:var(--ink)}.tools{display:flex;align-items:center;gap:10px}.tool,.icon-button{height:44px;border-radius:7px;color:var(--muted);font-size:22px;min-width:44px}.tool span{font-size:12px;margin-left:6px}.tool{padding:0 7px}.tool.active{color:var(--blue);background:#20324b}.icon-button{position:relative}.save-dot{position:absolute;bottom:9px;right:10px;width:5px;height:5px;background:var(--yellow);border-radius:100%}main{padding:22px 36px 0;display:flex;flex-direction:column;flex:1;min-height:0}.scene{position:relative;flex:1;min-height:230px;overflow:hidden;border:1px solid #2a3546;border-radius:14px;background:radial-gradient(ellipse at 60% 10%,#1c2737 0%,#171f2b 65%)}.scene-top{position:absolute;top:22px;left:26px;right:26px;display:flex;justify-content:space-between;gap:14px;z-index:1;pointer-events:none}.scene-top button{pointer-events:auto}.eyebrow{font-size:11px;letter-spacing:1.8px;font-weight:650;color:var(--blue);padding:0;min-height:24px}h1{font-size:clamp(21px,2.5vw,32px);line-height:1.15;font-weight:550;margin:5px 0 8px;letter-spacing:-.6px}.scene-top p{color:var(--muted);margin:0;font-size:14px}.constants{display:flex;flex-wrap:wrap;justify-content:flex-end;align-content:flex-start;gap:6px;max-width:42%;padding-top:6px}.constants span{font-size:12px;white-space:nowrap;padding:6px 10px;border:1px solid #3c4b60;border-radius:6px;color:#c8d3e4}canvas{display:block;width:100%;height:100%;touch-action:none}.scene-bottom{position:absolute;bottom:16px;left:26px;right:20px;display:flex;align-items:center;gap:20px;pointer-events:none}.scene-bottom button{pointer-events:auto}.legend{display:flex;gap:14px;font-size:11px;color:var(--muted)}.legend span{display:flex;gap:6px;align-items:center}.legend i{display:block;width:6px;height:6px;border-radius:50%}.blue{background:var(--blue)}.red{background:var(--red)}.yellow{background:var(--yellow)}.readout{margin-left:auto;font-size:12px;font-variant-numeric:tabular-nums;color:#d3def0;display:flex;gap:14px}.info-button{font-size:16px;border:1px solid #40516a;border-radius:100%;height:34px;width:34px;flex-shrink:0;color:var(--muted)}.dock{display:flex;align-items:center;min-height:125px;gap:28px;padding:22px 0 8px}.controls{display:flex;gap:26px;flex:1;align-items:center;min-width:0}.control{flex:1;min-width:120px;max-width:450px}.control-label{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;font-size:12px;color:var(--muted)}.control-label output{color:var(--ink);font-variant-numeric:tabular-nums;font-size:13px}.range{width:100%;height:40px;appearance:none;-webkit-appearance:none;background:transparent;margin:0;cursor:ew-resize;touch-action:pan-y}.range::-webkit-slider-runnable-track{height:4px;background:#38475b;border-radius:4px}.range::-moz-range-track{height:4px;background:#38475b;border-radius:4px}.range::-webkit-slider-thumb{appearance:none;width:22px;height:22px;margin-top:-9px;border:4px solid #172231;border-radius:50%;background:var(--blue);box-shadow:0 0 0 1px #6fafff}.range::-moz-range-thumb{width:17px;height:17px;border:3px solid #172231;border-radius:50%;background:var(--blue)}.material-picker{display:flex;gap:7px;flex-wrap:wrap}.material{min-height:43px;min-width:62px;border-radius:8px;background:#1d2838;border:1px solid #354358;color:#c8d4e8;font-size:12px;padding:8px 10px;display:flex;align-items:center;gap:7px}.material i{width:8px;height:8px;border-radius:2px}.material.selected{border-color:var(--blue);background:#213650;color:var(--ink)}.add-material{width:36px;min-height:43px;border:1px dashed #506079;border-radius:8px;font-size:18px;color:var(--muted)}.choices{display:flex;gap:8px}.choice{border:1px solid #415069;background:#1d2838;border-radius:8px;height:46px;flex:1;font-size:13px;padding:8px 15px}.choice.selected{border-color:var(--blue);background:#213650;color:#e6f0ff}.actions{display:flex;align-items:center;gap:12px}.primary{background:var(--blue);color:#091425;padding:13px 25px;border-radius:9px;font-size:14px;font-weight:650;min-height:48px;white-space:nowrap}.primary:hover{background:#7ab5ff}.secondary{border:1px solid #415572;background:#243248;min-height:44px;padding:10px 18px;border-radius:8px}.reset{height:48px;min-width:50px;font-size:25px;color:var(--muted);display:flex;align-items:center;gap:7px;padding:0 8px}.reset span{font-size:12px}footer{height:36px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;color:#a3afc1;font-size:11px}.progress{display:flex;gap:7px}.progress button{width:14px;height:26px;position:relative;padding:0}.progress button:before{content:'';display:block;width:7px;height:7px;background:#3d4b60;border-radius:100%;margin:auto}.progress button.done:before{background:var(--blue)}.progress button.current:before{background:var(--yellow);box-shadow:0 0 0 4px #f1ce5718}.result{position:absolute;bottom:65px;left:50%;transform:translateX(-50%);display:flex;gap:14px;align-items:center;width:min(610px,94%);padding:18px 20px;background:#24334a;border:1px solid #526986;border-radius:12px;box-shadow:0 15px 45px #0006;z-index:3}.result.success{border-color:var(--blue)}.result.failure{border-color:#a05b55}.result>span{font-size:23px;color:var(--yellow)}.result strong{font-size:16px;font-weight:550}.result p{font-size:12px;color:#d2dcee;margin:4px 0 0}.result .small{margin-left:auto;padding:10px 17px;font-size:13px}.start-screen{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 25%,#23354d,#10151d 65%);display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:20;padding:24px;text-align:center}.start-art{width:290px}.start-screen h2{font-size:clamp(34px,6vw,64px);font-weight:550;letter-spacing:4px;margin:12px 0}.start-screen h2 span{font-weight:350;color:var(--blue)}.start-screen>p:not(.eyebrow){color:var(--muted);font-size:15px;margin:0 0 32px}.start-screen .primary{min-width:165px}.start-caption{color:var(--muted);font-size:12px;margin-top:22px}dialog{color:var(--ink);background:#1a2433;border:1px solid #415169;border-radius:16px;box-shadow:0 25px 90px #0009;padding:24px;width:min(660px,94vw);max-height:88dvh}dialog::backdrop{background:#060b14ba;backdrop-filter:blur(4px)}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.dialog-head h2{font-weight:550;margin:0;font-size:23px}.close{font-size:27px;min-width:44px;min-height:44px;color:var(--muted)}.level-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.level-card{border:1px solid #3b4b62;border-radius:9px;text-align:left;padding:13px;min-height:94px;background:#202d40;position:relative}.level-card span{display:block;font-size:11px;color:var(--blue);margin-bottom:7px}.level-card strong{font-size:13px;font-weight:500;display:block}.level-card em{position:absolute;top:12px;right:12px;color:var(--yellow);font-style:normal}.level-card.current{border-color:var(--yellow)}.dialog-note{color:var(--muted);font-size:12px;line-height:1.65;margin-top:18px}.hint{font-size:20px;color:#cbe0ff;margin:14px 0 26px}details{border-top:1px solid #34435a;padding:15px 0;font-size:14px;color:#c4d2e7}summary{cursor:pointer;color:var(--ink);min-height:26px}details p{line-height:1.75}form{display:grid;grid-template-columns:1fr 1fr;gap:18px}form label:first-child,form .dialog-note,form .primary{grid-column:1/-1}form label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:7px}input:not([type=range]),textarea{padding:12px;color:var(--ink);background:#111a28;border:1px solid #455874;border-radius:8px;width:100%;font-size:14px}#custom-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}textarea{resize:vertical;min-height:100px;margin:10px 0 16px;font:12px/1.6 ui-monospace,monospace}#share-description{color:var(--muted)}
+@media(max-width:1050px){.topbar{padding:0 20px;gap:12px}.tool span{display:none}main{padding:16px 20px 0}.controls{gap:16px}.material{min-width:52px;padding:7px 8px}.actions{gap:6px}.primary{padding:13px 18px}.reset span{display:none}.dock{gap:16px}.scene-top{top:16px;left:20px;right:20px}.constants{max-width:40%}}
+@media(max-width:760px){body{overflow:auto}#app{height:auto;min-height:100dvh}.topbar{height:65px;padding:0 12px;gap:9px}.brand{gap:7px;font-size:11px;letter-spacing:.5px}.brand-mark{width:30px;height:30px;font-size:16px}.tools{gap:1px}.tool,.icon-button{min-width:34px;font-size:19px}.mode-switch button{padding:6px 10px;font-size:11px}.mode-switch{padding:3px}main{padding:10px 12px 0}.scene{height:56dvh;min-height:320px;flex:none}.scene-top{left:15px;right:15px;top:12px}h1{font-size:24px}.scene-top p{font-size:12px;max-width:260px}.constants{max-width:38%;gap:4px}.constants span{font-size:10px;padding:4px 7px}.dock{align-items:stretch;flex-direction:column;padding:15px 0 8px;gap:12px}.controls{gap:12px;flex-wrap:wrap}.control{min-width:140px}.actions{justify-content:flex-end}.actions .primary{min-width:170px}.reset span{display:inline}.scene-bottom{left:14px;right:12px;bottom:12px;gap:10px}.legend{gap:9px;font-size:10px}.readout{font-size:10px;gap:8px}.result{bottom:58px;padding:13px;gap:10px}.result p{font-size:11px}.result strong{font-size:14px}.progress{gap:3px}footer{height:40px}.level-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-height:650px) and (min-width:761px){.topbar{height:58px}main{padding-top:12px}.dock{min-height:106px;padding:10px 0}.scene-top{top:12px}h1{font-size:24px}.scene-top p{font-size:12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+
+@media(max-width:600px){.brand>span:last-child{display:none}.topbar{gap:8px}.mode-switch{margin-left:0}.tools{margin-left:auto}.legend{gap:7px}.constants{max-width:40%}}
+
+.skip{min-height:48px;padding:10px 14px;border:0;border-radius:8px;background:var(--yellow);color:#17202c;font-size:13px;font-weight:650;white-space:nowrap}.skip:hover{background:#ffe184}@media(max-width:760px){.skip{min-height:48px;padding:10px 12px}.actions{gap:8px}.actions .primary{min-width:150px}}
+
+</style>
+</head>
+<body>
+<div id="app">
+ <header class="topbar">
+  <button class="brand" id="level-menu" aria-label="Open levels"><span class="brand-mark">N<span>↗</span></span><span>NEWTON<span class="lab"> LAB</span></span></button>
+  <nav class="mode-switch" aria-label="Game mode"><button id="challenge-mode" class="selected">Challenges</button><button id="explore-mode">Explore</button></nav>
+  <div class="tools">
+   <button class="tool active" id="vectors" title="Toggle vectors" aria-label="Vectors" aria-pressed="true">↗<span>Vectors</span></button>
+   <button class="tool" id="numbers" title="Toggle numbers" aria-label="Numbers" aria-pressed="false">#<span>Numbers</span></button>
+   <button class="icon-button" id="share" title="Save progress link" aria-label="Save progress link">↗<span class="save-dot"></span></button>
+   <button class="icon-button" id="fullscreen" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/></svg></button>
+  </div>
+ </header>
+ <main>
+  <section class="scene" aria-label="Physics scene">
+   <div class="scene-top"><div><button class="eyebrow" id="level-label">01 / 15 · FRICTION</button><h1 id="title">A lighter push</h1><p id="goal">Move the crate to the flag.</p></div><div id="constants" class="constants"></div></div>
+   <canvas id="canvas" aria-label="Interactive physics scene. Use the controls below, or drag the highlighted handles." tabindex="0"></canvas>
+   <div class="scene-bottom"><div class="legend"><span><i class="blue"></i>Velocity</span><span><i class="red"></i>Force</span><span><i class="yellow"></i>Target</span></div><div id="readout" class="readout" aria-live="off"></div><button id="info" class="info-button" aria-label="Hint and physics model">?</button></div>
+   <div id="result" class="result" role="status" hidden><span id="result-icon"></span><div><strong id="result-title"></strong><p id="result-text"></p></div><button id="next" class="primary small">Next →</button></div>
+  </section>
+  <section class="dock" aria-label="Experiment controls"><div id="controls" class="controls"></div><div class="actions"><button id="reset" class="reset" title="Redo level (R)">↺<span>Redo</span></button><button id="skip" class="skip" title="Skip without marking this level solved">Skip level →</button><button id="run" class="primary">▶ <span>Try it</span></button></div></section>
+  <footer><div id="progress" class="progress" aria-label="Level progress"></div><span id="footnote">Drag, adjust, discover.</span></footer>
+ </main>
+</div>
+<div id="start-screen" class="start-screen">
+ <div class="start-art" aria-hidden="true"><svg viewBox="0 0 300 180"><path d="M30 135 Q100 125 170 50" fill="none" stroke="#4b99fc" stroke-width="2" stroke-dasharray="5 9"/><circle cx="170" cy="50" r="18" fill="#4b99fc"/><path d="M172 51L221 25" stroke="#f26863" stroke-width="3"/><path d="M220 25l-13 0m13 0l-7 12" stroke="#f26863" stroke-width="3"/><rect x="38" y="140" width="190" height="3" rx="1" fill="#344154"/><circle cx="244" cy="100" r="23" fill="none" stroke="#f1cc4f" stroke-width="2"/><circle cx="244" cy="100" r="5" fill="#f1cc4f"/></svg></div>
+ <p class="eyebrow">A PHYSICS PLAYGROUND</p><h2>NEWTON <span>LAB</span></h2><p>15 challenges. One universe of motion.</p><button id="start" class="primary">Start ↗</button><span class="start-caption">Mouse, keyboard, or touch · No login</span>
+</div>
+<dialog id="levels-dialog"><div class="dialog-head"><h2 id="levels-heading">Choose a challenge</h2><button class="close" aria-label="Close">×</button></div><div id="level-grid" class="level-grid"></div><p class="dialog-note" id="level-grid-note">Solve or skip a challenge to unlock the next.</p></dialog>
+<dialog id="info-dialog"><div class="dialog-head"><h2>One small clue</h2><button class="close" aria-label="Close">×</button></div><p id="hint-text" class="hint"></p><details><summary>Physics model</summary><p id="model-text"></p></details><details><summary>Controls & progress</summary><p>Adjust a slider, tap a material, or drag a highlighted handle. Press Space to run or pause and R to redo. Correct solutions unlock the next challenge. Skip level advances without marking a challenge solved. Explore opens every scene and adds material experiments. Save a progress link with ↗. On a hosted site, the link restores progress on another device; it is editable and is not a grade record.</p></details><button id="open-materials" class="secondary">+ Custom material</button></dialog>
+<dialog id="material-dialog"><div class="dialog-head"><h2>Make a material</h2><button class="close" aria-label="Close">×</button></div><form id="material-form"><label>Name<input id="material-name" maxlength="24" required placeholder="My material" autocomplete="off"></label><label>Grip / friction μ<input id="material-mu" type="number" min="0" max="1.5" step=".01" value=".40" required></label><label>Density (kg/m³)<input id="material-density" type="number" min="50" max="20000" step="1" value="1000" required></label><label>Elasticity (0–1)<input id="material-e" type="number" min="0" max="1" step=".05" value=".8" required></label><p class="dialog-note">Grip scores combine at a contact. Density changes mass in the Explore ball scenes. Challenge masses stay fixed.</p><button class="primary" type="submit">Create material</button></form><div id="custom-list"></div></dialog>
+<dialog id="share-dialog"><div class="dialog-head"><h2>Your progress link</h2><button class="close" aria-label="Close">×</button></div><p id="share-description">Open this link to pick up where you left off.</p><textarea id="share-link" readonly rows="4" aria-label="Progress link"></textarea><button id="copy-link" class="primary">Copy link</button><p class="dialog-note">Includes level progress and custom materials. No names or login.</p></dialog>
+<script>
+/* Newton Lab: SI units, y up. Dependency-free numerical models. */
+(function(root){
+'use strict';
+const G=6.67430e-11, g=9.81, AU=149597870700, DAY=86400, MU_SUN=1.32712440018e20;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function rk4(y,h,f){
+ const k1=f(y), k2=f(y.map((v,i)=>v+h*k1[i]/2)), k3=f(y.map((v,i)=>v+h*k2[i]/2)), k4=f(y.map((v,i)=>v+h*k3[i]));
+ return y.map((v,i)=>v+h*(k1[i]+2*k2[i]+2*k3[i]+k4[i])/6);
+}
+function friction(F,m,muS,muK,v=0,normal=m*g){
+ if(Math.abs(v)<1e-8 && Math.abs(F)<=muS*normal)return {a:0,friction:-F};
+ const ff=-muK*normal*Math.sign(Math.abs(v)>1e-8?v:F);
+ return {a:(F+ff)/m,friction:ff};
+}
+function parachute(area,m=70,height=60,h=1/240){
+ let y=height,v=0,t=0; const k=.5*1.225*1.5*area;
+ while(y>0&&t<120){
+  const next=rk4([y,v],h,s=>[s[1],-g-k*s[1]*Math.abs(s[1])/m]);
+  if(next[0]<=0){const q=y/(y-next[0]);t+=h*q;v+=(next[1]-v)*q;y=0;break;}
+  [y,v]=next;t+=h;
+ }
+ return {time:t,speed:Math.abs(v),energy:.5*m*v*v};
+}
+function accel(bodies){
+ const a=bodies.map(()=>({x:0,y:0}));
+ for(let i=0;i<bodies.length;i++)for(let j=i+1;j<bodies.length;j++){
+  const dx=bodies[j].x-bodies[i].x,dy=bodies[j].y-bodies[i].y,r2=dx*dx+dy*dy;
+  // Finite radius collision is handled by the caller before the next step.
+  const inv=1/Math.pow(Math.max(r2,1),1.5);
+  a[i].x+=G*bodies[j].m*dx*inv;a[i].y+=G*bodies[j].m*dy*inv;
+  a[j].x-=G*bodies[i].m*dx*inv;a[j].y-=G*bodies[i].m*dy*inv;
+ }
+ return a;
+}
+function verlet(b,h){
+ const a=accel(b);
+ b.forEach((p,i)=>{p.x+=p.vx*h+.5*a[i].x*h*h;p.y+=p.vy*h+.5*a[i].y*h*h;});
+ const an=accel(b);
+ b.forEach((p,i)=>{p.vx+=.5*(a[i].x+an[i].x)*h;p.vy+=.5*(a[i].y+an[i].y)*h;});
+}
+function energy(b){
+ let e=b.reduce((s,p)=>s+.5*p.m*(p.vx*p.vx+p.vy*p.vy),0);
+ for(let i=0;i<b.length;i++)for(let j=i+1;j<b.length;j++)e-=G*b[i].m*b[j].m/Math.hypot(b[i].x-b[j].x,b[i].y-b[j].y);
+ return e;
+}
+function binary(M,m,r,v){return [
+ {m:M,x:-r*m/(M+m),y:0,vx:0,vy:-v*m/(M+m),r:6.37e6},
+ {m,x:r*M/(M+m),y:0,vx:0,vy:v*M/(M+m),r:5e5*Math.cbrt(m/1e22)}
+];}
+function circleImpulse(a,b,e=1){
+ const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1,nx=dx/len,ny=dy/len;
+ const vn=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
+ if(vn>=0)return 0;
+ const j=-(1+e)*vn/(1/a.m+1/b.m);
+ a.vx-=j*nx/a.m;a.vy-=j*ny/a.m;b.vx+=j*nx/b.m;b.vy+=j*ny/b.m;
+ return j;
+}
+// Continuous time-of-impact, so a fast ball cannot tunnel through another ball.
+function contactTime(a,b,max){
+ const dx=b.x-a.x,dy=b.y-a.y,vx=b.vx-a.vx,vy=b.vy-a.vy,R=a.r+b.r;
+ const A=vx*vx+vy*vy,B=2*(dx*vx+dy*vy),C=dx*dx+dy*dy-R*R;
+ if(C<=1e-9)return B<0?0:Infinity;
+ if(A<1e-12||B>=0)return Infinity;
+ const D=B*B-4*A*C;if(D<0)return Infinity;
+ const t=(-B-Math.sqrt(D))/(2*A);return t>=0&&t<=max?t:Infinity;
+}
+function billiards(b,h,bounds,e=1){
+ let left=h,events=0,collisions=0;
+ while(left>1e-9&&events++<24){
+  let t=left,type=null,ii=-1,jj=-1,axis='';
+  for(let i=0;i<b.length;i++){
+   const p=b[i];
+   for(const [k,v] of [['x',p.vx],['y',p.vy]])if(Math.abs(v)>1e-12){
+    const lo=k==='x'?bounds.x0:bounds.y0,hi=k==='x'?bounds.x1:bounds.y1;
+    const q=((v>0?hi-p.r:lo+p.r)-p[k])/v;
+    if(q>=-1e-9&&q<t){t=Math.max(0,q);type='wall';ii=i;axis=k;}
+   }
+   for(let j=i+1;j<b.length;j++){const q=contactTime(p,b[j],t);if(q<t){t=q;type='ball';ii=i;jj=j;}}
+  }
+  b.forEach(p=>{p.x+=p.vx*t;p.y+=p.vy*t;});left-=t;
+  if(type==='wall'){b[ii][axis==='x'?'vx':'vy']*=-e;}
+  if(type==='ball'){circleImpulse(b[ii],b[jj],e);collisions++;}
+  if(!type)break;
+ }
+ return collisions;
+}
+const rE=AU,rM=1.524*AU,aT=(rE+rM)/2;
+const nE=Math.sqrt(MU_SUN/rE**3),nM=Math.sqrt(MU_SUN/rM**3);
+const transferTime=Math.PI*Math.sqrt(aT**3/MU_SUN);
+const departureDV=Math.sqrt(MU_SUN/rE)*(Math.sqrt(2*rM/(rE+rM))-1);
+const arrivalDV=Math.sqrt(MU_SUN/rM)*(1-Math.sqrt(2*rE/(rE+rM)));
+const phase=Math.PI-nM*transferTime;
+function planet(r,n,t,phase0=0){const a=n*t+phase0;return{x:r*Math.cos(a),y:r*Math.sin(a),vx:-r*n*Math.sin(a),vy:r*n*Math.cos(a)};}
+function sunStep(s,h){return rk4(s,h,p=>{const r=Math.hypot(p[0],p[1]),q=-MU_SUN/r**3;return[p[2],p[3],p[0]*q,p[1]*q];});}
+const Physics={G,g,AU,DAY,MU_SUN,clamp,rk4,friction,parachute,accel,verlet,energy,binary,circleImpulse,contactTime,billiards,planet,sunStep,hohmann:{rE,rM,nE,nM,transferTime,departureDV,arrivalDV,phase}};
+if(typeof module!=='undefined')module.exports=Physics;else root.Physics=Physics;
+})(typeof globalThis!=='undefined'?globalThis:this);
+
+(function(root){
+'use strict';
+const materials=[
+ {id:'ice',name:'Ice',mu:.05,density:917,color:'#62acff',e:.8},
+ {id:'wood',name:'Wood',mu:.35,density:650,color:'#efcf55',e:.5},
+ {id:'rubber',name:'Rubber',mu:.90,density:1100,color:'#f06a65',e:.85},
+ {id:'steel',name:'Steel',mu:.20,density:7850,color:'#a6b7ce',e:.7}
+];
+const levels=[
+ {title:'A lighter push',topic:'FRICTION',goal:'Move the crate to the flag.',hint:'Try a surface with less friction.',note:'The crate stays 40 kg. Surface choice changes friction, not its mass. Fₛ ≤ μₛN; sliding friction is μₖN. The preset coefficients are classroom model values for dry paired surfaces, not universal material constants.',constants:['40 kg','90 N'],defaults:{surface:'wood'},controls:[['material','surface','Surface']],win:'Less friction. The same push now moves the crate.',fail:'The push cannot overcome static friction.'},
+ {title:'Grip the ramp',topic:'TRACTION',goal:'Drive to the top.',hint:'A driven wheel needs grip to push on the ramp.',note:'An ideal driven car on a 20° incline. Drive force is capped by μₛN. The effective tire–ramp coefficient is the geometric mean of their classroom grip scores. Rolling resistance is neglected. Sliding wheels use lower kinetic friction.',constants:['120 kg','600 N','20°'],defaults:{surface:'ice',wheel:'steel'},controls:[['material','surface','Ramp'],['material','wheel','Wheels']],win:'The wheels push back. The ramp pushes the car up.',fail:'The tires spin. There is not enough traction.'},
+ {title:'Soft landing',topic:'AIR RESISTANCE',goal:'Land gently before the timer runs out.',hint:'A larger parachute slows the fall, but adds time.',note:'Falling from 60 m with mass 70 kg. Quadratic drag D = ½ρCᴅAv², air density 1.225 kg/m³, Cᴅ = 1.5. Instant parachute deployment and constant air density. The landing energy limit is a game target, not a real human injury threshold.',constants:['70 kg','60 m','≤ 1,100 J','≤ 13 s'],defaults:{area:3},controls:[['range','area','Canopy area',1,45,.5,'m²']],win:'Enough drag for a gentle landing. Still on time.',fail:'Find the balance: landing energy and fall time.'},
+ {title:'The magnet trick',topic:'NEWTON’S THIRD LAW',goal:'Use the magnet to move the car right.',hint:'Choose what the magnet pulls against.',note:'The magnet is modeled as a 50 N attraction to a steel target. With the target mounted on the same car, the two internal forces cancel. With the target fixed to the ground, the car has an external force; the anchor transmits an equal opposite force to Earth.',constants:['20 kg','50 N'],defaults:{anchor:'car'},controls:[['choice','anchor','Attach target to',[['car','Car'],['ground','Ground']]]],win:'An external anchor supplies a net force on the car.',fail:'Both forces act inside the car system. No net push.'},
+ {title:'Wind on board',topic:'ACTION & REACTION',goal:'Move the boat to the dock.',hint:'Air must carry momentum away from the boat.',note:'Ideal airflow: the sail catches all momentum from the fan and returns the air to rest relative to the boat, so internal thrust cancels. Pointing the fan astern ejects air backward and pushes the boat forward. Real fan–sail configurations can produce thrust if the sail redirects air out of the system; they are more complex than this model. Water drag is 3v|v| newtons.',constants:['60 kg','80 N'],defaults:{fan:'sail'},controls:[['choice','fan','Fan direction',[['sail','Into sail'],['aft','Backward']]]],win:'Air goes back. The boat moves forward.',fail:'The sail catches the airflow. Internal forces cancel.'},
+ {title:'Truck launch',topic:'RELATIVE VELOCITY',goal:'Launch the stunt dummy onto the landing pad.',hint:'Its ground speed includes the truck’s speed.',note:'A 60 kg stunt dummy leaves a truck moving at 8 m/s. A backward-pointing slingshot acts over 1 m. Relative launch speed = √(2Fs/m). Vertical drop is 4 m. A foam pad can absorb 2,550 J and occupies ground x = −0.9 to 0.9 m. Values are invented game limits, not real stunt or human safety advice.',constants:['60 kg','8 m/s','4 m','≤ 2,550 J'],defaults:{force:600},controls:[['range','force','Slingshot force',200,3600,20,'N']],win:'The backward launch cancels the truck’s forward speed.',fail:'Adjust the backward launch to reach the pad gently.'},
+ {title:'The moving cup',topic:'NEWTON’S FIRST LAW',goal:'Fire the ball back into the moving cup.',hint:'The ball already shares the car’s speed.',note:'The cup moves with the car at 4 m/s. Launch speed is 8 m/s relative to the car. No air resistance; constant gravity. A straight-up launch lands in the moving cup because the ball retains the horizontal velocity. It does not return to its original ground position.',constants:['4 m/s','8 m/s','No air drag'],defaults:{angle:55},controls:[['range','angle','Cannon angle',30,150,1,'°']],win:'Vertical launch. Horizontal motion stays with the car.',fail:'The ball gained extra horizontal speed.'},
+ {title:'Find an orbit',topic:'GRAVITY',goal:'Keep the moon in a bounded orbit for one lap.',hint:'Too slow falls inward. Too fast escapes.',note:'Both bodies respond to Newtonian inverse-square gravity. The primary mass is fixed at 5.972 × 10²⁴ kg. Adjustable moon mass is in units of 10²² kg; displayed speed is relative speed at a 15,000 km separation. The circular relative speed is √(G(M+m)/r). Both bodies orbit their center of mass. Radius scales with cube root of moon mass.',constants:['Earth mass','15,000 km'],defaults:{mass:5,speed:3},controls:[['range','mass','Moon mass',1,100,1,'×10²² kg'],['range','speed','Relative speed',2,12,.1,'km/s']],win:'Gravity bends the motion into a bounded orbit.',fail:'The moon collided or escaped. Tune the sideways speed.'},
+ {title:'A heavier companion',topic:'CENTER OF MASS',goal:'Build a stable binary orbit.',hint:'Both planets move. Try matching mass and speed.',note:'A finite-mass two-body system at 25,000 km separation. The primary is fixed in mass at 5.972 × 10²⁴ kg, but moves freely. The companion mass is 0.1–3 Earth masses. Circular relative speed depends on the sum of both masses. Total initial momentum is zero.',constants:['Earth mass','25,000 km'],defaults:{mass:1.5,speed:4},controls:[['range','mass','Companion mass',.1,3,.1,'Earths'],['range','speed','Relative speed',2,14,.1,'km/s']],win:'Both planets orbit their shared center of mass.',fail:'Adjust the relative speed for a bounded orbit.'},
+ {title:'Three-body chaos',topic:'SENSITIVE DEPENDENCE',goal:'Make nearly identical systems diverge.',hint:'Try a close three-body encounter.',note:'Three equal bodies, each 1 Earth mass. Compare two full Newtonian simulations; the yellow copy starts 100 km higher for the third body. A pass requires their root-mean-square positional separation to grow beyond 2,000 km without a collision before 2 simulation days. This demonstrates finite-time sensitivity, not a mathematical proof of chaos. Gravitational collisions stop the simulation.',constants:['3 equal masses','Δstart = 100 km'],defaults:{speed:3,offset:23},controls:[['range','speed','Third body speed',.5,5,.1,'km/s'],['range','offset','Third body height',10,30,.5,'1,000 km']],win:'A tiny starting change grew into a different path.',fail:'Try a closer encounter or a different starting speed.'},
+ {title:'Earth → Mars',topic:'HOHMANN TRANSFER',goal:'Time two burns to rendezvous with Mars.',hint:'Launch ahead of Mars; match its speed at arrival.',note:'Ideal coplanar, circular Earth and Mars orbits at 1 and 1.524 AU. Sun-only spacecraft gravity, impulse burns, no atmosphere or planetary capture. Start from Earth’s heliocentric orbit, not its surface. Initial Mars phase is 100°. The minimum-energy transfer lasts about 259 days: departure Δv ≈ 2.945 km/s, Mars must lead by ≈ 44.3°, and arrival requires a PROGRADE Δv ≈ 2.65 km/s to match Mars’s heliocentric speed. This is a rendezvous, not Mars orbit insertion. Bodies and rendezvous tolerance (0.03 AU) are enlarged.',constants:['Days accelerated','Sun-centered'],defaults:{day:50,burn:2,arrival:1.8},controls:[['range','day','Launch day',0,180,1,'days'],['range','burn','Departure burn',1,4.5,.025,'km/s'],['range','arrival','Arrival burn',1,4,.025,'km/s']],win:'Right window. Two prograde burns. Mars rendezvous.',fail:'Check the launch window and both burn speeds.'},
+ {title:'Cushion the impact',topic:'NEWTON’S SECOND LAW',goal:'Keep the impact force below the game limit.',hint:'A softer glove stops the hand over more distance.',note:'A 2 kg effective fist mass moves at 4 m/s. Model the glove as a linear spring against a rigid wall. Maximum compression x = v√(m/k), peak force = v√(mk). The glove must not bottom out. Adjustable stiffness and thickness create a deformable visual, not a finite-element tissue model. The 500 N limit is an invented game target, not a real injury prediction.',constants:['2 kg','4 m/s','≤ 500 N','Slow motion'],defaults:{stiffness:30,thickness:3},controls:[['range','stiffness','Glove stiffness',2,60,1,'kN/m'],['range','thickness','Glove thickness',1,15,.5,'cm']],win:'More stopping distance lowers the peak force.',fail:'Too stiff, or too thin: the glove cannot cushion enough.'},
+ {title:'Momentum relay',topic:'MOMENTUM',goal:'After impact, send both carts past 2.5 m/s.',hint:'The carts stick together. Share their momentum.',note:'One-dimensional perfectly inelastic collision: blue cart has mass 4 kg and velocity 1 m/s. The yellow cart mass and initial speed are adjustable. On collision, both stick with v = (m₁v₁ + m₂v₂)/(m₁ + m₂). Total momentum is conserved; kinetic energy decreases.',constants:['Blue: 4 kg','Blue: 1 m/s','Final ≥ 2.5 m/s'],defaults:{mass:2,speed:3},controls:[['range','mass','Yellow mass',1,10,.5,'kg'],['range','speed','Yellow speed',1.5,8,.1,'m/s']],win:'Momentum is shared. The joined carts reach the target speed.',fail:'Add enough momentum to the yellow cart.'},
+ {title:'Pocket physics',topic:'2D COLLISION',goal:'Send the red ball into the yellow pocket.',hint:'Aim at the red ball so its path points toward the pocket.',note:'Top-down, frictionless elastic disks. Continuous time-of-impact avoids tunneling. The normal collision impulse conserves momentum and kinetic energy. Red ball mass 2 kg, radius 0.28 m. Hit it into a pocket centered at (9.6, 5.8) m. Velocity vectors use a separate display scale from distances.',constants:['Red: 2 kg','Elastic impact'],defaults:{mass:2,speed:5,angle:20},controls:[['range','mass','Blue mass',.5,6,.5,'kg'],['range','speed','Launch speed',1,8,.1,'m/s'],['range','angle','Launch angle',0,80,1,'°']],win:'The contact normal sends the red ball into the pocket.',fail:'Change the angle. Watch the red ball’s velocity vector.'},
+ {title:'Bank the shot',topic:'2D MOMENTUM',goal:'Bounce off the top rail, then pocket the red ball.',hint:'Use the rail before the collision.',note:'A second elastic 2D challenge. The blue ball must hit the top wall before transferring momentum to the red ball. Pocket center (9.6, 1.3) m. Ideal elastic rails; no spin, rolling losses or cloth friction. The red ball is heavier at 3 kg.',constants:['Red: 3 kg','Top rail first'],defaults:{mass:2,speed:5,angle:50},controls:[['range','mass','Blue mass',.5,6,.5,'kg'],['range','speed','Launch speed',1,8,.1,'m/s'],['range','angle','Launch angle',15,85,1,'°']],win:'A rail bounce changes direction; the collision transfers momentum.',fail:'Bounce from the top rail, then aim the red ball at the pocket.'}
+];
+root.LabData={materials,levels};
+if(typeof module!=='undefined')module.exports=root.LabData;
+})(typeof globalThis!=='undefined'?globalThis:this);
+
+(function(root){
+'use strict';
+const P=typeof module!=='undefined'?require('./physics.js'):root.Physics;
+const D=typeof module!=='undefined'?require('./levels.js'):root.LabData;
+const RAD=Math.PI/180;
+class Simulation{
+ constructor(index,params={},materials=D.materials,explore=false){
+  this.i=index;this.p={...D.levels[index].defaults,...params};this.materials=materials;this.explore=explore;
+  this.t=0;this.elapsed=0;this.status='ready';this.reason='';this.d={};this.trails=[];this.sample=0;
+  const p=this.p,d=this.d;
+  const mat=id=>materials.find(m=>m.id===id)||materials[0];this.mat=mat;
+  if(index===0){d.x=0;d.v=0;d.m=explore?Number(p.crateMass||40):40;d.F=explore?Number(p.push||90):90;}
+  if(index===1){d.x=0;d.v=0;d.mu=Math.sqrt(mat(p.surface).mu*mat(p.wheel).mu);}
+  if(index===2){d.y=60;d.v=0;d.energy=0;}
+  if(index===3){d.x=0;d.v=0;}
+  if(index===4){d.x=0;d.v=0;}
+  if(index===5){d.x=0;d.y=4;d.vx=8-Math.sqrt(2*p.force/60);d.vy=0;d.relative=d.vx-8;}
+  if(index===6){d.x=0;d.y=0;d.vx=4+8*Math.cos(p.angle*RAD);d.vy=8*Math.sin(p.angle*RAD);d.carX=0;}
+  if(index===7||index===8){
+   d.M=5.972e24;d.m=index===7?p.mass*1e22:p.mass*d.M;d.r=index===7?1.5e7:2.5e7;
+   d.b=P.binary(d.M,d.m,d.r,p.speed*1000);if(index===8)d.b[1].r=6.37e6*Math.cbrt(p.mass);
+   d.period=2*Math.PI*Math.sqrt(d.r**3/(P.G*(d.M+d.m)));d.e0=P.energy(d.b);d.angle=0;d.lastAngle=0;d.rmin=d.r;d.rmax=d.r;
+   this.trails=d.b.map(()=>[]);
+  }
+  if(index===9){
+   const m=5.972e24;d.b=[{m,x:-1.2e7,y:0,vx:0,vy:-1500,r:1.2e6},{m,x:1.2e7,y:0,vx:0,vy:1500,r:1.2e6},{m,x:0,y:p.offset*1e6,vx:p.speed*1000,vy:0,r:1.2e6}];
+   const vx=d.b.reduce((s,b)=>s+b.vx,0)/3;d.b.forEach(b=>b.vx-=vx);
+   d.shadow=d.b.map(b=>({...b}));d.shadow[2].y+=1e5;d.divergence=1e5;d.maxDivergence=1e5;
+   this.trails=d.b.map(()=>[]);d.shadowTrails=d.b.map(()=>[]);
+  }
+  if(index===10){
+   d.date=p.day*P.DAY;d.launchDate=d.date;d.flight=0;
+   const e=P.planet(P.AU,P.hohmann.nE,d.date);const a=Math.atan2(e.y,e.x);
+   d.ship=[e.x,e.y,e.vx-p.burn*1000*Math.sin(a),e.vy+p.burn*1000*Math.cos(a)];
+   d.earth=e;d.mars=P.planet(P.hohmann.rM,P.hohmann.nM,d.date,100*RAD);d.phase=100*RAD+(P.hohmann.nM-P.hohmann.nE)*d.date;
+   d.stage='coast';d.distance=Infinity;d.speedError=Infinity;this.trails=[[]];
+  }
+  if(index===11){d.x=0;d.v=4;d.compression=0;d.force=0;d.observedPeak=0;d.peak=4*Math.sqrt(2*p.stiffness*1000);d.maxCompression=4*Math.sqrt(2/(p.stiffness*1000));d.contact=0;d.bottomed=false;}
+  if(index===12){d.b=[{m:p.mass,x:1,vx:p.speed},{m:4,x:5,vx:1}];d.hit=false;d.vFinal=(p.mass*p.speed+4)/(p.mass+4);}
+  if(index===13||index===14){
+   const a=p.angle*RAD;d.bounds={x0:0,x1:11,y0:0,y1:7};
+   const m=explore&&p.ballMaterial?mat(p.ballMaterial).density*.002:p.mass;
+   d.b=[{m,x:2,y:index===13?1.4:2.4,vx:p.speed*Math.cos(a),vy:p.speed*Math.sin(a),r:.28},{m:index===13?2:3,x:6,y:index===13?3.5:3.3,vx:0,vy:0,r:.28}];
+   d.pocket={x:9.6,y:index===13?5.8:1.3,r:.42};d.hit=false;d.bank=false;d.collisions=0;d.best=Infinity;d.e=explore&&p.ballMaterial?mat(p.ballMaterial).e:1;
+   this.trails=[[],[]];
+  }
+ }
+ start(){if(this.status==='ready')this.status='running';}
+ finish(ok,reason=''){this.status=ok?'success':'failure';this.reason=reason;}
+ step(realDt){
+  if(this.status!=='running')return;
+  this.elapsed+=realDt;
+  const p=this.p,d=this.d,i=this.i;
+  let rate=1;
+  if(i===2)rate=2;if(i===7||i===8)rate=2800;if(i===9)rate=3000;if(i===10)rate=22*P.DAY;if(i===11)rate=d.x<.9?.22:.035;
+  const h=realDt*rate,oldT=this.t;this.t+=h;
+  if(i===0){
+   const mu=this.mat(p.surface).mu,{a,friction}=P.friction(d.F,d.m,mu,.8*mu,d.v);d.friction=friction;d.a=a;
+   d.x+=d.v*h+.5*a*h*h;d.v+=a*h;
+   if(d.x>=5)this.finish(true);else if(this.t>1&&d.x<.001&&!this.explore)this.finish(false);
+  }
+  if(i===1){
+   const N=120*P.g*Math.cos(20*RAD),requested=600,staticCap=d.mu*N;
+   d.slip=requested>staticCap;d.traction=d.slip?.8*staticCap:requested;d.a=(d.traction-120*P.g*Math.sin(20*RAD))/120;
+   d.x+=d.v*h+.5*d.a*h*h;d.v+=d.a*h;
+   if(d.x>=8)this.finish(true);else if(d.x<-1)this.finish(false);
+  }
+  if(i===2){
+   const k=.5*1.225*1.5*p.area;const next=P.rk4([d.y,d.v],h,s=>[s[1],-P.g-k*s[1]*Math.abs(s[1])/70]);
+   d.drag=k*d.v*d.v;
+   if(next[0]<=0){const q=d.y/(d.y-next[0]);d.v+=(next[1]-d.v)*q;d.y=0;this.t=oldT+h*q;d.energy=.5*70*d.v*d.v;this.finish(d.energy<=1100&&this.t<=13);}
+   else{[d.y,d.v]=next;d.energy=.5*70*d.v*d.v;if(this.t>13&&!this.explore)this.finish(false,'Too much canopy: the 13 s timer ran out.');}
+  }
+  if(i===3){d.a=p.anchor==='ground'?50/20:0;d.x+=d.v*h+.5*d.a*h*h;d.v+=d.a*h;if(d.x>=5)this.finish(true);else if(this.t>2&&d.x<.01&&!this.explore)this.finish(false);}
+  if(i===4){
+   const force=p.fan==='aft'?80:0;const n=P.rk4([d.x,d.v],h,s=>[s[1],(force-3*s[1]*Math.abs(s[1]))/60]);[d.x,d.v]=n;d.thrust=force;d.drag=3*d.v*d.v;
+   if(d.x>=7)this.finish(true);else if(this.t>2&&d.x<.01&&!this.explore)this.finish(false);
+  }
+  if(i===5||i===6){
+   const y=d.y,vy=d.vy;let q=h;
+   const nextY=y+vy*h-.5*P.g*h*h;
+   if(nextY<=0&&(i===5||oldT>0||vy>0))q=(vy+Math.sqrt(vy*vy+2*P.g*y))/P.g;
+   d.x+=d.vx*q;d.y=y+vy*q-.5*P.g*q*q;d.vy=vy-P.g*q;
+   if(i===6)d.carX=4*(oldT+q);
+   if(q<h||nextY<=0){d.y=0;this.t=oldT+q;d.energy=.5*(i===5?60:.2)*(d.vx*d.vx+d.vy*d.vy);
+    this.finish(i===5?Math.abs(d.x)<=.9&&d.energy<=2550:Math.abs(d.x-d.carX)<=.22);
+   }
+  }
+  if(i===7||i===8||i===9){
+   const count=Math.ceil(h/12),dt=h/count;
+   for(let k=0;k<count;k++){
+    P.verlet(d.b,dt);if(i===9)P.verlet(d.shadow,dt);
+    if(this.hasPlanetCollision(d.b)||(i===9&&this.hasPlanetCollision(d.shadow))){this.finish(false,'The planets collided.');break;}
+   }
+   if(i===7||i===8){
+    const dx=d.b[1].x-d.b[0].x,dy=d.b[1].y-d.b[0].y,r=Math.hypot(dx,dy);d.rmin=Math.min(d.rmin,r);d.rmax=Math.max(d.rmax,r);
+    const a=Math.atan2(dy,dx);let da=a-d.lastAngle;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;d.angle+=da;d.lastAngle=a;
+    if(this.status==='running'){
+     if(r>3*d.r)this.finish(false,'The companion escaped the target orbit region.');
+     else if(d.angle>=2*Math.PI-.06)this.finish(d.rmax/d.rmin<=2.4,'Keep the orbit inside the target region.');
+     else if(this.t>2.5*d.period)this.finish(false,'The orbit is too stretched out.');
+    }
+   }else{
+    // Subtract each system's center of mass: bulk drift is not divergence.
+    const c1=d.b.reduce((s,b)=>({x:s.x+b.x/3,y:s.y+b.y/3}),{x:0,y:0}),c2=d.shadow.reduce((s,b)=>({x:s.x+b.x/3,y:s.y+b.y/3}),{x:0,y:0});
+    d.divergence=Math.sqrt(d.b.reduce((s,b,k)=>s+(b.x-c1.x-d.shadow[k].x+c2.x)**2+(b.y-c1.y-d.shadow[k].y+c2.y)**2,0)/3);
+    d.maxDivergence=Math.max(d.maxDivergence,d.divergence);
+    if(this.status==='running'&&d.divergence>2e6&&this.t>10000)this.finish(true);
+    else if(this.status==='running'&&this.t>2*P.DAY)this.finish(false,'The two systems stayed too similar.');
+   }
+   this.recordTrails();
+  }
+  if(i===10){
+   if(d.stage==='arrival'){this.t=oldT;return;}
+   const n=Math.ceil(h/(P.DAY/8));for(let k=0;k<n;k++)d.ship=P.sunStep(d.ship,h/n);
+   d.date+=h;d.flight+=h;d.earth=P.planet(P.AU,P.hohmann.nE,d.date);d.mars=P.planet(P.hohmann.rM,P.hohmann.nM,d.date,100*RAD);
+   d.distance=Math.hypot(d.ship[0]-d.mars.x,d.ship[1]-d.mars.y);
+   d.speedError=Math.hypot(d.ship[2]-d.mars.vx,d.ship[3]-d.mars.vy);
+   this.recordTrails();
+   if(d.flight>=P.hohmann.transferTime){
+    d.stage='arrival';
+    if(d.distance>.03*P.AU)this.finish(false,'Mars was not there at arrival. Adjust the launch day and departure burn.');
+   }
+  }
+  if(i===11){
+   const k=p.stiffness*1000,thick=p.thickness/100;
+   if(d.x<.9){d.x+=4*h;if(d.x>=.9){d.x=.9;d.contact=0;}}
+   else{
+    d.contact+=h;const w=Math.sqrt(k/2);d.compression=4/w*Math.sin(Math.min(d.contact*w,Math.PI/2));d.v=4*Math.cos(Math.min(d.contact*w,Math.PI/2));
+    if(d.compression>=thick&&d.maxCompression>thick){d.compression=thick;d.bottomed=true;this.finish(false,'The glove bottomed out against the wall.');}
+    else if(d.contact*w>=Math.PI/2)this.finish(d.peak<=500);
+    d.force=k*d.compression;d.observedPeak=Math.max(d.observedPeak,d.force);
+   }
+  }
+  if(i===12){
+   const a=d.b[0],b=d.b[1];let rest=h;
+   if(!d.hit&&a.vx>b.vx){const tc=(b.x-a.x-1)/(a.vx-b.vx);if(tc>=0&&tc<=h){a.x+=a.vx*tc;b.x+=b.vx*tc;a.vx=b.vx=d.vFinal;d.hit=true;d.hitTime=this.t-h+tc;rest=h-tc;}}
+   a.x+=a.vx*rest;b.x+=b.vx*rest;
+   if(d.hit&&this.t>d.hitTime+.6)this.finish(d.vFinal>=2.5);else if(this.t>10)this.finish(false,'The yellow cart did not catch up in time.');
+  }
+  if(i===13||i===14){
+   const blue=d.b[0],red=d.b[1];
+   // In a 1/240 s step, a top-wall encounter is resolved before the ball collision.
+   if(!d.hit&&blue.vy>0&&(7-blue.r-blue.y)/blue.vy<=h)d.bank=true;
+   const before={x:red.x,y:red.y};const hits=P.billiards(d.b,h,d.bounds,d.e);
+   if(hits){d.hit=true;d.collisions+=hits;}
+   const sx=red.x-before.x,sy=red.y-before.y,L=sx*sx+sy*sy;
+   const q=L?P.clamp(((d.pocket.x-before.x)*sx+(d.pocket.y-before.y)*sy)/L,0,1):0;
+   const dist=Math.hypot(before.x+q*sx-d.pocket.x,before.y+q*sy-d.pocket.y);d.best=Math.min(d.best,dist);
+   if(d.hit&&dist<d.pocket.r&&(i===13||d.bank))this.finish(true);
+   else if(this.t>9)this.finish(false);
+   this.recordTrails();
+  }
+  if(this.explore&&this.status==='failure')this.status='ended';
+ }
+ arrivalBurn(){
+  const d=this.d;if(this.i!==10||d.stage!=='arrival'||this.status!=='running')return;
+  const a=Math.atan2(d.ship[1],d.ship[0]);d.ship[2]-=this.p.arrival*1000*Math.sin(a);d.ship[3]+=this.p.arrival*1000*Math.cos(a);
+  d.speedError=Math.hypot(d.ship[2]-d.mars.vx,d.ship[3]-d.mars.vy);d.stage='done';
+  this.finish(d.speedError<=350&&d.distance<=.03*P.AU,d.speedError>350?'Adjust the arrival burn to match Mars’s speed.':'');
+ }
+ hasPlanetCollision(b){for(let i=0;i<b.length;i++)for(let j=i+1;j<b.length;j++)if(Math.hypot(b[i].x-b[j].x,b[i].y-b[j].y)<b[i].r+b[j].r)return true;return false;}
+ recordTrails(){if(++this.sample%5)return;const d=this.d;const points=this.i===10?[{x:d.ship[0],y:d.ship[1]}]:d.b;
+  points.forEach((b,i)=>{this.trails[i].push({x:b.x,y:b.y});if(this.trails[i].length>900)this.trails[i].shift();});
+  if(d.shadowTrails)d.shadow.forEach((b,i)=>{d.shadowTrails[i].push({x:b.x,y:b.y});if(d.shadowTrails[i].length>900)d.shadowTrails[i].shift();});
+ }
+}
+if(typeof module!=='undefined')module.exports=Simulation;else root.Simulation=Simulation;
+})(typeof globalThis!=='undefined'?globalThis:this);
+
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),P=Physics,L=LabData.levels,C={blue:'#5ca4ff',red:'#f2756e',yellow:'#f1ce57',ink:'#eaf1ff',muted:'#91a4bf',floor:'#334155',dark:'#121a27',grid:'#344155'};
+let saved={v:1,completed:[],level:0,unlocked:0,custom:[]};
+function validSave(s){
+ if(!s||s.v!==1||!Array.isArray(s.completed))return null;
+ const completed=[...new Set(s.completed.filter(x=>Number.isInteger(x)&&x>=0&&x<15))];
+ // A progress URL is intentionally editable and not an assessment credential.
+ const custom=(Array.isArray(s.custom)?s.custom:[]).slice(0,20).filter(m=>m&&typeof m.name==='string'&&Number.isFinite(m.mu)&&m.mu>=0&&m.mu<=1.5&&Number.isFinite(m.density)&&m.density>=50&&m.density<=20000&&Number.isFinite(m.e)&&m.e>=0&&m.e<=1).map((m,i)=>({id:'custom'+i,name:m.name.slice(0,24),mu:m.mu,density:m.density,e:m.e,color:C.yellow}));
+ const unlocked=Math.min(14,Math.max(completed.length?Math.max(...completed)+1:0,Number.isInteger(s.unlocked)?P.clamp(s.unlocked,0,14):0));
+ return{v:1,completed,level:Number.isInteger(s.level)?P.clamp(s.level,0,unlocked):0,unlocked,custom};
+}
+try{const s=validSave(JSON.parse(localStorage.getItem('newton-lab-v1')));if(s)saved=s;}catch(e){}
+try{if(location.hash.startsWith('#nl=')){const blob=location.hash.slice(4);if(blob.length<14000){const s=validSave(JSON.parse(decodeURIComponent(escape(atob(blob)))));if(s)saved=s;}}}catch(e){}
+let index=saved.level,explore=false,params={},sim=null,paused=false,vectors=true,numbers=false,autoTimer=null,lastStatus='ready',hits=[],drag=null,started=false;
+const canvas=$('canvas'),ctx=canvas.getContext('2d');let W=1100,H=600,scale=1,ox=0,oy=0;
+function materials(){return[...LabData.materials,...saved.custom];}
+function unlocked(){return Math.min(14,Math.max(saved.unlocked||0,saved.completed.length?Math.max(...saved.completed)+1:0));}
+function persist(){try{localStorage.setItem('newton-lab-v1',JSON.stringify(saved));}catch(e){} }
+function progressURL(){const s={...saved};return location.href.split('#')[0]+'#nl='+btoa(unescape(encodeURIComponent(JSON.stringify(s))));}
+function clearAuto(){if(autoTimer){clearTimeout(autoTimer);autoTimer=null;}}
+function modal(id){clearAuto();paused=sim&&sim.status==='running';$(id).showModal();updateRun();}
+function showLevels(){const grid=$('level-grid');grid.replaceChildren();$('levels-heading').textContent=explore?'Choose an experiment':'Choose a challenge';$('level-grid-note').textContent=explore?'Every scene is open. Try your own materials and settings.':'Solve or skip a challenge to unlock the next.';
+ L.forEach((l,i)=>{const b=document.createElement('button');b.className='level-card'+(i===index?' current':'');b.disabled=!explore&&i>unlocked();const n=document.createElement('span');n.textContent=String(i+1).padStart(2,'0')+' · '+l.topic;const title=document.createElement('strong');title.textContent=l.title;b.append(n,title);if(saved.completed.includes(i)){const e=document.createElement('em');e.textContent='✓';b.append(e);}b.onclick=()=>{$('levels-dialog').close();load(i);};grid.append(b);});modal('levels-dialog');}
+function load(i){clearAuto();index=i;params={...L[i].defaults};if(explore&&i===0){params.crateMass=40;params.push=90;}if(explore&&(i===13||i===14))params.ballMaterial='rubber';
+ $('title').textContent=L[i].title;$('goal').textContent=explore?'Explore the motion. Change one thing at a time.':L[i].goal;$('level-label').textContent=(explore?'OPEN LAB':String(i+1).padStart(2,'0')+' / 15')+' · '+L[i].topic;
+ const constants=$('constants');constants.replaceChildren();L[i].constants.forEach(s=>{const e=document.createElement('span');e.textContent=s;constants.append(e);});
+ $('challenge-mode').classList.toggle('selected',!explore);$('explore-mode').classList.toggle('selected',explore);$('challenge-mode').setAttribute('aria-pressed',String(!explore));$('explore-mode').setAttribute('aria-pressed',String(explore));
+ $('skip').textContent=explore?'Next scene →':'Skip level →';$('skip').title=explore?'Next experiment':'Skip without marking this level solved';renderControls();reset();renderProgress();if(!explore)saved.level=index;persist();}
+function skip(){clearAuto();if(explore){load((index+1)%L.length);return;}saved.unlocked=Math.max(unlocked(),Math.min(14,index+1));if(index===L.length-1){explore=true;persist();load(index);}else load(index+1);}
+function reset(){clearAuto();sim=new Simulation(index,params,materials(),explore);paused=false;lastStatus='ready';$('result').hidden=true;updateRun();render();}
+function editParam(k,v){params[k]=v;const el=document.querySelector('[data-output="'+k+'"]');if(el)el.textContent=formatParam(k,v);const input=document.querySelector('[data-range="'+k+'"]');if(input)input.value=v;
+ // Editing a ready or finished scene creates a fresh attempt.
+ if(sim.status!=='running'||paused)reset();}
+function formatParam(k,v){if(typeof v!=='number')return v;const c=controlsSpec().find(c=>c[1]===k);return String(Math.round(v*1000)/1000)+(c?' '+c[6]:'');}
+function controlsSpec(){const controls=[...L[index].controls];if(explore&&index===0)controls.push(['range','crateMass','Crate mass',10,100,5,'kg'],['range','push','Push force',20,300,10,'N']);if(explore&&(index===13||index===14))controls.push(['material','ballMaterial','Blue material']);return controls;}
+function renderControls(){const host=$('controls');host.replaceChildren();controlsSpec().forEach(c=>{const [type,key,label]=c,box=document.createElement('div');box.className='control';const row=document.createElement('div');row.className='control-label';const lab=document.createElement('label');lab.textContent=label;row.append(lab);box.append(row);
+ if(type==='range'){const out=document.createElement('output');out.dataset.output=key;out.textContent=formatParam(key,params[key]);row.append(out);const input=document.createElement('input');input.type='range';input.className='range';input.id='control-'+key;input.dataset.range=key;lab.htmlFor=input.id;input.min=c[3];input.max=c[4];input.step=c[5];input.value=params[key];input.setAttribute('aria-label',label);input.oninput=()=>editParam(key,Number(input.value));box.append(input);}
+ if(type==='material'){const picks=document.createElement('div');picks.className='material-picker';materials().forEach(m=>{const b=document.createElement('button');b.className='material'+(params[key]===m.id?' selected':'');b.setAttribute('aria-pressed',String(params[key]===m.id));b.title=m.name+' · μ '+m.mu+' · '+m.density+' kg/m³';const chip=document.createElement('i');chip.style.background=m.color;const text=document.createElement('span');text.textContent=m.name;b.append(chip,text);b.onclick=()=>{editParam(key,m.id);renderControls();};b.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;drag={kind:'material',key,value:m.id,startX:e.clientX,startY:e.clientY};});picks.append(b);});const add=document.createElement('button');add.className='add-material';add.textContent='+';add.setAttribute('aria-label','Create custom material');add.onclick=()=>modal('material-dialog');picks.append(add);box.append(picks);}
+ if(type==='choice'){const picks=document.createElement('div');picks.className='choices';c[3].forEach(([value,text])=>{const b=document.createElement('button');b.className='choice'+(params[key]===value?' selected':'');b.textContent=text;b.setAttribute('aria-pressed',String(params[key]===value));b.onclick=()=>{editParam(key,value);renderControls();};picks.append(b);});box.append(picks);}
+ host.append(box);});updateRun();}
+function setControlDisabled(){const locked=sim&&sim.status==='running'&&!paused;$('controls').querySelectorAll('button,input').forEach(e=>e.disabled=locked);}
+function updateRun(){const b=$('run');if(sim&&sim.i===10&&sim.d.stage==='arrival'&&sim.status==='running'){b.innerHTML='↗ <span>Arrival burn</span>';b.disabled=false;setControlDisabled();const input=document.querySelector('[data-range="arrival"]');if(input){input.disabled=false;input.oninput=()=>{params.arrival=Number(input.value);sim.p.arrival=params.arrival;document.querySelector('[data-output="arrival"]').textContent=formatParam('arrival',params.arrival);};}return;}
+ b.disabled=false;b.innerHTML=sim&&sim.status==='running'?(paused?'▶ <span>Resume</span>':'Ⅱ <span>Pause</span>'):'▶ <span>'+(explore?'Run':sim&&sim.status==='ready'?'Try it':'Try again')+'</span>';setControlDisabled();}
+function run(){clearAuto();if(sim.i===10&&sim.status==='running'&&sim.d.stage==='arrival'){sim.arrivalBurn();updateState();return;}if(sim.status==='running')paused=!paused;else{if(sim.status!=='ready')reset();sim.start();paused=false;}updateRun();}
+function renderProgress(){const host=$('progress');host.replaceChildren();L.forEach((l,i)=>{const b=document.createElement('button');b.className=(saved.completed.includes(i)?'done ':'')+(index===i?'current':'');b.title=(i+1)+'. '+l.title;b.setAttribute('aria-label',b.title);b.disabled=!explore&&i>unlocked();b.onclick=()=>load(i);host.append(b);});$('footnote').textContent=explore?'Open lab · all scenes unlocked':saved.completed.length+' / 15 discovered';}
+function updateState(){
+ if(sim.status===lastStatus)return;lastStatus=sim.status;updateRun();if(['success','failure','ended'].includes(sim.status)){
+  const ok=sim.status==='success',result=$('result');result.hidden=false;result.className='result '+(ok?'success':'failure');$('result-icon').textContent=ok?'✓':'↺';$('result-title').textContent=explore?'Experiment complete':ok?(index===14&&saved.completed.length+(saved.completed.includes(index)?0:1)===15?'All 15 discovered!':'Discovered!'):'Try another setup';$('result-text').textContent=ok?L[index].win:sim.reason||L[index].fail;
+  $('next').hidden=explore||!ok;$('next').textContent=index===14?'Explore →':'Next →';
+  if(ok&&!explore){if(!saved.completed.includes(index))saved.completed.push(index);saved.level=Math.min(14,index+1);persist();renderProgress();if(index<14){autoTimer=setTimeout(()=>{if(!$('levels-dialog').open&&!$('info-dialog').open&&!$('share-dialog').open)load(index+1);},4800);}}
+ }
+}
+function fullscreen(){if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});}
+$('start').onclick=()=>{fullscreen();$('start-screen').hidden=true;started=true;last=performance.now();render();};
+$('fullscreen').onclick=fullscreen;$('run').onclick=run;$('reset').onclick=reset;$('skip').onclick=skip;$('next').onclick=()=>{if(index===14){explore=true;load(13);}else load(index+1);};$('level-menu').onclick=showLevels;$('level-label').onclick=showLevels;
+$('challenge-mode').onclick=()=>{explore=false;load(Math.min(index,unlocked()));};$('explore-mode').onclick=()=>{explore=true;load(index);};
+$('vectors').onclick=()=>{vectors=!vectors;$('vectors').classList.toggle('active',vectors);$('vectors').setAttribute('aria-pressed',String(vectors));};$('numbers').onclick=()=>{numbers=!numbers;$('numbers').classList.toggle('active',numbers);$('numbers').setAttribute('aria-pressed',String(numbers));renderControls();};
+$('info').onclick=()=>{$('hint-text').textContent=L[index].hint;$('model-text').textContent=L[index].note;modal('info-dialog');};$('open-materials').onclick=()=>{$('info-dialog').close();modal('material-dialog');};
+$('share').onclick=()=>{persist();$('share-link').value=progressURL();$('share-description').textContent=location.protocol==='file:'?'For links that work on other devices, host this app on GitHub Pages. This local link uses the file path on this device.':'Open this link to pick up where you left off.';$('copy-link').textContent='Copy link';modal('share-dialog');};
+$('copy-link').onclick=async()=>{try{await navigator.clipboard.writeText($('share-link').value);$('copy-link').textContent='Copied ✓';}catch(e){$('share-link').focus();$('share-link').select();$('copy-link').textContent='Selected · press Ctrl+C';}};
+$('material-form').onsubmit=e=>{e.preventDefault();if(saved.custom.length>=20)return;const m={id:'custom'+saved.custom.length,name:$('material-name').value.trim()||'My material',mu:Number($('material-mu').value),density:Number($('material-density').value),e:Number($('material-e').value),color:C.yellow};saved.custom.push(m);persist();$('material-dialog').close();renderControls();reset();};
+for(const dialog of document.querySelectorAll('dialog')){dialog.querySelector('.close').onclick=()=>dialog.close();dialog.addEventListener('close',()=>{updateRun();});}
+window.addEventListener('keydown',e=>{if(!started||document.querySelector('dialog[open]')||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;if(e.code==='Space'){e.preventDefault();run();}if(e.key.toLowerCase()==='r')reset();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&sim&&sim.status==='running'){paused=true;updateRun();}last=performance.now();});
+/* Canvas primitives: all drawing stays in a fixed 2D coordinate system. */
+function resize(){const r=canvas.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.height*dpr);scale=Math.min(r.width/W,r.height/H);ox=(r.width-W*scale)/2;oy=(r.height-H*scale)/2;ctx.setTransform(dpr,0,0,dpr,0,0);}
+new ResizeObserver(resize).observe(canvas);
+function begin(){const r=canvas.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,r.width,r.height);ctx.translate(ox,oy);ctx.scale(scale,scale);ctx.lineCap='round';ctx.lineJoin='round';hits=[];
+ ctx.fillStyle='#344155';for(let x=34;x<W;x+=32)for(let y=155;y<H-65;y+=32){ctx.globalAlpha=.45;ctx.fillRect(x,y,1,1);}ctx.globalAlpha=1;}
+function line(x,y,a,b,color=C.floor,width=2,dash=[]){ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.moveTo(x,y);ctx.lineTo(a,b);ctx.stroke();ctx.setLineDash([]);}
+function circle(x,y,r,color,stroke=null){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(color){ctx.fillStyle=color;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}}
+function rect(x,y,w,h,c,r=0){ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();}
+function poly(points,c,stroke=null){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fillStyle=c;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}}
+function txt(text,x,y,color=C.muted,size=15,align='center'){ctx.fillStyle=color;ctx.font=size+'px system-ui,sans-serif';ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(text,x,y);}
+function arrow(x,y,dx,dy,color=C.blue,label='',force=false){if(!vectors)return;const len=Math.hypot(dx,dy);if(len<2)return;const ux=dx/len,uy=dy/len;line(x,y,x+dx,y+dy,color,3);poly([[x+dx,y+dy],[x+dx-11*ux+5*uy,y+dy-11*uy-5*ux],[x+dx-11*ux-5*uy,y+dy-11*uy+5*ux]],color);if(label)txt(label,x+dx+12*ux,y+dy+14*uy,color,13);}
+function target(x,y){circle(x,y,26,null,C.yellow);circle(x,y,7,C.yellow);}
+function flag(x,y){line(x,y,x,y-75,C.yellow,3);poly([[x,y-75],[x+33,y-63],[x,y-50]],C.yellow);}
+function human(x,y,color=C.ink,pose='stand',s=1){ctx.save();ctx.translate(x,y);ctx.scale(s,s);circle(0,-75,11,color);line(0,-62,0,-30,color,5);line(0,-30,-12,0,color,5);line(0,-30,16,0,color,5);if(pose==='push'){line(0,-54,24,-48,color,5);line(24,-48,37,-49,color,5);}else{line(0,-54,-18,-35,color,5);line(0,-54,18,-35,color,5);}ctx.restore();}
+function car(x,y,angle=0,magnet=false){ctx.save();ctx.translate(x,y);ctx.rotate(-angle);poly([[-66,-25],[-46,-25],[-30,-52],[23,-52],[42,-25],[65,-25],[65,-4],[-66,-4]],C.blue);poly([[-26,-46],[18,-46],[31,-28],[-38,-28]],'#233a55');circle(-39,1,13,C.dark,C.muted);circle(39,1,13,C.dark,C.muted);circle(-39,1,4,C.muted);circle(39,1,4,C.muted);if(magnet){rect(43,-35,20,13,C.red,3);txt('N',53,-29,C.dark,9);}ctx.restore();}
+function floor(y,color=C.muted){line(130,y,1000,y,color,3);for(let x=132;x<1000;x+=25)line(x,y+3,x-8,y+11,C.floor,1);}
+function hitCircle(x,y,r,kind){hits.push({x,y,r,kind});circle(x,y,r+7,null,'#6a9dcc66');}
+function labelHandle(x,y,text){txt(text,x,y,C.muted,12);}
+function meter(x,y,width,value,total,label,unit=''){rect(x,y,width,5,'#334156',3);rect(x,y,width*P.clamp(value/total,0,1),5,C.yellow,3);txt(label,x,y-15,C.muted,12,'left');if(numbers)txt((Math.round(value*10)/10)+unit,x+width,y-15,C.ink,12,'right');}
+function drawSurface(){const d=sim.d,m=sim.mat(params.surface),x=320+d.x*105,y=410;floor(y,m.color);rect(130,y+13,870,20,m.color+'25',2);flag(850,y);rect(x,y-70,70,70,C.yellow,5);line(x+8,y-61,x+60,y-8,'#bba04c',2);line(x+60,y-61,x+8,y-8,'#bba04c',2);human(x-38,y,C.ink,'push');arrow(x+36,y-37,92,0,C.red,numbers?d.F+' N':'');arrow(x+36,y-17,P.clamp((d.friction||0)*.8,-130,130),0,C.red,numbers?Math.round(Math.abs(d.friction||0))+' N':'');arrow(x+36,y-95,(d.v||0)*20,0,C.blue,numbers?d.v.toFixed(1)+' m/s':'');if(numbers)txt(d.m+' kg',x+35,y-37,C.dark,14);txt(m.name,540,y+50,m.color,15);if(sim.status==='ready')labelHandle(600,320,'Choose a surface ↓');}
+function drawRamp(){const d=sim.d,theta=20*Math.PI/180,x=245+d.x*Math.cos(theta)*77,y=437-d.x*Math.sin(theta)*77;poly([[160,468],[935,186],[935,475]],'#263346');line(160,468,935,186,sim.mat(params.surface).color,5);flag(936,185);car(x,y,theta);arrow(x,y-65,d.v*20*Math.cos(theta),-d.v*20*Math.sin(theta),C.blue,numbers?Math.abs(d.v).toFixed(1)+' m/s':'');arrow(x,y-25,(d.traction||0)*.15*Math.cos(theta),-(d.traction||0)*.15*Math.sin(theta),C.red,numbers?Math.round(d.traction||0)+' N':'');arrow(x,y-28,0,75,C.red,numbers?'mg':'');if(d.slip){txt('↻',x-36,y-5,C.red,25);txt('↻',x+39,y-26,C.red,25);}txt('20°',770,463,C.muted,17);line(740,474,930,474,C.floor,2,[4,5]);if(sim.status==='ready')labelHandle(560,510,'Choose ramp + wheels ↓');}
+function drawDrop(){const d=sim.d,x=600,y=502-d.y*3;floor(502);target(x,502);const r=30+Math.sqrt(params.area)*15,top=y-75;ctx.beginPath();ctx.arc(x,top,r,Math.PI,2*Math.PI);ctx.lineTo(x+r,top);ctx.closePath();ctx.fillStyle=C.blue;ctx.fill();for(let q=-1;q<=1;q+=.5)line(x+r*q,top,x,y-22,'#b1c9e7',1.5);line(x-r,top,x+r,top,C.ink,2);human(x,y,C.ink,'stand',.52);arrow(x+65,y-30,0,Math.min(105,Math.abs(d.v)*5),C.blue,numbers?Math.abs(d.v).toFixed(1)+' m/s':'');arrow(x-80,y-28,0,-Math.min(100,(d.drag||0)*.12),C.red,numbers?Math.round(d.drag||0)+' N':'');line(265,322,265,502,C.floor,2);txt('60 m',245,412,C.muted,14,'right');meter(800,300,150,sim.t,13,'Time', ' s');meter(800,364,150,d.energy||0,1100,'Landing energy',' J');if(sim.status==='ready'){hitCircle(x+r,top,14,'canopy');labelHandle(x,top-r-26,'Drag ↔');}}
+function drawMagnet(){const d=sim.d,x=320+d.x*96,y=411;floor(427);car(x,y,0,true);flag(840,427);const anchor=params.anchor==='ground';const tx=anchor?925:x-65,ty=anchor?358:y-52;rect(tx-13,ty-20,26,40,'#bdc9dd',3);txt('Fe',tx,ty,C.dark,13);if(anchor){line(tx,ty+20,tx,427,C.muted,3);line(tx-28,427,tx+28,427,C.muted,4);arrow(x+62,y-29,100,0,C.red,numbers?'50 N':'');arrow(tx-17,ty,-100,0,C.red,numbers?'50 N':'');}else{line(tx,ty+20,x-58,y-4,C.muted,3);arrow(x+10,y-35,80,0,C.red);arrow(x+10,y-35,-80,0,C.red);}if(sim.status==='ready'){hitCircle(tx,ty,30,'anchor');circle(925,358,35,null,'#52667f');labelHandle(925,310,'Ground anchor');labelHandle(x,290,'Drag target to ground');}arrow(x,y-85,(d.v||0)*20,0,C.blue);}
+function drawBoat(){const d=sim.d,x=310+d.x*74,y=412;for(let yy=440;yy<486;yy+=22){ctx.beginPath();ctx.moveTo(130,yy);for(let k=130;k<1000;k+=15)ctx.lineTo(k,yy+Math.sin(k/25)*4);ctx.strokeStyle='#395c7d';ctx.lineWidth=2;ctx.stroke();}rect(932,370,65,70,'#314259',3);flag(950,370);poly([[x-90,y-22],[x+90,y-22],[x+64,y+17],[x-57,y+17]],C.blue);line(x+30,y-22,x+30,y-165,C.muted,4);poly([[x+24,y-158],[x+24,y-43],[x-28,y-43]],C.yellow);rect(x-72,y-56,34,25,'#354964',4);circle(x-55,y-43,12,null,C.ink);line(x-55,y-55,x-55,y-31,C.ink,2);line(x-67,y-43,x-43,y-43,C.ink,2);const dir=params.fan==='sail'?1:-1;for(let k=0;k<3;k++)arrow(x-43,y-42-k*12,dir*45,0,C.muted);arrow(x,y+45,(d.v||0)*25,0,C.blue,numbers?(d.v||0).toFixed(1)+' m/s':'');if(params.fan==='aft')arrow(x-5,y-10,70,0,C.red,numbers?'80 N':'');else{arrow(x-5,y-10,70,0,C.red);arrow(x-5,y-10,-70,0,C.red);}if(sim.status==='ready'){hitCircle(x-55,y-43,27,'fan');labelHandle(x-55,y-87,'Tap to rotate');}}
+function drawTruck(){const d=sim.d,base=480,truckX=330+sim.t*8*45;floor(480);rect(290,468,120,13,C.yellow,5);txt('Foam pad',350,514,C.yellow,13);if(truckX<1000){rect(truckX-80,280,160,32,C.blue,5);rect(truckX+37,258,45,50,C.blue,5);circle(truckX-44,316,13,C.dark,C.muted);circle(truckX+52,316,13,C.dark,C.muted);line(truckX-20,280,truckX-20,215,C.red,4);line(truckX-20,237,truckX+15,252,C.red,3);arrow(truckX,340,72,0,C.blue,numbers?'8 m/s':'');}const hx=350+d.x*45,hy=460-d.y*45;human(hx,hy,C.ink,'stand',.55);arrow(hx,hy-70,d.vx*13,-d.vy*13,C.blue,numbers?Math.hypot(d.vx,d.vy).toFixed(1)+' m/s':'');if(sim.status==='ready'){arrow(hx,hy-30,-Math.sqrt(params.force/5)*4,0,C.red,numbers?params.force+' N':'');hitCircle(hx-75,hy-30,14,'slingshot');labelHandle(hx-100,hy-62,'Drag ←');}if(numbers)txt(Math.round(d.energy||0)+' J',830,445,C.ink,16);}
+function drawCannon(){const d=sim.d,x=260+d.carX*39,y=432;floor(449);car(x,y);const a=params.angle*Math.PI/180,gunX=x,gunY=y-54;line(gunX,gunY,gunX+38*Math.cos(a),gunY-38*Math.sin(a),C.red,10);line(gunX-15,gunY+4,gunX-15,gunY+15,C.yellow,4);line(gunX+15,gunY+4,gunX+15,gunY+15,C.yellow,4);line(gunX-15,gunY+15,gunX+15,gunY+15,C.yellow,4);const bx=260+d.x*39,by=gunY-d.y*39;circle(bx,by,8,C.yellow);arrow(bx,by,d.vx*9,-d.vy*9,C.blue,numbers?d.vx.toFixed(1)+' →':'');arrow(x,y+50,70,0,C.blue,numbers?'4 m/s':'');if(sim.status==='ready'){hitCircle(gunX+65*Math.cos(a),gunY-65*Math.sin(a),16,'angle');labelHandle(x+125,gunY-90,'Drag aim');}txt('Moving cup',x,497,C.yellow,14);}
+function orbitMap(x,y){const range=index===7?4e7:index===8?6.5e7:6e7;const s=230/range;return{x:625+x*s,y:340-y*s};}
+function drawTrail(points,map,color,alpha=.6,dash=[]){if(points.length<2)return;ctx.beginPath();points.forEach((p,i)=>{const q=map(p.x,p.y);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);});ctx.strokeStyle=color;ctx.globalAlpha=alpha;ctx.lineWidth=1.7;ctx.setLineDash(dash);ctx.stroke();ctx.globalAlpha=1;ctx.setLineDash([]);}
+function drawOrbit(){const d=sim.d,map=orbitMap;if(index!==9){const center=map(0,0),r=d.r*230/(index===7?4e7:6.5e7);circle(center.x,center.y,r,null,'#405a74');line(center.x-7,center.y,center.x+7,center.y,C.muted,1);line(center.x,center.y-7,center.x,center.y+7,C.muted,1);txt('Center of mass',center.x,center.y+19,C.muted,11);}
+ sim.trails.forEach((t,k)=>drawTrail(t,map,[C.blue,C.red,C.ink][k]));
+ if(d.shadow){d.shadowTrails.forEach(t=>drawTrail(t,map,C.yellow,.5,[4,5]));d.shadow.forEach(b=>{const q=map(b.x,b.y);circle(q.x,q.y,8,null,C.yellow);});}
+ const grav=P.accel(d.b),maxF=Math.max(...d.b.map((b,k)=>b.m*Math.hypot(grav[k].x,grav[k].y)),1);
+ d.b.forEach((b,k)=>{const q=map(b.x,b.y),r=Math.max(8,b.r*230/(index===7?4e7:index===8?6.5e7:6e7));circle(q.x,q.y,r,[C.blue,C.red,C.ink][k]);circle(q.x-r*.25,q.y-r*.25,r*.22,'#eaf1ff30');arrow(q.x,q.y,b.vx*.014,-b.vy*.014,C.blue,numbers?(Math.hypot(b.vx,b.vy)/1000).toFixed(1)+' km/s':'');if(vectors){const a=grav[k];arrow(q.x,q.y,a.x*b.m/maxF*65,-a.y*b.m/maxF*65,C.red);}if(numbers)txt(k===0?'Earth':(b.m/5.972e24).toFixed(2)+' M⊕',q.x,q.y+r+17,C.muted,12);});
+ if(index===9){meter(180,445,170,d.divergence/1e6,2,'Path separation',' ×1,000 km');txt('Solid: original',245,480,C.ink,12);txt('Dashed: tiny change',245,501,C.yellow,12);}else{meter(190,430,150,Math.max(0,d.angle)/(2*Math.PI),1,'One orbit');if(numbers)txt((sim.t/3600).toFixed(1)+' hours',265,471,C.ink,14);}}
+function marsMap(x,y){return{x:605+x/P.AU*126,y:342-y/P.AU*126};}
+function drawMars(){const d=sim.d,m=marsMap,sun=m(0,0);circle(sun.x,sun.y,18,C.yellow);circle(sun.x,sun.y,126,null,'#324f70');circle(sun.x,sun.y,126*1.524,null,'#654748');drawTrail(sim.trails[0],m,C.yellow,.8);const e=m(d.earth.x,d.earth.y),ma=m(d.mars.x,d.mars.y),ship=m(d.ship[0],d.ship[1]);circle(e.x,e.y,9,C.blue);circle(ma.x,ma.y,8,C.red);txt('Earth',e.x,e.y+23,C.blue,13);txt('Mars',ma.x,ma.y+23,C.red,13);target(ma.x,ma.y);const a=Math.atan2(d.ship[3],d.ship[2]);ctx.save();ctx.translate(ship.x,ship.y);ctx.rotate(-a);poly([[12,0],[-7,-6],[-7,6]],C.ink);ctx.restore();arrow(ship.x,ship.y,d.ship[2]*.0015,-d.ship[3]*.0015,C.blue);txt('Day '+Math.round(d.date/P.DAY),210,310,C.ink,23);if(d.stage==='coast'&&sim.status==='running'){txt('Coast',210,349,C.muted,14);meter(142,401,140,d.flight/P.DAY,P.hohmann.transferTime/P.DAY,'Flight',' days');}else if(d.stage==='arrival'){txt('Match Mars’s speed',220,350,C.yellow,15);txt('Adjust arrival burn ↓',220,380,C.muted,13);}else if(sim.status==='ready'){txt('Choose launch day',220,350,C.muted,14);if(numbers)txt('Mars leads '+(d.phase*180/Math.PI).toFixed(1)+'°',220,382,C.red,14);}if(numbers&&Number.isFinite(d.distance))txt('Gap '+(d.distance/P.AU).toFixed(3)+' AU',920,445,C.ink,14);}
+function drawGlove(){const d=sim.d,wallX=790,fistX=360+Math.min(d.x,.9)*380;rect(wallX,221,45,252,'#3b4a5f',3);for(let y=235;y<472;y+=22)line(wallX+8,y,wallX+34,y+14,'#54647b',2);floor(482);const thick=params.thickness/100,nominal=thick*600,compressed=Math.max(8,nominal-d.compression*600);const front=wallX-2-Math.max(0,.9-d.x)*380;rect(front-compressed-110,321,110,36,C.ink,10);rect(front-compressed-33,305,33,64,C.blue,13);rect(front-compressed,304,compressed,66,C.red,Math.min(12,compressed/2));if(d.x>=.9){for(let k=0;k<4;k++)line(front-compressed+5,315+k*12,front-5,311+k*12,'#a34b50',1.5);}arrow(front-compressed-75,286,sim.status==='ready'?70:Math.max(0,d.v)*17,0,C.blue,numbers?'4 m/s':'');if(d.compression>0){arrow(front-12,335,-Math.min(120,d.force*.2),0,C.red,numbers?Math.round(d.force)+' N':'');}meter(280,441,220,d.observedPeak||0,500,'Peak force',' N');txt(d.bottomed?'Bottomed out':sim.status==='ready'?'Choose softness + thickness ↓':'Glove compresses',570,508,d.bottomed?C.red:C.muted,14);}
+function drawMomentum(){const d=sim.d,x0=145,s=50,y=412;floor(440);d.b.forEach((b,k)=>{const x=x0+b.x*s;rect(x-24,y-46,48,50,k===0?C.yellow:C.blue,5);circle(x-12,y+9,8,C.dark,C.muted);circle(x+12,y+9,8,C.dark,C.muted);arrow(x,y-65,b.vx*20,0,C.blue,numbers?b.vx.toFixed(1)+' m/s':'');if(numbers)txt(b.m+' kg',x,y-21,C.dark,12);});if(d.hit){txt('Together',x0+(d.b[0].x+.5)*s,465,C.yellow,14);meter(810,325,150,d.vFinal,2.5,'Final speed',' m/s');}else{txt('Catch + stick',700,280,C.muted,16);arrow(715,312,65,0,C.yellow);}}
+function tableMap(x,y){return{x:285+x*52,y:525-y*52};}
+function drawPool(){const d=sim.d,m=tableMap;rect(265,141,612,404,'#233346',16);rect(285,161,572,364,'#172837',10);for(let x=310;x<855;x+=40)for(let y=185;y<520;y+=40)circle(x,y,.7,'#365570');if(index===14){line(285,161,857,161,C.yellow,4);txt('Top rail first',540,143,C.yellow,12);}sim.trails.forEach((t,k)=>drawTrail(t,m,k===0?C.blue:C.red,.5));const pocket=m(d.pocket.x,d.pocket.y);target(pocket.x,pocket.y);circle(pocket.x,pocket.y,15,C.dark);circle(pocket.x,pocket.y,5,C.yellow);d.b.forEach((b,k)=>{const q=m(b.x,b.y);circle(q.x,q.y,.28*52,k===0?C.blue:C.red);circle(q.x-5,q.y-6,4,'#ffffff55');arrow(q.x,q.y,b.vx*13,-b.vy*13,C.blue,numbers?Math.hypot(b.vx,b.vy).toFixed(1)+' m/s':'');if(numbers)txt(b.m.toFixed(1)+' kg',q.x,q.y+30,C.ink,12);});if(sim.status==='ready'){const blue=m(d.b[0].x,d.b[0].y),a=params.angle*Math.PI/180;line(blue.x,blue.y,blue.x+100*Math.cos(a),blue.y-100*Math.sin(a),C.blue,2,[5,7]);hitCircle(blue.x+100*Math.cos(a),blue.y-100*Math.sin(a),14,'poolAim');labelHandle(blue.x-12,blue.y+42,'Drag aim ↗');}if(d.bank&&index===14)txt('Rail ✓',847,143,C.yellow,12,'right');}
+function render(){if(!sim)return;begin();const fn=[drawSurface,drawRamp,drawDrop,drawMagnet,drawBoat,drawTruck,drawCannon,drawOrbit,drawOrbit,drawOrbit,drawMars,drawGlove,drawMomentum,drawPool,drawPool][index];fn();
+ const r=$('readout');if(numbers){const time=index===7||index===8?sim.t/3600:index===9?sim.t/P.DAY:index===10?sim.d.flight/P.DAY:sim.t;const unit=index===7||index===8?'h':index===9||index===10?'days':'s';r.textContent=time.toFixed(1)+' '+unit;}else r.textContent=sim.status==='ready'?'Ready':paused?'Paused':sim.status==='running'?'In motion':'';}
+function coords(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left-ox)/scale,y:(e.clientY-r.top-oy)/scale};}
+canvas.addEventListener('pointerdown',e=>{if(sim.status==='running'&&!paused)return;const p=coords(e),hit=hits.find(h=>Math.hypot(p.x-h.x,p.y-h.y)<=(e.pointerType==='touch'?28/scale:Math.max(28,h.r)));if(!hit)return;clearAuto();drag={kind:hit.kind};canvas.setPointerCapture(e.pointerId);if(hit.kind==='fan'){editParam('fan',params.fan==='sail'?'aft':'sail');renderControls();}e.preventDefault();});
+canvas.addEventListener('pointermove',e=>{if(!drag||drag.kind==='material')return;const p=coords(e);if(drag.kind==='canopy')editParam('area',Math.round(P.clamp(((Math.abs(p.x-600)-30)/15)**2,1,45)*2)/2);if(drag.kind==='slingshot')editParam('force',Math.round(P.clamp((350-p.x)*25,200,3600)/20)*20);if(drag.kind==='angle')editParam('angle',Math.round(P.clamp(Math.atan2(378-p.y,p.x-260)*180/Math.PI,30,150)));if(drag.kind==='poolAim'){const b=sim.d.b[0],q=tableMap(b.x,b.y);editParam('angle',Math.round(P.clamp(Math.atan2(q.y-p.y,p.x-q.x)*180/Math.PI,index===14?15:0,index===14?85:80)));}if(drag.kind==='anchor'){editParam('anchor',p.x>650?'ground':'car');renderControls();}e.preventDefault();});
+window.addEventListener('pointerup',e=>{if(drag&&drag.kind==='material'){const r=canvas.getBoundingClientRect();if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){editParam(drag.key,drag.value);renderControls();}}drag=null;});canvas.addEventListener('pointercancel',()=>drag=null);
+let last=performance.now(),acc=0,lastStage='';
+function frame(now){const dt=Math.min(.06,(now-last)/1000);last=now;if(started&&!document.hidden&&sim.status==='running'&&!paused&&!document.querySelector('dialog[open]')){acc+=dt;let n=0;while(acc>=1/240&&n++<16){sim.step(1/240);acc-=1/240;updateState();if(sim.status!=='running')break;}if(sim.i===10&&sim.d.stage!==lastStage){lastStage=sim.d.stage;updateRun();}}else acc=0;render();requestAnimationFrame(frame);}
+load(index);resize();requestAnimationFrame(frame);
+// A small read-only/debug interface for physics and browser validation.
+window.NewtonLab={load:(i,free=false)=>{explore=free;load(P.clamp(i,0,14));},set:(key,value)=>{editParam(key,value);renderControls();},run,reset,state:()=>({index,explore,params:{...params},status:sim.status,paused,completed:[...saved.completed],data:sim.d}),advance:seconds=>{sim.start();for(let t=0;t<seconds&&sim.status==='running';t+=1/240){sim.step(1/240);}updateState();render();},validSave};
+})();
+
+</script>
+</body>
+</html>
