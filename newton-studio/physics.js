@@ -9,6 +9,7 @@ function body(kind,x,y,extra={}){return {id:uid(),kind,x,y,angle:0,w:1.6,h:1,r:.
 function empty(){return {version:1,gravity:9.81,air:false,bodies:[],joints:[]};}
 function demo(){const s=empty();s.bodies=[body('ground',0,-.4,{w:30,h:.8,color:'#526276'}),body('rectangle',-4,3,{color:'#5f86ff'}),body('circle',-.8,5,{r:.7,mass:3,color:'#ffa64d'}),body('triangle',3,3.5,{w:1.8,h:1.6,color:'#35bba3'})];return s;}
 function area(b){return ['circle','gear'].includes(b.kind)?Math.PI*b.r*b.r:b.kind==='triangle'?b.w*b.h/2:b.w*b.h;}
+function gearsAdjacent(a,b){return !!a&&!!b&&a.kind==='gear'&&b.kind==='gear'&&Math.abs(Math.hypot(a.x-b.x,a.y-b.y)-a.r-b.r)<.015&&Math.abs(a.r/a.teeth-b.r/b.teeth)<.0001;}
 function validate(s){
  if(!s||s.version!==1||!Array.isArray(s.bodies)||!Array.isArray(s.joints)||s.bodies.length>180||s.joints.length>250)throw Error('This is not a supported Newton Studio scene (maximum 180 objects).');
  if(typeof s.air!=='boolean')throw Error('Air resistance must be on or off.');
@@ -34,7 +35,7 @@ class Simulation{
  if(j.kind==='weld')q=pl.WeldJoint({collideConnected:false},a,b,V(j.x,j.y));
  if(j.kind==='rod')q=pl.DistanceJoint({length:j.length,frequencyHz:0,dampingRatio:0,collideConnected:false},a,b,a.getPosition(),b.getPosition());
  if(q)this.joints.set(j.id,{joint:this.world.createJoint(q),spec:j});
- }for(const j of this.scene.joints.filter(j=>j.kind==='gear')){const j1=this.joints.get(j.joint1)?.joint,j2=this.joints.get(j.joint2)?.joint;if(j1&&j2)this.joints.set(j.id,{spec:j,joint:this.world.createJoint(pl.GearJoint({ratio:j.ratio,joint1:j1,joint2:j2,bodyA:this.bodies.get(j.a).body,bodyB:this.bodies.get(j.b).body}))});}}
+ }for(const j of this.scene.joints.filter(j=>j.kind==='gear')){const j1=this.joints.get(j.joint1)?.joint,j2=this.joints.get(j.joint2)?.joint;const a=this.bodies.get(j.a)?.spec,b=this.bodies.get(j.b)?.spec,s1=this.joints.get(j.joint1)?.spec,s2=this.joints.get(j.joint2)?.spec;if(j1&&j2&&gearsAdjacent(a,b)&&!s1.a&&!s2.a&&s1.b===a.id&&s2.b===b.id&&Math.hypot(s1.x-a.x,s1.y-a.y)<.015&&Math.hypot(s2.x-b.x,s2.y-b.y)<.015)this.joints.set(j.id,{spec:j,joint:this.world.createJoint(pl.GearJoint({ratio:b.teeth/a.teeth,joint1:j1,joint2:j2,bodyA:this.bodies.get(j.a).body,bodyB:this.bodies.get(j.b).body}))});}}
  add(spec){const fixed=spec.kind==='ground'||spec.kind==='launcher'||spec.fixed;
  const b=this.world.createBody({type:fixed?'static':'dynamic',position:V(spec.x,spec.y),angle:spec.angle,linearVelocity:V(spec.vx,spec.vy),angularVelocity:spec.omega,bullet:true,linearDamping:0,angularDamping:0});let shape;
  if(['circle','gear'].includes(spec.kind))shape=pl.Circle(spec.r);
@@ -56,5 +57,5 @@ class Simulation{
  advance(seconds){const n=Math.round(seconds/DT);for(let i=0;i<n;i++)this.step();}
  state(id){const e=this.bodies.get(id);if(!e)return null;const b=e.body,p=b.getPosition(),v=b.getLinearVelocity();return {t:this.time,x:p.x,y:p.y,vx:v.x,vy:v.y,speed:v.length(),ax:e.acc.x,ay:e.acc.y,acceleration:e.acc.length(),distance:e.distance,displacement:Math.hypot(p.x-e.start.x,p.y-e.start.y),angle:b.getAngle(),omega:b.getAngularVelocity(),mass:b.getMass(),fx:e.net.x,fy:e.net.y};}
 }
-root.Newton={Simulation,body,empty,demo,validate,uid,copy,DT,area};if(typeof module!=='undefined')module.exports=root.Newton;
+root.Newton={Simulation,body,empty,demo,validate,uid,copy,DT,area,gearsAdjacent};if(typeof module!=='undefined')module.exports=root.Newton;
 })(typeof window!=='undefined'?window:globalThis);

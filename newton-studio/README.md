@@ -49,9 +49,9 @@ Editing after a run starts a new simulation from the current authored object pos
 
 The 15 sequential levels cover F = ma, force balance, opposing forces, displacement, coasting, braking, Moon gravity, projectile speed/angle, terminal speed, motor rotation, gear ratios, restitution, and inelastic collisions.
 
-The setup and controls are locked; students change one numeric value. **Test my value** reconstructs the locked setup and measures the simulated outcome. Most tasks accept a 2.5% measurement tolerance, with absolute tolerances for zero-velocity and hover tasks. Success unlocks the next level; completed levels can be repeated. Each level offers a formula hint without the numeric solution.
+The setup and controls are locked; students change one numeric value. **Test my value** reconstructs the locked setup and measures the simulated outcome. Most tasks accept a 2.5% measurement tolerance, with absolute tolerances for zero-velocity and hover tasks. Success or **Skip for now** unlocks the next level. Skipped missions remain available and are labeled separately in saved progress and teacher reports; they do not earn completion credit. All 15 levels include a mission story, target, walkthrough, three progressive hints, and contextual success feedback. Five tutorials cover forces, cars/camera follow, gears, thrusters/launchers, and progress sharing.
 
-Progress saves in the browser's local storage. It is specific to the device, browser profile, and app address; it does not sync across devices. Clearing browser data removes it. Save file includes the authored sandbox scene, completed challenge values/results, attempt counts, and student name. Open file restores both, after validating the scene and replaying passing results.
+Progress saves in the browser's local storage. It is specific to the device, browser profile, and app address; it does not sync across devices. Clearing browser data removes it. Save file includes the authored sandbox scene, completed challenge values/results, skipped levels, attempt counts, and student name. Open file restores both, after validating the scene and replaying passing results.
 
 ### Teacher review
 
@@ -71,7 +71,7 @@ Planck.js **1.5.0**, based on Box2D, solves 2D rigid-body translation/rotation a
 - Broad-phase spatial collision detection, convex narrow-phase shapes, and time-of-impact continuous collision detection; all dynamic bodies have the bullet flag.
 - Friction combines as the geometric mean; restitution uses the larger coefficient. The engine suppresses bounce for low-speed contact.
 - Translational air drag is **F = −k |v| v**, with k = ½ρCᴅA in kg/m. Still air, no rotational drag or fluid simulation. k is an editable physical parameter rather than a generic damping slider.
-- Ideal motor velocity targets with finite torque. Ideal fixed-axle gear constraints: **ω₁ + (N₂/N₁)ω₂ = 0**. Teeth are visual; there are no separate tooth contacts, backlash, slip, or breakage. Fixed-axle gears can be connected regardless of spacing.
+- Ideal motor velocity targets with finite torque. Ideal fixed-axle gear constraints: **ω₁ + (N₂/N₁)ω₂ = 0**. Teeth are visual; there are no separate tooth contacts, backlash, slip, or breakage. Only neighboring gears with equal radius-per-tooth spacing couple. Dropping a gear near another snaps it into contact, resizes it to match tooth spacing, and adds centered fixed axles. Moving it away removes its mesh constraint. Imported legacy distant/incompatible gear constraints are inactive.
 - Ground and launchers are infinite-mass supports. The launcher absorbs recoil through its support. Rods connect centers at a fixed length; rods do not have a collision shape or mass.
 - Live acceleration is Δv/Δt over a physics step; net force is mΔv/Δt including joint/contact impulses. The contact/joint resultant is the difference between net force and explicitly applied forces, so support balances weight at rest. During impact this is a step-averaged force, not an instantaneous force. Graph acceleration and force use consecutive samples at about 20 Hz.
 - Distance is accumulated path length. Displacement is straight-line distance from the initial center position.
@@ -102,3 +102,11 @@ The included checks compare forces, gravity, hover, coasting, quadratic terminal
 After editing source, rebuild the standalone edition with `python3 build_standalone.py`. The normal `index.html` edition uses your source files directly and needs no build.
 
 The original app code is MIT licensed. Planck retains its own included copyright/license notice.
+
+## Learning and control update — 2026-10-06
+
+- Dark/light mode remembers your preference and applies to world, graphs, panels and dialogs.
+- Follow object has an independent target menu; it tracks moving bodies during Run even while another object is inspected. Available on mobile too. The camera has no world boundaries; ground platforms remain finite.
+- Motor and thruster keys work while running. Pause, release and window blur clear held controls; Run returns focus to the canvas. The car uses A/D to drive and W for upward thrust. Custom mappings are edited in the Inspector with automatic/always-on drive disabled for key-only control.
+- Gears snap near touching edges (about 20 pixels, bounded in world units), match tooth spacing, and couple through centered fixed axles. Gear teeth still use ideal constraints rather than individual collision contacts. Branching trains are supported; the editor prevents new loops that could impose contradictory rotation.
+- Skips survive reload and full-file save/import, appear in report codes/links/JSON and teacher CSV, and can be replaced with a passing result later.

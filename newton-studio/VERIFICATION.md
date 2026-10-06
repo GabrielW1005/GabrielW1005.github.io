@@ -4,7 +4,7 @@ Verified 2026-10-05.
 
 ## Numerical checks
 
-`node tests/physics.test.cjs`: **25 checks passed**.
+`node tests/physics.test.cjs`: **28 checks passed**.
 
 - Constant force: analytic acceleration and velocity; expected finite-step position error.
 - Uniform gravity independent of mass.
@@ -30,7 +30,7 @@ Passed:
 - Draw a circle, inspect it, and change its mass.
 - Run/pause a scene; graph selected motion; download measurements CSV.
 - Load the car example; hold its mapped motor key; observe forward movement.
-- Challenge gravity settings locked and later levels locked until completion.
+- Challenge gravity settings locked and later levels locked until completion or an explicit skip.
 - An incorrect value produces feedback without awarding completion.
 - Complete all 15 challenges through the visible inputs and buttons.
 - Reload restores 15 completed levels automatically.
@@ -52,3 +52,16 @@ Browser behavior was verified in Chromium, not on every possible Chromebook, Saf
 ## Layout update — 2026-10-06
 
 Verified native fullscreen entry/exit and controls synchronized after an external exit. Verified independent sidebar collapse/restore, visible restore buttons, remembered layout after reload, a larger canvas, continued running physics/graphs during panel changes, and the challenge level panel. Checked 1920, 1440, 1024, and 390 pixel viewport widths without horizontal document overflow. No browser JavaScript errors. Physics code was unchanged.
+
+
+## Learning and control update — 2026-10-06
+
+- All 28 numerical checks pass, including held/released keyboard thrust, reversible motor drive, and neighboring gear geometry/ratio enforcement.
+- All 15 missions completed through browser controls with their analytic solutions. Existing completion saves and reports still replay successfully.
+- Dark/light preference survives reload; dark desktop/mobile panels, controls and world were visually inspected.
+- Five tutorials open, and their example loader works. Mission walkthroughs and progressive hints display correctly.
+- Skipping unlocks the next level without awarding completion. Tested skips through the final level, noncontiguous completion recovery, portable save/import, teacher report review, and completion of a previously skipped mission.
+- Car motor keys, thruster keys, release and window blur tested in Chromium. Camera followed the chassis at x=250 m while a wheel was selected for inspection.
+- Nearby gears snap/connect; distant gear constraints are inactive; dragging away disconnects the mesh while preserving axles.
+- Fullscreen and collapsible panels remain operational; desktop and mobile layouts have no horizontal document overflow.
+- Updated single-file edition runs offline, completes a mission, and downloads a save with no network requests or browser script errors.

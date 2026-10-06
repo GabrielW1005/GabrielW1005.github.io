@@ -26,3 +26,35 @@
  .right-panel.is-collapsed .right-head>b{display:block!important;margin-right:auto;font-size:13px;color:#6a7b90}
  .right-panel.is-collapsed .panel-rail-label{display:none}
 }
+/* Learning and tracking controls */
+.topbar{gap:18px}.header-actions button{white-space:nowrap}.mission-story{font-weight:600}.mission-goal{padding:10px 12px;background:#e6f5ee;color:#08684e;border-radius:7px;font-size:12px;line-height:1.6;margin-bottom:12px}.skip-button{margin-top:14px;width:100%;text-align:right}.challenge-card.minimized .mission-goal,.challenge-card.minimized .skip-button{display:none}.level-button.skipped .level-n{background:#fae5bf;color:#855820}.tutorial-list{display:grid;gap:9px}.tutorial-list button{text-align:left;padding:14px}.tutorial-list span{display:block;font-weight:400;font-size:12px;margin-top:4px;color:var(--muted)}#backTutorials{margin:12px}.follow-controls{position:absolute;bottom:83px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;max-width:calc(100% - 16px);white-space:nowrap}.follow-controls .check{font-size:12px}.follow-controls select{font-size:12px;max-width:140px;padding:4px}.key-controls{position:absolute;top:58px;right:14px;padding:8px 10px;border:1px solid var(--line);background:#fff;border-radius:8px;max-width:270px;font-size:11px;pointer-events:none}.key-controls span{display:block;margin-top:5px;color:var(--muted)}kbd{display:inline-block;padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;margin:0 2px;font:600 11px system-ui}.key-controls b{display:block;margin-bottom:5px}
+:root[data-theme=dark]{color-scheme:dark;color:#deebfa;background:#111e30;--line:#35475e;--navy:#d9e9ff;--muted:#a6b9d2;--green:#6ad8b4}
+[data-theme=dark] button,[data-theme=dark] input,[data-theme=dark] select,[data-theme=dark] textarea{background:#22334b;color:#e2edfc;border-color:#405671}
+[data-theme=dark] button:hover{background:#2d435f;border-color:#7094bb}
+[data-theme=dark] .topbar,[data-theme=dark] .left-panel,[data-theme=dark] .right-panel,[data-theme=dark] #graphPanel,[data-theme=dark] .challenge-card,[data-theme=dark] dialog,[data-theme=dark] .view-controls,[data-theme=dark] .follow-controls,[data-theme=dark] .key-controls{background:#18283d;color:#deebfa;border-color:var(--line)}
+[data-theme=dark] .transport,[data-theme=dark] .mode-switch,[data-theme=dark] .mini-card,[data-theme=dark] .measurement-grid div,[data-theme=dark] .locked-note,[data-theme=dark] .challenge-variable,[data-theme=dark] .progress-track{background:#203249}
+[data-theme=dark] .mode-switch .active,[data-theme=dark] .mode-switch span{background:#344c69;color:#f2f7ff}
+[data-theme=dark] .run{background:#138569;color:white;border-color:#239b7d}
+[data-theme=dark] .dark{background:#355779;color:#fff;border-color:#587b9e}
+[data-theme=dark] .brand-mark{background:#34516f}
+[data-theme=dark] .quiet,[data-theme=dark] .text-button{background:transparent}
+[data-theme=dark] .text-button,[data-theme=dark] .eyebrow{color:#73dfbd}
+[data-theme=dark] .field,[data-theme=dark] .small,[data-theme=dark] .compact,[data-theme=dark] .check,[data-theme=dark] .section-title,[data-theme=dark] .panel-heading b,[data-theme=dark] .canvas-tip,[data-theme=dark] .measurement-grid,[data-theme=dark] .challenge-card p,[data-theme=dark] .mode-switch button,[data-theme=dark] .empty-inspector{color:#b0c3dc}
+[data-theme=dark] .measurement-grid strong,[data-theme=dark] .empty-inspector b,[data-theme=dark] .time-badge strong{color:#e3efff}
+[data-theme=dark] .tool-grid span{color:#b7ccea}
+[data-theme=dark] .tool-grid .selected,[data-theme=dark] .stack .selected,[data-theme=dark] .level-button.current,[data-theme=dark] .mission-goal,[data-theme=dark] .result{background:#164c42;color:#a3f1d2;border-color:#53b599}
+[data-theme=dark] .tool-grid .selected span{color:#a3f1d2}
+[data-theme=dark] .result.fail{background:#513c25;color:#ffda9a}
+[data-theme=dark] .level-button .level-n{background:#344d6b;color:#caddf3}
+[data-theme=dark] .level-button.done .level-n{background:#21886f;color:white}
+[data-theme=dark] .level-button.skipped .level-n{background:#715020;color:#ffdda1}
+[data-theme=dark] .stage-status #modeBadge,[data-theme=dark] .time-badge{background:#18283ddd;border-color:#405671;color:#bed1e9}
+[data-theme=dark] .overlays,[data-theme=dark] .live-section,[data-theme=dark] .property-section,[data-theme=dark] .right-head,[data-theme=dark] .hint,[data-theme=dark] #modalBody th,[data-theme=dark] #modalBody td{border-color:#35475e}
+@media(max-width:1150px){.topbar{height:auto;min-height:66px;gap:10px;padding-top:7px;padding-bottom:7px}.header-actions{max-width:520px}.workspace{height:calc(100dvh - 138px)}}
+@media(max-width:860px){.workspace{height:auto}.key-controls{top:54px;right:8px;max-width:180px}.follow-controls{gap:5px;padding:5px}.follow-controls select{max-width:100px}.challenge-bottom{flex-wrap:wrap;gap:8px}.header-actions{max-width:none}}
+@media(max-width:500px){.follow-controls{flex-wrap:wrap;justify-content:center;white-space:normal;width:calc(100% - 16px)}.follow-controls .check{font-size:11px}.key-controls{max-width:150px;font-size:10px}.header-actions{justify-content:flex-start}.header-actions button{padding:6px 7px}.view-controls #fitButton{font-size:11px}}
+/* Reserve a clear strip below mission cards for both navigation docks. */
+.challenge-card{max-height:calc(100% - 205px)}
+body{display:flex;flex-direction:column}.topbar,.transport{flex-shrink:0}.workspace{height:auto;flex:1;min-height:0}
+[data-theme=dark] .view-controls span,[data-theme=dark] .time-badge,[data-theme=dark] .stage-status,[data-theme=dark] .measurement-grid small{color:#b0c3dc}
+@media(max-width:860px){body{display:block}.workspace{height:auto}}
