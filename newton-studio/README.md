@@ -25,7 +25,7 @@ Official publishing instructions: https://docs.github.com/en/pages/getting-start
 
 ## Sandbox features
 
-- Circles, rectangles, triangles, fixed ground, gears, and anchored projectile launchers.
+- Circles, rectangles, triangles, fixed ground, sculpted terrain, gears, and fixed or moving projectile launchers.
 - Drag to place/move shapes; drag the selected corner handle to resize; use the Inspector for precise dimensions, rotation, and mass.
 - An unrestricted pan/zoom camera, origin and fit controls, optional camera follow.
 - Fullscreen button (Esc exits), plus independent Build and Inspector collapse/restore controls. Panel choices are remembered on the device.
@@ -37,7 +37,7 @@ Official publishing instructions: https://docs.github.com/en/pages/getting-start
 - Projectile speed, direction, mass, radius, drag, and fire key. Launchers are fixed supports.
 - Velocity, acceleration, gravity, drag, applied, contact/joint, and net-force vectors, independently toggled numbers, and live SI-unit measurements.
 - Selected-object graphs versus simulation time: speed, x/y velocity, x/y position, magnitude/x/y acceleration, path distance, displacement, angular velocity, x/y net force. CSV export.
-- Falling-shape, car, gear, pendulum, projectile, and empty-world examples; undo; simulation step; pause/reset; time-scale controls.
+- Falling-shape, car, launcher-car, catapult, rolling-hills, gear, pendulum, projectile, and empty-world examples; undo; simulation step; pause/reset; time-scale controls.
 
 ### Controls
 
@@ -110,3 +110,16 @@ The original app code is MIT licensed. Planck retains its own included copyright
 - Motor and thruster keys work while running. Pause, release and window blur clear held controls; Run returns focus to the canvas. The car uses A/D to drive and W for upward thrust. Custom mappings are edited in the Inspector with automatic/always-on drive disabled for key-only control.
 - Gears snap near touching edges (about 20 pixels, bounded in world units), match tooth spacing, and couple through centered fixed axles. Gear teeth still use ideal constraints rather than individual collision contacts. Branching trains are supported; the editor prevents new loops that could impose contradictory rotation.
 - Skips survive reload and full-file save/import, appear in report codes/links/JSON and teacher CSV, and can be replaced with a passing result later.
+
+
+## Rotation, terrain and moving launchers — 2026-10-06
+
+- Select a rectangle, ground, triangle or launcher while paused. Drag the round handle to rotate; hold Shift to snap to 15° increments. The square handle resizes; the Inspector also accepts an angle in degrees.
+- **Raise terrain** and **Lower / carve terrain** paint hills and valleys. Set brush radius in meters. A stroke on a ground platform converts it into terrain; otherwise the first stroke creates a 40 m patch. Existing overlapping ground remains a separate collision shape. Undo restores an entire stroke.
+- Terrain is a sampled height profile with a connected closed chain boundary. The drawn segments are its collision geometry. It supports slopes and trenches, not caves or overhangs, and is finite. Profiles and mounted launchers save/import with the rest of the scene.
+- In a launcher's **Mount / support** menu, choose fixed, free moving, or attachment to a dynamic shape. Attaching places it above the host; drag to change its position. Moving or rotating the host in the editor also moves the mount. The launcher is welded to its host in the simulation.
+- Set the fire key, press Run and tap the key once per shot. A moving shot starts with muzzle-point velocity (including rotation) plus the chosen launch speed along the barrel. An opposite impulse m × launch speed recoils the moving launcher and its mount. Short muzzle distances automatically clear the moving housing. Moving housings collide as rectangles; fixed housings are noncolliding supports. Shot mass is supplied externally; the carrier does not lose ammunition mass. Old fixed-launcher challenge origins retain their original coordinates for report compatibility.
+- **Catapult:** Run, hold **L** to swing the arm clockwise/upward, tap **F** while the arm moves to release the payload, and use **J** to return the arm. Reset restores the loaded weld. The arm uses a finite-torque motor and angle stops; payload launch velocity comes from arm motion, not a preset firing velocity. Weld/rod connections can also have an optional release key in the Inspector.
+- **Launcher car:** hold **A/D** to drive; tap **F** to fire. Follow object can track either the vehicle or a shot.
+
+Collision checks cover rotated polygons, thin walls, 100 m/s projectiles against static and moving targets, elastic momentum/energy conservation, frictionless terrain seam traversal, and slope acceleration. All 38 numerical checks pass. These are representative checks of a finite-step rigid-body approximation, not an accuracy guarantee for every geometry or speed. Starting objects inside solids and extreme angular motion remain unsuitable setups.

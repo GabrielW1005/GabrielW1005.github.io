@@ -65,3 +65,12 @@ Verified native fullscreen entry/exit and controls synchronized after an externa
 - Nearby gears snap/connect; distant gear constraints are inactive; dragging away disconnects the mesh while preserving axles.
 - Fullscreen and collapsible panels remain operational; desktop and mobile layouts have no horizontal document overflow.
 - Updated single-file edition runs offline, completes a mission, and downloads a save with no network requests or browser script errors.
+
+
+## Rotation, terrain and launcher update — 2026-10-06
+
+`node tests/physics.test.cjs`: **38 checks passed**. Added checks for rotated floor contact, a fast rotated rectangle against a thin wall, fast projectile versus a moving dynamic target, elastic momentum/energy conservation, terrain seam traversal without speed loss, analytic frictionless slope acceleration, fast-shot terrain contact, terrain geometry validation, muzzle point velocity and recoil, and weld-mounted recoil momentum.
+
+Chromium workflows passed: rotation handle with Shift snapping and Undo; ground-to-terrain conversion; raising/lowering and whole-stroke Undo; custom keyboard fire key; inherited projectile velocity; host rotation, launcher detach/remount; catapult swing, keyboard release and airborne motion; Reset reloading the payload; terrain and mounted-launcher save/import; desktop/mobile layout without horizontal overflow. Seven tutorials cover the new workflows. Existing 15 challenges all completed through browser controls; reports, save/import and teacher report URLs passed again. Fullscreen/sidebar layout checks still pass. The updated single-file edition runs offline and exports saves without external requests.
+
+Collision tests use supported classroom scales and nonoverlapping starting objects. Terrain is a chain boundary around a height profile, so overhangs/caves and initial interior penetration are not supported. Recoil tests include the externally supplied projectile's inherited momentum in the initial system; vehicle mass does not deplete. Numerical contact slop is accounted for explicitly in the tests.

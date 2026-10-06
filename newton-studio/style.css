@@ -58,3 +58,4 @@
 body{display:flex;flex-direction:column}.topbar,.transport{flex-shrink:0}.workspace{height:auto;flex:1;min-height:0}
 [data-theme=dark] .view-controls span,[data-theme=dark] .time-badge,[data-theme=dark] .stage-status,[data-theme=dark] .measurement-grid small{color:#b0c3dc}
 @media(max-width:860px){body{display:block}.workspace{height:auto}}
+.terrain-brush{margin:10px 0 4px}.terrain-brush input{padding:0;width:100%}.terrain-brush output{font-size:11px;color:var(--muted)}[data-theme=dark] .locked-note{color:#b0c3dc}
