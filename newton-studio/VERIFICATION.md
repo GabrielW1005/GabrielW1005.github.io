@@ -48,3 +48,7 @@ Optional experimental WebMCP integration is feature-detected. The test browser d
 ## Practical limits
 
 Browser behavior was verified in Chromium, not on every possible Chromebook, Safari, or Firefox version. Automatic persistence requires usable local storage; use the downloaded save as a backup. Reports replay the numeric outcomes but do not authenticate the student. Ideal gears and rigid-body contacts are numerical models; read the included Physics notes for assumptions and limits.
+
+## Layout update — 2026-10-06
+
+Verified native fullscreen entry/exit and controls synchronized after an external exit. Verified independent sidebar collapse/restore, visible restore buttons, remembered layout after reload, a larger canvas, continued running physics/graphs during panel changes, and the challenge level panel. Checked 1920, 1440, 1024, and 390 pixel viewport widths without horizontal document overflow. No browser JavaScript errors. Physics code was unchanged.

@@ -28,6 +28,7 @@ Official publishing instructions: https://docs.github.com/en/pages/getting-start
 - Circles, rectangles, triangles, fixed ground, gears, and anchored projectile launchers.
 - Drag to place/move shapes; drag the selected corner handle to resize; use the Inspector for precise dimensions, rotation, and mass.
 - An unrestricted pan/zoom camera, origin and fit controls, optional camera follow.
+- Fullscreen button (Esc exits), plus independent Build and Inspector collapse/restore controls. Panel choices are remembered on the device.
 - Earth/Moon/Mars/zero/custom gravity; global air resistance switch; per-object quadratic drag coefficient.
 - Initial linear/angular velocity, constant x/y forces, friction, and restitution.
 - Fixed axles, axles between bodies, rods, welds, motorized axles, ideal gear connections.
