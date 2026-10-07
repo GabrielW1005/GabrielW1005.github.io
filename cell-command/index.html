@@ -1,104 +1,758 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cell Command</title>
-<style>
-html,body{margin:0;min-height:100%;background:#08111f;color:#e8f0ff;font-family:system-ui,sans-serif}
-#loading{min-height:100vh;display:grid;place-items:center;text-align:center;padding:24px;box-sizing:border-box}
-small{opacity:.75}
-</style>
-</head>
-<body>
-<div id="loading"><div><h1>Cell Command</h1><p>Loading game…</p><small>Version 4.0</small></div></div>
-<script>
-(async()=>{
-  try{
-    if(!('DecompressionStream' in window)) throw new Error('This browser needs a newer version to load Cell Command.');
-    const parts=await Promise.all(Array.from({length:7},(_,i)=>
-      fetch('assets/payload-'+i+'.txt?v=4.0.3-visible-countdown',{cache:'no-store'}).then(r=>{
-        if(!r.ok) throw new Error('Missing game data part '+(i+1));
-        return r.text();
-      })
-    ));
-    const b64=parts.join('').trim();
-    const bin=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
-    const stream=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
-    let html=await new Response(stream).text();
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#143b43"><title>Cell Command · A tiny world. A big strategy.</title><style>
+:root{--ink:#173f47;--muted:#607e82;--teal:#147f80;--deep:#143b43;--paper:#f5f7ef;--line:#d9e5dd;--gold:#f2bc65;--red:#c9606b}*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:ui-rounded,'Trebuchet MS',system-ui,sans-serif;background:var(--paper);color:var(--ink)}button,input,select,textarea{font:inherit}button,.button{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:700;color:var(--ink);transition:background .15s,transform .15s}button:hover,.button:hover{background:#e7f1e9}button:active{transform:translateY(1px)}button:disabled{cursor:not-allowed;opacity:.48}button:focus-visible,input:focus-visible,select:focus-visible,canvas:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #f4ba56;outline-offset:3px}.primary{background:var(--teal);color:#fff;border-color:var(--teal)}.primary:hover{background:#116b6d}.large{font-size:16px;padding:15px 24px}.text-button{background:transparent;border:0;padding:6px 0;color:var(--teal);text-align:left}.topbar{min-height:78px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 26px;background:var(--deep);color:#fff}.brand{display:flex;gap:12px;align-items:center}.brand-icon{font-size:38px;line-height:1;color:#c5eacb}.brand strong{font-size:20px;letter-spacing:2px}.brand small{display:block;color:#b8d0ca;font-size:11px;margin-top:4px;letter-spacing:.5px}.topbar nav{display:flex;gap:7px}.topbar button{color:#e9f4ec;background:#244b52;border-color:#3b6267}.topbar button:hover{background:#34626a}#resource-bar{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--line);background:#fff;padding:13px 26px;gap:12px}.resource{display:flex;align-items:center;gap:10px;border-right:1px solid #e5ece4;min-width:0}.resource:last-child{border:0}.resource-icon{font-size:26px;width:28px;text-align:center}.resource-name{display:block;font-size:11px;color:var(--muted)}.resource strong{font-size:23px;line-height:1.15;letter-spacing:-1px}.resource-group{font-size:9px;color:var(--muted);display:block}.game-layout{display:grid;grid-template-columns:270px minmax(0,1fr);max-width:1800px;margin:auto}.sidebar{padding:25px 21px;border-right:1px solid var(--line);background:#f7f8f0}.mode-tag{font-size:9px;letter-spacing:1px;font-weight:800;display:flex;align-items:center;gap:7px}.live-dot{width:7px;height:7px;background:#4aa88c;border-radius:50%}h1{font-size:27px;line-height:1.12;letter-spacing:-.7px;margin:15px 0 12px}h2{font-size:30px;letter-spacing:-.7px;line-height:1.1;margin:10px 0 18px}h3{font-size:17px}.intro{font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:25px}.health-label{font-size:11px;display:flex;justify-content:space-between;margin:10px 0}.health-label strong{color:var(--teal)}.meter{height:7px;background:#dde7dd;border-radius:8px;overflow:hidden}.meter span{display:block;height:100%;width:100%;background:#58aa91;border-radius:8px;transition:width .5s}.meter.growth span{background:var(--gold);width:0}.readiness{margin-top:17px}.small{font-size:11px;line-height:1.6;color:var(--muted)}#goal-details{font-size:10px;margin-top:9px}.opponent{display:flex;gap:10px;align-items:center;margin:20px 0;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.opponent strong{font-size:12px}.opponent p{font-size:10px;color:var(--muted);margin:4px 0 0}.opponent-copy{min-width:0}.opponent .raid-countdown{font-size:13px;font-weight:800;color:#a34859;margin:4px 0 0;letter-spacing:.1px}.opponent .raid-countdown.imminent{color:#b94355}.opponent .raid-countdown.safe{color:var(--teal)}.virus-dot{width:24px;height:24px;border:4px dotted #b76877;border-radius:50%;background:#eab6bb}.help-card{background:#e7f0e3;border:1px solid #d7e4d0;padding:15px;border-radius:12px;margin-bottom:16px}.eyebrow{font-size:10px;font-weight:800;letter-spacing:1.4px;color:var(--teal)}.help-card p{font-size:12px;line-height:1.65;margin:9px 0}.help-card button{font-size:11px}.quick-actions{display:grid;gap:8px}.quick-actions button{text-align:left}.quick-actions small{display:block;font-size:9px;font-weight:400;margin-top:5px;opacity:.85}.speed-row{display:flex;align-items:center;justify-content:space-between;margin:19px 0 10px;font-size:11px}.speed-row select{padding:6px 7px;border-radius:7px;background:#fff;border:1px solid var(--line);color:var(--ink);font-size:11px}.motion-label{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px}.save-note{font-size:9px;margin-top:15px}.battlefield{padding:17px 22px 13px;min-width:0}.board-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}.board-label{font-size:10px;font-weight:800;letter-spacing:1px}.board-label span{font-size:10px;color:var(--muted);margin-left:10px;font-weight:400;letter-spacing:0}.view-controls{display:flex;gap:5px}.view-controls button{padding:5px 10px;font-size:11px}#canvas-wrap{position:relative;overflow:hidden;border-radius:15px;border:1px solid #a8ccc2;background:#bcdcd0;height:clamp(350px,55vh,690px)}canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}.map-caption{position:absolute;bottom:10px;left:12px;background:#eef7e8db;color:#416961;border-radius:7px;font-size:9px;padding:6px 9px;pointer-events:none}.selection-panel{display:flex;align-items:center;gap:9px;min-height:62px;background:#fff;padding:8px 10px;border-radius:10px;border:1px solid var(--line);margin-top:8px}.selection-panel[hidden]{display:none}.selection-icon{width:34px;height:34px;background:#e7f0e3;display:grid;place-items:center;border-radius:10px;font-size:20px;flex-shrink:0;color:var(--teal)}.selection-info{flex:1;min-width:0}.selection-info strong{font-size:12px}.selection-info p{font-size:9px;color:var(--muted);line-height:1.35;margin:2px 0 0;max-width:560px}#selection-actions{display:flex;flex-wrap:wrap;gap:4px}#selection-actions button{font-size:9px;padding:5px 7px;border-radius:8px}#selection-actions button small{font-size:8px}.growth-tray{margin-top:17px}.tray-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:6px}.tray-title>span:last-child{font-size:10px;color:var(--muted)}#build-buttons{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.build-button{padding:10px 7px;min-width:0;position:relative;border-radius:11px;text-align:center}.build-button .mini-icon{display:block;font-size:23px;line-height:1;margin:3px 0 7px}.build-button strong{display:block;font-size:10px}.build-button small{display:block;font-size:9px;color:var(--muted);margin-top:4px;font-weight:400}.build-button.active{outline:3px solid var(--teal);background:#dcefe5}.event-line{font-size:11px;padding:12px 0 3px;color:var(--muted);min-height:37px}.event-line.danger{color:#a34859}.event-line.good{color:var(--teal)}#placement-note{position:absolute;top:15px;left:50%;transform:translateX(-50%);width:max-content;max-width:95%;padding:8px 12px;border-radius:10px;background:#143b43ed;color:white;font-size:11px}#placement-note button{margin-left:10px;font-size:10px;padding:5px 8px}#pause-overlay{position:absolute;inset:0;background:#123c4859;backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px;color:white}#pause-overlay>span{font-size:40px}#pause-overlay strong{font-size:26px}dialog{border:1px solid var(--line);border-radius:20px;max-width:640px;width:calc(100% - 30px);max-height:90dvh;overflow:auto;padding:30px;color:var(--ink);box-shadow:0 30px 100px #0f3b4a50}dialog::backdrop{background:#12313c89;backdrop-filter:blur(4px)}dialog p{font-size:14px;line-height:1.7}dialog .small{font-size:11px}dialog button{margin-top:6px}.dialog-heading{display:flex;justify-content:space-between;align-items:flex-start}.close-button{font-size:25px;line-height:1;padding:5px 10px;margin:0}.welcome{max-width:850px;padding:0;overflow:auto}.welcome[open]{display:grid;grid-template-columns:42% 58%}.welcome-art{background:#c8e3ce;min-height:460px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}.welcome-copy{padding:35px}.welcome-copy h2{font-size:37px}.welcome-copy p{font-size:13px}.welcome-copy .large{width:100%;margin-top:12px}.welcome-copy .text-button{display:block;font-size:12px}.welcome-steps p{margin:12px 0;display:flex;align-items:center;gap:9px;font-size:12px}.welcome-steps b{display:grid;place-items:center;border-radius:50%;width:23px;height:23px;font-size:11px;color:var(--teal);background:#e7f0e3;flex-shrink:0}.welcome-cell{height:250px;width:290px;border-radius:47% 52% 43% 57%;background:#e6edb8;border:11px double #62a98e;box-shadow:0 0 0 7px #95c8a6;position:relative;transform:rotate(-12deg)}.welcome-nucleus{position:absolute;width:120px;height:120px;border:7px double #9479b2;background:#c4abdf;border-radius:50%;left:65px;top:55px}.welcome-nucleus:after{content:'';position:absolute;width:35px;height:35px;background:#9c81bd;border-radius:50%;top:30px;left:40px}.welcome-mito{position:absolute;background:repeating-linear-gradient(110deg,#e9a759 0 8px,#f2ca7c 9px 16px);width:72px;height:35px;border:4px solid #c28544;border-radius:50%}.m1{left:25px;top:20px;transform:rotate(32deg)}.m2{right:10px;bottom:28px;transform:rotate(-20deg)}.welcome-vesicle{position:absolute;width:24px;height:24px;border:3px solid #388f91;border-radius:50%;background:#89d0c5}.v1{right:20px;top:50px}.v2{left:32px;bottom:36px}.orbit-label{position:absolute;bottom:30px;font-size:10px;letter-spacing:2px;color:#3f7d68;font-weight:bold}input[type=text],input[type=search],textarea{width:100%;border:1px solid var(--line);padding:11px 12px;border-radius:9px;background:#f8faf6;color:var(--ink);font-size:14px;margin:8px 0}label{font-size:12px}.guide-list{margin-top:12px;max-height:52vh;overflow:auto}.guide-entry{padding:15px 0;border-bottom:1px solid var(--line)}.guide-entry h3{margin:0 0 6px;font-size:15px}.guide-entry p{font-size:12px;margin:4px 0;line-height:1.7}.guide-entry .game-note{color:var(--teal)}.question{font-size:19px!important;line-height:1.5!important}#quiz-choices{display:grid;gap:8px}#quiz-choices button{font-size:14px;text-align:left;padding:14px;margin:0}#quiz-choices .correct{background:#dcefe3;border-color:#62a888}#quiz-choices .incorrect{background:#f6e2e2;border-color:#c87c84}#quiz-feedback{min-height:35px;font-size:13px}#quiz-continue{width:100%}.report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.report-stat{padding:14px 10px;border-radius:10px;background:#edf3e8}.report-stat strong{display:block;font-size:22px;color:var(--teal)}.report-stat span{font-size:10px;color:var(--muted)}.save-actions{display:flex;gap:8px;flex-wrap:wrap}hr{border:0;border-top:1px solid var(--line);margin:23px 0}.danger-text{color:#ad4f60}#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#143b43;color:#fff;padding:13px 22px;border-radius:12px;max-width:calc(100% - 32px);font-size:13px;box-shadow:0 7px 20px #123c4830;z-index:20}#report-view{padding:40px 18px}.report-card{max-width:700px;margin:auto;background:white;border-radius:20px;padding:35px;border:1px solid var(--line)}.report-card h1{font-size:32px}.report-card li{font-size:13px;line-height:1.9}.button{display:inline-block;text-decoration:none;margin-top:15px}[hidden]{display:none!important}
+@media(min-width:1500px){.game-layout{grid-template-columns:300px minmax(0,1fr)}.sidebar{padding:28px}.battlefield{padding:20px 28px}.selection-info p{font-size:12px}#build-buttons strong{font-size:12px}}
+@media(max-width:1000px){.game-layout{grid-template-columns:230px minmax(0,1fr)}.sidebar{padding:19px 16px}.battlefield{padding:15px}.topbar{padding:13px 18px}.brand strong{font-size:17px}.topbar button{font-size:11px;padding:9px}#resource-bar{padding:10px 18px;gap:8px}.resource{gap:6px}.resource-group{display:none}.resource strong{font-size:21px}.resource-icon{font-size:22px;width:21px}#build-buttons{grid-template-columns:repeat(3,1fr)}#canvas-wrap{height:48vh;min-height:345px}.selection-panel{flex-wrap:wrap}.selection-info{flex-basis:70%}#selection-actions{margin-left:55px}.sidebar h1{font-size:25px}.sidebar .intro{margin-bottom:20px}}
+@media(max-width:680px){.topbar{flex-wrap:wrap;gap:10px}.brand strong{font-size:16px}.brand small{font-size:9px}.brand-icon{font-size:30px}.topbar nav{width:100%;justify-content:space-between}.topbar button{padding:8px 10px}#resource-bar{grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 14px}.resource-name{font-size:10px}.resource strong{font-size:19px}.game-layout{display:flex;flex-direction:column}.sidebar{display:grid;grid-template-columns:1fr 1fr;gap:8px 15px;padding:16px;border-right:0;border-bottom:1px solid var(--line)}.sidebar h1,.sidebar .intro,.sidebar .mode-tag,.sidebar .motion-label,.sidebar .save-note,.sidebar .opponent,.sidebar #goal-details{display:none}.sidebar .health-label{margin:3px 0}.sidebar .meter{align-self:center}.sidebar .help-card{grid-column:1/-1;margin:3px 0;padding:10px 13px}.help-card p{margin:5px 0;line-height:1.5}.help-card button{float:right}.quick-actions{grid-column:1/-1;grid-template-columns:1fr 1fr}.quick-actions button{font-size:11px}.quick-actions small{font-size:8px}.speed-row{margin:2px 0;grid-column:1/-1}.battlefield{padding:13px}#canvas-wrap{height:54vh;min-height:330px}.board-label span{display:none}.map-caption{font-size:8px;max-width:90%}.selection-panel{min-height:90px;padding:10px}.selection-info p{font-size:10px}.tray-title>span:last-child{font-size:8px}.welcome[open]{display:block}.welcome-art{min-height:170px;height:170px}.welcome-cell{transform:scale(.6) rotate(-12deg)}.orbit-label{bottom:10px;font-size:8px}.welcome-copy{padding:23px}.welcome-copy h2{font-size:29px}.welcome-copy .small{font-size:10px}dialog{padding:23px}dialog h2{font-size:25px}.report-grid{grid-template-columns:repeat(2,1fr)}.report-card{padding:23px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
 
-    const oldOpponent='<div class="opponent"><span class="virus-dot" aria-hidden="true"></span><div><strong>Viral opponent</strong><p id="threat-text">Preparing…</p></div></div>';
-    const newOpponent='<div class="opponent"><span class="virus-dot" aria-hidden="true"></span><div class="opponent-copy"><strong>Viral opponent</strong><p id="raid-countdown" class="raid-countdown">First attack in 3:00</p><p id="threat-text">Preparing…</p></div></div>';
-    if(!html.includes(oldOpponent)) throw new Error('Unable to install the virus countdown display.');
-    html=html.replace(oldOpponent,newOpponent);
+/* RTS command layout */
+.tier-badge{display:flex;flex-direction:column;gap:6px;padding:10px 12px;background:#e8edda;border-radius:9px;margin-top:15px}.tier-badge strong{font-size:11px;letter-spacing:1px;color:#6c7960}.tier-badge span{font-size:11px;color:var(--teal)}.queue-status{min-height:18px;font-size:11px;color:var(--teal);padding:8px 2px 0}.queue-label{grid-column:1/-1;font-size:10px;color:var(--muted);line-height:1.6;padding:5px}.selection-info{min-width:170px}#selection-actions{flex:0 1 48%;min-width:240px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}#selection-actions button{font-size:10px;text-align:left}#selection-actions small{display:block;font-size:8px;line-height:1.5;margin-top:4px;font-weight:400;color:var(--muted)}#selection-actions button:disabled small{color:inherit}.build-button .build-cost{font-size:8px;line-height:1.45;margin-top:7px;color:#61725c}#minimap{position:absolute;right:12px;bottom:12px;width:165px;height:108px;border:2px solid #f2f6dc;border-radius:8px;box-shadow:0 3px 10px #123c4840;cursor:pointer;touch-action:none}.growth-tray{margin-top:10px}#canvas-wrap{height:clamp(325px,50vh,650px)}
+@media(max-width:1000px){#selection-actions{margin-left:0;flex-basis:100%}.tier-badge{padding:8px}.selection-info{flex-basis:70%}}
+@media(max-width:680px){.tier-badge{grid-column:1/-1;margin:0;flex-direction:row;justify-content:space-between}.quick-actions{grid-template-columns:1fr 1fr}.sidebar .motion-label:has(#reveal-toggle){display:flex;grid-column:1/-1}.selection-info{min-width:140px}#selection-actions{min-width:0;flex-basis:100%}#minimap{width:110px;height:72px;right:8px;bottom:8px}.map-caption{max-width:60%;font-size:8px}#canvas-wrap{height:50vh}.build-button .build-cost{font-size:8px}}
 
-    const threatPattern=/\$\('threat-text'\)\.textContent=state\.victorySeen\?[^;]+;/;
-    const countdownLogic=`const raidCountdown=$('raid-countdown');
-    if(state.victorySeen||!state.foci.length){raidCountdown.textContent='Viral network cleared';raidCountdown.className='raid-countdown safe';$('threat-text').textContent='Peaceful growth.';}
-    else{const remaining=Math.max(0,state.ai.next-state.elapsed),label=state.ai.spawned?'Next attack':'First attack';if(remaining>0){const seconds=Math.ceil(remaining),minutes=Math.floor(seconds/60),rest=String(seconds%60).padStart(2,'0');raidCountdown.textContent=label+' in '+minutes+':'+rest;raidCountdown.className='raid-countdown'+(seconds<=15?' imminent':'');}
-      else if(state.viruses.length>=12){raidCountdown.textContent='Next attack waiting';raidCountdown.className='raid-countdown';}
-      else{raidCountdown.textContent='VIRUS ATTACK IMMINENT';raidCountdown.className='raid-countdown imminent';}
-      $('threat-text').textContent=state.viruses.length+' viral cargo · '+state.foci.length+' production sites';
-    }`;
-    if(!threatPattern.test(html)) throw new Error('Unable to connect the virus countdown to the game timer.');
-    html=html.replace(threatPattern,countdownLogic);
+/* A compact command deck keeps economy, army, and map visible together. */
+.resource-workers{display:block;font-size:9px;color:#397f75;margin-top:3px}.worker-summary{font-size:11px;line-height:1.5;color:var(--teal);margin:12px 0 5px}.idle-button{width:100%;font-size:10px;text-align:left;margin-bottom:9px;background:#edf2de}.tech-dialog{max-width:1180px}.tech-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.tech-column{border:1px solid #d7e2cc;background:#f1f4e5;border-radius:12px;padding:12px;min-width:0}.tech-column h3{margin:3px 0 14px;color:#507d70;font-size:15px}.tech-card{padding:12px 10px;margin-top:9px;background:white;border:1px solid #dfe7d9;border-radius:8px}.tech-card strong{font-size:12px}.tech-card p{font-size:11px;line-height:1.5;margin:7px 0;color:#607e72}.tech-card small{font-size:9px;line-height:1.5;color:#75846d;display:block}.tech-card button{font-size:10px;padding:7px 9px;width:100%}.selection-panel{align-items:flex-start;border-top:3px solid #a5b783}.selection-icon{border:2px solid #b9caaa;border-radius:8px}.selection-info p{font-size:11px}#selection-actions{flex-basis:50%;grid-template-columns:repeat(3,minmax(0,1fr));min-width:280px}#selection-actions button{min-height:38px;border-radius:6px;background:#f4f6e8;border-color:#d4ddc6}#selection-actions button:hover{background:#e1ecce}.topbar nav{flex-wrap:wrap}.tier-badge strong{line-height:1.7}.map-caption{background:#f6f7e6ed}.board-top{flex-wrap:wrap}#build-buttons .build-button{border-radius:7px;border-bottom:3px solid #b4c79f}.build-button .mini-icon{font-size:26px}.resource strong{font-variant-numeric:tabular-nums}.sidebar .intro{margin-bottom:15px}#canvas-wrap{height:clamp(360px,53vh,720px)}
+@media(max-width:1000px){.tech-list{grid-template-columns:repeat(2,minmax(0,1fr))}#selection-actions{flex-basis:100%;min-width:0}#build-buttons{grid-template-columns:repeat(3,1fr)}.topbar button{font-size:10px}}
+@media(max-width:680px){.worker-summary,.idle-button{grid-column:1/-1;margin:0}.resource-workers{font-size:8px}.tech-dialog{padding:16px}.tech-list{gap:6px}.tech-column{padding:7px}.tech-column h3{font-size:12px}.tech-card{padding:9px 7px}.topbar nav{justify-content:flex-start}.topbar button{padding:8px}#canvas-wrap{height:50vh;min-height:340px}.selection-info{flex-basis:75%}.tier-badge{flex-direction:column;gap:2px}.tier-badge span{font-size:10px}}
 
-    const compactControls=`<style>
-.selection-panel{gap:9px!important;min-height:62px!important;padding:8px 10px!important;border-radius:10px!important;margin-top:8px!important}
+/* Full-window RTS battlefield. HUD panels float over the open map. */
+html,body{width:100%;height:100%;overflow:hidden}#app{position:relative;height:100dvh;min-height:420px;background:#b8d6c3}.topbar{position:absolute;inset:0 0 auto;height:48px;min-height:0;padding:5px 16px;z-index:5;background:#163943f0}.brand-icon{font-size:27px}.brand strong{font-size:15px;letter-spacing:1px}.brand small{font-size:9px;margin-top:1px}.topbar nav{gap:5px}.topbar button{font-size:10px;padding:7px 10px;border-radius:5px}#resource-bar{position:absolute;top:48px;left:0;right:0;z-index:4;padding:7px 16px;height:64px;gap:10px;background:#f2f5e5ed;border-bottom:2px solid #a1b48c}.resource strong{font-size:20px}.resource-icon{font-size:23px}.resource-group{display:none}.resource-name{font-size:10px}.resource-workers{font-size:8px}.game-layout,.battlefield{position:absolute;inset:0;display:block;margin:0;padding:0;max-width:none}.game-layout{z-index:1}.battlefield{z-index:1}#canvas-wrap{position:absolute;inset:0;height:100%;width:100%;border:0;border-radius:0}.board-top{position:absolute;top:123px;right:16px;z-index:3;margin:0;background:#eff5e0dd;padding:6px 8px;border:1px solid #a1b48c;border-radius:6px}.board-label{display:none}.view-controls button{padding:5px 9px}.sidebar{position:absolute;z-index:6;top:123px;left:14px;width:270px;max-height:calc(100dvh - 340px);overflow:auto;display:block;background:#f4f6e7f5;border:1px solid #96ad88;border-radius:9px;padding:16px;box-shadow:0 8px 30px #183d4130}.sidebar h1{display:none}.sidebar .intro{display:none}.sidebar .mode-tag{display:block}.sidebar .health-label{display:flex}.sidebar .opponent{margin:12px 0;padding:10px 0}.sidebar .help-card{margin-bottom:8px;padding:10px}.tier-badge{margin-top:8px}.worker-summary{margin-top:8px}.sidebar .save-note{display:block}.sidebar .quick-actions{display:grid}.sidebar .motion-label{display:flex}.sidebar .speed-row{display:flex;margin:12px 0}.selection-panel{position:absolute;z-index:3;left:270px;right:14px;bottom:32px;height:186px;min-height:0;margin:0;padding:12px;background:#f6f7e8f5;border:2px solid #a1b48c;border-top:4px solid #7f9971;border-radius:8px;box-shadow:0 4px 15px #26494030;overflow:auto;align-items:flex-start}.selection-icon{width:45px;height:45px}.selection-info{min-width:170px;flex:1 1 40%;padding-right:8px}.selection-info strong{font-size:13px}.selection-info p{font-size:11px;line-height:1.6;max-width:400px}#selection-actions{flex:1 1 60%;min-width:280px;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}#selection-actions button{font-size:10px;padding:8px;min-height:39px;background:#f5f7e8;border:1px solid #b5c2a2}.queue-label{font-size:9px;padding:2px}.queue-status{position:absolute;z-index:4;bottom:222px;right:14px;max-width:calc(100% - 290px);padding:5px 9px;background:#edf2dfe8;border-radius:4px;font-size:10px}.queue-status:empty{display:none}.growth-tray{position:absolute;z-index:7;right:14px;bottom:252px;width:min(720px,calc(100% - 28px));max-height:calc(100dvh - 375px);overflow:auto;background:#f5f6e8fa;border:2px solid #94aa80;border-radius:8px;padding:12px;box-shadow:0 5px 25px #16394340}.tray-title{padding:2px}.tray-title button{font-size:15px;padding:2px 7px;margin-left:6px}#build-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}.build-button{padding:9px}.build-button .mini-icon{font-size:20px;display:inline-block;margin:0 6px 4px 0}.build-button strong{font-size:11px}.build-button small{font-size:9px}.build-button .build-cost{font-size:9px}#minimap{z-index:3;left:14px;right:auto;bottom:32px;width:240px;height:158px;border:3px solid #95ab81;border-radius:6px;box-shadow:0 4px 15px #26494050}.event-line{position:absolute;z-index:4;left:14px;right:14px;bottom:4px;padding:4px 9px;min-height:20px;max-height:24px;overflow:hidden;font-size:10px;color:#355a53;background:#f2f5e6de;border-radius:4px}.map-caption{bottom:203px;left:14px;font-size:8px;max-width:235px}#placement-note{top:126px;z-index:8}#pause-overlay{z-index:2}.report-mode{height:auto;overflow:auto}.report-mode #app{display:none}#toast{z-index:30;bottom:238px}.welcome{z-index:50}
+@media(max-width:1000px){.brand small{display:none}.topbar{padding:5px 10px}.topbar button{padding:6px 7px;font-size:9px}.topbar nav{gap:4px}#selection-actions{min-width:200px;grid-template-columns:repeat(3,minmax(0,1fr));flex-basis:55%;margin-left:0}.selection-info{flex-basis:35%;min-width:130px}.selection-panel{flex-wrap:nowrap}.selection-info p{font-size:10px}#resource-bar{padding:7px 12px}.resource-group{display:none}}
+@media(max-width:680px){#app{min-height:420px}.topbar{height:66px;align-content:center;flex-wrap:wrap;gap:3px}.brand{gap:5px}.brand strong{font-size:12px}.brand-icon{font-size:21px}.topbar nav{width:100%;flex-wrap:nowrap;gap:3px;justify-content:space-between}.topbar button{font-size:8px;padding:5px}.topbar nav button#tech-button{font-size:0}.topbar nav button#tech-button:after{content:'Tech tree';font-size:8px}.topbar nav button#progress-button{font-size:0}.topbar nav button#progress-button:after{content:'Saves';font-size:8px}#resource-bar{top:66px;height:72px;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;padding:7px}.resource{display:block;text-align:center;border:0}.resource-icon{display:none}.resource-name{font-size:8px;min-height:20px}.resource strong{font-size:16px}.resource-workers{font-size:7px;white-space:nowrap}.board-top{top:146px;right:8px;padding:4px}.sidebar{top:146px;left:8px;max-height:calc(100dvh - 320px);width:255px;padding:12px}.selection-panel{left:130px;right:8px;bottom:30px;height:165px;display:block;padding:8px;overflow:auto}.selection-icon{display:none}.selection-info{min-width:0;padding:0}.selection-info strong{font-size:11px}.selection-info p{font-size:9px;line-height:1.4;margin:4px 0 7px}#selection-actions{min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#selection-actions button{font-size:9px;padding:7px;min-height:31px}#selection-actions small{font-size:7px}#minimap{left:8px;bottom:30px;width:114px;height:75px}.map-caption{left:8px;bottom:114px;max-width:114px;font-size:7px;padding:5px}.growth-tray{bottom:211px;right:8px;width:calc(100% - 16px);max-height:calc(100dvh - 360px);padding:8px}#build-buttons{gap:4px}.build-button strong{font-size:9px}.build-button small,.build-button .build-cost{font-size:8px}.build-button{padding:6px}.queue-status{bottom:197px;right:8px;max-width:calc(100% - 140px);font-size:8px}.event-line{left:8px;right:8px;font-size:9px}.resource strong{line-height:1}#placement-note{top:148px}#toast{bottom:206px}.welcome-copy{padding:20px}}
+
+.battle-status{position:absolute;z-index:3;top:123px;left:14px;display:flex;align-items:center;gap:12px;padding:6px 10px;background:#f0f5e1ed;border:1px solid #a1b48c;border-radius:6px;font-size:11px;color:#31564d}.battle-status button{padding:4px 7px;font-size:10px}.sidebar{top:170px;max-height:calc(100dvh - 395px)}
+@media(max-width:680px){.battle-status{top:146px;left:8px;right:8px;gap:8px;font-size:9px;padding:5px 7px}.battle-status button{margin-left:auto;font-size:8px;padding:3px 6px}.board-top{top:181px}.sidebar{top:181px;max-height:calc(100dvh - 355px)}#placement-note{top:181px}}
+
+
+/* Final HUD/accessibility fixes: keep the selection deck compact and keep the virus clock visible. */
+.selection-panel{height:auto!important;min-height:62px!important;max-height:118px!important;gap:9px!important;padding:8px 10px!important;overflow:auto!important}
 .selection-panel[hidden]{display:none!important}
-.selection-icon{width:34px!important;height:34px!important;border-radius:10px!important;font-size:20px!important}
-.selection-info strong{font-size:12px!important}
-.selection-info p{font-size:9px!important;line-height:1.35!important;margin:2px 0 0!important;max-width:560px!important}
-#selection-actions{gap:4px!important}
-#selection-actions button{font-size:9px!important;padding:5px 7px!important;border-radius:8px!important}
-#selection-actions button small{font-size:8px!important}
-</style>`;
-    const countdownStyle=`<style>
-.opponent-copy{min-width:0}
-.opponent .raid-countdown{font-size:13px!important;font-weight:800!important;color:#a34859!important;margin:4px 0 0!important;letter-spacing:.1px}
-.opponent .raid-countdown.imminent{color:#b94355!important}
-.opponent .raid-countdown.safe{color:#147f80!important}
-#virus-countdown-hud{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:99999;pointer-events:none;background:rgba(20,13,28,.94);color:#fff;border:2px solid #cf5268;border-radius:12px;padding:7px 14px;box-shadow:0 5px 18px rgba(0,0,0,.35);font:800 15px/1.1 system-ui,sans-serif;letter-spacing:.15px;white-space:nowrap}
-#virus-countdown-hud.imminent{background:#7c1f30;border-color:#ff8798;animation:virusPulse .75s ease-in-out infinite alternate}
-#virus-countdown-hud.safe{background:#0d5556;border-color:#4bc4c4}
-@keyframes virusPulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.04)}}
-</style>`;
-    const dismissControls=`<script>
-(()=>{
-  const install=()=>{
-    const panel=document.querySelector('.selection-panel');
-    const title=document.getElementById('selection-title');
-    const timer=document.getElementById('raid-countdown');
-    if(!panel||!title)return;
-    const sync=()=>{panel.hidden=title.textContent.trim()==='Your cell';};
-    new MutationObserver(sync).observe(title,{childList:true,subtree:true,characterData:true});
-    sync();
+.selection-icon{width:34px!important;height:34px!important;font-size:20px!important}
+.selection-info strong{font-size:12px!important}.selection-info p{font-size:9px!important;line-height:1.35!important;margin:2px 0 0!important;max-width:560px!important}
+#selection-actions{gap:4px!important}#selection-actions button{font-size:9px!important;padding:5px 7px!important;min-height:30px!important}#selection-actions button small{font-size:8px!important}
+.hud-raid-countdown{font-variant-numeric:tabular-nums;font-size:12px;color:#8f2f43;background:#ffe6e9;border:1px solid #cf7180;border-radius:6px;padding:4px 8px;white-space:nowrap;box-shadow:0 1px 4px #7a203020}
+.hud-raid-countdown.imminent{color:#fff;background:#a82f48;border-color:#8a2037;animation:raidPulse .75s ease-in-out infinite alternate}
+.hud-raid-countdown.safe{color:#176f6f;background:#e0f3ec;border-color:#79b7a8}
+@keyframes raidPulse{from{transform:scale(1)}to{transform:scale(1.04)}}
+@media(max-width:680px){.battle-status{flex-wrap:wrap}.hud-raid-countdown{order:5;width:100%;text-align:center;font-size:11px;padding:4px 6px}.selection-panel{left:130px!important;right:8px!important;max-height:105px!important;height:auto!important}}
 
-    if(timer){
-      const hud=document.createElement('div');
-      hud.id='virus-countdown-hud';
-      hud.setAttribute('aria-live','polite');
-      document.body.appendChild(hud);
-      const syncTimer=()=>{
-        hud.textContent='🦠 '+timer.textContent;
-        hud.className=timer.classList.contains('imminent')?'imminent':(timer.classList.contains('safe')?'safe':'');
-      };
-      new MutationObserver(syncTimer).observe(timer,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
-      syncTimer();
-    }
+</style></head>
+<body>
+<div id="app">
+  <header class="topbar"><div class="brand"><span class="brand-icon" aria-hidden="true">◉</span><div><strong>CELL COMMAND</strong><small>A tiny world. A big strategy.</small></div></div><nav aria-label="Game tools"><button id="build-menu-button">Build (B)</button><button id="help-button">Help & settings</button><button id="pause-button" title="Pause or resume (Space)">Ⅱ Pause</button><button id="tech-button">Technology tree</button><button id="guide-button">Cell guide</button><button id="progress-button">Progress & saves</button><button id="fullscreen-button" title="Enter full screen">⛶</button></nav></header>
+  <section id="resource-bar" aria-label="Cell resources"></section>
+  <main class="game-layout">
+    <aside class="sidebar" id="strategy-panel" hidden>
+      <div class="mode-tag"><span class="live-dot"></span> ONE CELL · VIRAL CHALLENGE</div>
+      <h1>Build. Research. Defend.</h1>
+      <div class="tier-badge"><strong id="tier-value">RESEARCH TIER I</strong><span id="population-value">4 / 16 units</span></div><p class="intro">Build an economy.<br>Clear the viral network.</p>
+      <div class="health-label"><span>Membrane integrity</span><strong id="health-value">100%</strong></div><div class="meter"><span id="health-fill"></span></div>
+      <div class="health-label readiness"><span>Match progress</span><strong id="growth-value">0%</strong></div><div class="meter growth"><span id="growth-fill"></span></div>
+      <p id="goal-details" class="small">Build an economy · Advance research · Clear viral sites</p>
+      <div class="opponent"><span class="virus-dot" aria-hidden="true"></span><div class="opponent-copy"><strong>Viral opponent</strong><p id="raid-countdown" class="raid-countdown">First attack in 3:00</p><p id="threat-text">Preparing…</p></div></div>
+      <section class="help-card"><span class="eyebrow">YOUR NEXT STEP</span><p id="next-step"></p><button id="hint-button" class="text-button">Show me where →</button></section>
+      <p id="worker-summary" class="worker-summary"></p><button id="idle-button" class="idle-button">Idle workers (.)</button><div class="quick-actions"><button id="quick-defender" class="primary">＋ Antiviral proteins <small>6 amino acids · 8 ATP</small></button><button id="advance-button">↑ Advance research tier <small>Selects the nucleus · Shows requirements</small></button><button id="scout-button">◇ Select scout <small>Explore the cell with sensor proteins</small></button><button id="repair-button">♡ Repair membrane <small>4 proteins · 4 lipids · 6 ATP</small></button></div>
+      <div class="speed-row"><label for="speed-select">Game speed</label><select id="speed-select"><option value="0.65">Relaxed</option><option value="1" selected>Gentle</option><option value="1.35">Brisk</option></select></div>
+      <label class="motion-label"><input id="motion-toggle" type="checkbox"> Less animation</label>
+      <label class="motion-label"><input id="reveal-toggle" type="checkbox"> Show whole cell (learning aid)</label><p class="small save-note" id="save-status">Progress saves automatically.</p>
+    </aside>
+    <section class="battlefield" aria-label="Cell battlefield">
+      <div class="battle-status" aria-label="Economy and cell status"><strong id="hud-tier">Tier I</strong><span id="hud-capacity">4 / 14 units</span><span id="hud-health">Membrane 100%</span><strong id="hud-raid-countdown" class="hud-raid-countdown" aria-live="polite">🦠 FIRST VIRUS 3:00</strong><button id="hud-idle" title="Select an idle worker (.)">Idle: 0</button></div>
+      <div class="board-top"><span class="board-label">ANIMAL CELL <span>Top-down model</span></span><div class="view-controls"><button id="home-button" title="Center on nucleus (H)">⌂ Base</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="fit-button">Fit cell</button><button id="zoom-in" aria-label="Zoom in">＋</button></div></div>
+      <div id="canvas-wrap"><canvas id="world" tabindex="0" aria-label="Interactive cell map. Left-click a unit to select; right-click to command. Touch: select a unit, then tap a destination. Arrow keys pan. Space pauses."></canvas><div id="placement-note" hidden>Tap an open spot inside the cell. <button id="cancel-build">Cancel</button></div><div id="pause-overlay" hidden><span>Ⅱ</span><strong>Cell paused</strong><button id="resume-button">Resume game</button></div><canvas id="minimap" aria-label="Overview map. Click or drag to move your view. Right-click to command selected units."></canvas><div class="map-caption">Mouse: drag to select · Right-click to command<br>Touch: tap to select / command · Drag to pan</div></div>
+      <div id="selection-panel" class="selection-panel"><div id="selection-icon" class="selection-icon">◉</div><div class="selection-info"><strong id="selection-title">Your cell</strong><p id="selection-description">Vesicles collect nutrients automatically. Select one to give it a route.</p></div><div id="selection-actions"></div></div>
+      <div id="queue-status" class="queue-status" role="status"></div><section class="growth-tray" id="growth-tray" hidden><div class="tray-title"><span class="eyebrow">BUILD YOUR CELL</span><span>Economy · Production · Defense <button id="close-build-menu" aria-label="Close build menu">×</button></span></div><div id="build-buttons"></div></section>
+      <div class="event-line" id="event-line" role="status" aria-live="polite">Welcome to your cell.</div>
+    </section>
+  </main>
+</div>
+<dialog id="welcome-dialog" class="welcome"><div class="welcome-art" aria-hidden="true"><div class="welcome-cell"><span class="welcome-nucleus"></span><span class="welcome-mito m1"></span><span class="welcome-mito m2"></span><span class="welcome-vesicle v1"></span><span class="welcome-vesicle v2"></span></div><span class="orbit-label">YOUR TINY CIVILIZATION</span></div><div class="welcome-copy"><span class="eyebrow">BIOLOGY MEETS STRATEGY</span><h2>Welcome, Cell Commander.</h2><p>Command one animal cell. Grow your economy, unlock stronger protein teams, and clear the enemy viral network.</p><div class="welcome-steps"><p><b>1</b> Workers gather, build, and repair.</p><p><b>2</b> Advance four research tiers to unlock your technology tree.</p><p><b>3</b> Scout, expand, defend, then clear the viral sites.</p></div><p class="small">Start gently. Pause anytime. Use the cell guide whenever you want to explore the science.</p><button id="start-button" class="primary large">Start your cell →</button><p class="small">Start opens full screen when supported. You can also use the ⛶ button.</p><button id="welcome-load" class="text-button">Load a downloaded save</button><p class="small">A simplified learning model for grades 6–8.</p></div></dialog>
+<dialog id="tech-dialog" class="tech-dialog"><div class="dialog-heading"><div><span class="eyebrow">PLAN YOUR STRATEGY</span><h2>Cell technology tree</h2></div><button class="close-button" data-close="tech-dialog" aria-label="Close technology tree">×</button></div><p class="small">Four RTS research tiers unlock your economy and army. These are game tiers, not cell-cycle phases. Reach tier II and clear the viral network to win; higher tiers are optional.</p><div id="tech-list" class="tech-list"></div></dialog>
+<dialog id="guide-dialog"><div class="dialog-heading"><div><span class="eyebrow">EXPLORE THE SCIENCE</span><h2>Cell field guide</h2></div><button class="close-button" data-close="guide-dialog" aria-label="Close cell guide">×</button></div><input id="guide-search" type="search" placeholder="Find a cell part or process…" aria-label="Search the cell guide"><div id="guide-list" class="guide-list"></div><p class="small">Biology references: <a href="https://openstax.org/books/biology-2e/pages/4-introduction" target="_blank" rel="noopener">OpenStax Biology</a> · <a href="https://www.genome.gov/genetics-glossary" target="_blank" rel="noopener">NHGRI glossary</a></p></dialog>
+<dialog id="progress-dialog"><div class="dialog-heading"><div><span class="eyebrow">KEEP YOUR PROGRESS</span><h2>Progress & saves</h2></div><button class="close-button" data-close="progress-dialog" aria-label="Close progress">×</button></div><div id="progress-summary" class="report-grid"></div><div class="save-actions"><button id="download-save" class="primary">↓ Download save</button><button id="load-save">↑ Load save</button></div><p class="small">Autosave works in this browser. Download a save to back it up or move to another device.</p><hr><h3>Share with your teacher</h3><label for="student-name">Your first name or class nickname</label><input id="student-name" type="text" maxlength="60" autocomplete="off" placeholder="Enter your name"><div class="save-actions"><button id="create-link" class="primary">Create progress link</button><button id="download-report">↓ Download report</button></div><div id="share-result" hidden><label for="share-link">Copy this link into your class assignment</label><textarea id="share-link" readonly rows="3"></textarea><button id="copy-link">Copy link</button></div><p id="share-message" class="small" role="status"></p><p class="small">A shared report is a snapshot of progress, not a live feed. Anyone with the link can view the name and report. No student account needed.</p><hr><button id="new-game-button" class="text-button danger-text">Start a new cell…</button></dialog>
+<dialog id="finish-dialog"><span class="eyebrow">CELL STABILIZED</span><h2>Your tiny civilization is thriving!</h2><p>You cleared the opponent’s replication sites, developed your cell economy, and practiced the science behind your strategy.</p><div id="finish-summary" class="report-grid"></div><button id="keep-growing" class="primary">Keep growing peacefully →</button><button id="finish-share">Save or share progress</button></dialog>
+<dialog id="rescue-dialog"><span class="eyebrow">LET’S TRY A RECOVERY</span><h2>Your cell needs a little help.</h2><p>We’ll restore some membrane health and materials, then give you time to make defenders. Your progress stays with you.</p><button id="rescue-button" class="primary">Recover and continue →</button></dialog>
+<dialog id="new-game-dialog"><h2>Start a new cell?</h2><p>This replaces your browser autosave. Download your current save first if you want to keep it.</p><button id="backup-first">Download current save</button><button id="confirm-new" class="primary">Start new cell</button><button data-close="new-game-dialog">Keep this cell</button></dialog>
+<section id="report-view" hidden><div class="report-card"><span class="eyebrow">CELL COMMAND · STUDENT PROGRESS</span><h1 id="report-name"></h1><p id="report-date"></p><div id="teacher-summary" class="report-grid"></div><p class="small">This report is a student-generated snapshot. It is not independently verified or automatically sent to a teacher.</p><a id="report-play" class="button primary">Open Cell Command</a></div></section>
+<input id="save-file" type="file" accept=".json,application/json" hidden>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<script>
+/* Original lesson text and game rules. Real functions, simplified scale and timing. */
+'use strict';
+window.CellContent = (() => {
+  const buildings = {
+    nucleus: {name:'Nucleus',short:'DNA instructions',color:'#9577d8',radius:88,cost:{},time:0,limit:1,tip:'DNA stores instructions. RNA carries instructions to ribosomes.'},
+    mitochondrion: {name:'Mitochondrion',short:'Makes ATP',color:'#efac62',radius:46,cost:{protein:7,lipid:5,atp:10},time:12,limit:5,tip:'Cellular respiration releases energy from nutrients to make ATP. Oxygen is needed for efficient respiration.'},
+    ribosome: {name:'Ribosome station',short:'Makes proteins',color:'#67b8c8',radius:35,cost:{protein:5,nucleotide:3,atp:8},time:10,limit:5,tip:'Ribosomes assemble amino acids into proteins. A station represents many tiny ribosomes.'},
+    roughER: {name:'Rough ER',short:'Membrane proteins',color:'#ad95ce',radius:58,cost:{protein:7,lipid:6,atp:10},time:12,limit:3,tip:'Ribosomes on rough endoplasmic reticulum make proteins for membranes or secretion. The ER helps process them.'},
+    smoothER: {name:'Smooth ER',short:'Makes lipids',color:'#df9eaf',radius:49,cost:{protein:6,lipid:5,atp:8},time:10,limit:4,tip:'Smooth endoplasmic reticulum makes lipids. In this game it uses a simplified nutrient supply.'},
+    golgi: {name:'Golgi apparatus',short:'Packages cargo',color:'#e8ba69',radius:51,cost:{protein:8,lipid:7,atp:10},time:12,limit:3,tip:'The Golgi apparatus modifies, sorts, and packages proteins and lipids into vesicles.'},
+    lysosome: {name:'Lysosome',short:'Digests & recycles',color:'#7bbe99',radius:39,cost:{protein:5,lipid:4,atp:7},time:9,limit:4,tip:'Enzymes inside lysosomes digest nutrient cargo and worn-out parts. Digestion returns useful building blocks.'},
+    centrosome: {name:'Centrosome',short:'Organizes tracks',color:'#799dc6',radius:28,cost:{},time:0,limit:1,tip:'The animal-cell centrosome contains centrioles and organizes microtubules. These help form the spindle during division.'}
   };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+  const resources = {
+    glucose:{name:'Glucose',group:'Carbohydrate',icon:'⬡',color:'#f2b956'},
+    amino:{name:'Amino acids',group:'Protein building blocks',icon:'●',color:'#87c5dd'},
+    protein:{name:'Proteins',group:'Cell workers & structures',icon:'〰',color:'#b699e6'},
+    lipid:{name:'Lipids',group:'Membrane materials',icon:'◒',color:'#e9a6b3'},
+    nucleotide:{name:'Nucleotides',group:'DNA & RNA building blocks',icon:'◇',color:'#86c7a3'},
+    atp:{name:'ATP',group:'Usable energy',icon:'ϟ',color:'#f5ca66'}
+  };
+  const guide = [
+    ['Cell membrane','A flexible, selective boundary made mainly of a lipid bilayer with proteins. It controls exchange with the surroundings.','In the game, import sites bring in nutrients. Repair restores membrane integrity.'],
+    ['Cytoplasm','The region outside the nucleus and inside the cell membrane, including cytosol, organelles, and other components.','This is your battlefield. The liquid background represents cytosol.'],
+    ['Cytoskeleton','A network of protein filaments that supports cell shape and helps with movement and transport.','Thin tracks connect your organelles. Motor proteins carry vesicles along routes.'],
+    ['Organelles','Specialized cell structures with particular jobs. Many, such as mitochondria, have surrounding membranes.','Select an organelle to see its job. Growing organelles costs materials and energy.'],
+    ['Nucleus','Contains most of this cell’s DNA. DNA instructions are transcribed into RNA.','Your headquarters keeps the instructions; it does not directly manufacture proteins.'],
+    ['Nucleolus','A region inside the nucleus where ribosomal subunits are assembled.','The darker spot inside the nucleus helps explain where ribosomes come from.'],
+    ['Nucleic acids','DNA and RNA are nucleic acids made from nucleotides. They store or help use genetic information.','Nucleotides are a resource for growth. DNA and RNA are not fuel or protein.'],
+    ['Proteins','Molecules made of amino acid chains. They can be enzymes, transporters, receptors, or structural components.','Your cell makes proteins for growth, repair, and antiviral responses.'],
+    ['Carbohydrates','Sugars and related molecules. Glucose is a simple sugar used in cellular respiration.','Glucose supplies nutrients for ATP production.'],
+    ['Lipids','A group of molecules including fats and phospholipids. Phospholipids are key membrane components.','Lipids support organelle growth and transport-vesicle production.'],
+    ['Ribosomes','Structures made of RNA and proteins that assemble amino acids into proteins. They have no surrounding membrane.','Each visible station represents a group of ribosomes. It can make antiviral proteins.'],
+    ['Mitochondria','Organelles where much of aerobic cellular respiration takes place. They grow and divide from existing mitochondria.','Glucose and incoming oxygen support ATP production. Extra mitochondria increase energy capacity.'],
+    ['Cellular respiration','Cells release energy from nutrients and use it to make ATP. Aerobic respiration uses oxygen and produces carbon dioxide and water.','Oxygen enters automatically in this model. Glucose is consumed as mitochondria generate ATP.'],
+    ['ATP','A small molecule that transfers energy for cellular work. It is continually used and regenerated.','Transport, protein production, repair, and growth use ATP.'],
+    ['Rough endoplasmic reticulum','A membrane network with attached ribosomes. It helps make and process membrane and secreted proteins.','It supports membrane maintenance. Many other proteins are made on free ribosomes.'],
+    ['Smooth endoplasmic reticulum','A membrane network without attached ribosomes. One important function is lipid synthesis.','It makes lipids from simplified nutrient precursors.'],
+    ['Golgi apparatus','Modifies, sorts, and packages proteins and lipids received through the secretory pathway.','Make transport vesicles here. The Golgi packages cargo; ribosomes make proteins.'],
+    ['Vesicles','Small membrane-bound sacs that transport or store material. Their membranes can fuse with other membranes.','Your transport vesicles collect imported nutrient cargo and carry it to lysosomes.'],
+    ['Motor proteins','Proteins such as kinesin and dynein that use energy to move cargo along cytoskeletal tracks.','Small feet under moving vesicles represent motor proteins. Direct commands are a game simplification.'],
+    ['Lysosome','An acidic compartment containing digestive enzymes that break down material and recycle components.','Nutrient vesicles deliver cargo here for digestion. Lysosomes are not weapons that shoot outside the cell.'],
+    ['Endocytosis','The membrane folds inward to bring material into a cell inside a vesicle.','Blue import sites represent endocytosis of larger nutrient cargo. Small dissolved glucose can also enter through membrane transporters.'],
+    ['Exocytosis','A vesicle fuses with the cell membrane and releases its contents outside the cell.','Small gold bubbles show secretion at the lower membrane. Carbon dioxide can diffuse out without exocytosis.'],
+    ['Osmosis','Net movement of water across a selectively permeable membrane toward the side with a higher concentration of nonpenetrating solutes.','Moving blue dots show water exchange. Water balance is stable in this beginner mode.'],
+    ['Centrioles and centrosome','In a typical animal cell, two centrioles are part of the centrosome, a microtubule-organizing center.','The blue pair near the nucleus organizes the transport-track display. It does not make proteins.'],
+    ['Cell wall','A supporting layer outside the cell membrane. Plant cell walls contain cellulose. Animal cells have no cell wall.','This animal-cell mode has a membrane, but no cell wall.'],
+    ['Chloroplasts','Organelles in photosynthetic plant cells and many algae. They use light energy to help make sugars by photosynthesis.','They belong in a future photosynthetic-cell mode. Plants also have mitochondria.'],
+    ['Central vacuole','A large compartment in a typical mature plant cell that stores substances and supports water balance and turgor pressure.','It belongs in a plant-cell mode, rather than being added to this animal cell.'],
+    ['Cilia and flagellum','Motile cilia are short beating projections; a eukaryotic flagellum is usually longer. They can move a cell or fluid around it.','Neither is included on this model cell. A suitable motile-cell mode could teach these structures.'],
+    ['Peroxisomes','Organelles involved in reactions such as fatty-acid breakdown. Enzymes also break down harmful hydrogen peroxide.','A useful future organelle for a more advanced mode.'],
+    ['Viruses','Infectious agents with a DNA or RNA genome inside a protein coat, sometimes with an envelope. They need host cells to reproduce.','This opponent models an enveloped RNA virus entering near compatible receptors. It uses host protein-making machinery.'],
+    ['Antiviral proteins','Cells can produce proteins that detect infection or interfere with viral replication. Their actions depend on the cell and virus.','Each blue team represents many antiviral proteins. The suppression pulse is a visual metaphor, not a projectile.'],
+    ['Model and reality','Molecules do not take player orders. Real cells have many more molecules, smaller ribosomes, and complex chemical controls.','Sizes, costs, movement orders, construction sites, and infection timing are simplified. Organelle growth represents expansion from existing structures.']
+  ];
+  // Historical concept IDs are retained only for older save validation.
+  const legacyConcepts = [{'id': 'energy', 'title': 'Power the cell'}, {'id': 'protein', 'title': 'Build the workers'}, {'id': 'golgi', 'title': 'Cargo check'}, {'id': 'lipid', 'title': 'Membrane materials'}, {'id': 'virus', 'title': 'Know your opponent'}, {'id': 'lysosome', 'title': 'Recycle and reuse'}, {'id': 'endo', 'title': 'Bring cargo inside'}, {'id': 'dna', 'title': 'Read the instructions'}, {'id': 'tracks', 'title': 'Transport routes'}, {'id': 'plant', 'title': 'Compare cells'}, {'id': 'osmosis', 'title': 'Water movement'}, {'id': 'exo', 'title': 'Send cargo out'}];
+  const units={
+    vesicle:{name:'Transport vesicle',role:'Worker',hp:70,speed:100,range:0,damage:0,vision:240,time:9,cost:{lipid:4,protein:2,atp:6},tier:1,producer:'golgi'},
+    antiviral:{name:'Antiviral proteins',role:'Close defense',hp:100,speed:105,range:65,damage:13,vision:260,time:8,cost:{amino:6,atp:8},tier:1,producer:'ribosome'},
+    sensor:{name:'Sensor proteins',role:'Scout',hp:60,speed:155,range:0,damage:0,vision:380,time:6,cost:{amino:4,atp:5},tier:1,producer:'ribosome'},
+    nuclease:{name:'RNase complexes',role:'RNA degradation',hp:85,speed:80,range:155,damage:7,vision:270,time:11,cost:{amino:9,nucleotide:2,atp:12},tier:2,producer:'ribosome'}
+  };
+  const research={
+    tier2:{name:'Research tier II',at:'nucleus',tier:1,time:24,cost:{protein:18,lipid:12,nucleotide:6,atp:25},tip:'Unlock RNase complexes and expand unit capacity. Requires 2 organelles grown.'},
+    tier3:{name:'Research tier III',at:'nucleus',tier:2,time:30,cost:{protein:26,lipid:18,nucleotide:10,atp:35},tip:'Expand unit capacity and strengthen your response. Requires 3 organelles grown.'},
+    motors:{name:'Motor efficiency',at:'golgi',tier:1,time:16,cost:{protein:10,lipid:5,atp:15},tip:'Transport vesicles move 25% faster. Motor proteins power cargo transport.'},
+    cargo:{name:'Cargo handling',at:'lysosome',tier:1,time:16,cost:{protein:10,amino:8,atp:15},tip:'Nutrient deliveries return 50% more building blocks.'},
+    respiration:{name:'Respiration capacity',at:'mitochondrion',tier:2,time:18,cost:{protein:12,lipid:5,atp:18},tip:'Mitochondria supply more ATP per production cycle. This represents improved enzyme capacity.'},
+    response:{name:'Antiviral response',at:'ribosome',tier:2,time:18,cost:{protein:12,nucleotide:5,atp:20},tip:'Protein teams suppress infection 30% more strongly. Represents a larger, more active response.'}
+  };
+  // Structures and combat roles are explicit RTS abstractions of cellular processes.
+  buildings.vesiclePool={name:'Vesicle pool',short:'+6 unit capacity',color:'#8bbdad',radius:27,cost:{lipid:5,protein:2,atp:4},time:7,limit:10,tier:1,tip:'A group of membrane sacs represents transport capacity. The +6 unit limit is a game rule, not a biological molecule count.'};
+  buildings.defenseHub={name:'Defense protein hub',short:'Stationary defense',color:'#659ab8',radius:40,cost:{protein:14,lipid:4,atp:16},time:16,limit:6,tier:2,requires:'roughER',tip:'A game-only assembly of antiviral proteins guards nearby cargo routes. Its pulses show biochemical suppression. This is not a real organelle or a lysosome weapon.'};
+  buildings.centrosome.cost={protein:8,nucleotide:4,atp:8};buildings.centrosome.time=12;buildings.centrosome.tier=2;
+  buildings.roughER.tier=2;
+  units.restriction={name:'Restriction proteins',role:'Ranged support',hp:75,speed:92,range:205,damage:9,vision:280,time:11,cost:{amino:9,protein:3,atp:10},tier:2,producer:'roughER',tip:'Support unit: effective against ordinary viral cargo; keep it behind close-defense teams. This group represents membrane-associated restriction factors processed through rough ER. Attack range is a game metaphor.'};
+  units.proteasome={name:'Proteasome teams',role:'Heavy defense',hp:170,speed:75,range:62,damage:11,vision:250,time:15,cost:{amino:12,protein:5,atp:14},tier:3,producer:'ribosome',tip:'Close unit: especially effective against protein-coated cargo. Proteasomes degrade selected proteins; armor and combat bonuses are game abstractions.'};
+  units.antiviral.tip='Close defense: strong against fast cargo. Keep these teams in front of ranged units.';
+  units.nuclease.tip='Site breaker: triple effectiveness against viral replication sites, but vulnerable without close-defense support.';
+  units.sensor.tip='Fast scout with wide vision. Does not suppress infection.';
+  units.vesicle.tip='Worker: gather cargo, grow structures, and repair them.';
+  research.tier4={name:'Research tier IV',at:'nucleus',tier:3,time:36,cost:{protein:35,lipid:22,nucleotide:14,atp:45},tip:'Increase capacity and strengthen all protein teams. Requires 4 structures grown. Optional for victory.'};
+  research.stability={name:'Protein stability',at:'roughER',tier:3,time:20,cost:{protein:18,nucleotide:6,atp:24},tip:'Defense teams take 25% less damage. Represents improved response stability; combat armor is a game abstraction.'};
+  research.reach={name:'Response coverage',at:'defenseHub',tier:3,time:20,cost:{protein:18,nucleotide:6,atp:24},tip:'Ranged teams and defense hubs gain 25% coverage. This is an abstract strategy range, not a real shooting distance.'};
+  const tiers=['Foundation','Expansion','Defense','Mastery'];
+  const enemyTypes={cargo:{name:'Viral cargo',hp:46,speed:62,damage:3.2,range:44,armor:0},swift:{name:'Fast viral cargo',hp:32,speed:102,damage:2.4,range:44,armor:0},coated:{name:'Protein-coated cargo',hp:90,speed:45,damage:5,range:65,armor:3}};
+  for(const b of Object.values(buildings))b.hp=b===buildings.nucleus?500:180;
+  buildings.defenseHub.hp=320;buildings.vesiclePool.hp=140;
+  buildings.golgi.limit=5;buildings.ribosome.limit=7;buildings.lysosome.limit=5;
+  guide[29][2]='The match starts after viral entry. Enemy sites represent host-dependent viral replication and assembly, not independent cells or organelles.';
+  guide.push(['RNase complexes','Ribonucleases are enzymes that cut RNA. RNase L is one example involved in antiviral responses and can cut viral and cellular RNA.','This unit represents targeted RNA degradation. Its range, targeting, and damage bonus against replication sites are game abstractions.']);
+  guide.push(['Sensor proteins','Some cellular proteins detect molecular patterns associated with infection, including viral RNA.','Sensor teams reveal unobserved map areas. Fog is an information overlay; the actual cell is not dark.']);
+  guide.push(['Research tiers and capacity','Real cells coordinate growth and gene expression through biochemical processes. They do not advance through RTS ages.','The four research tiers and unit-capacity limit are strategy-game abstractions, not interphase or mitotic stages.']);
+  guide.push(['Viral replication sites','Viruses depend on the host for protein synthesis. Many RNA viruses organize replication using host membranes and viral proteins.','Pink sites are infected regions using host structures. The enemy’s material pool, expansion decisions, and moving viral cargo represent a simplified infection model.']);
+  guide.push(['Strategy controls','Movement orders and combat stats help you explore the relationships between economy, transport, and cellular defense.','Workers collect specific cargo, build, and repair. Box-select teams, set rally points, and attack-move to clear replication sites. Pulses represent biochemical suppression.']);
+  guide.push(['Proteasomes','Proteasomes are protein complexes that break down selected proteins, often after the proteins are marked with ubiquitin.','Heavy defense teams represent protein degradation. Their health, armor, and bonus against coated cargo are strategy rules, not literal biological battles.']);
+  guide.push(['Restriction factors','Cellular restriction factors can interfere with viral infection and replication. Some, such as IFITM3, are membrane-associated proteins that interfere with viral entry.','The rough-ER support team represents membrane-associated factors as part of a coordinated response. Pulses and attack range are symbolic; proteins do not shoot projectiles.']);
+  guide.push(['Nutrient deposits','Imported cargo and recycled cell material can supply building blocks. Cargo passes through cellular transport and processing pathways.','Round interior deposits represent stored nutrient cargo. They run out; the membrane imports replenish slowly. Grow forward lysosomes to shorten delivery routes.']);
+  guide.push(['Defense protein hubs and vesicle pools','Antiviral responses involve cellular proteins. Vesicles are membrane-bound sacs involved in transport and storage.','These grouped structures are game representations. A defense hub is not a named real organelle. Vesicle-pool population capacity is an RTS rule.']);
+  guide.push(['Map obstacles and transport','Cells contain crowded molecular structures and membrane compartments. Cytoplasmic transport depends on cellular machinery.','Dense membrane regions are simplified map obstacles. Pathfinding and player commands are RTS rules, not literal cellular navigation. Workers collect cargo over time and return it to lysosomes.']);
+  return {buildings,resources,guide,questions:legacyConcepts,units,research,tiers,enemyTypes};
 })();
-</scr`+`ipt>`;
-    html=html.replace('</head>',compactControls+countdownStyle+'</head>').replace('</body>',dismissControls+'</body>');
-    document.open();
-    document.write(html);
-    document.close();
-  }catch(err){
-    document.getElementById('loading').innerHTML='<div><h1>Cell Command</h1><p>Unable to load the game.</p><small>'+String(err.message||err)+'</small></div>';
-    console.error(err);
+
+</script><script>
+'use strict';
+window.CellEngine=(()=>{
+ const C=window.CellContent,WORLD={w:3600,h:2360,cx:1800,cy:1180,rx:1570,ry:956},GRID=40,COLS=90,ROWS=59;
+ const cap=(n,a,b)=>Math.max(a,Math.min(b,n)),DIST=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),clone=s=>JSON.parse(JSON.stringify(s));
+ const point=(a,f=1)=>({x:WORLD.cx+Math.cos(a)*WORLD.rx*f,y:WORLD.cy+Math.sin(a)*WORLD.ry*f});
+ const inside=(p,m=0)=>((p.x-WORLD.cx)/(WORLD.rx-m))**2+((p.y-WORLD.cy)/(WORLD.ry-m))**2<=1;
+ const nearest=(arr,p)=>arr.reduce((a,b)=>!a||DIST(b,p)<DIST(a,p)?b:a,null);
+ function event(s,text,type='info'){s.events.push({text,type,time:s.elapsed});if(s.events.length>5)s.events.shift();}
+ function random(s){s.seed=(s.seed*1664525+1013904223)>>>0;return s.seed/4294967296;}
+ function building(s,type,x,y,ready=true){const d=C.buildings[type];return {id:s.nextId++,type,x,y,progress:ready?1:0,hp:d.hp,clock:0,queue:[],auto:true,infected:false,rally:null,research:null};}
+ function unit(s,type,x,y){const d=C.units[type];return {id:s.nextId++,type,x,y,hp:d.hp,order:type==='vesicle'?'auto':'guard',target:null,orders:[],anchor:{x,y},site:null,cargo:0,cargoType:null,clock:0,gatherClock:0,fx:0,path:[],pathClock:0,stallClock:0,lastMoveX:x,lastMoveY:y};}
+ function focus(s,kind,x,y){const hp=kind==='core'?420:190;return {id:s.nextId++,kind,x,y,health:hp,maxHealth:hp,clock:0,replication:0};}
+ function fresh(){
+  const s={version:4,terrain:true,formation:'line',seed:831740,nextId:1,elapsed:0,status:'playing',health:100,resources:{glucose:42,amino:38,protein:22,lipid:22,nucleotide:12,atp:75},buildings:[],units:[],viruses:[],foci:[],ports:[],events:[],ai:{reserve:28,next:180,spawned:0,replications:0,nextExpand:360,coreDestroyed:false},stats:{delivered:0,built:0,trained:0,cleared:0,repairs:0,commands:0,questions:0,attempts:0,firstTry:0,researched:0,lost:0},learned:[],quiz:{pending:null,next:1e9,index:0,tries:0},settings:{speed:1,reducedMotion:false,revealMap:false},tutorial:{route:false,train:false,grow:false},startedAt:new Date().toISOString(),studentName:'',repairClock:0,victorySeen:false,tier:1,upgrades:[],groups:{},explored:Array(COLS*ROWS).fill(0),navRevision:0};
+  for(const [t,x,y] of [['nucleus',850,1180],['mitochondrion',710,980],['ribosome',1040,980],['golgi',1040,1400],['lysosome',600,1230]])s.buildings.push(building(s,t,x,y));
+  for(const [type,a] of [['glucose',Math.PI],['amino',-2.60],['lipid',2.59],['nucleotide',-1.19]]){const p=point(a,.965);s.ports.push({id:s.nextId++,type,x:p.x,y:p.y,stock:6,clock:0,renewable:true});}
+  for(const [type,x,y] of [['glucose',600,880],['amino',1050,890],['lipid',850,1570],['nucleotide',1150,1300],['glucose',1720,760],['amino',1820,1680],['lipid',2460,620],['nucleotide',2450,1670]])s.ports.push({id:s.nextId++,type,x,y,stock:24,clock:0,renewable:false});
+  s.units.push(unit(s,'vesicle',620,1040),unit(s,'vesicle',680,1180),unit(s,'vesicle',690,1360),unit(s,'sensor',1160,1220));
+  for(let i=0;i<3;i++)s.units[i].site=s.ports[i+4].id;
+  s.foci.push(focus(s,'core',2900,1200),focus(s,'assembly',2790,830),focus(s,'replication',2750,1630));
+  reveal(s);event(s,'Start small: make workers, grow a vesicle pool and smooth ER, then develop a mixed protein army.');return s;
+ }
+ function legacyFresh(){const s=fresh();s.version=1;s.stats={delivered:0,built:0,trained:0,cleared:0,repairs:0,commands:0,questions:0,attempts:0,firstTry:0};return s;}
+ function migrate(a){const s=fresh();s.nextId=a.nextId;s.resources=a.resources;s.elapsed=a.elapsed;s.health=a.health;s.learned=a.learned;s.quiz={...a.quiz,pending:null,tries:0};s.stats={...s.stats,...a.stats};s.tutorial=a.tutorial;s.studentName=a.studentName;s.startedAt=a.startedAt;s.settings={...s.settings,...a.settings};s.buildings=a.buildings.map(b=>({...building(s,b.type,b.x,b.y),id:b.id,progress:b.progress,clock:b.clock,queue:b.queue.map(q=>({...q})),auto:b.auto}));s.units=a.units.map(u=>({...unit(s,u.type,u.x,u.y),id:u.id,order:u.type==='vesicle'?'auto':'guard',site:u.site,cargo:u.cargo,cargoType:u.cargo?'mixed':null}));s.ports=a.ports.map((p,i)=>({...p,type:['glucose','amino','lipid'][i],stock:Math.min(6,p.stock)}));s.foci=[focus(s,'core',2900,1200),focus(s,'assembly',2790,830),focus(s,'replication',2750,1630)];s.status=a.status;s.victorySeen=a.victorySeen||a.status==='won';if(s.victorySeen){s.foci=[];s.ai.coreDestroyed=true;s.tier=2;}s.terrain=false;scaleMap(s,false);s.explored.fill(0);reveal(s);event(s,'Your previous save is upgraded. New matches start with a small base and four research tiers.','good');return s;}
+ // Preserve old saves on the larger map, including queued destinations and rally points.
+ function scaleMap(s,scaleFoci=true){const scale=p=>{if(p&&typeof p.x==='number'){p.x*=2;p.y*=2;}};for(const b of s.buildings){scale(b);scale(b.rally);}for(const u of s.units){scale(u);scale(u.anchor);scale(u.target);for(const o of u.orders)scale(o.target);u.path=[];u.pathClock=0;u.gatherClock=0;}for(const p of s.ports)scale(p);for(const v of s.viruses)scale(v);if(scaleFoci)for(const f of s.foci)scale(f);const old=s.explored;s.explored=Array(COLS*ROWS).fill(0);if(old.length===600)for(let row=0;row<20;row++)for(let col=0;col<30;col++)if(old[row*30+col])for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){const r=row*3+dy,c=col*3+dx;if(r<ROWS&&c<COLS)s.explored[r*COLS+c]=1;}s.terrain=false;s.version=4;s.navRevision=0;reveal(s);return s;}
+ const TERRAIN=[{x:1600,y:1010,r:95},{x:1660,y:1400,r:110},{x:2170,y:780,r:105},{x:2210,y:1490,r:100},{x:2610,y:1120,r:80}];
+ const afford=(s,cost)=>Object.entries(cost).every(([k,n])=>s.resources[k]>=n);
+ function pay(s,cost){if(!afford(s,cost))return false;for(const [k,n] of Object.entries(cost))s.resources[k]-=n;return true;}
+ const capacity=s=>Math.min(72,8+(s.tier-1)*8+s.buildings.filter(b=>b.type==='vesiclePool'&&b.progress===1&&b.hp>0).length*6+s.buildings.filter(b=>b.type==='golgi'&&b.progress===1&&b.hp>0).length*6+s.buildings.filter(b=>b.type==='roughER'&&b.progress===1&&b.hp>0).length*2);
+ const population=s=>s.units.length+s.buildings.reduce((n,b)=>n+b.queue.length,0);
+ const growth=s=>Math.round((s.ai.coreDestroyed?1:1-(s.foci.find(f=>f.kind==='core')?.health||420)/420)*70+Math.min(1,(s.tier-1))*20+(s.ai.coreDestroyed&&!s.foci.length&&!s.viruses.length?10:0));
+ function visible(s,p){if(s.settings.revealMap)return true;const col=cap(Math.floor(p.x/GRID),0,COLS-1),row=cap(Math.floor(p.y/GRID),0,ROWS-1);return s.explored[row*COLS+col]===1;}
+ function inSight(s,p){return s.settings.revealMap||s.units.some(u=>DIST(u,p)<C.units[u.type].vision)||s.buildings.some(b=>b.hp>0&&DIST(b,p)<240);}
+ function reveal(s){s.sight=Array(COLS*ROWS).fill(0);for(const a of [...s.units,...s.buildings.filter(b=>b.hp>0)]){const r=a.progress!==undefined?240:C.units[a.type].vision;for(let row=Math.max(0,Math.floor((a.y-r)/GRID));row<Math.min(ROWS,Math.ceil((a.y+r)/GRID));row++)for(let col=Math.max(0,Math.floor((a.x-r)/GRID));col<Math.min(COLS,Math.ceil((a.x+r)/GRID));col++){if(DIST(a,{x:col*GRID+GRID/2,y:row*GRID+GRID/2})<r){s.explored[row*COLS+col]=1;s.sight[row*COLS+col]=1;}}}}
+ function canPlace(s,type,p){const d=C.buildings[type];if(!d||!Object.keys(d.cost).length)return 'This structure is already present.';if(s.tier<(d.tier||1))return 'Requires research tier '+(d.tier===2?'II':'III')+'.';if(d.requires&&!s.buildings.some(b=>b.type===d.requires&&b.progress===1&&b.hp>0))return 'Grow an active '+C.buildings[d.requires].name+' first.';if(s.buildings.filter(b=>b.type===type).length>=d.limit)return 'You have enough of this organelle.';if(!inside(p,d.radius+28))return 'Choose a spot inside the membrane.';if(!visible(s,p))return 'Explore this area with sensor proteins first.';if(s.terrain&&TERRAIN.some(o=>DIST(o,p)<o.r+d.radius+24))return 'Choose a clear area beside the dense membrane region.';if(s.ports.some(port=>DIST(port,p)<d.radius+38))return 'Leave nutrient cargo accessible. Build beside the deposit.';if(s.buildings.some(b=>DIST(b,p)<C.buildings[b.type].radius+d.radius+24)||s.foci.some(f=>DIST(f,p)<120+d.radius))return 'Leave some room around existing structures.';return '';}
+ function grow(s,type,p,workerIds=[]){const error=canPlace(s,type,p);if(error)return {ok:false,message:error};if(!s.units.some(u=>u.type==='vesicle'))return {ok:false,message:'Make a transport worker at the Golgi apparatus first.'};if(!pay(s,C.buildings[type].cost))return {ok:false,message:'Collect more materials first.'};const b=building(s,type,p.x,p.y,false);s.buildings.push(b);s.navRevision++;const workers=s.units.filter(u=>u.type==='vesicle'&&workerIds.includes(u.id));const assigned=workers.length?workers:[nearest(s.units.filter(u=>u.type==='vesicle'&&u.order!=='build'),b)].filter(Boolean);order(s,assigned.map(u=>u.id),{kind:'build',id:b.id});s.tutorial.grow=true;event(s,assigned.length?`${C.buildings[type].name}: workers are delivering growth materials.`:'Construction site ready: assign a worker to build it.');return {ok:true,id:b.id};}
+ function queue(s,id,kind){const b=s.buildings.find(b=>b.id===id&&b.progress===1&&b.hp>0),d=C.units[kind];if(!b||!d||b.type!==d.producer)return {ok:false,message:'Select an active '+(d?.producer==='golgi'?'Golgi apparatus.':'ribosome station.')};if(s.tier<d.tier)return {ok:false,message:'Requires research tier '+['','I','II','III','IV'][d.tier]+'.'};if(population(s)>=capacity(s))return {ok:false,message:'Unit capacity reached. Grow a Golgi apparatus or advance research tier.'};if(b.queue.length>=5)return {ok:false,message:'The production queue is full.'};if(!pay(s,d.cost))return {ok:false,message:'Collect the materials shown in the unit cost.'};b.queue.push({kind,remaining:d.time});if(kind!=='vesicle'&&kind!=='sensor')s.tutorial.train=true;event(s,`${d.name} queued.`);return {ok:true};}
+ function cancelQueue(s,id){const b=s.buildings.find(b=>b.id===id);if(!b?.queue.length)return;const q=b.queue.pop();for(const [key,n] of Object.entries(C.units[q.kind].cost))s.resources[key]+=n;event(s,'Last unit order cancelled. Materials returned.');}
+ function research(s,id,key){const b=s.buildings.find(b=>b.id===id&&b.progress===1&&b.hp>0),d=C.research[key];if(!b||!d||b.type!==d.at)return {ok:false,message:'Select the matching organelle.'};if(b.research||s.buildings.some(x=>x.research?.key===key))return {ok:false,message:'Research is already underway.'};if(s.upgrades.includes(key)||key==='tier2'&&s.tier>=2||key==='tier3'&&s.tier>=3||key==='tier4'&&s.tier>=4)return {ok:false,message:'Already researched.'};if(s.tier<d.tier)return {ok:false,message:'Advance your research tier first.'};if(key==='tier2'&&(s.stats.built<2))return {ok:false,message:'Tier II needs 2 organelles grown.'};if(key==='tier3'&&(s.stats.built<3))return {ok:false,message:'Tier III needs 3 organelles grown.'};if(key==='tier4'&&(s.stats.built<4))return {ok:false,message:'Tier IV needs 4 structures grown.'};if(!pay(s,d.cost))return {ok:false,message:'Collect more materials for this research.'};b.research={key,remaining:d.time};event(s,`${d.name} research started.`);return {ok:true};}
+ function repair(s){if(s.health>=99)return {ok:false,message:'The membrane is healthy.'};if(s.repairClock>0)return {ok:false,message:'Repair is finishing.'};if(!pay(s,{protein:4,lipid:4,atp:6}))return {ok:false,message:'Repair needs 4 proteins, 4 lipids, and 6 ATP.'};s.health=cap(s.health+30,0,100);s.repairClock=10;s.stats.repairs++;return {ok:true};}
+ function setRally(s,id,target){const b=s.buildings.find(b=>b.id===id);if(!b||!inside(target,25))return false;b.rally={x:target.x,y:target.y,kind:target.kind==='port'?'port':'move',id:target.kind==='port'?target.id:null};return true;}
+ function order(s,ids,target,append=false){const selected=s.units.filter(u=>ids.includes(u.id));let did=false;let i=0;for(const u of selected){let o=null;
+  if(target.kind==='port'&&u.type==='vesicle'&&s.ports.some(p=>p.id===target.id)){o={order:'gather',target:{kind:'port',id:target.id}};s.tutorial.route=true;}
+  else if(['focus','enemy'].includes(target.kind)&&C.units[u.type].damage>0)o={order:'attack',target:{kind:target.kind,id:target.id}};
+  else if(['build','repair'].includes(target.kind)&&u.type==='vesicle')o={order:target.kind,target:{kind:'building',id:target.id}};
+  else if(['move','attackmove'].includes(target.kind)&&inside(target,24)){const count=selected.length,cols=s.formation==='box'?Math.ceil(Math.sqrt(count)):s.formation==='spread'?Math.min(5,count):Math.min(8,count),spacing=s.formation==='spread'?62:32;const spread=count>1?{x:(i%cols-(cols-1)/2)*spacing,y:(Math.floor(i/cols)-(Math.ceil(count/cols)-1)/2)*spacing}: {x:0,y:0};let p={x:target.x+spread.x,y:target.y+spread.y};if(!inside(p,24))p={x:target.x,y:target.y};o={order:target.kind==='attackmove'&&u.type==='vesicle'?'move':target.kind,target:{kind:'move',...p}};i++;}
+  else if(target.kind==='hold')o={order:'hold',target:null};
+  if(o){did=true;if(append&&u.target&&u.orders.length<10)u.orders.push(o);else{u.order=o.order;u.target=o.target;u.orders=[];u.path=[];u.gatherClock=0;u.navigationFailed=false;u.anchor={x:u.x,y:u.y};if(o.order==='gather')u.site=target.id;}}
+ }if(did)s.stats.commands++;return did;}
+ function auto(s,ids){for(const u of s.units.filter(u=>ids.includes(u.id))){u.order=u.type==='vesicle'?'auto':'guard';u.target=null;u.orders=[];u.path=[];u.stallClock=0;u.anchor={x:u.x,y:u.y};}event(s,'Workers collect automatically. Protein teams guard their position.');}
+ function nextOrder(u){const next=u.orders.shift();if(next){u.order=next.order;u.target=next.target;}else{u.order=u.type==='vesicle'?'auto':'guard';u.target=null;u.anchor={x:u.x,y:u.y};}u.path=[];u.stallClock=0;}
+ // A* with a heap frontier, circle clearance, line-of-sight smoothing, and safe unreachable goals.
+ const navCache=new WeakMap();
+ function navigation(s){let cached=navCache.get(s);if(cached&&cached.revision===s.navRevision&&cached.count===s.buildings.length&&cached.terrain===s.terrain)return cached;const circles=s.buildings.map(b=>({x:b.x,y:b.y,r:C.buildings[b.type].radius+12}));if(s.terrain)for(const o of TERRAIN)circles.push({...o,r:o.r+16});const cells=new Uint8Array(COLS*ROWS);for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++){const p={x:col*GRID+GRID/2,y:row*GRID+GRID/2};if(!inside(p,24)||circles.some(o=>DIST(o,p)<o.r))cells[row*COLS+col]=1;}cached={revision:s.navRevision,count:s.buildings.length,terrain:s.terrain,circles,cells};navCache.set(s,cached);return cached;}
+ function freePoint(s,p){const nav=navigation(s);return inside(p,24)&&!nav.circles.some(o=>DIST(o,p)<o.r);}
+ function lineClear(s,a,b){if(!inside(a,24)||!inside(b,24))return false;const dx=b.x-a.x,dy=b.y-a.y,len=dx*dx+dy*dy;return !navigation(s).circles.some(o=>{const t=len?cap(((o.x-a.x)*dx+(o.y-a.y)*dy)/len,0,1):0;return Math.hypot(o.x-a.x-t*dx,o.y-a.y-t*dy)<o.r;});}
+ function resolvePoint(s,p){if(freePoint(s,p))return {x:p.x,y:p.y};let best=null;for(let r=20;r<=220&&!best;r+=20)for(let i=0;i<32;i++){const a=i*Math.PI/16,q={x:p.x+Math.cos(a)*r,y:p.y+Math.sin(a)*r};if(freePoint(s,q)&&(!best||DIST(q,p)<DIST(best,p)))best=q;}return best;}
+ class Frontier{constructor(){this.a=[];}push(n){const a=this.a;a.push(n);let i=a.length-1;while(i){const p=(i-1)>>1;if(a[p].f<=n.f)break;a[i]=a[p];i=p;}a[i]=n;}pop(){const a=this.a,out=a[0],last=a.pop();if(a.length){let i=0;while(i*2+1<a.length){let c=i*2+1;if(c+1<a.length&&a[c+1].f<a[c].f)c++;if(a[c].f>=last.f)break;a[i]=a[c];i=c;}a[i]=last;}return out;}get length(){return this.a.length;}}
+ function pathTo(s,u,requested){const goal=resolvePoint(s,requested);if(!goal||!freePoint(s,u))return [];if(lineClear(s,u,goal))return [goal];const nav=navigation(s),center=k=>({x:(k%COLS)*GRID+GRID/2,y:Math.floor(k/COLS)*GRID+GRID/2});
+  function cellNear(p){let best=-1,dist=Infinity;const c0=Math.floor(p.x/GRID),r0=Math.floor(p.y/GRID);for(let dr=-4;dr<=4;dr++)for(let dc=-4;dc<=4;dc++){const c=c0+dc,r=r0+dr;if(c<0||c>=COLS||r<0||r>=ROWS)continue;const k=r*COLS+c;if(nav.cells[k])continue;const q=center(k),d=DIST(p,q);if(d<dist&&lineClear(s,p,q)){best=k;dist=d;}}return best;}
+  const start=cellNear(u),end=cellNear(goal);if(start<0||end<0)return [];const frontier=new Frontier(),scores=new Float64Array(COLS*ROWS).fill(Infinity),prev=new Int32Array(COLS*ROWS).fill(-1),closed=new Uint8Array(COLS*ROWS);scores[start]=0;frontier.push({k:start,f:DIST(center(start),center(end))});let found=false;
+  while(frontier.length){const {k}=frontier.pop();if(closed[k])continue;if(k===end){found=true;break;}closed[k]=1;const col=k%COLS,row=Math.floor(k/COLS);for(const [dc,dr] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const c=col+dc,r=row+dr;if(c<0||c>=COLS||r<0||r>=ROWS)continue;const n=r*COLS+c;if(nav.cells[n]||closed[n])continue;if(dc&&dr&&(nav.cells[row*COLS+c]||nav.cells[r*COLS+col]))continue;if(!lineClear(s,center(k),center(n)))continue;const g=scores[k]+(dc&&dr?Math.SQRT2:1)*GRID;if(g>=scores[n])continue;scores[n]=g;prev[n]=k;frontier.push({k:n,f:g+DIST(center(n),center(end))});}}
+  if(!found)return [];const raw=[goal];for(let k=end;k!==start;k=prev[k]){if(k<0)return [];raw.push(center(k));}raw.push(center(start));raw.reverse();const smooth=[];let from={x:u.x,y:u.y},i=0;while(i<raw.length){let j=raw.length-1;while(j>i&&!lineClear(s,from,raw[j]))j--;smooth.push(raw[j]);from=raw[j];i=j+1;}return smooth;
+ }
+ function move(s,u,requested,dt,speed){const goal=resolvePoint(s,requested);if(!goal){u.stallClock=(u.stallClock||0)+dt;return false;}if(!freePoint(s,u)){const clear=resolvePoint(s,u);if(!clear){u.stallClock=(u.stallClock||0)+dt;return false;}u.x=clear.x;u.y=clear.y;}if(DIST(u,goal)<8){u.stallClock=0;return true;}const before={x:u.x,y:u.y};u.pathClock=(u.pathClock||0)-dt;const key=`${Math.floor(goal.x/20)},${Math.floor(goal.y/20)}:${s.navRevision}`;if(u.pathKey!==key||u.pathClock<=0||(!u.path?.length&&!u.navigationFailed)){u.path=pathTo(s,u,goal);u.pathKey=key;u.pathClock=3;if(!u.path.length){u.navigationFailed=true;u.pathClock=.7;u.stallClock=(u.stallClock||0)+dt;return false;}u.navigationFailed=false;}if(!u.path?.length){u.stallClock=(u.stallClock||0)+dt;return false;}let dest=u.path[0];if(DIST(u,dest)<8){u.path.shift();dest=u.path[0]||goal;}const d=DIST(u,dest),step=Math.min(d,speed*dt),p={x:u.x+(dest.x-u.x)/Math.max(d,.01)*step,y:u.y+(dest.y-u.y)/Math.max(d,.01)*step};if(!lineClear(s,u,p)){u.path=[];u.pathClock=0;u.stallClock=(u.stallClock||0)+dt;return false;}u.x=p.x;u.y=p.y;const moved=DIST(before,u);if(moved<Math.max(.08,speed*dt*.03)){u.stallClock=(u.stallClock||0)+dt;}else u.stallClock=0;if(u.stallClock>2){u.path=[];u.pathClock=0;u.navigationFailed=false;const dx=goal.x-u.x,dy=goal.y-u.y,len=Math.hypot(dx,dy)||1,side=(u.id%2?1:-1),probe=resolvePoint(s,{x:u.x+dx/len*18-dy/len*side*26,y:u.y+dy/len*18+dx/len*side*26});if(probe&&DIST(probe,u)<90){u.x=probe.x;u.y=probe.y;}u.stallClock=0;}return DIST(u,goal)<9;}
+ function gatherPoint(s,u,p){const base=p.renewable===false?{x:p.x,y:p.y}:{x:p.x+(WORLD.cx-p.x)*.035,y:p.y+(WORLD.cy-p.y)*.035};const a=((u.id*2.399963229728653)+(p.id||0)*.73)%(Math.PI*2),r=18+(u.id%3)*8;return resolvePoint(s,{x:base.x+Math.cos(a)*r,y:base.y+Math.sin(a)*r})||resolvePoint(s,base)||base;}
+ function militaryTarget(s,u){const all=[...s.viruses.map(v=>({...v,kind:'enemy'})),...s.foci.map(f=>({...f,kind:'focus'}))];if(u.order==='attack')return all.find(x=>x.id===u.target?.id&&x.kind===u.target?.kind)||null;const near=all.filter(x=>visible(s,x)&&DIST(u,x)<(u.order==='attackmove'?230:u.order==='hold'?C.units[u.type].range+15:190)&& (u.order!=='guard'||DIST(u.anchor,x)<260));return nearest(near.filter(x=>x.kind==='enemy'),u)||nearest(near,u);}
+ function update(s,dt){
+  s.quiz.pending=null;if(s.status!=='playing')return;dt=cap(dt,0,.2);s.elapsed+=dt;s.repairClock=Math.max(0,s.repairClock-dt);
+  for(const key of Object.keys(s.resources))s.resources[key]=cap(s.resources[key],0,999);
+  s.resources.glucose+=dt*.15;s.resources.amino+=dt*.08;s.resources.nucleotide+=dt*.035;
+  for(const p of s.ports){if(p.renewable===false)continue;p.clock+=dt;if(p.clock>=10){p.clock-=10;p.stock=Math.min(6,p.stock+1);}}
+  for(const b of s.buildings){
+   if(b.hp<=0||b.progress<1)continue;b.infected=s.foci.some(f=>DIST(f,b)<150);const factor=b.infected?.5:1;b.clock+=dt*factor;
+   if(b.research){b.research.remaining-=dt*factor;if(b.research.remaining<=0){const key=b.research.key;if(key==='tier2')s.tier=2;else if(key==='tier3')s.tier=3;else if(key==='tier4')s.tier=4;else s.upgrades.push(key);s.stats.researched++;b.research=null;event(s,`${C.research[key].name} complete!`,'good');}}
+   if(b.queue.length&&s.units.length<capacity(s)){b.queue[0].remaining-=dt*factor;if(b.queue[0].remaining<=0){const spawn=resolvePoint(s,{x:b.x+45,y:b.y+45});if(!spawn)continue;const kind=b.queue.shift().kind,u=unit(s,kind,spawn.x,spawn.y);s.units.push(u);if(kind!=='vesicle'&&kind!=='sensor')s.stats.trained++;if(b.rally){if(kind==='vesicle'&&b.rally.kind==='port')order(s,[u.id],{kind:'port',id:b.rally.id});else order(s,[u.id],{kind:kind==='vesicle'||kind==='sensor'?'move':'attackmove',x:b.rally.x,y:b.rally.y});}event(s,`${C.units[kind].name} ready.`,'good');}}
+   if(b.type==='mitochondrion'&&b.clock>=2){b.clock=0;if(s.resources.glucose>=.7&&s.resources.atp<200){s.resources.glucose-=.7;s.resources.atp=Math.min(200,s.resources.atp+(s.upgrades.includes('respiration')?7:5));}}
+   if(b.type==='ribosome'&&b.auto&&b.clock>=8){b.clock=0;if(s.resources.amino>=3&&s.resources.atp>=2){s.resources.amino-=3;s.resources.atp-=2;s.resources.protein+=2;}}
+   if(b.type==='smoothER'&&b.auto&&b.clock>=10){b.clock=0;if(s.resources.glucose>=1.2&&s.resources.atp>=2){s.resources.glucose-=1.2;s.resources.atp-=2;s.resources.lipid+=2;}}
+   if(b.type==='defenseHub'){const v=nearest(s.viruses.filter(v=>v.hp>0&&DIST(v,b)<245*(s.upgrades.includes('reach')?1.25:1)),b);if(v&&s.resources.atp>dt*.08){v.hp-=dt*12;s.resources.atp-=dt*.08;b.fx=.2;}else b.fx=0;}
+   if(b.type==='roughER'&&b.clock>=8){b.clock=0;if(s.health<100&&s.resources.atp>=1){s.resources.atp-=1;s.health=Math.min(100,s.health+1);}}
   }
+  for(const u of s.units){
+   u.fx=Math.max(0,u.fx-dt);const d=C.units[u.type],speed=d.speed*(u.type==='vesicle'&&s.upgrades.includes('motors')?1.25:1)*(s.resources.atp>.1?1:.32);
+   if(u.order==='build'||u.order==='repair'){
+    const b=s.buildings.find(b=>b.id===u.target?.id);if(!b){nextOrder(u);continue;}const range=C.buildings[b.type].radius+30;if(DIST(u,b)>range){const a=Math.atan2(u.y-b.y,u.x-b.x);move(s,u,{x:b.x+Math.cos(a)*(range-14),y:b.y+Math.sin(a)*(range-14)},dt,speed);}else if(u.order==='build'&&b.progress<1){b.progress=Math.min(1,b.progress+dt/C.buildings[b.type].time);u.fx=.1;if(b.progress===1){s.stats.built++;event(s,`${C.buildings[b.type].name} is ready.`,'good');nextOrder(u);}}
+    else if(b.hp<C.buildings[b.type].hp&&s.resources.protein>=dt*.08){b.hp=Math.min(C.buildings[b.type].hp,b.hp+dt*14);s.resources.protein-=dt*.08;u.fx=.1;}else nextOrder(u);continue;
+   }
+   if(u.order==='move'){if(u.target&&move(s,u,u.target,dt,speed))nextOrder(u);continue;}
+   if(u.type==='vesicle'){
+    if(u.order==='hold')continue;
+    if(u.cargo){const lys=nearest(s.buildings.filter(b=>b.type==='lysosome'&&b.hp>0&&b.progress===1),u);if(lys){const p={x:lys.x+55,y:lys.y};if(move(s,u,p,dt,speed)){const mul=s.upgrades.includes('cargo')?1.5:1;const yields=u.cargoType==='mixed'?{glucose:6,amino:7,nucleotide:2}:{[u.cargoType]:{glucose:10,amino:10,lipid:5,nucleotide:4}[u.cargoType]||0};for(const [key,n] of Object.entries(yields))s.resources[key]+=n*mul;u.cargo=0;u.cargoType=null;s.stats.delivered++;u.fx=.7;}}
+     else {const disabled=s.buildings.find(b=>b.type==='lysosome');if(disabled){u.order='repair';u.target={kind:'building',id:disabled.id};}continue;}}
+    else {let p=s.ports.find(p=>p.id===u.site);if(p?.renewable===false&&p.stock===0){p=null;u.site=null;event(s,'A nutrient deposit is empty. The worker found another route.');}if(!p){p=nearest(s.ports.filter(p=>p.stock>0&&visible(s,p)),u)||s.ports.find(p=>p.renewable!==false);if(p)u.site=p.id;}if(p){const base=p.renewable===false?{x:p.x,y:p.y}:{x:p.x+(WORLD.cx-p.x)*.035,y:p.y+(WORLD.cy-p.y)*.035},target=gatherPoint(s,u,p),inRange=DIST(u,base)<=55;if(!inRange)move(s,u,target,dt,speed);if((inRange||DIST(u,target)<=18)&&p.stock>0){u.gatherClock=(u.gatherClock||0)+dt;u.fx=.08;u.path=[];u.stallClock=0;if(u.gatherClock>=2.4){u.cargo=1;u.cargoType=p.type;p.stock--;u.gatherClock=0;}}else if(!inRange)u.gatherClock=0;}}
+    s.resources.atp=Math.max(0,s.resources.atp-dt*.025);continue;
+   }
+   const target=d.damage?militaryTarget(s,u):null;
+   if(target){const original=target.kind==='enemy'?s.viruses.find(v=>v.id===target.id):s.foci.find(f=>f.id===target.id);const reach=d.range*(s.upgrades.includes('reach')&&d.range>100?1.25:1)+(target.kind==='focus'?28:0);if(DIST(u,target)>reach&&u.order!=='hold'){const a=Math.atan2(u.y-target.y,u.x-target.x);move(s,u,{x:target.x+Math.cos(a)*(reach-14),y:target.y+Math.sin(a)*(reach-14)},dt,speed);}else if(DIST(u,target)<=reach&&s.resources.atp>.01&&original){const damage=d.damage*(s.upgrades.includes('response')?1.3:1)*(s.tier>=3?1.15:1)*(s.tier===4?1.2:1)*counterMultiplier(u.type,target.kind==='focus'?'focus':original.kind||'cargo');if(target.kind==='focus')original.health-=damage*dt;else original.hp-=Math.max(2,damage-(C.enemyTypes[original.kind||'cargo'].armor||0))*dt;s.resources.atp=Math.max(0,s.resources.atp-dt*.055);u.fx=.18;}}
+   else if(u.order==='attack'){nextOrder(u);}else if(u.order==='attackmove'&&u.target){if(move(s,u,u.target,dt,speed))nextOrder(u);}
+   else if(u.order==='guard'&&DIST(u,u.anchor)>30)move(s,u,u.anchor,dt,speed*.6);
+  }
+  // Gentle separation keeps selected groups readable without fast jitter.
+  for(let i=0;i<s.units.length;i++)for(let j=i+1;j<s.units.length;j++){const a=s.units[i],b=s.units[j],d=DIST(a,b);if(d<23){const k=(23-d)*dt*.6,angle=(a.id*1.7+b.id*.9),dx=(d>.01?(a.x-b.x)/d:Math.cos(angle))*k,dy=(d>.01?(a.y-b.y)/d:Math.sin(angle))*k;if(freePoint(s,{x:a.x+dx,y:a.y+dy})){a.x+=dx;a.y+=dy;}if(freePoint(s,{x:b.x-dx,y:b.y-dy})){b.x-=dx;b.y-=dy;}}}
+  for(const v of s.viruses){
+   if(v.hp<=0)continue;const vd=C.enemyTypes[v.kind||'cargo'];
+   let victim=nearest(s.units.filter(u=>C.units[u.type].damage>0&&DIST(v,u)<150),v);
+   if(v.kind==='swift')victim=nearest(s.units.filter(u=>u.type==='vesicle'&&DIST(v,u)<300),v)||victim;
+   if(victim){if(DIST(v,victim)>vd.range)move(s,v,victim,dt,vd.speed);else victim.hp-=dt*vd.damage*(s.upgrades.includes('stability')&&victim.type!=='vesicle'?.75:1);}
+   else {let b=s.buildings.find(b=>b.id===v.target&&b.hp>0);if(!b){b=nearest(s.buildings.filter(b=>b.hp>0&&b.progress===1&&b.type!=='centrosome'),v);if(b)v.target=b.id;}if(b){const range=C.buildings[b.type].radius+32;if(DIST(v,b)>range){const a=Math.atan2(v.y-b.y,v.x-b.x);move(s,v,{x:b.x+Math.cos(a)*(range-14),y:b.y+Math.sin(a)*(range-14)},dt,vd.speed);}else{b.hp=Math.max(0,b.hp-dt*vd.damage*.75);s.health=Math.max(0,s.health-dt*.025);}}}
+  }
+  const dead=s.units.filter(u=>u.hp<=0);s.stats.lost+=dead.length;s.units=s.units.filter(u=>u.hp>0);s.viruses=s.viruses.filter(v=>v.hp>0);
+  for(const f of s.foci){if(f.health<=0){s.stats.cleared++;if(f.kind==='core'){s.ai.coreDestroyed=true;event(s,'Viral core cleared! Finish the remaining replication sites.','good');}else event(s,'Viral replication site cleared.','good');}}
+  s.foci=s.foci.filter(f=>f.health>0);
+  const nuc=s.buildings.find(b=>b.type==='nucleus');if(nuc&&nuc.hp<=0)s.health=0;
+  if(s.foci.length&&!s.victorySeen){s.ai.reserve=Math.min(70,s.ai.reserve+dt*(.09+s.foci.length*.07));
+   if(s.elapsed>=s.ai.next&&s.viruses.length<12&&s.ai.reserve>=12){const from=nearest(s.foci,{x:1400,y:1180}),n=Math.min(s.elapsed<280?2:4,12-s.viruses.length,Math.floor(s.ai.reserve/6));for(let i=0;i<n;i++){const kind=s.elapsed<220?(i%2?'swift':'cargo'):['cargo','swift','coated','cargo'][i%4],hp=C.enemyTypes[kind].hp;s.viruses.push({id:s.nextId++,kind,x:from.x-50+i*22,y:from.y+30,hp,maxHp:hp,target:null,path:[],pathClock:0});s.ai.reserve-=6;s.ai.spawned++;}s.ai.next=s.elapsed+65;event(s,'The viral network is sending cargo toward your production organelles.','danger');}
+   if(s.elapsed>=s.ai.nextExpand&&s.foci.length<5&&!s.ai.coreDestroyed&&s.ai.reserve>=15){const sites=[{x:2400,y:1300},{x:2410,y:740},{x:2600,y:1900}];const p=sites.find(p=>!s.foci.some(f=>DIST(f,p)<140)&&!s.buildings.some(b=>DIST(b,p)<130));if(p){s.ai.reserve-=15;s.foci.push(focus(s,'replication',p.x,p.y));s.ai.replications++;event(s,'The virus expanded into a new replication site. Scout and clear it.','danger');}s.ai.nextExpand=s.elapsed+160;}
+  }
+  // Passive maintenance does not undo organelle damage; workers must repair it.
+  if(!s.viruses.length&&s.resources.atp>4)s.health=Math.min(100,s.health+dt*.035);
+  s.health=cap(s.health,0,100);for(const k of Object.keys(s.resources))s.resources[k]=cap(s.resources[k],0,999);
+  s.visionClock=(s.visionClock||0)+dt;if(s.visionClock>=.25){s.visionClock=0;reveal(s);}
+  if(s.health<=0){s.status='rescue';event(s,'Recover your cell and rebuild your defense.','danger');}
+  if(!s.victorySeen&&s.ai.coreDestroyed&&!s.foci.length&&!s.viruses.length&&s.tier>=2&&s.health>0){s.status='won';event(s,'Viral network cleared. Your cell wins!','good');}
+ }
+ function rescue(s){s.health=75;for(const b of s.buildings)b.hp=Math.max(b.hp,C.buildings[b.type].hp*.65);s.resources.atp=Math.max(60,s.resources.atp);s.resources.amino=Math.max(28,s.resources.amino);s.resources.protein=Math.max(14,s.resources.protein);s.resources.lipid=Math.max(12,s.resources.lipid);s.viruses=[];s.ai.next=s.elapsed+90;s.status='playing';if(!s.units.some(u=>u.type==='vesicle'))s.units.push(unit(s,'vesicle',700,1100));event(s,'Recovered. Your research and progress are preserved.','good');}
+ function continueGame(s){s.status='playing';s.victorySeen=true;s.foci=[];s.viruses=[];s.ai.coreDestroyed=true;}
+ function report(s,name){return {format:'cell-command-report',version:1,name:String(name).trim().slice(0,60),created:new Date().toISOString(),seconds:Math.floor(s.elapsed),status:s.status==='won'||s.victorySeen?'Cell stabilized':s.status==='rescue'?'Recovery needed':'In progress',growth:growth(s),health:Math.round(s.health),deliveries:s.stats.delivered,organelles:s.stats.built,defenders:s.stats.trained,infections:s.stats.cleared,tier:s.tier,upgrades:s.upgrades.map(k=>C.research[k].name)};}
+ function setFormation(s,kind){if(!['line','box','spread'].includes(kind))return false;s.formation=kind;return true;}
+ function idleWorkers(s){return s.units.filter(u=>u.type==='vesicle'&&((u.order==='hold')||(['auto','gather'].includes(u.order)&&!u.cargo&&!s.ports.some(p=>p.id===u.site&&p.stock>0))));}
+ function counterMultiplier(type,target){return type==='nuclease'&&target==='focus'?3:type==='proteasome'&&target==='coated'?3:type==='antiviral'&&target==='swift'?2:type==='restriction'&&['cargo','swift'].includes(target)?1.6:1;}
+ return {scaleMap,TERRAIN,freePoint,lineClear,resolvePoint,setFormation,idleWorkers,counterMultiplier,WORLD,GRID,COLS,ROWS,fresh,legacyFresh,migrate,clone,inside,point,DIST,afford,canPlace,grow,queue,cancelQueue,research,repair,setRally,order,auto,update,rescue,continueGame,report,growth,event,visible,inSight,reveal,capacity,population,pathTo};
 })();
+
+</script><script>
+'use strict';
+window.CellSavesLegacy=(()=>{
+  const E={...window.CellEngine,fresh:window.CellEngine.legacyFresh},C=window.CellContent,KEY='cell-command-v1',MAX_BYTES=1024*1024;
+  const finite=(x,min,max)=>typeof x==='number'&&Number.isFinite(x)&&x>=min&&x<=max;
+  const integer=(x,min,max)=>Number.isInteger(x)&&finite(x,min,max);
+  const check=(condition)=>{if(!condition)throw new Error('This save contains missing or invalid game data.');};
+  function validate(raw){
+    check(raw&&raw.format==='cell-command-save'&&raw.formatVersion===1&&raw.state);
+    const a=raw.state,s=E.fresh();check(a.version===1&&finite(a.elapsed,0,1e8)&&['playing','won','rescue'].includes(a.status));
+    check(finite(a.health,0,100)&&integer(a.nextId,1,1e8)&&integer(a.seed,0,4294967295));
+    for(const k of Object.keys(s.resources)){check(a.resources&&finite(a.resources[k],0,1200));s.resources[k]=a.resources[k];}
+    const ids=new Set();const base=(b)=>{check(b&&integer(b.id,1,a.nextId-1)&&!ids.has(b.id)&&finite(b.x,0,E.WORLD.w)&&finite(b.y,0,E.WORLD.h));ids.add(b.id);};
+    check(Array.isArray(a.buildings)&&a.buildings.length>=8&&a.buildings.length<=30);
+    s.buildings=a.buildings.map(b=>{base(b);check(Object.hasOwn(C.buildings,b.type)&&finite(b.progress,0,1)&&finite(b.clock,0,1e5)&&typeof b.auto==='boolean'&&Array.isArray(b.queue)&&b.queue.length<=4);const queue=b.queue.map(q=>{check(q&&['antiviral','vesicle'].includes(q.kind)&&finite(q.remaining,0,8));check(q.kind==='antiviral'?b.type==='ribosome':b.type==='golgi');return {kind:q.kind,remaining:q.remaining};});return {id:b.id,type:b.type,x:b.x,y:b.y,progress:b.progress,clock:b.clock,queue,auto:b.auto,infected:false};});
+    for(const type of ['nucleus','mitochondrion','ribosome','roughER','smoothER','golgi','lysosome','centrosome'])check(s.buildings.some(b=>b.type===type&&b.progress===1));
+    for(const type of Object.keys(C.buildings))check(s.buildings.filter(b=>b.type===type).length<=C.buildings[type].limit);
+    check(Array.isArray(a.units)&&a.units.length<=26);
+    s.units=a.units.map(u=>{base(u);check(['vesicle','antiviral'].includes(u.type)&&['auto','move','hold','attack'].includes(u.order)&&finite(u.cargo,0,1));let target=null;if(u.target){check(['move','focus'].includes(u.target.kind));if(u.target.kind==='move'){check(finite(u.target.x,0,E.WORLD.w)&&finite(u.target.y,0,E.WORLD.h));target={kind:'move',x:u.target.x,y:u.target.y};}else {check(integer(u.target.id,1,a.nextId-1));target={kind:'focus',id:u.target.id};}}return {id:u.id,type:u.type,x:u.x,y:u.y,target,order:u.order,site:Number.isInteger(u.site)?u.site:null,cargo:u.cargo,phase:u.cargo?'deliver':'collect',clock:0,fx:0,building:null};});
+    check(Array.isArray(a.ports)&&a.ports.length===3);s.ports=a.ports.map(p=>{base(p);check(integer(p.stock,0,4)&&finite(p.clock,0,16));return {id:p.id,x:p.x,y:p.y,stock:p.stock,clock:p.clock};});
+    check(Array.isArray(a.foci)&&a.foci.length<=8);s.foci=a.foci.map(f=>{base(f);check(finite(f.health,0,75)&&finite(f.replication,0,55));return {id:f.id,x:f.x,y:f.y,health:f.health,replication:f.replication};});
+    check(Array.isArray(a.viruses)&&a.viruses.length<=8);s.viruses=a.viruses.map(v=>{base(v);check(finite(v.entryX,0,E.WORLD.w)&&finite(v.entryY,0,E.WORLD.h)&&finite(v.angle,-Math.PI,Math.PI));return {id:v.id,x:v.x,y:v.y,entryX:v.entryX,entryY:v.entryY,angle:v.angle};});
+    check(a.ai&&integer(a.ai.reserve,0,12)&&finite(a.ai.next,0,1e9)&&integer(a.ai.spawned,0,1e8)&&integer(a.ai.replications,0,1e8));s.ai={reserve:a.ai.reserve,next:a.ai.next,spawned:a.ai.spawned,replications:a.ai.replications};
+    for(const k of Object.keys(s.stats)){check(a.stats&&integer(a.stats[k],0,1e8));s.stats[k]=a.stats[k];}
+    check(Array.isArray(a.learned)&&a.learned.length<=C.questions.length&&a.learned.every(id=>C.questions.some(q=>q.id===id))&&new Set(a.learned).size===a.learned.length);s.learned=[...a.learned];
+    check(a.quiz&&integer(a.quiz.index,0,C.questions.length)&&finite(a.quiz.next,0,1e9));check(a.quiz.pending===null||integer(a.quiz.pending,0,C.questions.length-1));if(a.quiz.pending!==null)check(a.quiz.pending===a.quiz.index);
+    s.quiz={index:a.quiz.index,pending:a.quiz.pending,next:a.quiz.next,tries:integer(a.quiz.tries,0,1e8)?a.quiz.tries:0};
+    check(a.settings&&[.65,1,1.35].includes(a.settings.speed)&&typeof a.settings.reducedMotion==='boolean');s.settings={speed:a.settings.speed,reducedMotion:a.settings.reducedMotion};
+    for(const k of Object.keys(s.tutorial)){check(a.tutorial&&typeof a.tutorial[k]==='boolean');s.tutorial[k]=a.tutorial[k];}
+    s.version=1;s.elapsed=a.elapsed;s.status=a.status;s.health=a.health;s.nextId=a.nextId;s.seed=a.seed;s.repairClock=finite(a.repairClock,0,10)?a.repairClock:0;s.victorySeen=a.victorySeen===true;
+    s.studentName=typeof a.studentName==='string'?a.studentName.slice(0,60):'';s.startedAt=typeof a.startedAt==='string'?a.startedAt.slice(0,40):s.startedAt;
+    s.events=[];E.event(s,'Save loaded. Your cell is ready to continue.','good');return s;
+  }
+  const envelope=s=>({format:'cell-command-save',formatVersion:1,savedAt:new Date().toISOString(),state:E.clone(s)});
+  function save(s){try{localStorage.setItem(KEY,JSON.stringify(envelope(s)));return true;}catch{return false;}}
+  function load(){try{const str=localStorage.getItem(KEY);return str?validate(JSON.parse(str)):null;}catch{return null;}}
+  function download(name,text,type='application/json'){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  function exportSave(s){download('cell-command-save.json',JSON.stringify(envelope(s),null,2));}
+  async function importFile(file){if(!file||file.size>MAX_BYTES)throw new Error('Choose a Cell Command save smaller than 1 MB.');return validate(JSON.parse(await file.text()));}
+  function encodeReport(r){const bytes=new TextEncoder().encode(JSON.stringify(r));return btoa(Array.from(bytes,b=>String.fromCharCode(b)).join('')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+  function decodeReport(encoded){check(typeof encoded==='string'&&encoded.length<=12000&&/^[\w-]+$/.test(encoded));const str=atob(encoded.replace(/-/g,'+').replace(/_/g,'/'));const r=JSON.parse(new TextDecoder().decode(Uint8Array.from(str,c=>c.charCodeAt(0))));check(r&&r.format==='cell-command-report'&&r.version===1&&typeof r.name==='string'&&r.name.length<=60&&typeof r.created==='string'&&r.created.length<=40&&['Cell stabilized','Recovery needed','In progress'].includes(r.status));for(const key of ['seconds','deliveries','organelles','defenders','infections','questions','attempts','firstTry'])check(integer(r[key],0,1e8));check(integer(r.growth,0,100)&&integer(r.health,0,100));check(Array.isArray(r.concepts)&&r.concepts.length<=C.questions.length&&r.concepts.every(v=>typeof v==='string'&&v.length<=80));return r;}
+  return {KEY,MAX_BYTES,validate,envelope,save,load,download,exportSave,importFile,encodeReport,decodeReport};
+})();
+
+</script><script>
+'use strict';
+window.CellSaves=(()=>{
+  const E=window.CellEngine,C=window.CellContent,KEY='cell-command-v1',MAX_BYTES=1024*1024;
+  const finite=(x,min,max)=>typeof x==='number'&&Number.isFinite(x)&&x>=min&&x<=max;
+  const integer=(x,min,max)=>Number.isInteger(x)&&finite(x,min,max);
+  const check=(condition)=>{if(!condition)throw new Error('This save contains missing or invalid game data.');};
+  function validate(raw){
+    check(raw&&raw.format==='cell-command-save'&&[1,2,3,4].includes(raw.formatVersion)&&raw.state);
+    if(raw.formatVersion===1)return E.migrate(window.CellSavesLegacy.validate(raw));
+    const a=raw.state,s=E.fresh(),bounds=a.version<4?{w:1800,h:1180}:E.WORLD;check([2,3,4].includes(a.version)&&finite(a.elapsed,0,1e8)&&['playing','won','rescue'].includes(a.status));
+    check(finite(a.health,0,100)&&integer(a.nextId,1,1e8)&&integer(a.seed,0,4294967295));
+    for(const k of Object.keys(s.resources)){check(a.resources&&finite(a.resources[k],0,1200));s.resources[k]=a.resources[k];}
+    const ids=new Set();const base=b=>{check(b&&integer(b.id,1,a.nextId-1)&&!ids.has(b.id)&&finite(b.x,0,bounds.w)&&finite(b.y,0,bounds.h));ids.add(b.id);};
+    const target=t=>{if(t===null)return null;check(t&&['move','port','building','focus','enemy'].includes(t.kind));if(t.kind==='move'){check(finite(t.x,0,bounds.w)&&finite(t.y,0,bounds.h));return {kind:'move',x:t.x,y:t.y};}check(integer(t.id,1,a.nextId-1));return {kind:t.kind,id:t.id};};
+    check(Array.isArray(a.buildings)&&a.buildings.length>=5&&a.buildings.length<=55);
+    s.buildings=a.buildings.map(b=>{base(b);check(Object.hasOwn(C.buildings,b.type)&&finite(b.progress,0,1)&&finite(b.clock,0,1e5)&&finite(b.hp,0,C.buildings[b.type].hp)&&typeof b.auto==='boolean'&&Array.isArray(b.queue)&&b.queue.length<=5);const queue=b.queue.map(q=>{check(q&&Object.hasOwn(C.units,q.kind)&&C.units[q.kind].producer===b.type&&finite(q.remaining,0,C.units[q.kind].time));return {kind:q.kind,remaining:q.remaining};});let research=null;if(b.research){check(Object.hasOwn(C.research,b.research.key)&&C.research[b.research.key].at===b.type&&finite(b.research.remaining,0,C.research[b.research.key].time));research={key:b.research.key,remaining:b.research.remaining};}let rally=null;if(b.rally){check(finite(b.rally.x,0,bounds.w)&&finite(b.rally.y,0,bounds.h)&&['move','port'].includes(b.rally.kind));rally={x:b.rally.x,y:b.rally.y,kind:b.rally.kind,id:integer(b.rally.id,1,a.nextId-1)?b.rally.id:null};}return {id:b.id,type:b.type,x:b.x,y:b.y,progress:b.progress,clock:b.clock,hp:b.hp,queue,research,rally,auto:b.auto,infected:false};});
+    for(const type of ['nucleus','mitochondrion','ribosome','golgi','lysosome'])check(s.buildings.some(b=>b.type===type&&b.progress===1));
+    for(const type of Object.keys(C.buildings))check(s.buildings.filter(b=>b.type===type).length<=C.buildings[type].limit);
+    check(Array.isArray(a.units)&&a.units.length<=72);
+    const orders=['auto','guard','gather','move','attackmove','hold','attack','build','repair'];
+    s.units=a.units.map(u=>{base(u);check(Object.hasOwn(C.units,u.type)&&orders.includes(u.order)&&finite(u.hp,0,C.units[u.type].hp)&&integer(u.cargo,0,1));check(u.anchor&&finite(u.anchor.x,0,bounds.w)&&finite(u.anchor.y,0,bounds.h));check(Array.isArray(u.orders)&&u.orders.length<=10);const queued=u.orders.map(o=>{check(o&&orders.includes(o.order));return {order:o.order,target:target(o.target)};});check(u.cargoType===null||['glucose','amino','lipid','nucleotide','mixed'].includes(u.cargoType));return {id:u.id,type:u.type,x:u.x,y:u.y,hp:u.hp,target:target(u.target),order:u.order,orders:queued,anchor:{x:u.anchor.x,y:u.anchor.y},site:integer(u.site,1,a.nextId-1)?u.site:null,cargo:u.cargo,cargoType:u.cargoType,path:[],pathClock:0,clock:0,gatherClock:finite(u.gatherClock,0,2.4)?u.gatherClock:0,fx:0};});
+    check(Array.isArray(a.ports)&&a.ports.length>=3&&a.ports.length<=16);s.ports=a.ports.map(p=>{base(p);check(['glucose','amino','lipid','nucleotide'].includes(p.type)&&integer(p.stock,0,100)&&finite(p.clock,0,10)&&(p.renewable===undefined||typeof p.renewable==='boolean'));return {id:p.id,type:p.type,x:p.x,y:p.y,stock:p.stock,clock:p.clock,renewable:p.renewable!==false};});
+    check(Array.isArray(a.foci)&&a.foci.length<=6);s.foci=a.foci.map(f=>{base(f);check(['core','assembly','replication'].includes(f.kind)&&[190,420].includes(f.maxHealth)&&finite(f.health,0,f.maxHealth)&&finite(f.clock,0,1e8));return {id:f.id,kind:f.kind,x:f.x,y:f.y,health:f.health,maxHealth:f.maxHealth,clock:f.clock,replication:0};});
+    check(Array.isArray(a.viruses)&&a.viruses.length<=12);s.viruses=a.viruses.map(v=>{base(v);const kind=v.kind===undefined?'cargo':v.kind;check(Object.hasOwn(C.enemyTypes,kind)&&finite(v.hp,0,C.enemyTypes[kind].hp));return {id:v.id,kind,x:v.x,y:v.y,hp:v.hp,maxHp:C.enemyTypes[kind].hp,target:integer(v.target,1,a.nextId-1)?v.target:null,path:[],pathClock:0};});
+    check(a.ai&&finite(a.ai.reserve,0,70)&&finite(a.ai.next,0,1e9)&&finite(a.ai.nextExpand,0,1e9)&&integer(a.ai.spawned,0,1e8)&&integer(a.ai.replications,0,1e8)&&typeof a.ai.coreDestroyed==='boolean');s.ai={reserve:a.ai.reserve,next:a.ai.next,spawned:a.ai.spawned,replications:a.ai.replications,nextExpand:a.ai.nextExpand,coreDestroyed:a.ai.coreDestroyed};
+    for(const k of Object.keys(s.stats)){check(a.stats&&integer(a.stats[k],0,1e8));s.stats[k]=a.stats[k];}
+    check(Array.isArray(a.learned)&&a.learned.length<=C.questions.length&&a.learned.every(id=>C.questions.some(q=>q.id===id))&&new Set(a.learned).size===a.learned.length);s.learned=[...a.learned];
+    check(a.quiz&&integer(a.quiz.index,0,C.questions.length)&&finite(a.quiz.next,0,1e9));check(a.quiz.pending===null||integer(a.quiz.pending,0,C.questions.length-1));if(a.quiz.pending!==null)check(a.quiz.pending===a.quiz.index);s.quiz={index:a.quiz.index,pending:null,next:1e9,tries:0};
+    check(a.settings&&[.65,1,1.35].includes(a.settings.speed)&&typeof a.settings.reducedMotion==='boolean'&&typeof a.settings.revealMap==='boolean');s.settings={speed:a.settings.speed,reducedMotion:a.settings.reducedMotion,revealMap:a.settings.revealMap};
+    for(const k of Object.keys(s.tutorial)){check(a.tutorial&&typeof a.tutorial[k]==='boolean');s.tutorial[k]=a.tutorial[k];}
+    check(integer(a.tier,1,4)&&Array.isArray(a.upgrades)&&a.upgrades.length<=6&&a.upgrades.every(k=>['motors','cargo','respiration','response','stability','reach'].includes(k))&&new Set(a.upgrades).size===a.upgrades.length);s.tier=a.tier;s.upgrades=[...a.upgrades];
+    check(Array.isArray(a.explored)&&a.explored.length===(a.version<4?600:E.COLS*E.ROWS)&&a.explored.every(n=>n===0||n===1));s.explored=[...a.explored];
+    check(a.groups&&typeof a.groups==='object'&&!Array.isArray(a.groups)&&Object.keys(a.groups).length<=9);s.groups={};for(const [key,arr] of Object.entries(a.groups)){check(/^[1-9]$/.test(key)&&Array.isArray(arr)&&arr.length<=128&&arr.every(n=>integer(n,1,a.nextId-1)));s.groups[key]=[...arr];}
+    check(a.formation===undefined||['line','box','spread'].includes(a.formation));s.formation=a.formation||'line';s.version=4;check(a.version<4||typeof a.terrain==='boolean');s.terrain=a.version<4?false:a.terrain;s.elapsed=a.elapsed;s.status=a.status;s.health=a.health;s.nextId=a.nextId;s.seed=a.seed;s.repairClock=finite(a.repairClock,0,10)?a.repairClock:0;s.victorySeen=a.victorySeen===true;s.navRevision=0;
+    s.studentName=typeof a.studentName==='string'?a.studentName.slice(0,60):'';s.startedAt=typeof a.startedAt==='string'?a.startedAt.slice(0,40):s.startedAt;s.events=[];if(a.version<4)E.scaleMap(s);else E.reveal(s);E.event(s,'Save loaded. Your RTS match is ready to continue.','good');return s;
+  }
+  const envelope=s=>({format:'cell-command-save',formatVersion:4,savedAt:new Date().toISOString(),state:E.clone(s)});
+  function save(s){try{localStorage.setItem(KEY,JSON.stringify(envelope(s)));return true;}catch{return false;}}
+  function load(){try{const str=localStorage.getItem(KEY);return str?validate(JSON.parse(str)):null;}catch{return null;}}
+  function download(name,text,type='application/json'){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  function exportSave(s){download('cell-command-save.json',JSON.stringify(envelope(s),null,2));}
+  async function importFile(file){if(!file||file.size>MAX_BYTES)throw new Error('Choose a Cell Command save smaller than 1 MB.');return validate(JSON.parse(await file.text()));}
+  function encodeReport(r){const bytes=new TextEncoder().encode(JSON.stringify(r));return btoa(Array.from(bytes,b=>String.fromCharCode(b)).join('')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+  function decodeReport(encoded){check(typeof encoded==='string'&&encoded.length<=12000&&/^[\w-]+$/.test(encoded));const str=atob(encoded.replace(/-/g,'+').replace(/_/g,'/'));const r=JSON.parse(new TextDecoder().decode(Uint8Array.from(str,c=>c.charCodeAt(0))));check(r&&r.format==='cell-command-report'&&r.version===1&&typeof r.name==='string'&&r.name.length<=60&&typeof r.created==='string'&&r.created.length<=40&&['Cell stabilized','Recovery needed','In progress'].includes(r.status));for(const key of ['seconds','deliveries','organelles','defenders','infections'])check(integer(r[key],0,1e8));check(integer(r.growth,0,100)&&integer(r.health,0,100));for(const key of ['questions','attempts','firstTry'])if(r[key]!==undefined)check(integer(r[key],0,1e8));if(r.concepts!==undefined)check(Array.isArray(r.concepts)&&r.concepts.length<=C.questions.length&&r.concepts.every(v=>typeof v==='string'&&v.length<=80));if(r.tier!==undefined)check(integer(r.tier,1,4));if(r.upgrades!==undefined)check(Array.isArray(r.upgrades)&&r.upgrades.length<=6&&r.upgrades.every(v=>typeof v==='string'&&v.length<=80));return r;}
+  return {KEY,MAX_BYTES,validate,envelope,save,load,download,exportSave,importFile,encodeReport,decodeReport};
+})();
+
+</script><script>
+'use strict';
+window.CellArt=(()=>{
+  const C=window.CellContent,E=window.CellEngine,W=E.WORLD;
+  const icons={nucleus:'◉',mitochondrion:'ϟ',ribosome:'●',roughER:'≋',smoothER:'〰',golgi:'☷',lysosome:'◌',centrosome:'╳',vesiclePool:'◌',defenseHub:'✦'};
+  function ellipse(ctx,x,y,rx,ry,fill,stroke,width=2){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke();}}
+  function line(ctx,points,color,width=2){ctx.beginPath();ctx.moveTo(...points[0]);for(const p of points.slice(1))ctx.lineTo(...p);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();}
+  let labelFactor=1;
+  function pill(ctx,x,y,text,color='#456b65',bg='#f5f8df',size=18){size*=labelFactor;ctx.font=`600 ${size}px "Trebuchet MS", sans-serif`;const w=ctx.measureText(text).width+22,h=size+10;ctx.fillStyle=bg;ctx.beginPath();ctx.roundRect(x-w/2,y-h/2,w,h,9);ctx.fill();ctx.fillStyle=color;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x,y+1);}
+  function bar(ctx,x,y,w,value,color){ctx.fillStyle='#173f4733';ctx.beginPath();ctx.roundRect(x-w/2,y,w,6,3);ctx.fill();ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x-w/2,y,w*Math.max(0,Math.min(1,value)),6,3);ctx.fill();}
+  function drawOrganelle(ctx,b,time,selected){
+    const d=C.buildings[b.type],growing=b.progress<1;
+    ctx.save();ctx.translate(b.x,b.y);if(growing)ctx.globalAlpha=.5+b.progress*.35;if(b.hp<=0)ctx.globalAlpha=.4;
+    if(selected){ellipse(ctx,0,0,d.radius+16,d.radius+13,'#ffdb7d24','#f2c55f',4);}
+    if(b.infected){ellipse(ctx,0,0,d.radius+13,d.radius+10,'#d66b7722','#ca7180',3);}
+    if(b.type==='nucleus'){
+      ellipse(ctx,0,0,87,79,'#b9a6d7','#866aab',5);ellipse(ctx,0,0,77,69,null,'#e1d3ef',3);
+      for(let i=0;i<9;i++){const a=i*Math.PI*2/9;ellipse(ctx,Math.cos(a)*82,Math.sin(a)*74,4,4,'#ede8ce','#7d6996',1);}
+      ctx.strokeStyle='#8f76b5';ctx.lineWidth=5;for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(-53+i*19,-37+i*8);ctx.bezierCurveTo(-45+i*14,12,35-i*5,-45,37-i*9,27);ctx.stroke();}
+      ellipse(ctx,19,7,22,21,'#8f72b2','#80639f',2);ellipse(ctx,13,0,7,6,'#b6a0cd');
+    }else if(b.type==='mitochondrion'){
+      ctx.rotate(-.32);ellipse(ctx,0,0,54,29,'#efbb70','#bf8950',4);ellipse(ctx,0,0,45,21,'#f6d597','#d4a360',2);
+      ctx.beginPath();ctx.moveTo(-36,-5);for(let i=0;i<6;i++){const x=-32+i*12;ctx.bezierCurveTo(x,-24,x+7,-20,x+6,1);ctx.bezierCurveTo(x+5,22,x+13,20,x+13,0);}ctx.strokeStyle='#c98b50';ctx.lineWidth=3;ctx.stroke();
+    }else if(b.type==='ribosome'){
+      ellipse(ctx,0,-6,34,24,'#74bac7','#438f9a',3);ellipse(ctx,3,15,28,16,'#a9d3d3','#438f9a',3);line(ctx,[[-44,10],[-27,8],[-14,12],[2,9],[40,12]],'#efc65e',4);
+      for(let i=0;i<5;i++)ellipse(ctx,32+i*5,-5-i*6,4,4,'#a48dc9');
+    }else if(b.type==='roughER'||b.type==='smoothER'){
+      ctx.lineCap='round';for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(-54,-34+i*22);ctx.bezierCurveTo(-28,-58+i*25,-2,-13+i*18,19,-33+i*21);ctx.bezierCurveTo(36,-46+i*24,47,-25+i*22,62,-41+i*25);ctx.strokeStyle=b.type==='roughER'?'#826ca2':'#bb7f95';ctx.lineWidth=14;ctx.stroke();ctx.strokeStyle=b.type==='roughER'?'#c3addc':'#e1adc0';ctx.lineWidth=9;ctx.stroke();}
+      if(b.type==='roughER')for(let i=0;i<16;i++)ellipse(ctx,-48+(i%4)*30,-37+Math.floor(i/4)*22,3.6,3.6,'#6297ac','#497d8f',1);
+    }else if(b.type==='golgi'){
+      ctx.lineCap='round';for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(-42+i*3,-32+i*16);ctx.quadraticCurveTo(0,-16+i*12,44-i*4,-32+i*16);ctx.strokeStyle='#bb975b';ctx.lineWidth=13;ctx.stroke();ctx.strokeStyle='#e9c588';ctx.lineWidth=8;ctx.stroke();}ellipse(ctx,59,-29,8,7,'#f0d09a','#b48d50',2);ellipse(ctx,51,32,10,9,'#f0d09a','#b48d50',2);
+    }else if(b.type==='lysosome'){
+      ellipse(ctx,0,0,39,37,'#9ac8a3','#569775',4);ellipse(ctx,0,0,30,28,null,'#c5dfb5',2);for(let i=0;i<7;i++){const a=i*2.399;ellipse(ctx,Math.cos(a)*(9+i*2),Math.sin(a)*(8+i*2),4+(i%2),4,'#6f9f79');}
+    }else if(b.type==='vesiclePool'){for(let i=0;i<5;i++){const a=i*2.399;ellipse(ctx,Math.cos(a)*14,Math.sin(a)*14,12,11,'#c3dfce','#609e8b',3);ellipse(ctx,Math.cos(a)*14-3,Math.sin(a)*14-3,3,3,'#edf4d4');}}else if(b.type==='defenseHub'){ellipse(ctx,0,0,39,35,'#7fadc4','#4d7f9e',4);for(let i=0;i<6;i++){const a=i*Math.PI/3;ellipse(ctx,Math.cos(a)*23,Math.sin(a)*23,9,9,'#b7d4de','#547f9e',2);}ellipse(ctx,0,0,13,13,'#e6efdd','#5a8ca0',3);if(b.fx>0)ellipse(ctx,0,0,80+Math.sin(time*6)*15,70+Math.sin(time*6)*15,null,'#65a3c099',3);
+    }else if(b.type==='centrosome'){
+      ctx.rotate(-.3);for(let j=0;j<2;j++){ctx.save();ctx.translate(j?12:-8,j?10:-10);ctx.rotate(j?Math.PI/2:0);ctx.fillStyle='#92b8d0';ctx.strokeStyle='#547f9d';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-11,-20,22,40,5);ctx.fill();ctx.stroke();for(let i=0;i<3;i++)line(ctx,[[-7+i*7,-16],[-7+i*7,16]],'#517e9b',2);ctx.restore();}
+    }
+    ctx.restore();
+    const label=b.type==='ribosome'?'Ribosomes':d.name;
+    pill(ctx,b.x,b.y+(b.type==='centrosome'?-52:d.radius+22),growing?`Growing ${Math.round(b.progress*100)}%`:label,b.infected?'#a04d63':'#46685f',b.infected?'#f9dce0':'#f5f8df',b.type==='nucleus'?20:18);
+    if(growing)bar(ctx,b.x,b.y+d.radius+43,85,b.progress,'#5eaa8c');
+    if(b.hp<C.buildings[b.type].hp)bar(ctx,b.x,b.y-d.radius-28,75,b.hp/C.buildings[b.type].hp,'#6daab5');
+    if(b.queue.length)bar(ctx,b.x,b.y-d.radius-17,65,1-b.queue[0].remaining/C.units[b.queue[0].kind].time,'#548fbb');
+    if(b.research)bar(ctx,b.x,b.y-d.radius-8,65,1-b.research.remaining/C.research[b.research.key].time,'#9475c0');
+    if(b.type==='defenseHub'&&selected){ctx.setLineDash([6,12]);ellipse(ctx,b.x,b.y,245,245,null,'#6c9db267',2);ctx.setLineDash([]);}
+    if(b.type==='mitochondrion'&&!growing){ctx.fillStyle='#ce9449';ctx.font='bold 20px sans-serif';ctx.fillText('ϟ',b.x+51,b.y-28-Math.sin(time*2+b.id)*4);}
+  }
+  function drawUnit(ctx,u,t,selected,showName=true){
+    ctx.save();ctx.translate(u.x,u.y);
+    if(selected)ellipse(ctx,0,0,25,25,'#f7d57e25','#f5c755',3);
+    if(u.type==='vesicle'){
+      ellipse(ctx,0,0,17,16,'#c0e4d2','#458f87',3);ellipse(ctx,-5,-5,5,4,'#e9f5d8');
+      if(u.cargo){for(let i=0;i<3;i++)ellipse(ctx,-6+i*6,3+(i%2)*4,4,4,['#e9b65f','#86b7ce','#b7a0d8'][i]);}
+      line(ctx,[[-6,16],[-9,20+Math.sin(t*9+u.id)*2],[-4,21]],'#41847b',2);line(ctx,[[6,16],[9,20-Math.sin(t*9+u.id)*2],[14,21]],'#41847b',2);
+    }else{
+      if(u.type==='proteasome'){ctx.fillStyle='#6ca993';ctx.strokeStyle='#397862';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(-18,-21,36,42,8);ctx.fill();ctx.stroke();ellipse(ctx,0,-12,12,5,'#cce7cd','#397862',2);line(ctx,[[-12,-6],[12,-6]],'#d8eacf',3);line(ctx,[[-12,6],[12,6]],'#d8eacf',3);ellipse(ctx,0,15,12,5,'#cce7cd','#397862',2);}else {
+      const r=16;ctx.beginPath();for(let i=0;i<12;i++){const a=i/12*Math.PI*2,rr=r+(i%2?0:4);const x=Math.cos(a)*rr,y=Math.sin(a)*rr;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fillStyle=u.type==='nuclease'?'#b9a2d7':u.type==='sensor'?'#ebc16c':u.type==='restriction'?'#dbad7c':'#88b9d4';ctx.strokeStyle=u.type==='nuclease'?'#8269a4':u.type==='sensor'?'#b59145':u.type==='restriction'?'#a87a4f':'#4c7f9f';ctx.lineWidth=3;ctx.fill();ctx.stroke();if(u.type==='sensor'){ellipse(ctx,0,0,7,5,'#f8f2d9');ellipse(ctx,1,0,3,3,'#998b57');}else if(u.type==='nuclease'){line(ctx,[[-7,-7],[7,7]],'#f5f0df',3);line(ctx,[[-7,7],[7,-7]],'#f5f0df',3);}else if(u.type==='restriction'){ellipse(ctx,0,0,7,7,null,'#fff1d5',2);line(ctx,[[-9,0],[9,0]],'#fff1d5',2);}else line(ctx,[[-6,0],[-1,5],[7,-6]],'#f4f3d9',3);}
+      if(u.fx>0){ellipse(ctx,0,0,29+Math.sin(t*8)*5,29+Math.sin(t*8)*5,null,'#659eba70',2);}
+    }
+    ctx.restore();
+    if(u.type==='vesicle'&&u.gatherClock>0)bar(ctx,u.x,u.y+26,34,u.gatherClock/2.4,'#d7ae5f');
+    if(selected&&u.target?.kind==='move'){ctx.setLineDash([4,8]);line(ctx,[[u.x,u.y],[u.target.x,u.target.y]],'#80a39b88',1.5);ctx.setLineDash([]);}
+    if(u.hp<C.units[u.type].hp||selected)bar(ctx,u.x,u.y-28,36,u.hp/C.units[u.type].hp,'#4e9b99');
+    if(selected&&showName)pill(ctx,u.x,u.y-45,C.units[u.type].name,'#3d6572','#f4f8e8',15);
+  }
+  function virus(ctx,x,y,r,t,inside=false){
+    ctx.save();ctx.translate(x,y);ctx.rotate(t*.15);for(let i=0;i<10;i++){const a=i*Math.PI/5;line(ctx,[[Math.cos(a)*(r-1),Math.sin(a)*(r-1)],[Math.cos(a)*(r+8),Math.sin(a)*(r+8)]],'#b56576',3);ellipse(ctx,Math.cos(a)*(r+8),Math.sin(a)*(r+8),3,3,'#c7838c');}ellipse(ctx,0,0,r,r,'#db9eaa','#a95d76',3);ellipse(ctx,-4,-5,r*.55,r*.55,'#ecc3ba');ctx.strokeStyle='#a25f80';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-7,0);ctx.bezierCurveTo(-12,-13,12,-12,4,1);ctx.bezierCurveTo(-5,12,12,14,9,1);ctx.stroke();ctx.restore();if(inside)pill(ctx,x,y+r+22,'Infection','#aa5269','#f9dce0',15);
+  }
+  function drawFocus(ctx,f,t,selected){
+    const r=f.kind==='core'?63:45;ellipse(ctx,f.x,f.y,r+12,r+8,'#d28b9830',selected?'#f4c264':null,3);
+    ellipse(ctx,f.x,f.y,r,r*.8,'#d99ea9','#a3617b',4);
+    for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(f.x-r*.65,f.y-24+i*15);ctx.bezierCurveTo(f.x-r*.25,f.y-45+i*18,f.x+r*.1,f.y-5+i*8,f.x+r*.65,f.y-25+i*17);ctx.strokeStyle='#ab6b89';ctx.lineWidth=5;ctx.stroke();}
+    ellipse(ctx,f.x,f.y,14,13,'#b7789a','#915b82',2);pill(ctx,f.x,f.y+r+27,f.kind==='core'?'Viral replication core':f.kind==='assembly'?'Assembly site':'Replication site','#99506b','#f4dce4',17);bar(ctx,f.x,f.y-r-16,90,f.health/f.maxHealth,'#bc698b');
+  }
+  function viralCargo(ctx,v,t){const kind=v.kind||'cargo',r=kind==='coated'?23:kind==='swift'?13:18;ellipse(ctx,v.x,v.y,r,r*.84,kind==='coated'?'#b986a5':kind==='swift'?'#edb084':'#e6b2be','#a46885',3);if(kind==='coated'){ellipse(ctx,v.x,v.y,r+4,r*.84+4,null,'#916681',3);for(let i=0;i<8;i++){const a=i*Math.PI/4;ellipse(ctx,v.x+Math.cos(a)*r,v.y+Math.sin(a)*r*.84,3,3,'#eee0c1');}}ctx.beginPath();ctx.moveTo(v.x-9,v.y);ctx.bezierCurveTo(v.x-5,v.y-12,v.x+6,v.y+12,v.x+10,v.y-1);ctx.strokeStyle='#a06187';ctx.lineWidth=3;ctx.stroke();if(kind==='swift')line(ctx,[[v.x-24,v.y-5],[v.x-17,v.y-5]],'#bf8b71',3);if(v.hp<C.enemyTypes[kind].hp)bar(ctx,v.x,v.y-r-9,32,v.hp/C.enemyTypes[kind].hp,'#bd6d89');}
+  function render(ctx,s,view,ui,time){
+    const {width,height,scale,cx,cy}=view;const t=s.settings.reducedMotion?0:time;labelFactor=Math.max(1,.6/scale);
+    ctx.setTransform(view.dpr,0,0,view.dpr,0,0);ctx.clearRect(0,0,width,height);
+    const grad=ctx.createLinearGradient(0,0,width,height);grad.addColorStop(0,'#acd3cb');grad.addColorStop(1,'#d1e4cd');ctx.fillStyle=grad;ctx.fillRect(0,0,width,height);
+    ctx.save();ctx.translate(width/2,height/2);ctx.scale(scale,scale);ctx.translate(-cx,-cy);
+    for(let i=0;i<36;i++){const x=(i*293+73)%W.w,y=(i*149+50)%W.h;ellipse(ctx,x,y,4+i%6,4+i%6,'#edf5cf6b');}
+    ellipse(ctx,W.cx,W.cy,W.rx+13,W.ry+13,'#8cb8a350');ellipse(ctx,W.cx,W.cy,W.rx,W.ry,'#e4ebba','#569b88',14);ellipse(ctx,W.cx,W.cy,W.rx-12,W.ry-12,null,'#aac484',4);
+    // A visible double boundary stands for the phospholipid bilayer.
+    for(let i=0;i<160;i++){const a=i/160*Math.PI*2,p=E.point(a,1),q=E.point(a,.984);ellipse(ctx,p.x,p.y,3.2,3.2,'#81b29a');line(ctx,[[p.x,p.y],[q.x,q.y]],'#719d85',1.2);}
+    ctx.save();ctx.beginPath();ctx.ellipse(W.cx,W.cy,W.rx-22,W.ry-22,0,0,Math.PI*2);ctx.clip();
+    for(let i=0;i<225;i++){const x=170+(i*173)%1460,y=150+(i*97)%880;ellipse(ctx,x,y,2+i%2,2+i%2,'#a6b88e35');}
+    const center=s.buildings.find(b=>b.type==='centrosome')||s.buildings.find(b=>b.type==='nucleus');
+    for(const b of s.buildings){if(b.type==='centrosome')continue;ctx.beginPath();ctx.moveTo(center.x,center.y);ctx.quadraticCurveTo((center.x+b.x)/2-20,(center.y+b.y)/2-50,b.x,b.y);ctx.strokeStyle='#89ae9b70';ctx.lineWidth=5;ctx.stroke();ctx.strokeStyle='#f9f9d485';ctx.lineWidth=1.5;ctx.stroke();}
+    for(const p of s.ports){const lys=s.buildings.find(b=>b.type==='lysosome');if(lys){ctx.setLineDash([8,9]);line(ctx,[[p.x,p.y],[lys.x,lys.y]],'#7ca99155',2);ctx.setLineDash([]);}}
+    for(let i=0;i<30;i++){const a=(i*2.399)%6.283,p=E.point(a,.94);const f=(t*.06+i*.173)%1;ellipse(ctx,p.x+(W.cx-p.x)*.12*f,p.y+(W.cy-p.y)*.12*f,3,3,'#7ebec385');}
+    if(s.terrain)for(const o of E.TERRAIN){ellipse(ctx,o.x,o.y,o.r,o.r*.85,'#b3c69c','#7e9d7b',4);ellipse(ctx,o.x,o.y,o.r-13,o.r*.85-12,null,'#d7e0b4',3);for(let i=0;i<5;i++){const a=i*2.399;ellipse(ctx,o.x+Math.cos(a)*o.r*.48,o.y+Math.sin(a)*o.r*.38,14,10,'#8eab83');}pill(ctx,o.x,o.y+o.r*.85+22,'Dense membrane region','#69816b','#e5edcf',14);}
+    for(const b of s.buildings)drawOrganelle(ctx,b,t,ui.selected.includes(b.id));
+    for(const f of s.foci)if(E.visible(s,f))drawFocus(ctx,f,t,ui.selected.includes(f.id));
+    for(const u of s.units)drawUnit(ctx,u,t,ui.selected.includes(u.id),ui.selected.length===1);
+    ctx.restore();
+    for(let i=0;i<s.ports.length;i++){const p=s.ports[i];if(!E.visible(s,p))continue;if(p.renewable===false){ellipse(ctx,p.x,p.y,31,27,C.resources[p.type].color+'99','#8caa80',3);for(let j=0;j<Math.min(p.stock,8);j++){const a=j*2.399;ellipse(ctx,p.x+Math.cos(a)*16,p.y+Math.sin(a)*12,6,6,C.resources[p.type].color,'#7f9b7b',1);}pill(ctx,p.x,p.y-43,`${C.resources[p.type].name} · ${p.stock}`,'#46756c','#e8f5dc',16);continue;}ellipse(ctx,p.x,p.y,23,30,'#86c9be','#3b8a80',4);ellipse(ctx,p.x,p.y,10,17,'#4b968d');for(let j=0;j<Math.min(p.stock,6);j++){ellipse(ctx,p.x-45-j*12,p.y-12+(j%2)*18,6,6,['#e9bc6b','#95b7d7','#bea1d5'][j%3],'#8e9f71',1);}pill(ctx,p.x+60,p.y-48,`${C.resources[p.type].name} · ${p.stock} cargo`,'#46756c','#e8f5dc',16);}
+    for(const v of s.viruses)if(E.inSight(s,v))viralCargo(ctx,v,t);
+    // Receptors are distinct from nutrient import sites.
+    for(const a of [-.5,0,.5]){const p=E.point(a,.999);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(a);line(ctx,[[4,-13],[-7,-13],[-7,13],[4,13]],'#97799c',5);ctx.restore();}
+    pill(ctx,2940,500,'Viral network','#8c617b','#f3e6df',16);
+    pill(ctx,850,760,'Your cell economy','#44786c','#edf5db',19);
+    const exo=E.point(1.32,.98);for(let i=0;i<3;i++){const f=(t*.12+i*.33)%1;ellipse(ctx,exo.x+f*8,exo.y-25+f*56,5,5,'#dbb16980');}pill(ctx,exo.x+40,exo.y-48,'Exocytosis','#7e794e','#f5f0d4',15);
+    if(!s.settings.revealMap){ctx.save();ctx.beginPath();ctx.ellipse(W.cx,W.cy,W.rx-22,W.ry-22,0,0,Math.PI*2);ctx.clip();for(let row=0;row<E.ROWS;row++)for(let col=0;col<E.COLS;col++){const index=row*E.COLS+col,p={x:col*E.GRID+E.GRID/2,y:row*E.GRID+E.GRID/2};if(s.explored[index]&&!s.sight?.[index]){ctx.fillStyle='#25494a24';ctx.fillRect(col*E.GRID,row*E.GRID,E.GRID+1,E.GRID+1);}}ctx.beginPath();for(let row=0;row<E.ROWS;row++)for(let col=0;col<E.COLS;col++)if(!s.explored[row*E.COLS+col])ctx.rect(col*E.GRID,row*E.GRID,E.GRID+1,E.GRID+1);ctx.filter='blur(9px)';ctx.fillStyle='#264b50dc';ctx.fill();ctx.filter='none';ctx.restore();}
+    for(const b of s.buildings)if(b.rally&&ui.selected.includes(b.id)){ctx.setLineDash([8,9]);line(ctx,[[b.x,b.y],[b.rally.x,b.rally.y]],'#3d929d',3);ctx.setLineDash([]);line(ctx,[[b.rally.x,b.rally.y-25],[b.rally.x,b.rally.y+15]],'#3d929d',3);ctx.fillStyle='#4f9caa';ctx.fillRect(b.rally.x,b.rally.y-25,17,10);}
+    if(ui.marker){ellipse(ctx,ui.marker.x,ui.marker.y,22,22,null,'#f5bf57',3);line(ctx,[[ui.marker.x-8,ui.marker.y],[ui.marker.x+8,ui.marker.y]],'#cf9b42',2);}
+    if(ui.buildType&&ui.hover){const p=ui.hover,d=C.buildings[ui.buildType],valid=!E.canPlace(s,ui.buildType,p);ellipse(ctx,p.x,p.y,d.radius+18,d.radius+15,valid?'#74b49f55':'#d77e8255',valid?'#448f78':'#bc5f71',3);pill(ctx,p.x,p.y-d.radius-28,valid?'Tap to grow':'Choose an open spot',valid?'#317560':'#aa5269',valid?'#eff8df':'#f9dce0',17);}
+    if(ui.box){ctx.fillStyle='#3c939622';ctx.strokeStyle='#328585';ctx.lineWidth=2;ctx.fillRect(ui.box.x,ui.box.y,ui.box.w,ui.box.h);ctx.strokeRect(ui.box.x,ui.box.y,ui.box.w,ui.box.h);}
+    ctx.restore();
+  }
+  function minimap(ctx,s,view){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,360,236);ctx.fillStyle='#284e52';ctx.fillRect(0,0,360,236);ctx.save();ctx.scale(.1,.1);ellipse(ctx,W.cx,W.cy,W.rx,W.ry,'#acc998','#6c9e8a',10);if(s.terrain)for(const o of E.TERRAIN)ellipse(ctx,o.x,o.y,o.r,o.r,'#6e8f75');for(let row=0;row<E.ROWS;row++)for(let col=0;col<E.COLS;col++)if(!s.settings.revealMap&&!s.explored[row*E.COLS+col]){ctx.fillStyle='#294b4ade';ctx.fillRect(col*E.GRID,row*E.GRID,E.GRID,E.GRID);}for(const p of s.ports)if(E.visible(s,p)&&p.stock>0)ellipse(ctx,p.x,p.y,18,18,C.resources[p.type].color);for(const b of s.buildings)ellipse(ctx,b.x,b.y,25,25,b.type==='defenseHub'?'#5b96b9':'#edf2db');for(const u of s.units)ellipse(ctx,u.x,u.y,13,13,u.type==='vesicle'?'#57b8a7':'#3e91c4');for(const f of s.foci)if(E.visible(s,f))ellipse(ctx,f.x,f.y,30,30,'#cb6e90');for(const v of s.viruses)if(E.inSight(s,v))ellipse(ctx,v.x,v.y,16,16,'#dc8da8');ctx.strokeStyle='#ffffff';ctx.lineWidth=10;ctx.strokeRect(view.cx-view.width/view.scale/2,view.cy-view.height/view.scale/2,view.width/view.scale,view.height/view.scale);ctx.restore();}
+  return {render,minimap,icons};
+})();
+
+</script><script>
+'use strict';
+(()=>{
+  const E=window.CellEngine,C=window.CellContent,S=window.CellSaves,A=window.CellArt,$=id=>document.getElementById(id);
+  const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
+  const canvas=$('world'),ctx=canvas.getContext('2d');
+  let state=S.load()||E.fresh(),started=false,paused=false,last=performance.now(),hudClock=0,saveClock=0,toastTimer=null,selectionKey='',lastEvent='',pendingVictory=false;
+  const ui={selected:[],buildType:null,hover:null,marker:null,box:null,command:null,buildMenu:false};
+  const view={width:800,height:460,dpr:1,scale:.4,cx:E.WORLD.cx,cy:E.WORLD.cy};
+  const dialogs=['tech-dialog','welcome-dialog','guide-dialog','progress-dialog','finish-dialog','rescue-dialog','new-game-dialog'];
+  function show(id){const d=$(id);if(!d.open)d.showModal();}
+  function close(id){$(id).close();}
+  function anyDialog(){return dialogs.some(id=>$(id).open);}
+  function toast(text){$('toast').textContent=text;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,4000);}
+  function result(r){if(!r.ok)toast(r.message);selectionKey='';hud();return r.ok;}
+  function save(){if(!started)return;const ok=S.save(state);$('save-status').textContent=ok?'Progress saved in this browser.':'Autosave is unavailable. Download a save to keep your progress.';return ok;}
+  function home(){const b=state.buildings.find(b=>b.type==='nucleus');view.cx=b?.x||850;view.cy=b?.y||1180;view.scale=Math.max(.6,Math.min(1.1,view.width/1200,view.height/850));clampView();}
+  let viewReady=false;
+  function fit(){view.scale=Math.min(view.width/E.WORLD.w,view.height/E.WORLD.h)*.99;view.cx=E.WORLD.cx;view.cy=E.WORLD.cy;}
+  function resize(){const rect=$('canvas-wrap').getBoundingClientRect();view.width=rect.width;view.height=rect.height;view.dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(rect.width*view.dpr);canvas.height=Math.round(rect.height*view.dpr);if(!viewReady){home();viewReady=true;}}
+  new ResizeObserver(resize).observe($('canvas-wrap'));
+  function worldPoint(clientX,clientY){const rect=canvas.getBoundingClientRect();return {x:(clientX-rect.left-view.width/2)/view.scale+view.cx,y:(clientY-rect.top-view.height/2)/view.scale+view.cy};}
+  function zoom(factor,anchor){const old=view.scale,min=Math.min(view.width/E.WORLD.w,view.height/E.WORLD.h)*.8;view.scale=Math.max(min,Math.min(1.5,view.scale*factor));if(anchor){view.cx=anchor.x-(anchor.x-view.cx)*old/view.scale;view.cy=anchor.y-(anchor.y-view.cy)*old/view.scale;}clampView();}
+  function clampView(){view.cx=Math.max(150,Math.min(E.WORLD.w-150,view.cx));view.cy=Math.max(100,Math.min(E.WORLD.h-100,view.cy));}
+  function select(ids){ui.selected=ids;ui.buildMenu=false;$('growth-tray').hidden=true;ui.buildType=null;ui.command=null;$('placement-note').hidden=true;selectionKey='';hud();}
+  function selectKind(kind){select(state.units.filter(u=>u.type===kind).map(u=>u.id));if(!ui.selected.length)toast('Make '+(C.units[kind]?.name||'units')+' at its production organelle.');}
+  function selectArmy(){select(state.units.filter(u=>C.units[u.type].damage>0).map(u=>u.id));if(!ui.selected.length)toast('Make antiviral proteins at a ribosome station first.');}
+  function hit(p){
+    const u=state.units.filter(u=>E.DIST(u,p)<Math.max(26,17/view.scale)).sort((a,b)=>E.DIST(a,p)-E.DIST(b,p))[0];if(u)return {kind:'unit',object:u};
+    const port=state.ports.find(p2=>E.visible(state,p2)&&E.DIST(p,p2)<Math.max(38,23/view.scale));if(port)return {kind:'port',object:port};
+    const enemy=state.viruses.find(v=>E.inSight(state,v)&&E.DIST(v,p)<Math.max(25,20/view.scale));if(enemy)return {kind:'enemy',object:enemy};
+    const f=state.foci.find(f=>E.visible(state,f)&&E.DIST(f,p)<Math.max(58,25/view.scale));if(f)return {kind:'focus',object:f};
+    const b=state.buildings.findLast(b=>E.DIST(b,p)<C.buildings[b.type].radius+14);if(b)return {kind:'building',object:b};
+    return null;
+  }
+  function clickMap(p,multi=false,forceCommand=false,contextCommand=false){
+    if(!started||anyDialog())return;
+    const target=hit(p),unitIds=ui.selected.filter(id=>state.units.some(u=>u.id===id));
+    if(ui.buildType){if(result(E.grow(state,ui.buildType,p,unitIds))){ui.buildType=null;$('placement-note').hidden=true;ui.buildMenu=false;$('growth-tray').hidden=true;save();}return;}
+    if(ui.command==='rally'){const id=ui.selected.find(id=>state.buildings.some(b=>b.id===id));if(E.setRally(state,id,{...p,kind:target?.kind==='port'?'port':'move',id:target?.object.id})){toast('Rally point set. New units will go there.');ui.marker=p;}ui.command=null;return;}
+    if(target?.kind==='unit'&&!forceCommand&&!ui.command){select(multi?[...new Set([...ui.selected,target.object.id])]:[target.object.id]);return;}
+    if(!forceCommand&&!contextCommand&&!ui.command){if(target)select(multi?[...new Set([...ui.selected,target.object.id])]:[target.object.id]);else select([]);return;}
+    let order=null;
+    if(unitIds.length&&target?.kind==='port')order={kind:'port',id:target.object.id};
+    if(unitIds.length&&['focus','enemy'].includes(target?.kind))order={kind:target.kind,id:target.object.id};
+    if(unitIds.length&&target?.kind==='building'&&state.units.some(u=>unitIds.includes(u.id)&&u.type==='vesicle')&&(target.object.progress<1||target.object.hp<C.buildings[target.object.type].hp))order={kind:target.object.progress<1?'build':'repair',id:target.object.id};
+    if(!order&&unitIds.length&&(!target||forceCommand||ui.command==='attackmove'))order={kind:ui.command==='attackmove'?'attackmove':'move',...p};
+    if(unitIds.length&&ui.command==='attackmove'&&!['focus','enemy'].includes(target?.kind))order={kind:'attackmove',...p};if(unitIds.length&&ui.command==='move')order={kind:'move',...p};
+    if(order){if(E.order(state,unitIds,order,multi)){ui.marker=p;toast(order.kind==='port'?'Worker route assigned.':order.kind==='attackmove'?'Attack-move: teams engage infection along the route.':order.kind==='repair'?'Workers are repairing the organelle.':'Order given.');}else toast('Choose workers for cargo and repairs, or protein teams for infection.');ui.command=null;return;}
+    if(target){select([target.object.id]);return;}select([]);
+  }
+  const pointers=new Map();let gesture=null,pinchStart=null,edgeCursor=null;
+  canvas.addEventListener('pointerdown',ev=>{
+    if(anyDialog())return;canvas.setPointerCapture(ev.pointerId);pointers.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+    if(pointers.size===2){const [a,b]=[...pointers.values()];pinchStart={distance:Math.hypot(a.x-b.x,a.y-b.y),scale:view.scale};gesture=null;return;}
+    const p=worldPoint(ev.clientX,ev.clientY);gesture={x:ev.clientX,y:ev.clientY,cx:view.cx,cy:view.cy,p,moved:false,box:ev.pointerType!=='touch'&&ev.button!==1&&ev.button!==2&&!ev.altKey,multi:ev.shiftKey,command:ev.button===2,context:ev.pointerType==='touch'};
+  });
+  canvas.addEventListener('pointermove',ev=>{
+    const p=worldPoint(ev.clientX,ev.clientY);ui.hover=p;const rect=canvas.getBoundingClientRect();edgeCursor=ev.pointerType==='touch'?null:{x:ev.clientX-rect.left,y:ev.clientY-rect.top};
+    if(pointers.has(ev.pointerId))pointers.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+    if(pointers.size===2&&pinchStart){const [a,b]=[...pointers.values()],distance=Math.hypot(a.x-b.x,a.y-b.y);zoom((pinchStart.scale*distance/Math.max(1,pinchStart.distance))/view.scale);return;}
+    if(!gesture||!pointers.has(ev.pointerId))return;const dx=ev.clientX-gesture.x,dy=ev.clientY-gesture.y;
+    if(Math.hypot(dx,dy)>8)gesture.moved=true;
+    if(gesture.moved){if(gesture.box)ui.box={x:Math.min(gesture.p.x,p.x),y:Math.min(gesture.p.y,p.y),w:Math.abs(p.x-gesture.p.x),h:Math.abs(p.y-gesture.p.y)};else{view.cx=gesture.cx-dx/view.scale;view.cy=gesture.cy-dy/view.scale;clampView();}}
+  });
+  function pointerEnd(ev,canceled=false){
+    pointers.delete(ev.pointerId);if(pinchStart){if(pointers.size<2)pinchStart=null;gesture=null;return;}
+    if(gesture&&!canceled){if(ui.box){const b=ui.box;select(state.units.filter(u=>u.x>=b.x&&u.x<=b.x+b.w&&u.y>=b.y&&u.y<=b.y+b.h).map(u=>u.id));}else if(!gesture.moved)clickMap(worldPoint(ev.clientX,ev.clientY),gesture.multi,gesture.command,gesture.context);}
+    ui.box=null;gesture=null;
+  }
+  canvas.addEventListener('pointerleave',()=>edgeCursor=null);
+  canvas.addEventListener('pointerup',ev=>pointerEnd(ev));canvas.addEventListener('pointercancel',ev=>pointerEnd(ev,true));
+  canvas.addEventListener('wheel',ev=>{ev.preventDefault();zoom(Math.exp(-ev.deltaY*.001),worldPoint(ev.clientX,ev.clientY));},{passive:false});
+  canvas.addEventListener('dblclick',ev=>{const h=hit(worldPoint(ev.clientX,ev.clientY));if(h?.kind==='unit')selectKind(h.object.type);});
+  canvas.addEventListener('contextmenu',ev=>ev.preventDefault());
+  document.addEventListener('keydown',ev=>{
+    if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;
+    if(ev.key==='Escape'&&(ui.buildType||ui.buildMenu)){ui.buildType=null;ui.buildMenu=false;$('growth-tray').hidden=true;$('placement-note').hidden=true;selectionKey='';hud();return;}
+    if(anyDialog())return;
+    if(ev.code==='Space'){ev.preventDefault();togglePause();}
+    if(/^[1-9]$/.test(ev.key)){if(ev.ctrlKey){ev.preventDefault();state.groups[ev.key]=[...ui.selected];toast('Control group '+ev.key+' saved.');}else if(state.groups[ev.key])select(state.groups[ev.key].filter(id=>state.units.some(u=>u.id===id)||state.buildings.some(b=>b.id===id)));else if(ev.key==='1')selectKind('vesicle');else if(ev.key==='2')selectArmy();else if(ev.key==='3')selectKind('sensor');}
+    if(ev.key.toLowerCase()==='b')openBuildMenu();
+    if(ev.key.toLowerCase()==='m'){ui.command='move';toast('Move: choose a destination.');}
+    if(ev.key.toLowerCase()==='a'){ui.command='attackmove';toast('Attack-move: choose a destination.');}
+    if(ev.key.toLowerCase()==='h'){home();const b=state.buildings.find(b=>b.type==='nucleus');select([b.id]);}
+    if(ev.key==='.')selectIdle();
+    if(ev.key.toLowerCase()==='g')E.auto(state,ui.selected);
+    if(ev.key.toLowerCase()==='s'){E.order(state,ui.selected,{kind:'hold'});ui.command=null;}
+    const pan={ArrowLeft:[-70,0],ArrowRight:[70,0],ArrowUp:[0,-70],ArrowDown:[0,70]}[ev.key];if(pan){ev.preventDefault();view.cx+=pan[0]/view.scale;view.cy+=pan[1]/view.scale;clampView();}
+  });
+  $('zoom-in').onclick=()=>zoom(1.25);$('zoom-out').onclick=()=>zoom(.8);$('fit-button').onclick=fit;$('home-button').onclick=home;
+  function togglePause(){paused=!paused;$('pause-button').textContent=paused?'▶ Resume':'Ⅱ Pause';$('pause-overlay').hidden=!paused;save();}
+  $('pause-button').onclick=togglePause;$('resume-button').onclick=()=>{if(paused)togglePause();};
+  $('fullscreen-button').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('Full screen is unavailable here. The game still works in this window.');}};
+  $('help-button').onclick=()=>{$('strategy-panel').hidden=!$('strategy-panel').hidden;};
+  $('build-menu-button').onclick=openBuildMenu;
+  $('close-build-menu').onclick=()=>{ui.buildMenu=false;$('growth-tray').hidden=true;};
+  function openBuildMenu(){const workers=state.units.filter(u=>u.type==='vesicle');if(!workers.length){toast('Make a transport worker at the Golgi apparatus first.');return;}if(!ui.selected.some(id=>workers.some(u=>u.id===id))){const u=E.idleWorkers(state)[0]||workers.find(u=>u.order!=='build')||workers[0];select([u.id]);}ui.buildMenu=true;$('growth-tray').hidden=false;}
+  $('speed-select').value=state.settings.speed;$('speed-select').onchange=()=>{state.settings.speed=Number($('speed-select').value);save();};
+  $('motion-toggle').checked=state.settings.reducedMotion||matchMedia('(prefers-reduced-motion: reduce)').matches;state.settings.reducedMotion=$('motion-toggle').checked;
+  $('motion-toggle').onchange=()=>{state.settings.reducedMotion=$('motion-toggle').checked;save();};
+  $('cancel-build').onclick=()=>{ui.buildType=null;$('placement-note').hidden=true;selectionKey='';hud();};
+  const growTypes=['vesiclePool','mitochondrion','ribosome','smoothER','golgi','lysosome','roughER','centrosome','defenseHub'];
+  const buildButtons={};
+  function costs(cost){return Object.entries(cost).map(([k,n])=>`${n} ${C.resources[k].name.toLowerCase()}`).join(' · ');}
+  for(const type of growTypes){const d=C.buildings[type],button=el('button',undefined,'build-button');button.dataset.type=type;button.title=`${d.tip}\n${costs(d.cost)}`;button.append(el('span',A.icons[type],'mini-icon'),el('strong',type==='mitochondrion'?'Mitochondrion':type==='ribosome'?'Ribosomes':type==='smoothER'?'Smooth ER':type==='roughER'?'Rough ER':d.name),el('small',d.short),el('small',costs(d.cost),'build-cost'));button.onclick=()=>{if(state.tier<(d.tier||1)){toast('Requires research tier '+['','I','II','III','IV'][d.tier]+'. Open the technology tree.');return;}if(d.requires&&!state.buildings.some(b=>b.type===d.requires&&b.hp>0&&b.progress===1)){toast('Grow an active '+C.buildings[d.requires].name+' first.');return;}if(!E.afford(state,d.cost)){toast(`Needs ${costs(d.cost)}.`);return;}if(!ui.selected.some(id=>state.units.some(u=>u.id===id&&u.type==='vesicle')))openBuildMenu();ui.buildType=type;ui.buildMenu=false;$('growth-tray').hidden=true;$('placement-note').hidden=false;selectionKey='';toast(`Grow ${d.name}: ${costs(d.cost)}. Tap an open spot inside the cell.`);hud();};$('build-buttons').append(button);buildButtons[type]=button;}
+  const resourceLabels={},resourceWorkers={};for(const [key,r] of Object.entries(C.resources)){const wrap=el('div',undefined,'resource'),icon=el('span',r.icon,'resource-icon');icon.style.color=r.color;const words=el('div'),label=el('span',r.name,'resource-name'),number=el('strong','0');const workerCount=el('span','','resource-workers');resourceWorkers[key]=workerCount;words.append(label,number,el('span',r.group,'resource-group'),workerCount);wrap.append(icon,words);wrap.title=r.group;$('resource-bar').append(wrap);resourceLabels[key]=number;}
+  function action(label,fn){const button=el('button',label);button.onclick=fn;$('selection-actions').append(button);return button;}
+  function selectionPanel(){
+    const selected=ui.selected.map(id=>state.units.find(u=>u.id===id)||state.buildings.find(b=>b.id===id)||state.ports.find(p=>p.id===id)||state.foci.find(f=>f.id===id)||state.viruses.find(v=>v.id===id)).filter(Boolean);
+    const key=ui.selected.join(',')+':'+state.formation+':'+selected.map(o=>(o.queue?.map(q=>q.kind).join(',')||'')+o.auto+(o.hp===0)+o.research?.key).join(',')+':'+state.tier+':'+state.upgrades.join(',')+':'+(selected[0]?.progress===1);
+    if(key===selectionKey)return;selectionKey=key;$('selection-actions').replaceChildren();
+    if(!selected.length){$('selection-panel').hidden=true;return;}
+    $('selection-panel').hidden=false;
+    const b=selected[0];
+    if(state.units.some(u=>u.id===b.id)){
+      const workers=selected.every(u=>u.type==='vesicle');$('selection-icon').textContent=workers?'◌':'✦';$('selection-title').textContent=selected.length>1?selected.length+' units selected':C.units[b.type].name+' · '+C.units[b.type].role;$('selection-description').textContent=workers?'Right-click or tap cargo to gather; construction sites to build; damaged organelles to repair. Shift commands queue orders.':'Attack-move engages along the route. Guard protects this position. Scout proteins reveal unobserved areas.';
+      action('Move (M)',()=>{ui.command='move';toast('Choose a map destination.');});if(workers)action('Build (B)',openBuildMenu);action(workers?'Auto gather':'Guard (G)',()=>E.auto(state,ui.selected));if(!workers)action('Attack-move (A)',()=>{ui.command='attackmove';toast('Choose a destination on the map.');});action('Hold (S)',()=>E.order(state,ui.selected,{kind:'hold'}));action(workers?'All workers':'All protein teams',workers?()=>selectKind('vesicle'):selectArmy);if(!workers)for(const [kind,label] of [['line','Line'],['box','Box'],['spread','Spread']]){const btn=action((state.formation===kind?'✓ ':'')+label,()=>{E.setFormation(state,kind);selectionKey='';hud();toast(label+' formation: applies to the next move order.');});btn.title='Arrange destination positions for the next move or attack-move order.';}if(selected.length===1&&!workers){const d=C.units[b.type];$('selection-description').textContent=d.tip+' Game stats: '+Math.ceil(b.hp)+'/'+d.hp+' integrity · '+d.damage+' response/s · '+d.range+' range';}return;
+    }
+    if(state.ports.some(p=>p.id===b.id)){$('selection-icon').textContent=C.resources[b.type].icon;$('selection-title').textContent=C.resources[b.type].name+' cargo';$('selection-description').textContent='Assign a worker to this route. Cargo is delivered to the nearest active lysosome for digestion or processing. '+(b.renewable===false?'This deposit has '+b.stock+' cargo left and will run out.':'Membrane imports replenish slowly.');action('Assign one worker',()=>{const u=state.units.find(u=>u.type==='vesicle'&&u.order!=='build');if(u){E.order(state,[u.id],{kind:'port',id:b.id});select([u.id]);}});return;}
+    if(state.foci.some(f=>f.id===b.id)||state.viruses.some(v=>v.id===b.id)){$('selection-icon').textContent='✺';$('selection-title').textContent=state.foci.includes(b)?(b.kind==='core'?'Viral replication core':b.kind==='assembly'?'Viral assembly site':'Viral replication site'):C.enemyTypes[b.kind||'cargo'].name;$('selection-description').textContent='An infected region using host-cell machinery. Clear these sites to stop the opponent. RNase complexes work especially well against replication sites.';action('Send protein teams',()=>{const ids=state.units.filter(u=>C.units[u.type].damage>0).map(u=>u.id);if(!ids.length){toast('Make protein teams first.');return;}E.order(state,ids,{kind:state.foci.includes(b)?'focus':'enemy',id:b.id});select(ids);});return;}
+    const d=C.buildings[b.type];$('selection-icon').textContent=A.icons[b.type];$('selection-title').textContent=d.name+(b.progress<1?' · Growing':b.hp<=0?' · Needs repair':'');$('selection-description').textContent=d.tip;
+    if(b.progress<1||b.hp<d.hp){action('Assign repair/build worker',()=>{const u=state.units.find(u=>u.type==='vesicle'&&u.order!=='build');if(u)E.order(state,[u.id],{kind:b.progress<1?'build':'repair',id:b.id});});if(b.progress<1||b.hp<=0)return;}
+    for(const [kind,u] of Object.entries(C.units))if(u.producer===b.type){const btn=action('＋ '+u.name,()=>result(E.queue(state,b.id,kind)));btn.title=(u.tip||'')+' · '+costs(u.cost)+(u.tier>state.tier?' · Tier '+['','I','II','III','IV'][u.tier]+' required':'');btn.append(el('small',costs(u.cost)));btn.disabled=u.tier>state.tier;}
+    if(Object.values(C.units).some(u=>u.producer===b.type))action('Set rally point',()=>{ui.command='rally';toast('Tap a destination or a cargo site for new units.');});
+    if(b.queue.length){const queue=el('span','Queue: '+b.queue.map(q=>C.units[q.kind].role).join(' → '),'queue-label');$('selection-actions').append(queue);action('Cancel last unit',()=>{E.cancelQueue(state,b.id);selectionKey='';hud();});}
+    for(const [key,r] of Object.entries(C.research))if(r.at===b.type&&r.tier<=state.tier&&!state.upgrades.includes(key)&&!(key==='tier2'&&state.tier>=2)&&!(key==='tier3'&&state.tier>=3)&&!(key==='tier4'&&state.tier>=4)){const btn=action('↑ '+r.name,()=>result(E.research(state,b.id,key)));btn.title=r.tip+' · '+costs(r.cost);btn.append(el('small',costs(r.cost)));btn.disabled=!!b.research;}
+    if(b.research){const r=C.research[b.research.key];$('selection-actions').append(el('span',r.name+' underway','queue-label'));}
+    if(b.type==='ribosome'||b.type==='smoothER')action(b.auto?'Pause materials':'Resume materials',()=>{b.auto=!b.auto;selectionKey='';hud();});
+    if(b.type==='nucleus')action('Repair membrane',()=>result(E.repair(state)));
+    action('Cell guide',()=>openGuide(b.type==='mitochondrion'?'Mitochondria':b.type==='centrosome'?'Centrioles':b.type==='roughER'?'Rough endoplasmic':b.type==='smoothER'?'Smooth endoplasmic':b.type==='ribosome'?'Ribosomes':d.name));
+  }
+  function hud(){
+    for(const [key,num] of Object.entries(resourceLabels))num.textContent=Math.floor(Math.max(0,state.resources[key]));
+    $('health-value').textContent=Math.round(state.health)+'%';$('health-fill').style.width=state.health+'%';$('health-fill').style.background=state.health<35?'#c76876':'#58aa91';
+    const growth=E.growth(state);$('growth-value').textContent=growth+'%';$('growth-fill').style.width=growth+'%';
+    $('goal-details').textContent=`Tier ${state.tier}/4 · ${state.foci.length} viral sites left`;
+    $('tier-value').textContent='RESEARCH TIER '+['','I','II','III','IV'][state.tier]+' · '+C.tiers[state.tier-1];$('population-value').textContent=E.population(state)+' / '+E.capacity(state)+' capacity (includes queues)';
+    $('hud-tier').textContent='Tier '+['','I','II','III','IV'][state.tier];$('hud-capacity').textContent=E.population(state)+' / '+E.capacity(state)+' units';$('hud-health').textContent='Membrane '+Math.round(state.health)+'%';$('hud-idle').textContent='Idle: '+E.idleWorkers(state).length;
+    const workers=state.units.filter(u=>u.type==='vesicle');const assignments={glucose:0,amino:0,lipid:0,nucleotide:0};for(const u of workers){if(['auto','gather'].includes(u.order)){const port=state.ports.find(p=>p.id===u.site);if(port)assignments[port.type]++;}}$('worker-summary').textContent=workers.length+' workers · '+workers.filter(u=>u.order==='build'||u.order==='repair').length+' building/repairing';for(const [key,num] of Object.entries(resourceWorkers))num.textContent=assignments[key]===undefined?'Produced by organelles':assignments[key]+' workers';$('idle-button').textContent='Idle workers (.) · '+E.idleWorkers(state).length;
+    const raidCountdown=$('raid-countdown'),hudRaid=$('hud-raid-countdown');
+    const showRaid=(sidebar,hud,kind='')=>{raidCountdown.textContent=sidebar;raidCountdown.className='raid-countdown'+(kind?' '+kind:'');if(hudRaid){hudRaid.textContent=hud;hudRaid.className='hud-raid-countdown'+(kind?' '+kind:'');}};
+    if(state.victorySeen||!state.foci.length){showRaid('Viral network cleared','🦠 VIRAL NETWORK CLEARED','safe');$('threat-text').textContent='Peaceful growth.';}
+    else{const remaining=Math.max(0,(state.ai.next??state.elapsed)-state.elapsed),first=!state.ai.spawned;if(remaining>0){const seconds=Math.ceil(remaining),minutes=Math.floor(seconds/60),rest=String(seconds%60).padStart(2,'0'),clock=`${minutes}:${rest}`;showRaid(`${first?'First attack':'Next attack'} in ${clock}`,`🦠 ${first?'FIRST VIRUS':'NEXT VIRUS'} ${clock}`,seconds<=15?'imminent':'');}
+      else if(state.viruses.length>=12){showRaid('Next attack waiting','🦠 NEXT VIRUS WAITING');}
+      else{showRaid('VIRUS ATTACK IMMINENT','🦠 VIRUS ATTACK NOW','imminent');}
+      $('threat-text').textContent=`${state.viruses.length} viral cargo · ${state.foci.length} production sites`;
+    }
+    let hint;
+    if(!state.tutorial.route)hint='Assign a worker to a cargo route. Glucose fuels ATP; amino acids supply protein production.';
+    else if(state.units.filter(u=>u.type==='vesicle').length<4)hint='Select the Golgi apparatus and make another worker. Split workers across different cargo routes.';
+    else if(state.stats.built<2)hint='Grow a vesicle pool for capacity and smooth ER for lipids. Workers must build them. Two grown structures unlock tier II.';
+    else if(state.tier<2)hint='Select the nucleus and research tier II. It unlocks RNase complexes for clearing replication sites.';
+    else if(state.units.filter(u=>C.units[u.type].damage>0).length<5)hint='Make a mixed team: antiviral proteins protect RNase site breakers. Grow rough ER to train ranged support. Scout toward the right.';
+    else if(state.health<65)hint='Repair your membrane and damaged organelles. Workers can repair the structures you select.';
+    else if(!state.foci.length&&state.viruses.length)hint='Replication sites are clear! Use your teams to clear the remaining viral cargo. Check the minimap for pink dots.';
+    else hint=state.victorySeen?'Your cell is safe. Continue growing or share your progress.':'Select your protein teams, choose Attack-move, and push toward the viral sites on the right.';
+    $('next-step').textContent=hint;
+    for(const type of growTypes){const b=buildButtons[type];b.disabled=state.buildings.filter(x=>x.type===type).length>=C.buildings[type].limit;b.classList.toggle('active',ui.buildType===type);const d=C.buildings[type];b.style.opacity=E.afford(state,d.cost)&&state.tier>=(d.tier||1)?'1':'.55';b.title=d.tip+' · '+costs(d.cost)+(state.tier<(d.tier||1)?' · Requires tier '+d.tier:'');}
+    $('repair-button').disabled=state.health>=99||state.repairClock>0;
+    const recent=state.events.at(-1);if(recent&&recent.text!==lastEvent){lastEvent=recent.text;$('event-line').textContent=recent.text;$('event-line').className='event-line '+recent.type;}
+    selectionPanel();
+  }
+  $('quick-defender').onclick=()=>{const ribosomes=state.buildings.filter(b=>b.type==='ribosome'&&b.progress===1).sort((a,b)=>a.queue.length-b.queue.length);if(ribosomes.length)result(E.queue(state,ribosomes[0].id,'antiviral'));};
+  $('repair-button').onclick=()=>result(E.repair(state));
+  $('hint-button').onclick=()=>{let target;if(!state.tutorial.route){selectKind('vesicle');target=state.ports.find(p=>p.renewable===false&&p.stock>0&&E.visible(state,p))||state.ports[0];}else if(state.units.filter(u=>u.type==='vesicle').length<4){target=state.buildings.find(b=>b.type==='golgi');select([target.id]);}else if(state.stats.built<2){buildButtons[state.buildings.some(b=>b.type==='vesiclePool')?'smoothER':'vesiclePool'].click();target=state.buildings.some(b=>b.type==='vesiclePool')?{x:610,y:1430}:{x:970,y:1570};}else if(state.tier<2){target=state.buildings.find(b=>b.type==='nucleus');select([target.id]);}else if(state.units.filter(u=>C.units[u.type].damage>0).length<5){target=state.buildings.find(b=>b.type==='ribosome');select([target.id]);}else{selectArmy();ui.command='attackmove';target=state.foci[0]||{x:2700,y:1180};}if(target){ui.marker={x:target.x,y:target.y};view.cx=target.x;view.cy=target.y;view.scale=Math.min(.72,Math.max(.55,view.scale));clampView();}};
+  $('scout-button').onclick=()=>{selectKind('sensor');toast('Scout selected. Tap the right side to explore.');};
+  $('advance-button').onclick=()=>{const b=state.buildings.find(b=>b.type==='nucleus');select([b.id]);result(E.research(state,b.id,state.tier<4?'tier'+(state.tier+1):'tier4'));};
+  $('reveal-toggle').checked=state.settings.revealMap;$('reveal-toggle').onchange=()=>{state.settings.revealMap=$('reveal-toggle').checked;save();};
+  const mini=$('minimap'),miniCtx=mini.getContext('2d');mini.width=360;mini.height=236;
+  let miniDrag=false;
+  function minimapPoint(ev){const r=mini.getBoundingClientRect();return {x:Math.max(0,Math.min(E.WORLD.w,(ev.clientX-r.left)/r.width*E.WORLD.w)),y:Math.max(0,Math.min(E.WORLD.h,(ev.clientY-r.top)/r.height*E.WORLD.h))};}
+  function miniPan(ev){const p=minimapPoint(ev);view.cx=p.x;view.cy=p.y;clampView();}
+  mini.addEventListener('pointerdown',ev=>{ev.preventDefault();mini.setPointerCapture(ev.pointerId);if(ev.button===2){clickMap(minimapPoint(ev),ev.shiftKey,true);return;}miniDrag=true;miniPan(ev);});
+  mini.addEventListener('pointermove',ev=>{if(miniDrag)miniPan(ev);});
+  mini.addEventListener('pointerup',()=>miniDrag=false);mini.addEventListener('pointercancel',()=>miniDrag=false);mini.addEventListener('contextmenu',ev=>ev.preventDefault());
+  function selectIdle(){const list=E.idleWorkers(state);if(!list.length){toast('All workers have jobs.');return;}const u=list.find(u=>!ui.selected.includes(u.id))||list[0];select([u.id]);view.cx=u.x;view.cy=u.y;clampView();}
+  $('hud-idle').onclick=selectIdle;
+  $('idle-button').onclick=selectIdle;
+  function openTech(){const list=$('tech-list');list.replaceChildren();for(let tier=1;tier<=4;tier++){const col=el('section',undefined,'tech-column');col.append(el('h3',(['','I','II','III','IV'][tier])+' · '+C.tiers[tier-1]));if(tier>1){const r=C.research['tier'+tier],card=el('article',undefined,'tech-card');card.append(el('strong',r.name),el('p',r.tip),el('small',costs(r.cost)));const btn=el('button',state.tier>=tier?'Completed':'Select nucleus');btn.disabled=state.tier>=tier;btn.onclick=()=>{close('tech-dialog');const b=state.buildings.find(b=>b.type==='nucleus');select([b.id]);home();};card.append(btn);col.append(card);}for(const [type,d] of Object.entries(C.buildings)){if((d.tier||1)!==tier)continue;const card=el('article',undefined,'tech-card');card.append(el('strong',A.icons[type]+' '+d.name),el('p',d.short+(d.requires?' · Requires '+C.buildings[d.requires].name:'')),el('small',Object.keys(d.cost).length?costs(d.cost):'Starting headquarters'));const btn=el('button',state.buildings.some(b=>b.type===type)?'Select structure':'Build structure');btn.onclick=()=>{close('tech-dialog');const b=state.buildings.find(b=>b.type===type&&b.progress===1);if(b){select([b.id]);view.cx=b.x;view.cy=b.y;}else if(buildButtons[type])buildButtons[type].click();};card.append(btn);col.append(card);}for(const [type,d] of Object.entries(C.units)){if(d.tier!==tier)continue;const card=el('article',undefined,'tech-card');card.append(el('strong',d.name+' · '+d.role),el('p',d.tip),el('small','Train at '+C.buildings[d.producer].name+' · '+costs(d.cost)));col.append(card);}for(const [key,d] of Object.entries(C.research)){if(key.startsWith('tier')||d.tier!==tier)continue;const card=el('article',undefined,'tech-card');card.append(el('strong',(state.upgrades.includes(key)?'✓ ':'')+d.name),el('p',d.tip),el('small','At '+C.buildings[d.at].name+' · '+costs(d.cost)));col.append(card);}list.append(col);}show('tech-dialog');}
+  $('tech-button').onclick=openTech;
+  function guideRender(term=''){const list=$('guide-list');list.replaceChildren();const entries=C.guide.filter(x=>x.join(' ').toLowerCase().includes(term.toLowerCase()));for(const [title,text,note] of entries){const card=el('article',undefined,'guide-entry');card.append(el('h3',title),el('p',text),el('p',note,'game-note'));list.append(card);}if(!entries.length)list.append(el('p','No matching entry. Try “ATP”, “membrane”, or “protein”.'));}
+  function openGuide(term=''){$('guide-search').value=term;guideRender(term);show('guide-dialog');}
+  $('guide-button').onclick=()=>openGuide();$('guide-search').oninput=()=>guideRender($('guide-search').value);
+  for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>close(b.dataset.close);
+  $('rescue-dialog').addEventListener('cancel',ev=>ev.preventDefault());
+  function summary(container,r){container.replaceChildren();for(const [value,label] of [[r.growth+'%','Match progress'],[r.health+'%','Membrane integrity'],[r.organelles,'Organelles grown'],[r.defenders,'Defenders made'],[r.infections,'Infections cleared'],[r.tier||'—','Research tier'],[r.upgrades?.length||0,'Upgrades researched']]){const card=el('div',undefined,'report-stat');card.append(el('strong',String(value)),el('span',label));container.append(card);}}
+  function progress(){summary($('progress-summary'),E.report(state,state.studentName));$('student-name').value=state.studentName;$('share-result').hidden=true;$('share-message').textContent=location.protocol==='file:'?'Download a report now. Publish the game on GitHub Pages to enable web progress links.':'Generate a link, then submit it to your teacher through your class assignment.';show('progress-dialog');}
+  $('progress-button').onclick=progress;
+  $('download-save').onclick=()=>{S.exportSave(state);toast('Save downloaded. Keep it somewhere you can find it.');};$('backup-first').onclick=()=>S.exportSave(state);
+  const chooseSave=()=>$('save-file').click();$('load-save').onclick=chooseSave;$('welcome-load').onclick=chooseSave;
+  $('save-file').onchange=async()=>{const file=$('save-file').files[0];if(!file)return;try{const loaded=await S.importFile(file);state=loaded;started=true;paused=false;ui.selected=[];ui.buildType=null;selectionKey='';lastEvent='';for(const id of dialogs)if($(id).open)close(id);$('pause-overlay').hidden=true;$('pause-button').textContent='Ⅱ Pause';$('placement-note').hidden=true;$('speed-select').value=state.settings.speed;$('motion-toggle').checked=state.settings.reducedMotion;$('reveal-toggle').checked=state.settings.revealMap;home();save();hud();toast('Your cell save is loaded.');}catch(err){toast(err instanceof SyntaxError?'That file is not a valid Cell Command JSON save.':err.message);}$('save-file').value='';};
+  function namedReport(){const name=$('student-name').value.trim();if(!name){toast('Enter your first name or class nickname first.');$('student-name').focus();return null;}state.studentName=name;save();return E.report(state,name);}
+  $('create-link').onclick=()=>{const r=namedReport();if(!r)return;if(!/^https?:$/.test(location.protocol)){$('share-message').textContent='Web links work after publishing this game. Use Download report while playing a local file.';return;}const url=new URL(location.href);url.hash='report='+S.encodeReport(r);url.search='';$('share-link').value=url.href;$('share-result').hidden=false;$('share-message').textContent='Your link is ready. Copy it and submit it to your teacher. The report contains your name and progress snapshot.';};
+  $('copy-link').onclick=async()=>{try{await navigator.clipboard.writeText($('share-link').value);toast('Progress link copied. Submit it to your teacher.');}catch{$('share-link').focus();$('share-link').select();toast('Select and copy the link with Ctrl+C, or touch and hold.');}};
+  $('download-report').onclick=()=>{const r=namedReport();if(!r)return;const escape=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const reportHTML=`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cell Command Progress</title><style>body{font:16px system-ui;background:#eef4e9;color:#173f47;margin:0;padding:30px}main{max-width:660px;padding:30px;margin:auto;background:white;border-radius:16px}h1{color:#147f80}table{width:100%;border-collapse:collapse}td{padding:12px;border-bottom:1px solid #dce8dc}li{margin:8px 0}small{color:#607e82}</style><main><small>CELL COMMAND · STUDENT PROGRESS</small><h1>${escape(r.name)}</h1><p>${escape(r.status)} · ${Math.floor(r.seconds/60)} minutes of game time</p><table><tr><td>Match progress</td><td>${r.growth}%</td></tr><tr><td>Membrane integrity</td><td>${r.health}%</td></tr><tr><td>Organelles grown</td><td>${r.organelles}</td></tr><tr><td>Antiviral teams made</td><td>${r.defenders}</td></tr><tr><td>Infections cleared</td><td>${r.infections}</td></tr><tr><td>Research tier</td><td>${r.tier}</td></tr><tr><td>Upgrades researched</td><td>${escape(r.upgrades.join(", ")||"None yet")}</td></tr></table><small>Created ${escape(r.created)}. A student-generated snapshot, not independently verified.</small></main></html>`;S.download('cell-command-progress.html',reportHTML,'text/html');toast('Progress report downloaded. Share this file with your teacher.');};
+  $('new-game-button').onclick=()=>show('new-game-dialog');
+  $('confirm-new').onclick=()=>{state=E.fresh();started=true;paused=false;pendingVictory=false;select([]);for(const id of dialogs)if($(id).open)close(id);$('pause-overlay').hidden=true;$('pause-button').textContent='Ⅱ Pause';$('speed-select').value=state.settings.speed;$('motion-toggle').checked=state.settings.reducedMotion;$('reveal-toggle').checked=state.settings.revealMap;home();save();hud();toast('A new cell is ready.');};
+  $('rescue-button').onclick=()=>{E.rescue(state);close('rescue-dialog');save();hud();};
+  $('keep-growing').onclick=()=>{E.continueGame(state);close('finish-dialog');pendingVictory=false;save();hud();};
+  $('finish-share').onclick=()=>{close('finish-dialog');pendingVictory=true;progress();};
+  $('start-button').textContent=S.load()?'Continue your cell →':'Start your cell →';
+  $('start-button').onclick=()=>{if(!document.fullscreenElement&&document.documentElement.requestFullscreen){try{const request=document.documentElement.requestFullscreen();if(request?.catch)request.catch(()=>{});}catch{}}started=true;close('welcome-dialog');selectKind('vesicle');save();};
+  for(const id of ['welcome-dialog','finish-dialog'])$(id).addEventListener('cancel',ev=>ev.preventDefault());
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){save();last=performance.now();}});window.addEventListener('pagehide',save);
+  function displayReport(r){document.body.classList.add('report-mode');document.documentElement.classList.add('report-mode');$('app').hidden=true;$('report-view').hidden=false;$('report-name').textContent=r.name||'Student progress';const date=new Date(r.created);$('report-date').textContent=`${r.status} · ${Math.floor(r.seconds/60)} minutes of game time · ${Number.isNaN(date.getTime())?'Snapshot':date.toLocaleString()}`;summary($('teacher-summary'),r);const url=new URL(location.href);url.hash='';$('report-play').href=url.href;}
+  if(location.hash.startsWith('#report=')){
+    try{displayReport(S.decodeReport(location.hash.slice(8)));}catch{document.body.classList.add('report-mode');document.documentElement.classList.add('report-mode');$('app').hidden=true;$('report-view').hidden=false;$('report-name').textContent='This progress link could not be read.';$('report-date').textContent='Ask the student to create a new progress link.';$('report-play').href=location.href.split('#')[0];}
+    return;
+  }
+  show('welcome-dialog');hud();
+  function frame(now){
+    const dt=Math.min(.1,Math.max(0,(now-last)/1000));last=now;
+    if(started&&!paused&&!anyDialog()&&!document.hidden&&edgeCursor&&!gesture){const x=edgeCursor.x<18?-1:edgeCursor.x>view.width-18?1:0,y=edgeCursor.y<18?-1:edgeCursor.y>view.height-18?1:0;view.cx+=x*dt*260/view.scale;view.cy+=y*dt*260/view.scale;clampView();}
+    if(started&&!paused&&!anyDialog()&&!document.hidden){E.update(state,dt*state.settings.speed);saveClock+=dt;if(saveClock>=5){saveClock=0;save();}}
+    hudClock+=dt;if(hudClock>.2){hudClock=0;hud();}
+    A.render(ctx,state,view,ui,now/1000);A.minimap(miniCtx,state,view);
+    const b=state.buildings.find(b=>ui.selected.includes(b.id));$('queue-status').textContent=b?.research?C.research[b.research.key].name+' · '+Math.ceil(b.research.remaining)+' s':b?.queue.length?'Production: '+b.queue.map(q=>C.units[q.kind].role+' '+Math.ceil(q.remaining)+'s'+(state.units.length>=E.capacity(state)?' (capacity blocked)':'')).join(' · '):ui.command==='attackmove'?'ATTACK-MOVE: choose a map destination':ui.command==='rally'?'RALLY POINT: choose a destination':'';
+    if(started&&!anyDialog()){
+      if(state.status==='rescue')show('rescue-dialog');
+      else if(state.status==='won'){summary($('finish-summary'),E.report(state,state.studentName));show('finish-dialog');save();}
+      else if(pendingVictory){pendingVictory=false;summary($('finish-summary'),E.report(state,state.studentName));show('finish-dialog');}
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  // Small read-only diagnostics are useful for classroom troubleshooting.
+  window.CellCommand={snapshot:()=>E.clone(state),view:()=>({...view}),version:'4.0.0'};
+})();
+
 </script>
-</body>
-</html>
+</body></html>
