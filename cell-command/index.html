@@ -17,7 +17,7 @@ small{opacity:.75}
   try{
     if(!('DecompressionStream' in window)) throw new Error('This browser needs a newer version to load Cell Command.');
     const parts=await Promise.all(Array.from({length:7},(_,i)=>
-      fetch('assets/payload-'+i+'.txt?v=4.0.1-ui',{cache:'no-store'}).then(r=>{
+      fetch('assets/payload-'+i+'.txt?v=4.0.2-countdown',{cache:'no-store'}).then(r=>{
         if(!r.ok) throw new Error('Missing game data part '+(i+1));
         return r.text();
       })
@@ -26,6 +26,23 @@ small{opacity:.75}
     const bin=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
     const stream=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
     let html=await new Response(stream).text();
+
+    const oldOpponent='<div class="opponent"><span class="virus-dot" aria-hidden="true"></span><div><strong>Viral opponent</strong><p id="threat-text">Preparing…</p></div></div>';
+    const newOpponent='<div class="opponent"><span class="virus-dot" aria-hidden="true"></span><div class="opponent-copy"><strong>Viral opponent</strong><p id="raid-countdown" class="raid-countdown">First attack in 3:00</p><p id="threat-text">Preparing…</p></div></div>';
+    if(!html.includes(oldOpponent)) throw new Error('Unable to install the virus countdown display.');
+    html=html.replace(oldOpponent,newOpponent);
+
+    const threatPattern=/\$\('threat-text'\)\.textContent=state\.victorySeen\?[^;]+;/;
+    const countdownLogic=`const raidCountdown=$('raid-countdown');
+    if(state.victorySeen||!state.foci.length){raidCountdown.textContent='Viral network cleared';raidCountdown.className='raid-countdown safe';$('threat-text').textContent='Peaceful growth.';}
+    else{const remaining=Math.max(0,state.ai.next-state.elapsed),label=state.ai.spawned?'Next attack':'First attack';if(remaining>0){const seconds=Math.ceil(remaining),minutes=Math.floor(seconds/60),rest=String(seconds%60).padStart(2,'0');raidCountdown.textContent=label+' in '+minutes+':'+rest;raidCountdown.className='raid-countdown'+(seconds<=15?' imminent':'');}
+      else if(state.viruses.length>=12){raidCountdown.textContent='Next attack waiting';raidCountdown.className='raid-countdown';}
+      else{raidCountdown.textContent='VIRUS ATTACK IMMINENT';raidCountdown.className='raid-countdown imminent';}
+      $('threat-text').textContent=state.viruses.length+' viral cargo · '+state.foci.length+' production sites';
+    }`;
+    if(!threatPattern.test(html)) throw new Error('Unable to connect the virus countdown to the game timer.');
+    html=html.replace(threatPattern,countdownLogic);
+
     const compactControls=`<style>
 .selection-panel{gap:9px!important;min-height:62px!important;padding:8px 10px!important;border-radius:10px!important;margin-top:8px!important}
 .selection-panel[hidden]{display:none!important}
@@ -35,6 +52,12 @@ small{opacity:.75}
 #selection-actions{gap:4px!important}
 #selection-actions button{font-size:9px!important;padding:5px 7px!important;border-radius:8px!important}
 #selection-actions button small{font-size:8px!important}
+</style>`;
+    const countdownStyle=`<style>
+.opponent-copy{min-width:0}
+.opponent .raid-countdown{font-size:13px!important;font-weight:800!important;color:#a34859!important;margin:4px 0 0!important;letter-spacing:.1px}
+.opponent .raid-countdown.imminent{color:#b94355!important}
+.opponent .raid-countdown.safe{color:#147f80!important}
 </style>`;
     const dismissControls=`<script>
 (()=>{
@@ -49,7 +72,7 @@ small{opacity:.75}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 </scr`+`ipt>`;
-    html=html.replace('</head>',compactControls+'</head>').replace('</body>',dismissControls+'</body>');
+    html=html.replace('</head>',compactControls+countdownStyle+'</head>').replace('</body>',dismissControls+'</body>');
     document.open();
     document.write(html);
     document.close();
