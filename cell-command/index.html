@@ -17,7 +17,7 @@ small{opacity:.75}
   try{
     if(!('DecompressionStream' in window)) throw new Error('This browser needs a newer version to load Cell Command.');
     const parts=await Promise.all(Array.from({length:7},(_,i)=>
-      fetch('assets/payload-'+i+'.txt?v=4.0.0',{cache:'no-store'}).then(r=>{
+      fetch('assets/payload-'+i+'.txt?v=4.0.1-ui',{cache:'no-store'}).then(r=>{
         if(!r.ok) throw new Error('Missing game data part '+(i+1));
         return r.text();
       })
@@ -25,7 +25,31 @@ small{opacity:.75}
     const b64=parts.join('').trim();
     const bin=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
     const stream=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
-    const html=await new Response(stream).text();
+    let html=await new Response(stream).text();
+    const compactControls=`<style>
+.selection-panel{gap:9px!important;min-height:62px!important;padding:8px 10px!important;border-radius:10px!important;margin-top:8px!important}
+.selection-panel[hidden]{display:none!important}
+.selection-icon{width:34px!important;height:34px!important;border-radius:10px!important;font-size:20px!important}
+.selection-info strong{font-size:12px!important}
+.selection-info p{font-size:9px!important;line-height:1.35!important;margin:2px 0 0!important;max-width:560px!important}
+#selection-actions{gap:4px!important}
+#selection-actions button{font-size:9px!important;padding:5px 7px!important;border-radius:8px!important}
+#selection-actions button small{font-size:8px!important}
+</style>`;
+    const dismissControls=`<script>
+(()=>{
+  const install=()=>{
+    const panel=document.querySelector('.selection-panel');
+    const title=document.getElementById('selection-title');
+    if(!panel||!title)return;
+    const sync=()=>{panel.hidden=title.textContent.trim()==='Your cell';};
+    new MutationObserver(sync).observe(title,{childList:true,subtree:true,characterData:true});
+    sync();
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+})();
+</scr`+`ipt>`;
+    html=html.replace('</head>',compactControls+'</head>').replace('</body>',dismissControls+'</body>');
     document.open();
     document.write(html);
     document.close();
