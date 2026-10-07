@@ -59,3 +59,16 @@ body{display:flex;flex-direction:column}.topbar,.transport{flex-shrink:0}.worksp
 [data-theme=dark] .view-controls span,[data-theme=dark] .time-badge,[data-theme=dark] .stage-status,[data-theme=dark] .measurement-grid small{color:#b0c3dc}
 @media(max-width:860px){body{display:block}.workspace{height:auto}}
 .terrain-brush{margin:10px 0 4px}.terrain-brush input{padding:0;width:100%}.terrain-brush output{font-size:11px;color:var(--muted)}[data-theme=dark] .locked-note{color:#b0c3dc}
+
+.adjust-heading{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--accent,#07856b);margin-top:12px}
+.challenge-variable{border:2px solid #3aa78e;background:#e9faf4;border-radius:10px;margin:7px 0;padding:8px;grid-template-columns:minmax(0,1fr) 92px 38px}
+.challenge-variable label{font-size:12px}.challenge-variable label small{display:block;font-size:10px;font-weight:400;margin-top:4px}.challenge-variable input{min-width:0;width:100%}
+.locked-quantities{background:#edf0f5;border-radius:8px;padding:10px;font-size:11px;line-height:1.5;color:#54667c;margin:10px 0}
+.challenge-card{max-height:calc(100% - 130px);overflow:auto}.challenge-card.minimized{overflow:hidden}
+[data-theme="dark"] .challenge-variable{background:#163c37;border-color:#57b6a0}[data-theme="dark"] .locked-quantities{background:#213249;color:#c2d0e0}
+.key-controls{max-width:min(450px,70%);max-height:160px;overflow:auto}.key-controls summary{cursor:pointer;font-weight:700}.key-controls details div{font-size:11px;margin-top:4px}
+.resource-hud{position:absolute;right:14px;top:68px;max-width:210px;background:#14263ceb;color:#e3f1ff;border-radius:9px;padding:9px 11px;font-size:11px;pointer-events:none;line-height:1.5}.resource-hud b{display:block;color:#87eed0}.object-selector{margin-top:20px}
+@media(max-width:600px){.resource-hud{top:55px;right:7px;max-width:160px;font-size:10px}.challenge-card{max-height:calc(100% - 130px)}.key-controls{max-width:65%}.world-controls{flex-wrap:wrap}}
+
+.challenge-variable{display:grid;grid-template-columns:minmax(0,1fr) 95px 32px;gap:8px;align-items:center}.challenge-variable label{min-width:0}.challenge-variable input{flex:none;width:100%}.key-controls{pointer-events:auto}.resource-hud{top:105px}
+@media(max-width:600px){.challenge-variable{grid-template-columns:minmax(0,1fr) 78px 25px;gap:5px}.challenge-variable label small{font-size:9px}.resource-hud{top:98px}}

@@ -1,76 +1,56 @@
-# Verification record
-
-Verified 2026-10-05.
+# Verification — 2026-10-07
 
 ## Numerical checks
 
-`node tests/physics.test.cjs`: **28 checks passed**.
+`node tests/physics.test.cjs`: **67 checks passed** (38 retained + 29 engineering).
 
-- Constant force: analytic acceleration and velocity; expected finite-step position error.
-- Uniform gravity independent of mass.
-- Balanced vertical forces: hover.
-- No external force: conserved velocity, correct displacement and path distance.
-- Quadratic air drag: predicted terminal speed.
-- Off-center force: torque and angular acceleration from the computed inertia.
-- A 100 m/s projectile colliding with a 0.1 m fixed wall: no translational tunneling in this test.
-- Invalid scene rejection.
-- Resting contact: support force equals weight and net force is zero.
-- Halved time step: halved constant-acceleration position error.
-- All 15 levels pass when tested with their analytic solutions.
+Retained checks cover F = ma, constant-acceleration integration error and step convergence, mass-independent gravity, hovering, coasting, quadratic terminal drag, off-center torque, support forces, old challenge/report solutions, mapped motor/thruster keys and gear geometry. Collision checks cover rotated polygon contact, a rotating rectangle against a 0.06 m wall, 100 m/s projectiles against fixed and moving walls, elastic collision momentum/energy, terrain seams/slopes, moving launcher muzzle inheritance and carrier recoil, and mount/terrain validation.
 
-These are representative verification checks, not a proof of accuracy for arbitrary scenes.
+New checks:
 
-## Browser workflow checks
+- All 15 engineering missions have passing designs and nonpassing starting designs. Their generated scenes pass scene validation.
+- Part budgets, hull/tank/engine limits and integer wheel/tooth counts reject invalid designs.
+- Low tire friction fails the hill challenge; sufficient grip passes.
+- An attached gearbox multiplies torque and divides target rpm. A remote unattached box is inactive.
+- Tank consumption reduces fuel, oxygen, chemical energy and body mass. Depletion stops thrust. Fuel can remain when oxygen runs out.
+- Engines cannot draw from unconnected tanks. Multiple engines cannot consume negative resources.
+- Exhaust kinetic energy does not exceed consumed fuel energy times efficiency, including energy-limited exhaust speeds.
+- A variable-mass vacuum rocket agrees with vₑ ln(mstart/mfinal): measured 65.60549 m/s versus 65.59107 m/s, within 0.03 m/s at the fixed step.
+- Central Earth gravity has the correct direction and 1/r² dependence.
+- Unpowered orbital-speed flight conserves specific orbital energy within the tested finite-step tolerance over 20 s, with velocity above 11 km/s rather than the old engine's translation clamp.
+- Launcher aiming keys (including uppercase mappings) change the next shot direction.
+- Settled bodies sleep, show correct support and wake for thrust.
+- Authored distant bodies remain simulated; explicitly removed transient shots free the 100-shot live limit.
+- Invalid resources and aiming settings are rejected.
 
-Automated in headless Chromium at 1440×900; responsive layout inspected at 390×844.
+## Browser checks
 
-Passed:
+`tests/browser-engineering.test.cjs`, run in headless Chromium:
 
-- Load with all engine/script/style assets local and no JavaScript errors.
-- Draw a circle, inspect it, and change its mass.
-- Run/pause a scene; graph selected motion; download measurements CSV.
-- Load the car example; hold its mapped motor key; observe forward movement.
-- Challenge gravity settings locked and later levels locked until completion or an explicit skip.
-- An incorrect value produces feedback without awarding completion.
-- Complete all 15 challenges through the visible inputs and buttons.
-- Reload restores 15 completed levels automatically.
-- Encode/decode progress with a student name containing special characters.
-- Review a report and reproduce its passing results.
-- Download a full save, clear local storage, import the file, and recover the scene/progress.
-- Open a report URL in a separate teacher browser profile; display the student results without replacing the teacher's own progress.
-- Mobile Explore and Challenges layouts: no horizontal document overflow.
-- Single-file edition: open directly with `file://`, run physics, complete a challenge, and export a save without external assets.
+- All 15 missions entered through highlighted numeric controls; tests advanced the live physics and recorded completion.
+- Full teacher report replay, design values, CSV, portable save/download/import and autosave.
+- Original curriculum progress remains separate and viewable; old report results reproduce.
+- Launcher car's launcher attaches to and moves with its dynamic chassis, not terrain.
+- Distinct default fire keys for new launchers.
+- Keyboard aiming and a repeated-keydown test: one held fire key produces one shot; a fresh press produces the next.
+- Fuel/oxygen consumption with keyboard-controlled spacecraft; resource HUD and Earth mode.
+- Equipment mounting and rectangle rotation via pointer interaction.
+- The follow camera keeps high-speed rockets in view; vehicle follow works beyond the initial window.
+- Offline standalone loaded the new missions with no HTTP requests.
+- Dark and 390 px mobile layouts had no horizontal overflow. No browser JavaScript errors.
+- Separate layout regression checks passed fullscreen entry/exit, independent sidebar collapse/persistence, running physics/graphs preservation and restore controls at 1920, 1024 and 390 px.
 
-Screenshots were visually inspected for the sandbox, graph, desktop challenge, and mobile challenge surfaces.
+## Performance observation
 
-Optional experimental WebMCP integration is feature-detected. The test browser does not provide a native supported WebMCP context; native integration validation is unavailable. Mock-registry verification checks schemas, replacement/read actions, and failure on invalid or locked scenes. Normal app operation does not require this API.
+Chromium on the execution machine, 180 bodies including a floor and 179 colliding circles, default fixed step, normal vectors/rendering, two seconds of wall time:
 
-## Practical limits
+- 121 measured animation frames.
+- Median frame interval: 16.7 ms; 95th percentile: 16.8 ms.
+- Simulation advanced 2.0125 s.
+- No authored bodies were removed for the camera/performance optimization.
 
-Browser behavior was verified in Chromium, not on every possible Chromebook, Safari, or Firefox version. Automatic persistence requires usable local storage; use the downloaded save as a backup. Reports replay the numeric outcomes but do not authenticate the student. Ideal gears and rigid-body contacts are numerical models; read the included Physics notes for assumptions and limits.
+This is one representative benchmark, not a Chromebook or worst-case performance guarantee. Complex terrain, constraints and dense contacts cost more. Solver iterations, CCD, mass and friction were preserved. Offscreen rendering culling, reusable bookkeeping vectors, cached geometry/resource connectivity, sleeping and reduced graph redraws lower costs. The default leaves all physics bodies intact. Optional distant-shot recycling is explicitly destructive and disabled by default.
 
-## Layout update — 2026-10-06
+## Limits
 
-Verified native fullscreen entry/exit and controls synchronized after an external exit. Verified independent sidebar collapse/restore, visible restore buttons, remembered layout after reload, a larger canvas, continued running physics/graphs during panel changes, and the challenge level panel. Checked 1920, 1440, 1024, and 390 pixel viewport widths without horizontal document overflow. No browser JavaScript errors. Physics code was unchanged.
-
-
-## Learning and control update — 2026-10-06
-
-- All 28 numerical checks pass, including held/released keyboard thrust, reversible motor drive, and neighboring gear geometry/ratio enforcement.
-- All 15 missions completed through browser controls with their analytic solutions. Existing completion saves and reports still replay successfully.
-- Dark/light preference survives reload; dark desktop/mobile panels, controls and world were visually inspected.
-- Five tutorials open, and their example loader works. Mission walkthroughs and progressive hints display correctly.
-- Skipping unlocks the next level without awarding completion. Tested skips through the final level, noncontiguous completion recovery, portable save/import, teacher report review, and completion of a previously skipped mission.
-- Car motor keys, thruster keys, release and window blur tested in Chromium. Camera followed the chassis at x=250 m while a wheel was selected for inspection.
-- Nearby gears snap/connect; distant gear constraints are inactive; dragging away disconnects the mesh while preserving axles.
-- Fullscreen and collapsible panels remain operational; desktop and mobile layouts have no horizontal document overflow.
-- Updated single-file edition runs offline, completes a mission, and downloads a save with no network requests or browser script errors.
-
-
-## Rotation, terrain and launcher update — 2026-10-06
-
-`node tests/physics.test.cjs`: **38 checks passed**. Added checks for rotated floor contact, a fast rotated rectangle against a thin wall, fast projectile versus a moving dynamic target, elastic momentum/energy conservation, terrain seam traversal without speed loss, analytic frictionless slope acceleration, fast-shot terrain contact, terrain geometry validation, muzzle point velocity and recoil, and weld-mounted recoil momentum.
-
-Chromium workflows passed: rotation handle with Shift snapping and Undo; ground-to-terrain conversion; raising/lowering and whole-stroke Undo; custom keyboard fire key; inherited projectile velocity; host rotation, launcher detach/remount; catapult swing, keyboard release and airborne motion; Reset reloading the payload; terrain and mounted-launcher save/import; desktop/mobile layout without horizontal overflow. Seven tutorials cover the new workflows. Existing 15 challenges all completed through browser controls; reports, save/import and teacher report URLs passed again. Fullscreen/sidebar layout checks still pass. The updated single-file edition runs offline and exports saves without external requests.
-
-Collision tests use supported classroom scales and nonoverlapping starting objects. Terrain is a chain boundary around a height profile, so overhangs/caves and initial interior penetration are not supported. Recoil tests include the externally supplied projectile's inherited momentum in the initial system; vehicle mass does not deplete. Numerical contact slop is accounted for explicitly in the tests.
+These checks verify representative teaching-scale scenes and selected vacuum spaceflight cases. They do not make every arbitrary configuration exact. Fixed steps and iterative constraints produce error, especially with initial penetration, extreme mass ratios/forces, fast angular motion and long chains. Earth-flight examples omit atmosphere and a full planet surface. Engines are ideal momentum/energy-budget models, with uniformly distributed tank contents. Gearboxes omit rotor inertia/losses. Launchers use externally supplied ammunition. These limits are documented in the app and README.

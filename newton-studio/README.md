@@ -1,125 +1,99 @@
 # Newton Studio
 
-A self-contained 2D Newtonian physics sandbox and a 15-level calculation challenge sequence for a classroom. No account, server, paid service, build step, or CDN is required. The Planck.js physics engine is included locally.
+A browser-based 2D physics workshop with 15 engineering missions, editable examples, graphs and portable student progress. Vanilla JavaScript and vendored Planck.js 1.5.0; no accounts, backend, CDN or build step required.
 
-## Open and play
+[Open the app](https://gabrielw1005.github.io/newton-studio/) · [Source](https://github.com/GabrielW1005/GabrielW1005.github.io/tree/main/newton-studio)
 
-Unzip the package, then open `index.html` in Chrome, Edge, Firefox, or Safari. Keep the accompanying files and `vendor` folder beside it. Alternatively, open the included **Newton_Studio_Standalone.html** file, which contains the entire app in one file.
+Open `index.html` with its accompanying files, or open `Newton_Studio_Standalone.html` for the complete offline edition. For consistent autosave behavior, use the hosted app. Students should also download **Save file**.
 
-Browser storage can behave differently for local files. For reliable automatic saving across sessions, use the published GitHub Pages URL. Students should also use **Save file** at the end of class.
+## Engineering missions
 
-## Publish with GitHub Pages
+Each card clearly separates **YOU CAN ADJUST** controls from **LOCKED** quantities. Tests reconstruct the selected design and run scripted controls in the same physics engine as Explore. Students predict, test and revise; success and skipping both unlock the next mission, but skips never count as completion. Walkthroughs, progressive hints and tutorials are included.
 
-1. Create a new GitHub repository, or use an existing repository for this app.
-2. Upload the contents of this folder so `index.html`, `style.css`, `app.js`, `physics.js`, `challenges.js`, and `vendor/` are at the repository root. Preserve folder names.
-3. In the repository, open **Settings → Pages**. Under the build/deployment source, choose **Deploy from a branch**. Choose your main branch and **/(root)**, then Save.
-4. Once GitHub finishes publishing, use the URL shown on the Pages settings screen. Share that URL with your students. Repository paths work without code changes.
+| Level | Design task | Adjustable variables |
+| --- | --- | --- |
+| 1 | Drive a rover up a hill | Motor torque |
+| 2 | Choose gearing to climb the hill before the deadline | Gear reduction |
+| 3 | Deliver cargo 100 m down a road | Gear reduction |
+| 4 | Find tires that grip the hillside | Tire friction |
+| 5 | Raise a rescue crate with a rigid lifting arm | Motor torque |
+| 6 | Slow an observatory gear to 24 rpm | Driven teeth |
+| 7 | Speed a scanner up to 160 rpm | Driven teeth |
+| 8 | Hit a target-height crossing at 25 m | Launcher angle |
+| 9 | Send a supply pod 60 m | Launch speed |
+| 10 | Build a catapult that lands its payload in a target zone | Motor torque, release time |
+| 11 | Carry enough fuel for a delivery flight | Fuel load; oxygen follows mixture ratio |
+| 12 | Lift a spacecraft off the launch pad | Thruster force |
+| 13 | Reach Earth escape energy | Thruster force |
+| 14 | Win tug-of-war within a parts budget | Wheel count, ballast, torque |
+| 15 | Build an escaping spacecraft within size constraints | Hull width/height, fuel load, thrust |
 
-You can instead upload the standalone file alone and rename it to `index.html`; it contains all required assets. Do not rename it without its `.html` extension.
+Vehicle roads extend over 2 km. The follow camera has no boundaries and keeps fast-moving rockets visible. Explore includes matching hill rovers, geared cars, a long-road car, lifting arm, fueled spacecraft, escape rocket and tug-of-war, plus gears, terrain, projectiles, catapult and launcher car. Explore values remain editable.
 
-Live app: https://gabrielw1005.github.io/newton-studio/
+## Building and controls
 
-Source: https://github.com/GabrielW1005/GabrielW1005.github.io/tree/main/newton-studio
+- Add circles, rectangles, triangles, ground, gears, launchers, thruster hardware, fuel/oxygen tanks and gearboxes. Mass, dimensions, starting velocity, applied forces, friction and restitution are editable.
+- Pause and select a shape. Drag to move, drag the square handle to resize, and drag the round handle to rotate. Shift snaps rotation to 15°. Numeric angles are also available.
+- Raise/lower terrain paints hills and valleys. A stroke on ground converts it to a sampled terrain surface. Undo restores one stroke. Terrain is a finite height profile, without caves or overhangs.
+- Add fixed or body-to-body axles, motors, welds and rigid center-to-center rods. Rods are massless constraints, not ropes. Welds and rods can have a release key.
+- Motors have target rpm, maximum torque, two configurable direction keys and optional automatic operation. Tire contact friction can limit the force actually transmitted to the road.
+- Gear teeth are visual; adjacent, pitch-matched gears snap and connect through ideal fixed-axle constraints. A gearbox is an attachable body with mass and an ideal reduction. Attach/weld it to the chassis and select it for the chassis's wheel motors. Output torque multiplies and output rpm divides by the reduction. An unattached box does not drive a remote motor.
+- Thrusters have force, body-relative direction, offsets, key and always-on control. Off-center forces generate torque. New thrusters default to finite fuel mode; turn off **Use attached fuel + oxygen** for a simple unlimited external-force experiment. Existing saved unlimited thrusters retain their behavior.
+- Fuel tanks, oxygen tanks and thruster hardware attach through an Inspector mount menu or rigid welds. They contribute mass and inertia. Tank **Mass** is empty hardware; **contents** add mass. Fuel has chemical energy in MJ/kg. Engines can only draw from tanks in their own welded assembly.
+- Launchers can be fixed, free moving or mounted to a dynamic shape. Set fire, aim-up and aim-down keys and aim rate. New launchers get distinct default fire keys. Repeated keydown events do not fire repeated shots; release and press again for another shot. Duplicate fire-key assignments are corrected or rejected. Other shared controls are allowed for intentionally synchronized motors/thrusters.
+- Expand **Keyboard controls** on the canvas to see device mappings. Typical car controls: A/D. Rocket: W. Launcher: F to fire, I/K to aim. Catapult: L swing, F release, J return; Reset reloads the payload. Inputs and dialogs consume keystrokes. Run focuses the canvas; release, pause and window blur clear held controls.
+- Pan with Pan or Space+drag, scroll to zoom, and choose a separate camera-follow target. Fullscreen and both sidebar collapse controls remain available; layout and theme are remembered.
+- Toggle velocity, acceleration and force arrows, numbers and graphs. Export selected-body measurements as CSV. Graphs use simulation time, not wall-clock time.
 
-Official publishing instructions: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
+Editing after a run uses current authored body positions and starts a fresh simulation. Reset restores the edited starting scene, including full tanks. Shots are transient and are not saved as authored starting bodies.
 
-## Sandbox features
+## Physics and scientific limits
 
-- Circles, rectangles, triangles, fixed ground, sculpted terrain, gears, and fixed or moving projectile launchers.
-- Drag to place/move shapes; drag the selected corner handle to resize; use the Inspector for precise dimensions, rotation, and mass.
-- An unrestricted pan/zoom camera, origin and fit controls, optional camera follow.
-- Fullscreen button (Esc exits), plus independent Build and Inspector collapse/restore controls. Panel choices are remembered on the device.
-- Earth/Moon/Mars/zero/custom gravity; global air resistance switch; per-object quadratic drag coefficient.
-- Initial linear/angular velocity, constant x/y forces, friction, and restitution.
-- Fixed axles, axles between bodies, rods, welds, motorized axles, ideal gear connections.
-- Motor rpm and maximum torque, two configurable direction keys, and optional automatic running.
-- Up to eight key-controlled or always-on thrusters per body; body-relative directions and force offsets for torque.
-- Projectile speed, direction, mass, radius, drag, and fire key. Launchers are fixed supports.
-- Velocity, acceleration, gravity, drag, applied, contact/joint, and net-force vectors, independently toggled numbers, and live SI-unit measurements.
-- Selected-object graphs versus simulation time: speed, x/y velocity, x/y position, magnitude/x/y acceleration, path distance, displacement, angular velocity, x/y net force. CSV export.
-- Falling-shape, car, launcher-car, catapult, rolling-hills, gear, pendulum, projectile, and empty-world examples; undo; simulation step; pause/reset; time-scale controls.
+SI units, x right/y up, positive rotation counterclockwise. Translation follows ΣF = ma; rotation follows Στ = Iα. Planck/Box2D advances at a fixed **1/240 s** with semi-implicit Euler and **12 velocity / 8 position iterations**. Broad-phase collision detection, convex shapes, contact friction, restitution and continuous time-of-impact collision detection stay enabled. Settled bodies can sleep; applied forces and motor changes wake them. Support measurements remain valid at rest.
 
-### Controls
+Friction combines as √(μ₁μ₂). Restitution uses the larger coefficient; very slow contacts suppress bounce. Motors are speed targets constrained by available torque. Gearboxes conserve ideal mechanical power at the torque limit; input rotor inertia and gear losses are not separately modeled. Fixed gear meshes impose ω₁ + (N₂/N₁)ω₂ = 0. No deformable teeth, backlash or slip.
 
-Click **Run** after building. Hold the mapped motor/thruster keys while the simulation is running. The car example uses A/D for left/right and W for its upward thruster. The launcher example uses F to fire. Challenge details can be hidden to expose the motion; small screens hide them while testing. Challenge camera follow keeps the tracked object visible. Choose **Pan**, or hold Space and drag, to move the camera. Scroll to zoom. Delete removes the selected authored object while paused. Inputs consume keystrokes, so click the canvas before controlling a mechanism.
+Uniform gravity is the default. **Earth inverse-square** uses central gravity toward (0, −6,371,000 m), with GM = 9.81R². Escape tasks require outward flight and nonnegative specific orbital energy, equivalent to speed ≥ √(2GM/r). These are vacuum, nonrotating Earth point-mass flight models; there is no atmosphere, spherical planet collision surface, mutual body gravity or orbital autopilot. The launch pad is a local flat surface. Liftoff is distinct from escape.
 
-Editing after a run starts a new simulation from the current authored object positions. Initial velocity fields still define the next run's starting velocities. Reset restores the last edited scene. Fired projectiles belong to the current run and are not part of the saved starting scene.
+Fueled engines use the ideal rocket relation **F = ṁvₑ**. Hydrogen fuel and oxygen leave in a configurable mass ratio (default 8 kg oxygen / kg fuel). Fuel chemical energy defaults to 120 MJ/kg; efficiency limits exhaust kinetic energy. Effective exhaust speed is bounded by both the selected speed and √(2ηq/(1+oxygen ratio)). Removed propellant carries its previous vehicle motion; exhaust recoil supplies thrust. Both tanks lose mass; chemical energy falls with fuel mass. Engines stop when either required supply empties. Multiple engines share tanks without negative contents. There is no thermal/chamber/nozzle simulation, and unburned dry hardware remains attached. Tank contents are modeled as uniformly distributed density, without fluid slosh.
 
-## Challenges and student progress
+Moving launcher shots inherit the muzzle-point velocity, including rotation, plus the specified relative launch velocity immediately before firing. An opposite impulse recoils the carrier. The muzzle clears its housing. Ammunition is externally supplied; shot mass is not subtracted from the carrier. Fixed launchers have noncolliding housings and absorb recoil through their support. Catapult release instead removes a weld; payload velocity comes from beam motion.
 
-The 15 sequential levels cover F = ma, force balance, opposing forces, displacement, coasting, braking, Moon gravity, projectile speed/angle, terminal speed, motor rotation, gear ratios, restitution, and inelastic collisions.
+With air on, translational drag is **−k|v|v** in still air; k combines ½ρCᴅA. It has units kg/m. No lift, rotational air drag, weather or altitude-dependent atmosphere. Earth escape missions keep air off.
 
-The setup and controls are locked; students change one numeric value. **Test my value** reconstructs the locked setup and measures the simulated outcome. Most tasks accept a 2.5% measurement tolerance, with absolute tolerances for zero-velocity and hover tasks. Success or **Skip for now** unlocks the next level. Skipped missions remain available and are labeled separately in saved progress and teacher reports; they do not earn completion credit. All 15 levels include a mission story, target, walkthrough, three progressive hints, and contextual success feedback. Five tutorials cover forces, cars/camera follow, gears, thrusters/launchers, and progress sharing.
+Live acceleration is Δv/Δt; net force is mΔv/Δt, including averaged contact/joint impulses. Individual-body measurements are not whole-vehicle totals. Graph acceleration and net force average consecutive samples roughly 0.05 s apart. Distance integrates the traveled path; displacement is the straight-line change. Arrow scales differ and lengths are capped; read their numbers for comparisons.
 
-Progress saves in the browser's local storage. It is specific to the device, browser profile, and app address; it does not sync across devices. Clearing browser data removes it. Save file includes the authored sandbox scene, completed challenge values/results, skipped levels, attempt counts, and student name. Open file restores both, after validating the scene and replaying passing results.
+This is a finite-step numerical approximation. Extreme forces, mass ratios, tiny shapes, starting overlaps, long joint chains and fast rotations can reduce accuracy. Classroom scenes should generally use 0.1–20 m shapes and speeds below 100 m/s; verified vacuum space examples support higher speeds. The engine safety translation cap permits up to 24 km/s at the default step; it is still a cap, not an unlimited relativistic model. No deformation, rope simulation, fluid flow, rolling resistance or relativistic physics.
 
-### Teacher review
+## Performance
 
-1. Student opens **Share progress**, enters a name or classroom ID, then copies a report code/link or downloads a report JSON file.
-2. Student submits it through your normal classroom workflow (email, LMS, etc.). The app sends nothing automatically.
-3. Teacher opens the app and pastes the code/link into **Share progress → Teacher: review a report**, opens the report link, or loads the report JSON with **Open file**.
-4. The app reruns the recorded challenge values against the locked setups and displays the results. Reviewing reports does not overwrite the teacher's own progress. The teacher can export results as CSV.
+Up to **180 authored bodies**, **250 joints** and **100 live projectiles**. The engine retains offscreen authored bodies, so camera movement does not change an experiment's forces or collisions. Offscreen drawing is culled; terrain vertices/bounds and resource connectivity are cached. Velocity/force bookkeeping reuses vectors instead of allocating a velocity map each step. Graph history is bounded at 3,600 samples and graph drawing is limited to 10 Hz. Fixed physics steps are never enlarged to recover frame rate; overloaded devices run simulation time more slowly.
 
-Codes contain the report directly; links put the code in the URL fragment. No central database stores it. Reports validate the recorded simulation outcomes, **not identity, authorship, or independent work**. They are editable client-side records, not tamper-proof certification. A student login/backend would be required for authenticated tracking.
+Optional **Recycle distant old shots** in Explore deletes unconnected shots older than 30 simulation seconds more than 100 m beyond the current view. Selected/followed shots are protected. It frees live projectile slots, but changes the world by removing those shots; leave it off for experiments that depend on their later motion. Default is off. There is no promise that every scene will run at 60 fps on every Chromebook; densely interacting mechanisms and complex terrain cost more.
 
-## Physics model and limits
+## Progress and teacher review
 
-Planck.js **1.5.0**, based on Box2D, solves 2D rigid-body translation/rotation and collision/joint constraints. SI units: m, kg, s, N, N·m, rad; UI launch angles use degrees and motor speeds use rpm. +x right; +y up; positive rotation counterclockwise.
+Progress saves automatically in this browser/profile/app origin. Save file preserves the starting Explore scene, student name, completed designs/results, skips and attempt counts. Open file validates scenes and replays passing results. Switching devices requires the downloaded save file.
 
-- Fixed physics step **1/240 s**, semi-implicit Euler integration, 12 velocity and 8 position constraint iterations.
-- Uniform shape density gives the selected mass and its moment of inertia. Off-center forces apply torque. There is no artificial linear/angular damping, and sleeping is disabled to make measurements consistent.
-- Broad-phase spatial collision detection, convex narrow-phase shapes, and time-of-impact continuous collision detection; all dynamic bodies have the bullet flag.
-- Friction combines as the geometric mean; restitution uses the larger coefficient. The engine suppresses bounce for low-speed contact.
-- Translational air drag is **F = −k |v| v**, with k = ½ρCᴅA in kg/m. Still air, no rotational drag or fluid simulation. k is an editable physical parameter rather than a generic damping slider.
-- Ideal motor velocity targets with finite torque. Ideal fixed-axle gear constraints: **ω₁ + (N₂/N₁)ω₂ = 0**. Teeth are visual; there are no separate tooth contacts, backlash, slip, or breakage. Only neighboring gears with equal radius-per-tooth spacing couple. Dropping a gear near another snaps it into contact, resizes it to match tooth spacing, and adds centered fixed axles. Moving it away removes its mesh constraint. Imported legacy distant/incompatible gear constraints are inactive.
-- Ground and launchers are infinite-mass supports. The launcher absorbs recoil through its support. Rods connect centers at a fixed length; rods do not have a collision shape or mass.
-- Live acceleration is Δv/Δt over a physics step; net force is mΔv/Δt including joint/contact impulses. The contact/joint resultant is the difference between net force and explicitly applied forces, so support balances weight at rest. During impact this is a step-averaged force, not an instantaneous force. Graph acceleration and force use consecutive samples at about 20 Hz.
-- Distance is accumulated path length. Displacement is straight-line distance from the initial center position.
+Students use **Share progress** to enter a name/ID and copy a report code/link or download JSON. Teachers paste it into Share progress's review field, open the link, or load report JSON; the app reproduces the locked simulations and can export CSV. Reviewing does not overwrite the teacher's own work. No messages or reports are sent automatically. Reports verify simulation results, not student identity or independent work.
 
-A rigid-body solver is a **numerical approximation**, not an exact solution to differential equations. Constant-acceleration velocity matches the analytic result closely; position has the expected finite-step error. Extreme forces, high mass ratios, tiny shapes, fast rotations, or long chains reduce accuracy. Use typical classroom scales of about 0.1–20 m and speeds below 100 m/s. The editor limits authored bodies to 180 and each run to 100 projectiles. It does not model soft bodies, fuel consumption, aerodynamic lift, mutual gravity, rolling resistance, or deformable gear teeth.
+The new curriculum is `engineering-v2`. Original 15-mission progress is preserved separately in saves and can be reviewed with **View saved original challenge progress**. Original report links still open. Old completion marks never silently count as new engineering missions.
 
-The interface's **Physics notes** repeats the model and limitations for users. Vector lengths use separate visual scales and cap at 160 screen pixels; the numbers, not relative arrow lengths across quantities, are the physical values.
-
-## Verification
-
-Run with Node.js:
+## Run checks / rebuild
 
 ```sh
 node tests/physics.test.cjs
+python3 build_standalone.py
 ```
 
-The included checks compare forces, gravity, hover, coasting, quadratic terminal drag, off-center torque, high-speed collision detection, and every challenge with analytic solutions. Additional browser workflow testing is recorded in `VERIFICATION.md`.
+For browser checks, install Playwright locally (`npm install --no-save playwright`, then `npx playwright install chromium`) and run:
 
-## Files and license
+```sh
+node tests/browser-engineering.test.cjs
+```
 
-- `index.html`, `style.css`, `app.js`: interface, editor, graphs, progress/report handling.
-- `physics.js`: SI-unit engine adapter and scene validation.
-- `challenges.js`: locked challenge setups, targets, and tolerance checks.
-- `vendor/planck.min.js`: vendored engine; its MIT license is in `vendor/PLANCK-LICENSE.txt`.
-- `tests/physics.test.cjs`: numerical regression checks.
-- `Newton_Studio_Standalone.html`: portable single-file version of the same app.
+Optionally set `NEWTON_CHROMIUM` to an existing Chromium executable. Browser tests serve the app locally, run all missions, check controls/saves/reports and exercise a 180-body scene. See `VERIFICATION.md` for measured checks and limits.
 
-After editing source, rebuild the standalone edition with `python3 build_standalone.py`. The normal `index.html` edition uses your source files directly and needs no build.
+To publish elsewhere, keep `index.html`, CSS/JS files (including `legacy-challenges.js`) and `vendor/` together in a GitHub Pages folder. Or upload the standalone file as `index.html`. No server-side code is needed.
 
-The original app code is MIT licensed. Planck retains its own included copyright/license notice.
-
-## Learning and control update — 2026-10-06
-
-- Dark/light mode remembers your preference and applies to world, graphs, panels and dialogs.
-- Follow object has an independent target menu; it tracks moving bodies during Run even while another object is inspected. Available on mobile too. The camera has no world boundaries; ground platforms remain finite.
-- Motor and thruster keys work while running. Pause, release and window blur clear held controls; Run returns focus to the canvas. The car uses A/D to drive and W for upward thrust. Custom mappings are edited in the Inspector with automatic/always-on drive disabled for key-only control.
-- Gears snap near touching edges (about 20 pixels, bounded in world units), match tooth spacing, and couple through centered fixed axles. Gear teeth still use ideal constraints rather than individual collision contacts. Branching trains are supported; the editor prevents new loops that could impose contradictory rotation.
-- Skips survive reload and full-file save/import, appear in report codes/links/JSON and teacher CSV, and can be replaced with a passing result later.
-
-
-## Rotation, terrain and moving launchers — 2026-10-06
-
-- Select a rectangle, ground, triangle or launcher while paused. Drag the round handle to rotate; hold Shift to snap to 15° increments. The square handle resizes; the Inspector also accepts an angle in degrees.
-- **Raise terrain** and **Lower / carve terrain** paint hills and valleys. Set brush radius in meters. A stroke on a ground platform converts it into terrain; otherwise the first stroke creates a 40 m patch. Existing overlapping ground remains a separate collision shape. Undo restores an entire stroke.
-- Terrain is a sampled height profile with a connected closed chain boundary. The drawn segments are its collision geometry. It supports slopes and trenches, not caves or overhangs, and is finite. Profiles and mounted launchers save/import with the rest of the scene.
-- In a launcher's **Mount / support** menu, choose fixed, free moving, or attachment to a dynamic shape. Attaching places it above the host; drag to change its position. Moving or rotating the host in the editor also moves the mount. The launcher is welded to its host in the simulation.
-- Set the fire key, press Run and tap the key once per shot. A moving shot starts with muzzle-point velocity (including rotation) plus the chosen launch speed along the barrel. An opposite impulse m × launch speed recoils the moving launcher and its mount. Short muzzle distances automatically clear the moving housing. Moving housings collide as rectangles; fixed housings are noncolliding supports. Shot mass is supplied externally; the carrier does not lose ammunition mass. Old fixed-launcher challenge origins retain their original coordinates for report compatibility.
-- **Catapult:** Run, hold **L** to swing the arm clockwise/upward, tap **F** while the arm moves to release the payload, and use **J** to return the arm. Reset restores the loaded weld. The arm uses a finite-torque motor and angle stops; payload launch velocity comes from arm motion, not a preset firing velocity. Weld/rod connections can also have an optional release key in the Inspector.
-- **Launcher car:** hold **A/D** to drive; tap **F** to fire. Follow object can track either the vehicle or a shot.
-
-Collision checks cover rotated polygons, thin walls, 100 m/s projectiles against static and moving targets, elastic momentum/energy conservation, frictionless terrain seam traversal, and slope acceleration. All 38 numerical checks pass. These are representative checks of a finite-step rigid-body approximation, not an accuracy guarantee for every geometry or speed. Starting objects inside solids and extreme angular motion remain unsuitable setups.
+Original code: MIT license. Vendored Planck copyright/license: `vendor/PLANCK-LICENSE.txt`.
