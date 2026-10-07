@@ -17,7 +17,7 @@ small{opacity:.75}
   try{
     if(!('DecompressionStream' in window)) throw new Error('This browser needs a newer version to load Cell Command.');
     const parts=await Promise.all(Array.from({length:7},(_,i)=>
-      fetch('assets/payload-'+i+'.txt?v=4.0.2-countdown',{cache:'no-store'}).then(r=>{
+      fetch('assets/payload-'+i+'.txt?v=4.0.3-visible-countdown',{cache:'no-store'}).then(r=>{
         if(!r.ok) throw new Error('Missing game data part '+(i+1));
         return r.text();
       })
@@ -58,16 +58,34 @@ small{opacity:.75}
 .opponent .raid-countdown{font-size:13px!important;font-weight:800!important;color:#a34859!important;margin:4px 0 0!important;letter-spacing:.1px}
 .opponent .raid-countdown.imminent{color:#b94355!important}
 .opponent .raid-countdown.safe{color:#147f80!important}
+#virus-countdown-hud{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:99999;pointer-events:none;background:rgba(20,13,28,.94);color:#fff;border:2px solid #cf5268;border-radius:12px;padding:7px 14px;box-shadow:0 5px 18px rgba(0,0,0,.35);font:800 15px/1.1 system-ui,sans-serif;letter-spacing:.15px;white-space:nowrap}
+#virus-countdown-hud.imminent{background:#7c1f30;border-color:#ff8798;animation:virusPulse .75s ease-in-out infinite alternate}
+#virus-countdown-hud.safe{background:#0d5556;border-color:#4bc4c4}
+@keyframes virusPulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.04)}}
 </style>`;
     const dismissControls=`<script>
 (()=>{
   const install=()=>{
     const panel=document.querySelector('.selection-panel');
     const title=document.getElementById('selection-title');
+    const timer=document.getElementById('raid-countdown');
     if(!panel||!title)return;
     const sync=()=>{panel.hidden=title.textContent.trim()==='Your cell';};
     new MutationObserver(sync).observe(title,{childList:true,subtree:true,characterData:true});
     sync();
+
+    if(timer){
+      const hud=document.createElement('div');
+      hud.id='virus-countdown-hud';
+      hud.setAttribute('aria-live','polite');
+      document.body.appendChild(hud);
+      const syncTimer=()=>{
+        hud.textContent='🦠 '+timer.textContent;
+        hud.className=timer.classList.contains('imminent')?'imminent':(timer.classList.contains('safe')?'safe':'');
+      };
+      new MutationObserver(syncTimer).observe(timer,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
+      syncTimer();
+    }
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
