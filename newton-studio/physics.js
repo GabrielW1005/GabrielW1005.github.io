@@ -65,7 +65,7 @@ class Simulation{
  else if(spec.kind==='triangle')shape=pl.Polygon([V(-spec.w/2,-spec.h/3),V(spec.w/2,-spec.h/3),V(0,2*spec.h/3)]);
  else shape=pl.Box(spec.w/2,spec.h/2);
  b.createFixture(shape,{density:resourceMass(spec)/area(spec),friction:spec.friction,restitution:spec.restitution,filterMaskBits:spec.kind==='launcher'&&fixed?0:65535});b.setUserData(spec.id);
- const e={body:b,spec,acc:V(),net:V(),applied:V(),drag:V(),gravity:V(),thrust:V(),reaction:V(),distance:0,renderRadius:spec.kind==='terrain'?Math.hypot(spec.w,Math.max(Math.abs(spec.base),...spec.profile.map(Math.abs))):['circle','gear'].includes(spec.kind)?spec.r:Math.hypot(spec.w,spec.h)/2,renderVertices:spec.kind==='terrain'?terrainVertices(spec):null,start:V(spec.x,spec.y),activeThrusters:[],last:V(spec.x,spec.y),bornAt:this.time,previous:V(spec.x,spec.y),oldVelocity:V(),gravitySample:V(),fuelRemaining:0,oxygenRemaining:0,energyRemaining:0};this.bodies.set(spec.id,e);return e;}
+ const e={body:b,spec,acc:V(),net:V(),applied:V(),drag:V(),gravity:V(),thrust:V(),reaction:V(),distance:0,renderRadius:spec.kind==='terrain'?Math.hypot(spec.w,Math.max(Math.abs(spec.base),...spec.profile.map(Math.abs))):['circle','gear'].includes(spec.kind)?spec.r:Math.hypot(spec.w,spec.h)/2,renderVertices:spec.kind==='terrain'?terrainVertices(spec):null,start:V(spec.x,spec.y),activeThrusters:[],last:V(spec.x,spec.y),bornAt:this.time,renderPosition:V(spec.x,spec.y),renderAngle:spec.angle,previousAngle:spec.angle,renderLaunchAngle:spec.launchAngle,previousLaunchAngle:spec.launchAngle,previous:V(spec.x,spec.y),oldVelocity:V(),gravitySample:V(),fuelRemaining:0,oxygenRemaining:0,energyRemaining:0};this.bodies.set(spec.id,e);return e;}
  fire(id){
  const launch=this.bodies.get(id);if(!launch||launch.spec.kind!=='launcher'||this.shots.length>=100)return null;
  const s=launch.spec,a=s.launchAngle*Math.PI/180+launch.body.getAngle(),direction=V(Math.cos(a),Math.sin(a));
@@ -96,7 +96,7 @@ class Simulation{
  }
  updateTankMass(e){const v=e.body.getLinearVelocity(),x=v.x,y=v.y;e.body.getFixtureList().setDensity(resourceMass(e.spec)/area(e.spec));e.body.resetMassData();e.body.setLinearVelocity(V(x,y));}
  step(h=DT){
-  for(const e of this.bodies.values()){const b=e.body,v=b.getLinearVelocity(),p=b.getPosition();e.oldVelocity.set(v);e.previous.set(p);e.activeThrusters.length=0;e.thrust.setZero();e.applied.set(e.spec.fx,e.spec.fy);e.drag.setZero();e.thrustStatus='Off';}
+  for(const e of this.bodies.values()){const b=e.body,v=b.getLinearVelocity(),p=b.getPosition();e.oldVelocity.set(v);e.previous.set(p);e.previousAngle=b.getAngle();e.previousLaunchAngle=e.spec.launchAngle;e.activeThrusters.length=0;e.thrust.setZero();e.applied.set(e.spec.fx,e.spec.fy);e.drag.setZero();e.thrustStatus='Off';}
   // Aiming changes the barrel, independently of the carrier orientation.
   for(const e of this.bodies.values()){const s=e.spec;if(s.kind==='launcher'){const dir=(this.keys.has((s.aimPositiveKey||'').toLowerCase())?1:0)-(this.keys.has((s.aimNegativeKey||'').toLowerCase())?1:0);if(dir)s.launchAngle=Math.max(-180,Math.min(180,s.launchAngle+dir*(s.aimRate||30)*h));}}
   for(const e of this.bodies.values()){const b=e.body;if(!b.isDynamic())continue;const s=e.spec;
@@ -110,6 +110,12 @@ class Simulation{
   for(const {joint:j,spec:s} of this.joints.values())if(s.kind==='axle'&&s.motor){const dir=(this.keys.has(s.keyPositive.toLowerCase())?1:0)-(this.keys.has(s.keyNegative.toLowerCase())?1:0),box=this.bodies.get(s.gearboxId),ratio=box?.assemblyIds?.has(s.a)?box.spec.ratio:1;j.enableMotor(!!s.auto||dir!==0);j.setMotorSpeed((s.auto&&dir===0?1:dir)*s.rpm*Math.PI/30/ratio);j.setMaxMotorTorque(s.torque*ratio);}
   this.world.step(h,12,8);this.time+=h;
   for(const e of this.bodies.values()){const b=e.body,v=b.getLinearVelocity(),p=b.getPosition();e.acc.set((v.x-e.oldVelocity.x)/h,(v.y-e.oldVelocity.y)/h);e.net.set(e.acc.x*b.getMass(),e.acc.y*b.getMass());e.reaction.set(e.net.x-e.gravity.x-e.applied.x-e.thrust.x-e.drag.x,e.net.y-e.gravity.y-e.applied.y-e.thrust.y-e.drag.y);e.distance+=Math.hypot(p.x-e.last.x,p.y-e.last.y);e.last.set(p);}
+ }
+ interpolate(alpha=1){
+  // Rendering alone trails the authoritative solver by at most one fixed step.
+  // Interpolate the same poses for bodies, mounts, vectors and camera tracking.
+  const a=Math.max(0,Math.min(1,alpha));
+  for(const e of this.bodies.values()){const p=e.body.getPosition();e.renderPosition.set(e.previous.x+(p.x-e.previous.x)*a,e.previous.y+(p.y-e.previous.y)*a);e.renderAngle=e.previousAngle+(e.body.getAngle()-e.previousAngle)*a;if(e.spec.kind==='launcher')e.renderLaunchAngle=e.previousLaunchAngle+(e.spec.launchAngle-e.previousLaunchAngle)*a;}
  }
  resources(id){const e=this.bodies.get(id);if(!e)return {fuel:0,oxygen:0,energy:0};let fuel=0,oxygen=0,energy=0;for(const q of e.fuelTanks||[]){fuel+=q.spec.contents;energy+=q.spec.contents*q.spec.specificEnergy;}for(const q of e.oxygenTanks||[])oxygen+=q.spec.contents;return {fuel,oxygen,energy};}
  removeProjectile(id){const e=this.bodies.get(id);if(!e?.spec.projectile)return false;if(e.body.getJointList())return false;this.world.destroyBody(e.body);this.bodies.delete(id);this.shots=this.shots.filter(k=>k!==id);return true;}

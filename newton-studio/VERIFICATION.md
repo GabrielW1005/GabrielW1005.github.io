@@ -2,7 +2,7 @@
 
 ## Numerical checks
 
-`node tests/physics.test.cjs`: **67 checks passed** (38 retained + 29 engineering).
+`node tests/physics.test.cjs`: **69 checks passed** (38 retained + 31 engineering/rendering).
 
 Retained checks cover F = ma, constant-acceleration integration error and step convergence, mass-independent gravity, hovering, coasting, quadratic terminal drag, off-center torque, support forces, old challenge/report solutions, mapped motor/thruster keys and gear geometry. Collision checks cover rotated polygon contact, a rotating rectangle against a 0.06 m wall, 100 m/s projectiles against fixed and moving walls, elastic collision momentum/energy, terrain seams/slopes, moving launcher muzzle inheritance and carrier recoil, and mount/terrain validation.
 
@@ -39,6 +39,12 @@ New checks:
 - Offline standalone loaded the new missions with no HTTP requests.
 - Dark and 390 px mobile layouts had no horizontal overflow. No browser JavaScript errors.
 - Separate layout regression checks passed fullscreen entry/exit, independent sidebar collapse/persistence, running physics/graphs preservation and restore controls at 1920, 1024 and 390 px.
+
+## Rapid-jitter regression
+
+The previous follow camera switched between easing and snapping as the distance to its target crossed a threshold. A freely moving rectangle at 80 m/s produced 105.6 px jumps in a 1440 × 900 browser window. Tracking the interpolated drawing pose directly eliminated these jumps: the same reproduction measured 0 px movement of the followed object on screen.
+
+`tests/browser-jitter.test.cjs` checks horizontal, vertical and diagonal motion over 100 real animation frames each, and verifies paused camera panning remains available. Numerical checks verify drawing interpolation does not change the solver state and mounted parts remain aligned. Collision settings, friction, solver iterations and the 1/240 s physics step remain unchanged.
 
 ## Performance observation
 

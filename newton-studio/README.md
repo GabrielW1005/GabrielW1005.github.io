@@ -51,6 +51,8 @@ Editing after a run uses current authored body positions and starts a fresh simu
 
 SI units, x right/y up, positive rotation counterclockwise. Translation follows ΣF = ma; rotation follows Στ = Iα. Planck/Box2D advances at a fixed **1/240 s** with semi-implicit Euler and **12 velocity / 8 position iterations**. Broad-phase collision detection, convex shapes, contact friction, restitution and continuous time-of-impact collision detection stay enabled. Settled bodies can sleep; applied forces and motor changes wake them. Support measurements remain valid at rest.
 
+Drawing interpolates between consecutive fixed-step poses, with at most one step (1/240 s of simulation time) of visual delay. Shapes, attached parts, joint anchors, vector origins and the follow camera use the same displayed pose. Camera follow tracks this pose continuously; measurements and graphs use the authoritative physics state. Rendering does not change forces, friction, collisions or numerical integration.
+
 Friction combines as √(μ₁μ₂). Restitution uses the larger coefficient; very slow contacts suppress bounce. Motors are speed targets constrained by available torque. Gearboxes conserve ideal mechanical power at the torque limit; input rotor inertia and gear losses are not separately modeled. Fixed gear meshes impose ω₁ + (N₂/N₁)ω₂ = 0. No deformable teeth, backlash or slip.
 
 Uniform gravity is the default. **Earth inverse-square** uses central gravity toward (0, −6,371,000 m), with GM = 9.81R². Escape tasks require outward flight and nonnegative specific orbital energy, equivalent to speed ≥ √(2GM/r). These are vacuum, nonrotating Earth point-mass flight models; there is no atmosphere, spherical planet collision surface, mutual body gravity or orbital autopilot. The launch pad is a local flat surface. Liftoff is distinct from escape.
@@ -90,6 +92,7 @@ For browser checks, install Playwright locally (`npm install --no-save playwrigh
 
 ```sh
 node tests/browser-engineering.test.cjs
+node tests/browser-jitter.test.cjs
 ```
 
 Optionally set `NEWTON_CHROMIUM` to an existing Chromium executable. Browser tests serve the app locally, run all missions, check controls/saves/reports and exercise a 180-body scene. See `VERIFICATION.md` for measured checks and limits.
