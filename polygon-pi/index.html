@@ -20,11 +20,13 @@
 :root:fullscreen .app,:root.presentation-mode .app{max-width:none;min-height:100dvh;padding:20px 28px}
 :root:fullscreen .canvas-wrap svg,:root.presentation-mode .canvas-wrap svg{height:max(340px,calc(100dvh - 315px));width:100%;margin-left:0}
 @media(max-width:700px){.header-actions{gap:10px}.header-actions button{font-size:14px;min-height:40px;padding:7px 10px}:root:fullscreen .app,:root.presentation-mode .app{padding:14px}:root:fullscreen .canvas-wrap svg,:root.presentation-mode .canvas-wrap svg{height:55dvh;min-height:300px}}
+.page-nav{display:flex;gap:8px;margin:0 0 18px}.page-nav a{display:inline-block;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:9px 22px;font-weight:650;font-size:16px}.page-nav a:hover{background:#24344a;color:var(--text)}.page-nav a[aria-current="page"]{color:var(--orange);background:#2b211a;border-color:#765135}.page-nav a:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 </style>
 </head>
 <body>
 <main class="app">
 <header><div class="brand"><svg class="mark" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 4 38 13 38 31 22 40 6 31 6 13Z" fill="#231d1b" stroke="#ffa45b" stroke-width="2.5"/><path d="M6 22H38" stroke="#5ecbff" stroke-width="2.5"/></svg><div><h1>Polygon to <span style="color:var(--purple)">π</span></h1><p>Add sides. Unravel the perimeter. Compare the lengths.</p></div></div><div class="header-actions"><div class="legend" aria-label="Color key"><span class="orange"><i class="swatch"></i>Perimeter</span><span class="blue"><i class="swatch"></i>Diameter</span></div><button id="fullscreen" aria-pressed="false">Full screen</button></div></header>
+<nav class="page-nav" aria-label="Explore pi"><a href="./" aria-current="page">Perimeter</a><a href="area.html">Area</a></nav>
 <div class="layout">
 <section class="workspace" aria-label="Interactive polygon">
 <div class="toolbar"><div><div class="eyebrow">Regular polygon</div><div class="side-control"><button id="minus" aria-label="Remove one side">−</button><input id="sides" type="number" min="3" max="2000" value="6" aria-label="Number of sides"><button id="plus" aria-label="Add one side">+</button><label for="sides">sides</label></div><div class="range-wrap"><input id="sideRange" type="range" min="3" max="2000" value="6" aria-label="Adjust number of sides"></div></div><div class="toolbar-actions"><button id="unravel" class="primary">Unravel perimeter</button><button id="reset" title="Return to six sides and one diameter copy">Reset</button></div></div>
