@@ -88,11 +88,14 @@ node tests/physics.test.cjs
 python3 build_standalone.py
 ```
 
+Before publishing source edits, run `build_standalone.py`. It stamps the hosted CSS and scripts with a shared content version and rebuilds the offline edition. This prevents a cached older physics file from being loaded with a newer renderer. Repeated builds without source changes produce identical output.
+
 For browser checks, install Playwright locally (`npm install --no-save playwright`, then `npx playwright install chromium`) and run:
 
 ```sh
 node tests/browser-engineering.test.cjs
 node tests/browser-jitter.test.cjs
+node tests/browser-examples.test.cjs
 ```
 
 Optionally set `NEWTON_CHROMIUM` to an existing Chromium executable. Browser tests serve the app locally, run all missions, check controls/saves/reports and exercise a 180-body scene. See `VERIFICATION.md` for measured checks and limits.

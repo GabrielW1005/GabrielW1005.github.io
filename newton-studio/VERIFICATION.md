@@ -1,4 +1,4 @@
-# Verification — 2026-10-07
+# Verification — 2026-10-08
 
 ## Numerical checks
 
@@ -39,6 +39,12 @@ New checks:
 - Offline standalone loaded the new missions with no HTTP requests.
 - Dark and 390 px mobile layouts had no horizontal overflow. No browser JavaScript errors.
 - Separate layout regression checks passed fullscreen entry/exit, independent sidebar collapse/persistence, running physics/graphs preservation and restore controls at 1920, 1024 and 390 px.
+
+## Example loading and browser cache regression
+
+All 15 examples load in a fresh browser. Reusing the pre-interpolation physics file with the current renderer reproduces `sim.interpolate is not a function`, stopping the animation loop so subsequent example selections cannot redraw the canvas. Hosted CSS/scripts now use one content-derived release version in their URLs, bypassing earlier cache entries. The build script updates those URLs and embeds all assets into the standalone edition. Two builds without source edits produce identical files.
+
+`tests/browser-examples.test.cjs` serves deliberately incompatible content at the old unversioned asset URLs. The current page bypasses all of those URLs, loads, displays and runs all 15 examples, loads all 7 tutorial examples, preserves challenge progress and runs an offline catapult without network requests.
 
 ## Rapid-jitter regression
 

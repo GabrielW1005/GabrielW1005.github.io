@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const project = path.resolve(__dirname, '..');
 const server = http.createServer((req, res) => {
   try {
-    const file = path.join(project, req.url === '/' ? 'index.html' : req.url);
+    const file = path.join(project, req.url.split('?')[0] === '/' ? 'index.html' : req.url.split('?')[0]);
     res.setHeader('Content-Type', file.endsWith('.js') ? 'application/javascript' : file.endsWith('.css') ? 'text/css' : 'text/html');
     res.end(fs.readFileSync(file));
   } catch { res.writeHead(404); res.end(); }
