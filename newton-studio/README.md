@@ -71,7 +71,7 @@ This is a finite-step numerical approximation. Extreme forces, mass ratios, tiny
 
 ## Performance
 
-Up to **180 authored bodies**, **250 joints** and **100 live projectiles**. The engine retains offscreen authored bodies, so camera movement does not change an experiment's forces or collisions. Offscreen drawing is culled; terrain vertices/bounds and resource connectivity are cached. Velocity/force bookkeeping reuses vectors instead of allocating a velocity map each step. Graph history is bounded at 3,600 samples and graph drawing is limited to 10 Hz. Fixed physics steps are never enlarged to recover frame rate; overloaded devices run simulation time more slowly.
+Up to **180 authored bodies**, **250 joints** and **100 live projectiles**. The engine retains offscreen authored bodies, so camera movement does not change an experiment's forces or collisions. Offscreen drawing is culled; terrain vertices/bounds and resource connectivity are cached once per rigid assembly, with shared membership and tank lists. Physics bookkeeping, gravity, thrust and measurement outputs reuse vectors/objects. Dragging, rotating, resizing and terrain strokes update a paused preview; releasing the pointer rebuilds accurate fixtures/joints once, and running always commits the preview first. Graph history uses 3,600 reusable rows in a circular buffer; graph drawing is limited to 10 Hz and skips unchanged plots. Paused canvases and unchanged measurements/resource meters skip redraws or DOM writes. Undo keeps at most 30 serialized snapshots and an estimated 8 MiB of text (one oversized snapshot may be retained so the latest edit can still be undone). Fixed physics steps are never enlarged to recover frame rate; overloaded devices run simulation time more slowly.
 
 Optional **Recycle distant old shots** in Explore deletes unconnected shots older than 30 simulation seconds more than 100 m beyond the current view. Selected/followed shots are protected. It frees live projectile slots, but changes the world by removing those shots; leave it off for experiments that depend on their later motion. Default is off. There is no promise that every scene will run at 60 fps on every Chromebook; densely interacting mechanisms and complex terrain cost more.
 
@@ -99,10 +99,13 @@ node tests/browser-engineering.test.cjs
 node tests/browser-jitter.test.cjs
 node tests/browser-examples.test.cjs
 node tests/browser-attachments.test.cjs
+node tests/browser-optimization.test.cjs
 ```
 
 Optionally set `NEWTON_CHROMIUM` to an existing Chromium executable. Browser tests serve the app locally, run all missions, check controls/saves/reports and exercise a 180-body scene. See `VERIFICATION.md` for measured checks and limits.
 
-To publish elsewhere, keep `index.html`, CSS/JS files (including `legacy-challenges.js`) and `vendor/` together in a GitHub Pages folder. Or upload the standalone file as `index.html`. No server-side code is needed.
+For an observational timing benchmark, run `node tests/performance.cjs`. To compare an earlier physics file, set `NEWTON_BASELINE=/absolute/path/to/previous-physics.js`; both versions then run in equivalent isolated JavaScript contexts. Results depend on hardware/load and are not pass/fail thresholds.
+
+To publish elsewhere, keep `index.html`, CSS/JS files (including `buffers.js` and `legacy-challenges.js`) and `vendor/` together in a GitHub Pages folder. Or upload the standalone file as `index.html`. No server-side code is needed.
 
 Original code: MIT license. Vendored Planck copyright/license: `vendor/PLANCK-LICENSE.txt`.

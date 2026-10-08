@@ -7,7 +7,7 @@ const V=pl.Vec2, DT=1/240, copy=x=>JSON.parse(JSON.stringify(x));
 pl.Settings.maxTranslation=100;
 const EARTH_RADIUS=6371000, EARTH_MU=9.81*EARTH_RADIUS*EARTH_RADIUS;
 let serial=0;
-function gravityAt(scene,p){if(scene.gravityModel!=='earth')return {x:0,y:-scene.gravity};const y=p.y+EARTH_RADIUS,r=Math.max(1,Math.hypot(p.x,y)),k=-EARTH_MU/(r*r*r);return {x:k*p.x,y:k*y};}
+function gravityAt(scene,p,out={x:0,y:0}){if(scene.gravityModel!=='earth'){out.x=0;out.y=-scene.gravity;return out;}const y=p.y+EARTH_RADIUS,r=Math.max(1,Math.hypot(p.x,y)),k=-EARTH_MU/(r*r*r);out.x=k*p.x;out.y=k*y;return out;}
 function equipment(kind,x,y,extra={}){const defaults={fuel:{mass:2,contents:8,specificEnergy:120,color:'#d69240'},oxygen:{mass:2,contents:64,color:'#5799d4'},thruster:{mass:3,thrusters:[{force:500,angle:90,key:'w',always:false,offsetX:0,offsetY:0,limited:true,exhaustSpeed:4500,oxygenRatio:8,efficiency:.8}],color:'#dc714d'},gearbox:{mass:2,ratio:3,color:'#aa7bcc'}};return body(kind,x,y,{w:.7,h:.7,...defaults[kind],...extra});}
 function resourceMass(s){return s.mass+(['fuel','oxygen'].includes(s.kind)?s.contents||0:0);}
 
@@ -50,7 +50,7 @@ function validate(s){
  return copy(s);
 }
 class Simulation{
- constructor(scene){this.scene=copy(scene);this.world=new pl.World(V(0,scene.gravityModel==='earth'?0:-scene.gravity));this.world.setAllowSleeping(true);this.world.setContinuousPhysics(true);this.anchor=this.world.createBody();this.bodies=new Map();this.joints=new Map();this.time=0;this.keys=new Set();this.projectileCount=0;this.samples=[];this.shots=[];this.released=new Set();this.build();this.cacheResources();}
+ constructor(scene){this.scene=copy(scene);this.world=new pl.World(V(0,scene.gravityModel==='earth'?0:-scene.gravity));this.world.setAllowSleeping(true);this.world.setContinuousPhysics(true);this.anchor=this.world.createBody();this.bodies=new Map();this.joints=new Map();this.dynamicBodies=[];this.launchers=[];this.thrusterBodies=[];this.motorJoints=[];this.fueledEngines=[];this.previewing=false;this.previewRevision=0;this.time=0;this.keys=new Set();this.projectileCount=0;this.samples=[];this.shots=[];this.released=new Set();this.build();this.motorJoints=[...this.joints.values()].filter(e=>e.spec.kind==='axle'&&e.spec.motor);this.cacheResources();}
  build(){for(const spec of this.scene.bodies)this.add(spec);for(const b of this.scene.bodies.filter(b=>b.mountId)){const host=this.bodies.get(b.mountId)?.body,e=this.bodies.get(b.id);if(host&&e){const j={id:'mount:'+b.id,kind:'weld',a:b.mountId,b:b.id,x:b.x,y:b.y,mount:true};this.joints.set(j.id,{spec:j,joint:this.world.createJoint(pl.WeldJoint({collideConnected:false},host,e.body,e.body.getPosition()))});}}for(const j of this.scene.joints.filter(j=>j.kind!=='gear')){
  const a=j.a?this.bodies.get(j.a).body:this.anchor,b=this.bodies.get(j.b).body;let q;
  if(j.kind==='axle')q=pl.RevoluteJoint({enableLimit:Number.isFinite(j.lowerAngle),lowerAngle:j.lowerAngle||0,upperAngle:j.upperAngle||0,enableMotor:!!j.motor,motorSpeed:j.rpm*Math.PI/30,maxMotorTorque:j.torque,collideConnected:false},a,b,V(j.x,j.y));
@@ -65,7 +65,7 @@ class Simulation{
  else if(spec.kind==='triangle')shape=pl.Polygon([V(-spec.w/2,-spec.h/3),V(spec.w/2,-spec.h/3),V(0,2*spec.h/3)]);
  else shape=pl.Box(spec.w/2,spec.h/2);
  b.createFixture(shape,{density:resourceMass(spec)/area(spec),friction:spec.friction,restitution:spec.restitution,filterMaskBits:spec.kind==='launcher'&&fixed?0:65535});b.setUserData(spec.id);
- const e={body:b,spec,acc:V(),net:V(),applied:V(),drag:V(),gravity:V(),thrust:V(),reaction:V(),distance:0,renderRadius:spec.kind==='terrain'?Math.hypot(spec.w,Math.max(Math.abs(spec.base),...spec.profile.map(Math.abs))):['circle','gear'].includes(spec.kind)?spec.r:Math.hypot(spec.w,spec.h)/2,renderVertices:spec.kind==='terrain'?terrainVertices(spec):null,start:V(spec.x,spec.y),activeThrusters:[],last:V(spec.x,spec.y),bornAt:this.time,renderPosition:V(spec.x,spec.y),renderAngle:spec.angle,previousAngle:spec.angle,renderLaunchAngle:spec.launchAngle,previousLaunchAngle:spec.launchAngle,previous:V(spec.x,spec.y),oldVelocity:V(),gravitySample:V(),initialContents:spec.contents||0,fuelRemaining:0,oxygenRemaining:0,energyRemaining:0};this.bodies.set(spec.id,e);return e;}
+ const e={body:b,spec,acc:V(),net:V(),applied:V(),drag:V(),gravity:V(),thrust:V(),reaction:V(),distance:0,renderRadius:spec.kind==='terrain'?Math.hypot(spec.w,Math.max(Math.abs(spec.base),...spec.profile.map(Math.abs))):['circle','gear'].includes(spec.kind)?spec.r:Math.hypot(spec.w,spec.h)/2,renderVertices:spec.kind==='terrain'?terrainVertices(spec):null,start:V(spec.x,spec.y),activeThrusters:[],last:V(spec.x,spec.y),bornAt:this.time,renderPosition:V(spec.x,spec.y),renderAngle:spec.angle,previousAngle:spec.angle,renderLaunchAngle:spec.launchAngle,previousLaunchAngle:spec.launchAngle,previous:V(spec.x,spec.y),oldVelocity:V(),gravitySample:V(),forceScratch:V(),pointScratch:V(),velocityScratch:V(),displayApplied:V(),fixtureArea:area(spec),assemblyIds:new Set([spec.id]),fuelTanks:[],oxygenTanks:[],initialContents:spec.contents||0,fuelRemaining:0,oxygenRemaining:0,energyRemaining:0};this.bodies.set(spec.id,e);if(b.isDynamic())this.dynamicBodies.push(e);if(spec.kind==='launcher')this.launchers.push(e);if(b.isDynamic()&&spec.thrusters.length)this.thrusterBodies.push(e);if(spec.thrusters.some(t=>t.limited))this.fueledEngines.push(e);return e;}
  fire(id){
  const launch=this.bodies.get(id);if(!launch||launch.spec.kind!=='launcher'||this.shots.length>=100)return null;
  const s=launch.spec,a=s.launchAngle*Math.PI/180+launch.body.getAngle(),direction=V(Math.cos(a),Math.sin(a));
@@ -75,11 +75,22 @@ class Simulation{
  }
  release(key){let count=0;for(const [id,e] of [...this.joints]){if(e.spec.releaseKey?.toLowerCase()===key.toLowerCase()){this.world.destroyJoint(e.joint);this.joints.delete(id);this.released.add(id);count++;}}if(count)this.cacheResources();return count;}
  cacheResources(){
-  // Tanks can feed engines only through rigid welds, including equipment mounts.
-  const links=new Map([...this.bodies.keys()].map(id=>[id,[]]));
+  // Discover each welded component once. Membership and tank lists are shared
+  // by every member instead of repeatedly walking and copying the same graph.
+  const links=new Map();for(const id of this.bodies.keys())links.set(id,[]);
   for(const {spec:j} of this.joints.values())if(j.kind==='weld'&&j.a){links.get(j.a)?.push(j.b);links.get(j.b)?.push(j.a);}
-  for(const [id,e] of this.bodies){const seen=new Set([id]),queue=[id];for(let n=0;n<queue.length;n++)for(const k of links.get(queue[n])||[])if(!seen.has(k)){seen.add(k);queue.push(k);}for(const k of queue){let f=this.bodies.get(k).body.getFixtureList();for(;f;f=f.getNext())f.setFilterGroupIndex(-1-[...this.bodies.keys()].indexOf(queue.slice().sort()[0]));}e.assemblyIds=seen;e.fuelTanks=queue.map(k=>this.bodies.get(k)).filter(e=>e.spec.kind==='fuel');e.oxygenTanks=queue.map(k=>this.bodies.get(k)).filter(e=>e.spec.kind==='oxygen');}
+  const visited=new Set();let group=-1;
+  for(const root of this.bodies.keys()){
+   if(visited.has(root))continue;const queue=[root],ids=new Set([root]),fuelTanks=[],oxygenTanks=[],engines=[];visited.add(root);
+   for(let n=0;n<queue.length;n++)for(const id of links.get(queue[n])||[])if(!visited.has(id)){visited.add(id);ids.add(id);queue.push(id);}
+   let fuelCapacity=0,oxygenCapacity=0;
+   for(const id of queue){const e=this.bodies.get(id);if(e.spec.kind==='fuel'){fuelTanks.push(e);fuelCapacity+=e.initialContents;}if(e.spec.kind==='oxygen'){oxygenTanks.push(e);oxygenCapacity+=e.initialContents;}if(e.spec.thrusters.some(t=>t.limited))engines.push(e);}
+   const assembly={ids,fuelTanks,oxygenTanks,engines,fuelCapacity,oxygenCapacity};
+   for(const id of queue){const e=this.bodies.get(id);e.assembly=assembly;e.assemblyIds=ids;e.fuelTanks=fuelTanks;e.oxygenTanks=oxygenTanks;for(let f=e.body.getFixtureList();f;f=f.getNext())if(f.getFilterGroupIndex()!==group)f.setFilterGroupIndex(group);}
+   group--;
+  }
  }
+
  consumeThrust(e,t,h){
   if(!t.limited||t.force===0)return t.force;
   let fuel=0,oxygen=0,energy=0;for(const q of e.fuelTanks){fuel+=q.spec.contents;energy+=q.spec.contents*q.spec.specificEnergy*1e6;}for(const q of e.oxygenTanks)oxygen+=q.spec.contents;
@@ -94,22 +105,23 @@ class Simulation{
   for(const q of e.oxygenTanks){const take=Math.min(q.spec.contents,q.spec.contents*neededOxygen*actual/oxygen);q.spec.contents=Math.max(0,q.spec.contents-take);this.updateTankMass(q);}
   e.thrustStatus=actual<.999?'Energy / supply limited':'Burning';return t.force*actual;
  }
- updateTankMass(e){const v=e.body.getLinearVelocity(),x=v.x,y=v.y;e.body.getFixtureList().setDensity(resourceMass(e.spec)/area(e.spec));e.body.resetMassData();e.body.setLinearVelocity(V(x,y));}
+ updateTankMass(e){e.velocityScratch.set(e.body.getLinearVelocity());e.body.getFixtureList().setDensity(resourceMass(e.spec)/e.fixtureArea);e.body.resetMassData();e.body.setLinearVelocity(e.velocityScratch);}
  step(h=DT){
-  for(const e of this.bodies.values()){const b=e.body,v=b.getLinearVelocity(),p=b.getPosition();e.oldVelocity.set(v);e.previous.set(p);e.previousAngle=b.getAngle();e.previousLaunchAngle=e.spec.launchAngle;e.activeThrusters.length=0;e.thrust.setZero();e.applied.set(e.spec.fx,e.spec.fy);e.drag.setZero();e.thrustStatus='Off';}
+  if(this.previewing)throw Error('Commit the editing preview before stepping physics.');
+  for(const e of this.dynamicBodies){const b=e.body,v=b.getLinearVelocity(),p=b.getPosition();e.oldVelocity.set(v);e.previous.set(p);e.previousAngle=b.getAngle();e.previousLaunchAngle=e.spec.launchAngle;e.activeThrusters.length=0;e.thrust.setZero();e.applied.set(e.spec.fx,e.spec.fy);e.drag.setZero();e.thrustStatus='Off';}
   // Aiming changes the barrel, independently of the carrier orientation.
-  for(const e of this.bodies.values()){const s=e.spec;if(s.kind==='launcher'){const dir=(this.keys.has((s.aimPositiveKey||'').toLowerCase())?1:0)-(this.keys.has((s.aimNegativeKey||'').toLowerCase())?1:0);if(dir)s.launchAngle=Math.max(-180,Math.min(180,s.launchAngle+dir*(s.aimRate||30)*h));}}
-  for(const e of this.bodies.values()){const b=e.body;if(!b.isDynamic())continue;const s=e.spec;
-   for(const t of s.thrusters)if(t.always||this.keys.has(t.key.toLowerCase())){const force=this.consumeThrust(e,t,h);if(!force)continue;const a=b.getAngle()+t.angle*Math.PI/180,f=V(force*Math.cos(a),force*Math.sin(a)),point=b.getWorldPoint(V(t.offsetX,t.offsetY));b.applyForce(f,point,true);e.thrust.add(f);e.activeThrusters.push(t);}
+  for(const e of this.launchers){const s=e.spec;e.previousLaunchAngle=s.launchAngle;{const dir=(this.keys.has((s.aimPositiveKey||'').toLowerCase())?1:0)-(this.keys.has((s.aimNegativeKey||'').toLowerCase())?1:0);if(dir)s.launchAngle=Math.max(-180,Math.min(180,s.launchAngle+dir*(s.aimRate||30)*h));}}
+  for(const e of this.thrusterBodies){const b=e.body,s=e.spec;
+   for(const t of s.thrusters)if(t.always||this.keys.has(t.key.toLowerCase())){const force=this.consumeThrust(e,t,h);if(!force)continue;const a=b.getAngle()+t.angle*Math.PI/180,xf=b.getTransform();e.forceScratch.set(force*Math.cos(a),force*Math.sin(a));e.pointScratch.set(xf.p.x+xf.q.c*t.offsetX-xf.q.s*t.offsetY,xf.p.y+xf.q.s*t.offsetX+xf.q.c*t.offsetY);b.applyForce(e.forceScratch,e.pointScratch,true);e.thrust.add(e.forceScratch);e.activeThrusters.push(t);}
   }
-  for(const e of this.bodies.values()){const b=e.body;if(!b.isDynamic())continue;const s=e.spec,v=b.getLinearVelocity(),g=gravityAt(this.scene,b.getPosition()),m=b.getMass();e.gravity.set(m*g.x,m*g.y);
+  for(const e of this.dynamicBodies){const b=e.body,s=e.spec,v=b.getLinearVelocity(),g=gravityAt(this.scene,b.getPosition(),e.gravitySample),m=b.getMass();e.gravity.set(m*g.x,m*g.y);
    if(this.scene.air){const k=s.dragK*v.length();e.drag.set(-k*v.x,-k*v.y);}
    const fx=e.applied.x+e.drag.x+(this.scene.gravityModel==='earth'?e.gravity.x:0),fy=e.applied.y+e.drag.y+(this.scene.gravityModel==='earth'?e.gravity.y:0);
-   if(fx||fy)b.applyForceToCenter(V(fx,fy),true);
+   if(fx||fy){e.forceScratch.set(fx,fy);b.applyForceToCenter(e.forceScratch,true);}
   }
-  for(const {joint:j,spec:s} of this.joints.values())if(s.kind==='axle'&&s.motor){const dir=(this.keys.has(s.keyPositive.toLowerCase())?1:0)-(this.keys.has(s.keyNegative.toLowerCase())?1:0),box=this.bodies.get(s.gearboxId),ratio=box?.assemblyIds?.has(s.a)?box.spec.ratio:1;j.enableMotor(!!s.auto||dir!==0);j.setMotorSpeed((s.auto&&dir===0?1:dir)*s.rpm*Math.PI/30/ratio);j.setMaxMotorTorque(s.torque*ratio);}
+  for(const {joint:j,spec:s} of this.motorJoints){const dir=(this.keys.has(s.keyPositive.toLowerCase())?1:0)-(this.keys.has(s.keyNegative.toLowerCase())?1:0),box=this.bodies.get(s.gearboxId),ratio=box?.assemblyIds?.has(s.a)?box.spec.ratio:1;j.enableMotor(!!s.auto||dir!==0);j.setMotorSpeed((s.auto&&dir===0?1:dir)*s.rpm*Math.PI/30/ratio);j.setMaxMotorTorque(s.torque*ratio);}
   this.world.step(h,12,8);this.time+=h;
-  for(const e of this.bodies.values()){const b=e.body,v=b.getLinearVelocity(),p=b.getPosition();e.acc.set((v.x-e.oldVelocity.x)/h,(v.y-e.oldVelocity.y)/h);e.net.set(e.acc.x*b.getMass(),e.acc.y*b.getMass());e.reaction.set(e.net.x-e.gravity.x-e.applied.x-e.thrust.x-e.drag.x,e.net.y-e.gravity.y-e.applied.y-e.thrust.y-e.drag.y);e.distance+=Math.hypot(p.x-e.last.x,p.y-e.last.y);e.last.set(p);}
+  for(const e of this.dynamicBodies){const b=e.body,v=b.getLinearVelocity(),p=b.getPosition();e.acc.set((v.x-e.oldVelocity.x)/h,(v.y-e.oldVelocity.y)/h);e.net.set(e.acc.x*b.getMass(),e.acc.y*b.getMass());e.reaction.set(e.net.x-e.gravity.x-e.applied.x-e.thrust.x-e.drag.x,e.net.y-e.gravity.y-e.applied.y-e.thrust.y-e.drag.y);e.distance+=Math.hypot(p.x-e.last.x,p.y-e.last.y);e.last.set(p);}
  }
  interpolate(alpha=1){
   // Rendering alone trails the authoritative solver by at most one fixed step.
@@ -118,9 +130,19 @@ class Simulation{
   for(const e of this.bodies.values()){const p=e.body.getPosition();e.renderPosition.set(e.previous.x+(p.x-e.previous.x)*a,e.previous.y+(p.y-e.previous.y)*a);e.renderAngle=e.previousAngle+(e.body.getAngle()-e.previousAngle)*a;if(e.spec.kind==='launcher')e.renderLaunchAngle=e.previousLaunchAngle+(e.spec.launchAngle-e.previousLaunchAngle)*a;}
  }
  resources(id){const e=this.bodies.get(id);if(!e)return {fuel:0,oxygen:0,energy:0};let fuel=0,oxygen=0,energy=0;for(const q of e.fuelTanks||[]){fuel+=q.spec.contents;energy+=q.spec.contents*q.spec.specificEnergy;}for(const q of e.oxygenTanks||[])oxygen+=q.spec.contents;return {fuel,oxygen,energy};}
- removeProjectile(id){const e=this.bodies.get(id);if(!e?.spec.projectile)return false;if(e.body.getJointList())return false;this.world.destroyBody(e.body);this.bodies.delete(id);this.shots=this.shots.filter(k=>k!==id);return true;}
+ removeProjectile(id){const e=this.bodies.get(id);if(!e?.spec.projectile||e.body.getJointList())return false;this.world.destroyBody(e.body);this.bodies.delete(id);for(const list of [this.dynamicBodies,this.launchers,this.thrusterBodies,this.fueledEngines]){const i=list.indexOf(e);if(i>=0)list.splice(i,1);}const i=this.shots.indexOf(id);if(i>=0)this.shots.splice(i,1);e.assemblyIds.delete(id);return true;}
+
  advance(seconds){const n=Math.round(seconds/DT);for(let i=0;i<n;i++)this.step();}
- state(id){const e=this.bodies.get(id);if(!e)return null;const b=e.body,p=b.getPosition(),v=b.getLinearVelocity();return {t:this.time,x:p.x,y:p.y,vx:v.x,vy:v.y,speed:v.length(),ax:e.acc.x,ay:e.acc.y,acceleration:e.acc.length(),distance:e.distance,displacement:Math.hypot(p.x-e.start.x,p.y-e.start.y),angle:b.getAngle(),omega:b.getAngularVelocity(),mass:b.getMass(),...(e.spec.kind==='launcher'?{launchAngle:e.spec.launchAngle}:{}),fx:e.net.x,fy:e.net.y};}
+ state(id,out={}){const e=this.bodies.get(id);if(!e)return null;const b=e.body,p=b.getPosition(),v=b.getLinearVelocity();out.t=this.time;out.x=p.x;out.y=p.y;out.vx=v.x;out.vy=v.y;out.speed=v.length();out.ax=e.acc.x;out.ay=e.acc.y;out.acceleration=e.acc.length();out.distance=e.distance;out.displacement=Math.hypot(p.x-e.start.x,p.y-e.start.y);out.angle=b.getAngle();out.omega=b.getAngularVelocity();out.mass=b.getMass();out.fx=e.net.x;out.fy=e.net.y;if(e.spec.kind==='launcher')out.launchAngle=e.spec.launchAngle;else if('launchAngle' in out)delete out.launchAngle;return out;}
+ preview(specs){
+  // Editing preview only: update drawing poses and broad-phase positions, with
+  // no solver step. Changed fixtures/joints are rebuilt once on pointer release.
+  this.previewing=true;this.previewRevision++;
+  for(const spec of specs){const e=this.bodies.get(spec.id);if(!e)continue;Object.assign(e.spec,spec);e.pointScratch.set(spec.x,spec.y);e.body.setTransform(e.pointScratch,spec.angle);e.previous.set(spec.x,spec.y);e.previousAngle=spec.angle;e.renderPosition.set(spec.x,spec.y);e.renderAngle=spec.angle;e.renderLaunchAngle=spec.launchAngle;e.renderRadius=spec.kind==='terrain'?Math.hypot(spec.w,Math.max(Math.abs(spec.base),...spec.profile.map(Math.abs))):['circle','gear'].includes(spec.kind)?spec.r:Math.hypot(spec.w,spec.h)/2;
+   if(spec.kind==='terrain'){const n=spec.profile.length;if(!e.renderVertices||e.renderVertices.length!==n+2)e.renderVertices=Array.from({length:n+2},()=>({x:0,y:0}));for(let i=0;i<n;i++){e.renderVertices[i].x=-spec.w/2+i*spec.w/(n-1);e.renderVertices[i].y=spec.profile[i];}e.renderVertices[n].x=spec.w/2;e.renderVertices[n].y=spec.base;e.renderVertices[n+1].x=-spec.w/2;e.renderVertices[n+1].y=spec.base;}
+  }
+ }
+
 }
 root.Newton={Simulation,body,empty,demo,validate,uid,copy,DT,area,gearsAdjacent,terrain,terrainVertices,terrainHeight,sculpt,muzzleDistance,equipment,resourceMass,gravityAt,EARTH_RADIUS,EARTH_MU};if(typeof module!=='undefined')module.exports=root.Newton;
 })(typeof window!=='undefined'?window:globalThis);

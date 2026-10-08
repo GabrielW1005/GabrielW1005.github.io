@@ -2,7 +2,7 @@
 
 ## Numerical checks
 
-`node tests/physics.test.cjs`: **71 checks passed** (38 retained + 33 engineering/rendering).
+`node tests/physics.test.cjs`: **77 checks passed** (38 retained + 39 engineering/rendering).
 
 Retained checks cover F = ma, constant-acceleration integration error and step convergence, mass-independent gravity, hovering, coasting, quadratic terminal drag, off-center torque, support forces, old challenge/report solutions, mapped motor/thruster keys and gear geometry. Collision checks cover rotated polygon contact, a rotating rectangle against a 0.06 m wall, 100 m/s projectiles against fixed and moving walls, elastic collision momentum/energy, terrain seams/slopes, moving launcher muzzle inheritance and carrier recoil, and mount/terrain validation.
 
@@ -59,6 +59,34 @@ All 15 examples load in a fresh browser. Reusing the pre-interpolation physics f
 The previous follow camera switched between easing and snapping as the distance to its target crossed a threshold. A freely moving rectangle at 80 m/s produced 105.6 px jumps in a 1440 × 900 browser window. Tracking the interpolated drawing pose directly eliminated these jumps: the same reproduction measured 0 px movement of the followed object on screen.
 
 `tests/browser-jitter.test.cjs` checks horizontal, vertical and diagonal motion over 100 real animation frames each, and verifies paused camera panning remains available. Numerical checks verify drawing interpolation does not change the solver state and mounted parts remain aligned. Collision settings, friction, solver iterations and the 1/240 s physics step remain unchanged.
+
+## Allocation, editing and memory checks
+
+The solver step, 12/8 iterations, continuous collision detection, friction, force models and body limits are unchanged. Each welded component now shares one assembly record and one membership set. Dynamic bodies, launchers, motors and engines use cached work lists; force/point/gravity/state outputs reuse storage. Removing a projectile removes it from the world and cached lists.
+
+Six additional numerical checks verify shared assembly separation/filtering after weld release, complete projectile removal, paused editor previews with accurate resized fixtures after commit, chronological/reused graph rows with constant acceleration, and reusable state output when switching away from a launcher, and fixed-launcher aiming interpolation.
+
+`tests/browser-optimization.test.cjs` passed in Chromium:
+
+- 25 actual pointer moves create zero new worlds; pointer release creates one committed world.
+- 200 simulation seconds fill/wrap the fixed 3,600-row buffer while preserving analytic velocity and chronological CSV export.
+- Undo retains at most 30 snapshots and respects its estimated 8 MiB serialized-text budget.
+- Unchanged paused measurements/resource HUD/zoom readouts produce zero DOM mutations during the observation.
+- 100 scene rebuilds create and explicitly remove 10,000 projectiles. Body/work-list counts return to baseline. Post-GC used heap after the three measured batches was 4,316,204 / 4,332,624 / 4,337,452 bytes (about 21 KiB growth). This short stress check does not prove the absence of every possible leak.
+
+All existing mission, attachment, example/cache/offline and camera regression browser suites passed again. The 180-body browser observation during concurrent regression runs measured 23 frames and a 66.6 ms median frame interval over approximately two seconds; that loaded run is not a controlled comparison or a frame-rate guarantee.
+
+The optional benchmark compares the pre-optimization release with the update in equivalent isolated contexts, warms both physics paths and alternates order across five trials. Measured medians on this execution machine:
+
+| Work | Before | Updated |
+| --- | ---: | ---: |
+| Cache one 30-part welded assembly | 35.77 ms | 0.57 ms |
+| Cache one 90-part welded assembly | 390.72 ms | 0.65 ms |
+| Cache one 180-part welded assembly | 2,581.14 ms | 0.95 ms |
+| Rover: 600 fixed steps, 36 bodies | 155.34 ms | 99.51 ms |
+| Dense contacts: 600 fixed steps, 180 bodies | 695.37 ms | 685.56 ms |
+
+Assembly membership entries for 180 connected bodies fall from 32,400 to 180. Physics timings are noisy: the individual 180-body trials span approximately 434–1,192 ms before and 475–1,493 ms after, and an earlier sequential comparison favored the old version. The overlapping ranges do not establish a reliable dense-collision speedup. The strongest confirmed gains are connected-part setup, avoiding per-pointer-move world construction and bounded/reused display storage. Real classroom devices remain untested.
 
 ## Performance observations
 
