@@ -34,7 +34,7 @@ const server = http.createServer((req, res) => {
     await page.waitForFunction(() => window.NewtonApp);
     const progressBefore = await page.evaluate(() => JSON.stringify(progress));
     const examples = await page.locator('#exampleSelect option').evaluateAll(options => options.map(o => o.value).filter(Boolean));
-    assert.equal(examples.length, 15);
+    assert.equal(examples.length, 17);
     for (const name of examples) {
       await page.locator('#exampleSelect').selectOption(name);
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));

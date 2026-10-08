@@ -4,7 +4,7 @@ import hashlib
 import re
 
 root = Path(__file__).resolve().parent
-scripts = ['vendor/planck.min.js', 'physics.js', 'legacy-challenges.js', 'challenges.js', 'buffers.js', 'app.js']
+scripts = ['vendor/planck.min.js', 'physics.js', 'legacy-challenges.js', 'challenges.js', 'buffers.js', 'workshop.js', 'world-examples.js', 'app.js']
 assets = ['style.css', *scripts]
 digest = hashlib.sha256()
 for name in assets:

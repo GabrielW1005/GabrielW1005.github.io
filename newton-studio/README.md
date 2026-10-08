@@ -59,7 +59,7 @@ Friction combines as √(μ₁μ₂). Restitution uses the larger coefficient; v
 
 Uniform gravity is the default. **Earth inverse-square** uses central gravity toward (0, −6,371,000 m), with GM = 9.81R². Escape tasks require outward flight and nonnegative specific orbital energy, equivalent to speed ≥ √(2GM/r). These are vacuum, nonrotating Earth point-mass flight models; there is no atmosphere, spherical planet collision surface, mutual body gravity or orbital autopilot. The launch pad is a local flat surface. Liftoff is distinct from escape.
 
-Fueled engines use the ideal rocket relation **F = ṁvₑ**. Hydrogen fuel and oxygen leave in a configurable mass ratio (default 8 kg oxygen / kg fuel). Fuel chemical energy defaults to 120 MJ/kg; efficiency limits exhaust kinetic energy. Effective exhaust speed is bounded by both the selected speed and √(2ηq/(1+oxygen ratio)). Removed propellant carries its previous vehicle motion; exhaust recoil supplies thrust. Both tanks lose mass; chemical energy falls with fuel mass. Engines stop when either required supply empties. Multiple engines share tanks without negative contents. There is no thermal/chamber/nozzle simulation, and unburned dry hardware remains attached. Tank contents are modeled as uniformly distributed density, without fluid slosh. Tank/engine artwork is decorative; their physical collision hulls remain the existing rectangles.
+Fueled engines use the ideal rocket relation **F = ṁvₑ**. Hydrogen fuel and oxygen leave in a configurable mass ratio (default 8 kg oxygen / kg fuel). Fuel chemical energy defaults to 120 MJ/kg; efficiency limits exhaust kinetic energy. Effective exhaust speed is bounded by both the selected speed and √(2ηq/(1+oxygen ratio)). Removed propellant carries its previous vehicle motion; exhaust recoil supplies thrust. Both tanks lose mass; chemical energy falls with fuel mass. Engines stop when either required supply empties. Multiple engines share tanks without negative contents. There is no thermal/chamber/nozzle simulation, and unburned dry hardware remains attached. Tank contents are modeled as uniformly distributed density, without fluid slosh. Tank artwork uses nominal rectangular collision hulls. Engine nozzles, chambers and caps use three matching convex collision fixtures.
 
 Moving launcher shots inherit the muzzle-point velocity, including rotation, plus the specified relative launch velocity immediately before firing. An opposite impulse recoils the carrier. The muzzle clears its housing. Ammunition is externally supplied; shot mass is not subtracted from the carrier. Fixed launchers have noncolliding housings and absorb recoil through their support. Catapult release instead removes a weld; payload velocity comes from beam motion.
 
@@ -68,6 +68,31 @@ With air on, translational drag is **−k|v|v** in still air; k combines ½ρC�
 Live acceleration is Δv/Δt; net force is mΔv/Δt, including averaged contact/joint impulses. Individual-body measurements are not whole-vehicle totals. Graph acceleration and net force average consecutive samples roughly 0.05 s apart. Distance integrates the traveled path; displacement is the straight-line change. Arrow scales differ and lengths are capped; read their numbers for comparisons.
 
 This is a finite-step numerical approximation. Extreme forces, mass ratios, tiny shapes, starting overlaps, long joint chains and fast rotations can reduce accuracy. Classroom scenes should generally use 0.1–20 m shapes and speeds below 100 m/s; verified vacuum space examples support higher speeds. The engine safety translation cap permits up to 24 km/s at the default step; it is still a cap, not an unlimited relativistic model. No deformation, rope simulation, fluid flow, rolling resistance or relativistic physics.
+
+## Workshop controls
+
+**Connect & Drive** is a separate window: use its top-bar button to show/hide it, its Minimize button to collapse it, and **Place window** to choose Below Build or Right of Build. On narrow phones it stacks below the world. Its placement and visibility save independently of Build and Inspector.
+
+Welded shapes and mounted parts move and rotate together when you drag any member or edit its position/angle while paused. Existing joints keep their attachment locations. Axles and rods remain separate mechanisms rather than rigid welds.
+
+New shapes use a default material density and friction. Inspector offers density in kg/m³, thickness in meters, automatic mass, material presets and named custom materials. Mass = density × actual area × thickness. Editing mass updates density; disabling automatic mass keeps the chosen mass when resizing and updates the resulting density. Old scenes infer density from their stored mass, preserving their initial behavior. Tank contents add to dry hardware mass; resizing a tank scales both capacity and current load. Fixed supports can carry larger stored masses; dynamic classroom bodies remain limited to 1,000 kg.
+
+**Fixed in world** freezes/unfreezes the entire welded assembly, including its mounts. Ground and sculpted terrain can also be freed; movable terrain uses the exact polygon mass, centroid and inertia for its height profile. Very heavy supports must be reduced to the dynamic mass limit before freeing them.
+
+**Add thruster** creates and selects separate engine hardware. New engine mass and rated force scale with area during proportional resizing. Its nozzle, chamber and small cap are the visible art and collision fixtures; flame exits that engine's own nozzle, opposite its thrust vector. Direction and key remain editable. Motor housings have mass, attach to the chassis (or fixed world support), and scale rated torque with their circular area. Select the housing or driven body to edit rpm, torque and keys. This actuator size/rating rule is a configurable classroom model, not a real engine design law; electrical energy and rotor inertia are omitted.
+
+Create a **Trace point**, or use **Attach trajectory point here** in the Inspector. Points are 0.01 kg sensor markers: they add a small mass when welded but do not collide. Every object can show a trajectory with custom color, pixel thickness and fade time in simulation seconds. Set fade to **0** to keep the full path until Reset; long paths are resampled at lower detail to keep storage bounded. Velocity vectors and vector numbers start off; their checkboxes enable them.
+
+A **Refuel station** has finite fuel/oxygen stock, individual delivery rates and a reach radius. Set either rate to 0 to serve only the other resource. During a run, tanks within reach and within 2 m/s relative speed refill to their saved capacity. Stored propellant and incoming propellant contribute mass. Transfer carries the donor's translational momentum. The externally powered ideal pump supplies transfer work and angular redistribution; hoses, thermal effects and liquid flow are omitted.
+
+New examples:
+
+- **Nearby worlds — WASD thrusters:** Explorer has four physical engines, tanks and a trajectory point. W/A/S/D thrust up/left/down/right relative to the ship; Follow tracks it while you travel toward Aster, Ember and Moss. Slow down near green stations to refuel. Zoom out to see the surrounding worlds.
+- **Jump course — A/D drive, W/E thrust:** wheel motors, an upward engine and a forward booster cross bumps, ramps, jumps and open crevasses over roughly 500 m. A/D drive, W thrusts upward and E boosts forward. Tanks and stations are finite; the camera can travel beyond the course.
+
+Nearby worlds are fictional miniature gravity sources. The force obeys Newton's law using G = 6.67430×10⁻¹¹ m³/(kg·s²), stored mass and distance: GM/r² outside each world and the field of a uniform-density sphere inside it. Planets use spherical volume/inertia. Their densities and distances are illustrative, not Earth/Mars values. Fixed centers are externally supported; free planets receive the equal/opposite reaction from ordinary bodies and attract each other. Ordinary bodies do not gravitationally attract one another. Gravity acts at body centers and omits tidal deformation.
+
+Teacher-report and save-file result replay now uses small asynchronous batches with a progress display, retaining the same locked simulations. Closing the check cancels it without replacing current work.
 
 ## Performance
 
@@ -87,6 +112,7 @@ The new curriculum is `engineering-v2`. Original 15-mission progress is preserve
 
 ```sh
 node tests/physics.test.cjs
+node tests/workshop-physics.test.cjs
 python3 build_standalone.py
 ```
 
@@ -100,12 +126,13 @@ node tests/browser-jitter.test.cjs
 node tests/browser-examples.test.cjs
 node tests/browser-attachments.test.cjs
 node tests/browser-optimization.test.cjs
+node tests/browser-workshop.test.cjs
 ```
 
 Optionally set `NEWTON_CHROMIUM` to an existing Chromium executable. Browser tests serve the app locally, run all missions, check controls/saves/reports and exercise a 180-body scene. See `VERIFICATION.md` for measured checks and limits.
 
 For an observational timing benchmark, run `node tests/performance.cjs`. To compare an earlier physics file, set `NEWTON_BASELINE=/absolute/path/to/previous-physics.js`; both versions then run in equivalent isolated JavaScript contexts. Results depend on hardware/load and are not pass/fail thresholds.
 
-To publish elsewhere, keep `index.html`, CSS/JS files (including `buffers.js` and `legacy-challenges.js`) and `vendor/` together in a GitHub Pages folder. Or upload the standalone file as `index.html`. No server-side code is needed.
+To publish elsewhere, keep `index.html`, CSS/JS files (including `buffers.js`, `workshop.js`, `world-examples.js` and `legacy-challenges.js`) and `vendor/` together in a GitHub Pages folder. Or upload the standalone file as `index.html`. No server-side code is needed.
 
 Original code: MIT license. Vendored Planck copyright/license: `vendor/PLANCK-LICENSE.txt`.
