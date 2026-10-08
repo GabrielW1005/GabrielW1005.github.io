@@ -2,7 +2,7 @@
 
 ## Numerical checks
 
-`node tests/physics.test.cjs`: **69 checks passed** (38 retained + 31 engineering/rendering).
+`node tests/physics.test.cjs`: **71 checks passed** (38 retained + 33 engineering/rendering).
 
 Retained checks cover F = ma, constant-acceleration integration error and step convergence, mass-independent gravity, hovering, coasting, quadratic terminal drag, off-center torque, support forces, old challenge/report solutions, mapped motor/thruster keys and gear geometry. Collision checks cover rotated polygon contact, a rotating rectangle against a 0.06 m wall, 100 m/s projectiles against fixed and moving walls, elastic collision momentum/energy, terrain seams/slopes, moving launcher muzzle inheritance and carrier recoil, and mount/terrain validation.
 
@@ -40,6 +40,14 @@ New checks:
 - Dark and 390 px mobile layouts had no horizontal overflow. No browser JavaScript errors.
 - Separate layout regression checks passed fullscreen entry/exit, independent sidebar collapse/persistence, running physics/graphs preservation and restore controls at 1920, 1024 and 390 px.
 
+## Equipment attachment and resource display
+
+Direct equipment mount chains are valid rigid assemblies. Numerical checks verify that a fuel → oxygen → engine chain shares propellant, retains its hardware/contents mass, consumes both resources under keyboard thrust and stops producing force after losing its fuel connection. Direct/indirect mount cycles and fixed supports are rejected.
+
+`tests/browser-attachments.test.cjs` uses pointer drops to snap a hull → fuel → oxygen → engine chain, moves the hull and verifies nested parts follow, burns the engine with its mapped key and checks resource consumption, then verifies releasing the key stops the active flame/force. Detach cuts off fuel supply; Attach nearby restores it. Selecting a different parent preserves child connections. Fuel/oxygen display toggles persist across reloads. The 390 px layout has no horizontal overflow. Desktop, burning and mobile screenshots were inspected.
+
+The new art and animation retain existing rectangular equipment collision hulls, masses, inertia calculations and the fixed physics step. Tank fill and meters use live remaining contents divided by each tank’s starting contents. The renderer changes no solver state.
+
 ## Example loading and browser cache regression
 
 All 15 examples load in a fresh browser. Reusing the pre-interpolation physics file with the current renderer reproduces `sim.interpolate is not a function`, stopping the animation loop so subsequent example selections cannot redraw the canvas. Hosted CSS/scripts now use one content-derived release version in their URLs, bypassing earlier cache entries. The build script updates those URLs and embeds all assets into the standalone edition. Two builds without source edits produce identical files.
@@ -52,7 +60,9 @@ The previous follow camera switched between easing and snapping as the distance 
 
 `tests/browser-jitter.test.cjs` checks horizontal, vertical and diagonal motion over 100 real animation frames each, and verifies paused camera panning remains available. Numerical checks verify drawing interpolation does not change the solver state and mounted parts remain aligned. Collision settings, friction, solver iterations and the 1/240 s physics step remain unchanged.
 
-## Performance observation
+## Performance observations
+
+The original observation below was recorded on 2026-10-07. During the equipment update, a fresh-browser control comparison on the current execution machine measured 11 frames / 200 ms median interval before the change and 12 frames / 183.4 ms median after it, with 180 bodies in both and 1.40 versus 1.43 s of physics over roughly 2 s wall time. Both versions were slower than the original run. This control comparison did not show a slowdown from the equipment changes; timings remain machine/load dependent.
 
 Chromium on the execution machine, 180 bodies including a floor and 179 colliding circles, default fixed step, normal vectors/rendering, two seconds of wall time:
 
