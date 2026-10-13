@@ -10,64 +10,93 @@
 @media(max-width:800px){.hero{grid-template-columns:1fr}.lesson{display:grid;grid-template-columns:1fr 1fr;gap:12px}.lesson h2{margin:4px 0}.lesson .event{margin:0}.lesson .recognize{margin:0}.count-badge{margin:0;padding:9px}.phasebar{display:flex;overflow:auto;padding-bottom:6px}.phasebar button{flex:0 0 125px}.learning-grid,.count-panel{grid-template-columns:1fr}.wrap{padding:17px}.stage-top{padding:12px 12px 0}.controls{padding:12px}.header-tools button{font-size:12px;padding:8px}.brandmark{display:none}.control-row{flex-wrap:wrap}.review-grid{grid-template-columns:1fr}.card{padding:20px}header{gap:10px}.lesson>p{font-size:14px}.stage-note{padding:0 12px 10px}.switch{font-size:12px}.chromosome-row{grid-template-columns:145px 1fr}.header-tools{gap:4px}footer{flex-direction:column}}
 @media(max-width:430px){.lesson{grid-template-columns:1fr}.lesson h2{font-size:25px}.chromosome-row{grid-template-columns:1fr}.chromosome-row svg{height:180px;width:100%}.speed{font-size:12px}.stage-top .eyebrow{display:none}h1{font-size:29px}.header-tools button{padding:8px}.number-example b{font-size:25px}}
 
-/* The phase picker, timeline, and drawing share the first screen on laptops and Chromebooks. */
-.wrap{padding:12px 20px 30px}
-.topbar{min-height:36px;margin:0 0 8px;align-items:center}
-.phasebar{margin:0 0 10px;gap:5px}
-.phasebar button{min-width:0;min-height:46px;padding:6px 9px;font-size:13px;line-height:1.2}
+/* Compact, clearly grouped controls that remain in view with the cell model. */
+.wrap{padding:8px 18px 30px}
+.experience{position:relative}
+.control-dock{position:sticky;top:0;z-index:10;background:var(--paper);padding:5px 0 8px}
+.phasebar{display:grid;grid-template-columns:1.5fr repeat(6,minmax(0,1fr));gap:5px;margin:0 0 6px;padding:0;overflow:visible}
+.phasebar button{min-width:0;min-height:43px;padding:5px 9px;font-size:12px;line-height:1.2}
 .phasebar span{font-size:10px;margin-top:1px}
-.hero{align-items:start}
+.controls{padding:7px 13px 9px;border:1px solid var(--line);border-radius:14px;background:white;box-shadow:0 3px 15px #23443d09}
+.timeline-label{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:0 0 1px}
+#timeline{display:block;width:100%;height:23px;touch-action:pan-y}
+.control-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.control-row .playset{display:flex;gap:5px;flex-wrap:wrap}
+.control-row .playset button{min-height:33px;padding:4px 11px;font-size:12px}
+.control-options{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.control-options .segmented{padding:2px}
+.control-options .segmented button{min-height:30px;padding:4px 10px;font-size:12px}
+.control-options .switch,.control-options .speed{font-size:12px;white-space:nowrap}
+.control-options .speed select{padding:4px 6px}
+.control-options #fullscreen{min-height:33px;padding:5px 10px;font-size:12px}
+.hero{align-items:start;gap:12px;grid-template-columns:minmax(0,1fr) 310px}
 .stage{align-self:start}
-.stage-top{padding:8px 14px 5px}
-.controls{padding:6px 14px 8px;border-top:0;border-bottom:1px solid var(--line)}
-.timeline-label{font-size:12px;margin-bottom:0}
-#timeline{height:20px;display:block;touch-action:pan-y}
-.control-row{margin-top:4px}
-.playset button{min-height:34px;padding:5px 11px;font-size:12px}
-.speed select{padding:4px 7px}
 .canvas-wrap{display:flex;justify-content:center;align-items:center;min-height:0;width:100%}
 #cellCanvas{display:block;width:100%;max-width:100%;height:auto;aspect-ratio:1000/580}
-.stage-note{padding:5px 14px 8px;line-height:1.25}
-.lesson{max-height:calc(100dvh - 112px);overflow-y:auto}
+.stage-note{padding:5px 12px 8px;font-size:11px;line-height:1.2}
+.lesson{max-height:calc(100dvh - 164px);min-height:0;overflow-y:auto;padding:18px}
+.lesson h2{font-size:25px;margin:6px 0}
+.lesson p{font-size:14px}
+.lesson .event{margin:12px 0}
+.lesson .recognize{padding:12px}
+.lesson .count-badge{padding-top:8px;margin-top:10px}
+.learning-grid{margin-top:18px}
 @media(max-width:1100px){
- .wrap{padding:10px 14px 26px}
- .hero{grid-template-columns:minmax(0,1fr) 275px;gap:10px}
- .phasebar button{font-size:12px;padding:6px 7px}
+ .wrap{padding:6px 12px 25px}
+ .hero{grid-template-columns:minmax(0,1fr) 260px;gap:10px}
+ .phasebar button{font-size:11px;padding:5px 6px}
  .phasebar span{font-size:9px}
+ .lesson{padding:14px}
+ .lesson h2{font-size:22px}
 }
 @media(max-width:800px){
  .hero{grid-template-columns:1fr}
- .lesson{max-height:none;overflow:visible}
- .phasebar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));overflow:visible;padding:0}
- .phasebar button{min-height:40px;font-size:11px;text-align:center;padding:4px 2px}
+ .phasebar{grid-template-columns:repeat(7,minmax(0,1fr));overflow:visible;padding:0}
+ .phasebar button{min-height:38px;font-size:10px;text-align:center;padding:3px 2px}
  .phasebar span{display:none}
- .stage-top{padding:6px 10px 4px}
- .controls{padding:5px 10px 7px}
- .stage-note{padding:5px 10px 8px}
- .topbar{margin-bottom:5px}
+ .control-options{justify-content:flex-start}
+ .lesson{max-height:none;overflow:visible}
+ .controls{padding:6px 9px}
 }
-@media(max-width:640px){
+@media(max-width:600px){
  .phasebar{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
- .phasebar button{min-height:36px;font-size:12px}
- .topbar .eyebrow{font-size:10px;letter-spacing:.5px}
- .control-row{flex-wrap:wrap}
- .playset button{padding:5px 8px}
+ .phasebar button{min-height:35px;font-size:11px}
+ .control-row{gap:5px}
+ .control-options{gap:5px}
+ .control-options #fullscreen{padding:5px 7px}
+ .control-options .segmented button{padding:4px 7px}
+ .control-row .playset button{padding:5px 7px}
+ .lesson{grid-template-columns:1fr}
+}
+@media(max-height:580px) and (min-width:801px){
+ .phasebar button{min-height:36px}
+ .control-dock{padding-top:2px;padding-bottom:5px}
+ .controls{padding:4px 9px}
+ .control-row{margin-top:0}
+ .lesson{max-height:calc(100dvh - 140px)}
 }
 </style>
 </head>
 <body>
 <main class="wrap">
-<header class="topbar"><div class="eyebrow">Life science · Explore & observe</div><div class="header-tools"><button id="fullscreen" aria-label="Toggle fullscreen">Full screen ↗</button></div></header>
+<div class="experience">
+<div class="control-dock" aria-label="Cell cycle controls">
 <nav class="phasebar" aria-label="Choose a phase" id="phasebar"></nav>
+<div class="controls">
+<div class="timeline-label"><span id="timeLabel">Interphase · G₁: growth</span><span id="elapsed">0:00 / 1:48</span></div>
+<label class="sr-only" for="timeline">Scrub through the cell cycle</label><input id="timeline" type="range" min="0" max="108" step="0.01" value="0">
+<div class="control-row">
+<div class="playset"><button class="primary" id="play" aria-pressed="true">Ⅱ Pause</button><button id="restart" aria-label="Restart animation">↺ Restart</button><button id="next" aria-label="Go to next phase">Next →</button></div>
+<div class="control-options"><div class="segmented" role="group" aria-label="Cell type"><button id="animal" aria-pressed="true">Animal cell</button><button id="plant" aria-pressed="false">Plant cell</button></div><label class="switch"><input id="labels" type="checkbox" checked> Show labels</label><label class="speed">Speed <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label><button id="fullscreen" aria-label="Toggle fullscreen">Full screen ↗</button></div>
+</div></div></div>
 <section class="hero" aria-label="Cell cycle animation">
 <div class="stage">
-<div class="stage-top"><div class="segmented" role="group" aria-label="Cell type"><button id="animal" aria-pressed="true">Animal cell</button><button id="plant" aria-pressed="false">Plant cell</button></div><label class="switch"><input id="labels" type="checkbox" checked> Show labels</label></div>
-<div class="controls"><div class="timeline-label"><span id="timeLabel">Interphase · G₁: growth</span><span id="elapsed">0:00 / 1:48</span></div><label class="sr-only" for="timeline">Scrub through the cell cycle</label><input id="timeline" type="range" min="0" max="108" step="0.01" value="0"><div class="control-row"><div class="playset"><button class="primary" id="play" aria-pressed="true">Ⅱ Pause</button><button id="restart" aria-label="Restart animation">↺ Restart</button><button id="next" aria-label="Go to next phase">Next →</button></div><label class="speed">Speed <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label></div></div>
 <div class="canvas-wrap"><canvas id="cellCanvas" role="img" aria-label="Animated cell-cycle model. Four model chromosomes are tracked through division."></canvas></div>
 <p class="stage-note" id="sceneNote">Model cell: 4 chromosomes. Colors help you follow each chromosome; they are not natural colors.</p>
 </div>
 <aside class="lesson"><div><div class="eyebrow" id="category">The preparation phase</div><h2 id="phaseTitle">Interphase</h2></div><p id="phaseSummary"></p><div class="event"><div class="eyebrow">What is happening now?</div><p id="now"></p></div><div class="recognize"><strong>How to recognize it</strong><p id="recognition"></p></div><div class="count-badge"><span id="countText">Chromosomes in the cell</span><b id="count">4</b></div></aside>
 </section>
+</div><!-- experience -->
 <section class="learning-grid" aria-label="Explore cell structures and repair">
 <article class="card"><div class="eyebrow">Look closer</div><h2>One chromosome. Two copies.</h2><p>This enlarged, duplicated chromosome is the form you see during early mitosis.</p><div class="chromosome-row"><svg viewBox="0 0 180 230" role="img" aria-label="A duplicated chromosome with two sister chromatids joined at the centromere"><defs><linearGradient id="chromGrad" x1="0" x2="1"><stop stop-color="#75348d"/><stop offset=".5" stop-color="#c286d7"/><stop offset="1" stop-color="#85469e"/></linearGradient></defs><path d="M50 30C45 70 73 82 82 115C71 150 44 157 48 200" fill="none" stroke="url(#chromGrad)" stroke-width="16" stroke-linecap="round"/><path d="M130 30C135 70 107 82 98 115C109 150 136 157 132 200" fill="none" stroke="url(#chromGrad)" stroke-width="16" stroke-linecap="round"/><path d="M79 115H100" stroke="#f1bc52" stroke-width="11" stroke-linecap="round"/><path d="M47 28C47 67 73 86 80 114M80 119C70 148 48 163 47 197M133 28C133 67 107 86 100 114M100 119C110 148 132 163 133 197" fill="none" stroke="#ecd4f4" stroke-width="2" opacity=".6"/><text x="90" y="224" text-anchor="middle" font-family="system-ui" fill="#586f79" font-size="11">Enlarged model</text></svg><div class="facts"><div><strong><span class="dot"></span> Sister chromatids</strong>Two matching copies. Each whole side is one chromatid, not each arm.</div><div><strong><span class="dot" style="background:#d99f32"></span> Centromere</strong>Each chromatid has a centromeric region. Sister chromatids are held together there until separation.</div><div><strong>After they separate</strong>Each chromatid becomes an individual chromosome.</div></div></div><div class="fact-strip"><span class="chip">2 sister chromatids = 1 duplicated chromosome</span><button id="inspect">Show in cell ↗</button></div></article>
 <article class="card"><div class="repair-head"><div><div class="eyebrow">Why cells divide</div><h2>Repair & replacement</h2></div><button id="repairRestart" aria-label="Replay skin repair animation">↺ Replay</button></div><p>Some living skin cells divide to make new cells. New cells grow and move to help repair a cut and replace cells that are worn out. Dead skin cells do not divide.</p><canvas id="repairCanvas" role="img" aria-label="Simplified animation of living cells dividing near a gap in skin and filling it with new cells."></canvas><p class="repair-caption" id="repairCaption">Living cells near damaged tissue can divide to help repair it.</p><p class="note">Cell division also helps multicellular organisms grow. In some single-celled eukaryotes, division is a way to reproduce.</p></article>
@@ -101,7 +130,7 @@ function fitCanvas(el,context,w,h){const ratio=Math.min(window.devicePixelRatio|
 function resize(){
  // Reserve room beneath the phase picker for the timeline and controls,
  // then fit the scene (without stretching) in the remaining viewport height.
- const availableHeight=Math.max(150,window.innerHeight-canvas.getBoundingClientRect().top-55);
+ const availableHeight=Math.max(110,window.innerHeight-canvas.getBoundingClientRect().top-35);
  const desiredWidth=Math.min(canvas.parentElement.clientWidth,availableHeight*1000/580);
  canvas.style.width=Math.max(1,Math.floor(desiredWidth))+'px';
  fitCanvas(canvas,ctx,1000,580);
