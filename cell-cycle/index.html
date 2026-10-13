@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="A smooth, interactive cell-cycle model for middle-school science. Explore mitosis, animal and plant cytokinesis, chromosomes, and skin repair.">
+<title>Cell Cycle • A living lesson</title>
+<style>
+:root{--ink:#17323f;--muted:#586f79;--paper:#f3f7f5;--line:#d8e4df;--teal:#157965;--gold:#d59431;--purple:#9b53b4;--blue:#36889c}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select{font:inherit}button,select{cursor:pointer}button{border:1px solid var(--line);border-radius:10px;padding:9px 15px;background:white;color:var(--ink);font-weight:600;min-height:44px}button:hover{background:#eaf3ee}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #bf8625;outline-offset:3px}button.primary{background:var(--teal);color:white;border-color:var(--teal)}button:disabled{opacity:.45;cursor:default}h1,h2,h3,p{margin:0}h1{font-size:clamp(28px,3.8vw,44px);line-height:1.1;letter-spacing:-1.4px}h2{font-size:24px;line-height:1.25;letter-spacing:-.5px}h3{font-size:18px}.eyebrow{font-size:11px;letter-spacing:1.9px;text-transform:uppercase;font-weight:750;color:var(--teal)}.muted{color:var(--muted)}.wrap{max-width:1510px;margin:auto;padding:30px 36px 40px}header{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:26px}.brand{display:flex;gap:17px;align-items:center}.brandmark{width:52px;height:52px;border-radius:18px;background:#dceee5;display:grid;place-items:center}.header-tools{display:flex;gap:10px;align-items:center}.tag{font-size:12px;border:1px solid var(--line);border-radius:30px;padding:6px 12px;color:var(--muted);white-space:nowrap}.phasebar{display:grid;grid-template-columns:1.5fr repeat(6,1fr);gap:7px;margin:20px 0 16px}.phasebar button{text-align:left;padding:10px 12px;font-size:13px;border-radius:12px;position:relative}.phasebar span{display:block;font-size:10px;font-weight:500;color:var(--muted);margin-top:2px}.phasebar button[aria-current=true]{background:var(--ink);color:white;border-color:var(--ink)}.phasebar button[aria-current=true] span{color:#bdd6cf}.hero{display:grid;grid-template-columns:minmax(0,1fr) 325px;gap:18px}.stage{border:1px solid var(--line);border-radius:20px;background:#fff;overflow:hidden;box-shadow:0 8px 28px #23443d07}.stage-top{display:flex;justify-content:space-between;gap:12px;padding:18px 22px 0;align-items:center}.segmented{display:flex;background:#edf3ef;border-radius:10px;padding:3px}.segmented button{border:0;background:transparent;padding:5px 13px;min-height:34px;font-size:13px}.segmented button[aria-pressed=true]{background:white;box-shadow:0 1px 5px #183e2914}.switch{font-size:13px;display:flex;align-items:center;gap:7px}.switch input{accent-color:var(--teal);width:17px;height:17px}.canvas-wrap{position:relative}canvas{display:block;width:100%}#cellCanvas{aspect-ratio:1000/580}.stage-note{padding:0 22px 12px;font-size:12px;color:var(--muted)}.controls{padding:16px 22px 18px;border-top:1px solid var(--line);background:#fbfdfb}.timeline-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px}input[type=range]{width:100%;accent-color:var(--teal);height:28px;cursor:pointer}.control-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px}.playset{display:flex;gap:7px}.speed{display:flex;align-items:center;gap:7px;font-size:13px}.speed select{padding:7px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--ink)}.lesson{background:#e8f0eb;border:1px solid #d5e3db;border-radius:20px;padding:25px;display:flex;flex-direction:column}.lesson h2{font-size:29px;margin:8px 0 14px}.lesson p{font-size:15px}.event{border-left:3px solid var(--teal);padding-left:14px;margin:22px 0}.event .eyebrow{margin-bottom:7px}.recognize{background:#ffffffb8;border-radius:12px;padding:16px;margin-top:auto}.recognize strong{font-size:12px;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:1px}.recognize p{font-size:14px}.count-badge{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #d0dfd5;margin-top:17px;padding-top:14px;font-size:12px}.count-badge b{font-size:26px;color:var(--teal)}.learning-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:25px}.card{padding:25px;border:1px solid var(--line);border-radius:18px;background:white}.card h2{margin:4px 0 11px}.card>p{font-size:14px;color:var(--muted)}.chromosome-row{display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:center;margin-top:8px}.chromosome-row svg{width:180px;height:230px}.facts{display:grid;gap:10px;font-size:14px}.facts strong{display:block;color:var(--ink)}.chip{display:inline-flex;gap:6px;align-items:center;font-size:12px}.dot{width:9px;height:9px;border-radius:50%;background:var(--purple);display:inline-block}.fact-strip{display:flex;gap:10px;margin-top:15px;padding-top:13px;border-top:1px solid var(--line);align-items:center;font-size:12px}.fact-strip button{font-size:12px;margin-left:auto}.repair-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}#repairCanvas{aspect-ratio:600/220;margin-top:14px;border-radius:12px;background:#f4f7fb}.repair-caption{font-size:12px;color:var(--muted);margin-top:10px}.count-panel{margin-top:18px;display:grid;grid-template-columns:1fr 1.2fr;gap:28px}.number-input{display:flex;gap:10px;align-items:center;margin-top:13px}.number-input input{width:90px;border:1px solid var(--line);border-radius:9px;padding:8px;color:var(--ink)}.number-example{display:flex;justify-content:space-around;gap:8px;align-items:center;background:#f0f5f2;border-radius:13px;padding:14px;margin-top:12px}.number-example b{display:block;font-size:30px;color:var(--teal);line-height:1.2}.number-example span{font-size:12px}.number-example .arrow{font-size:25px;color:#87aa99}.note{font-size:12px!important;color:var(--muted);margin-top:12px}.timebar{display:flex;height:16px;border-radius:20px;overflow:hidden;margin:15px 0 7px}.timebar div:first-child{width:86%;background:var(--teal)}.timebar div:last-child{width:14%;background:var(--gold)}.timekey{display:flex;justify-content:space-between;font-size:12px}.review{margin-top:18px}.review summary{cursor:pointer;min-height:44px;font-weight:700}.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding-top:17px}.review-grid p{font-size:14px;margin-top:6px}.review-grid ul{margin:8px 0;padding-left:19px;font-size:14px}.model-notes{font-size:12px;padding-top:18px;border-top:1px solid var(--line);margin-top:20px;color:var(--muted)}footer{font-size:12px;color:var(--muted);margin-top:22px;display:flex;justify-content:space-between;gap:15px}a{color:var(--teal)}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}body:fullscreen{overflow:auto;background:var(--paper)}
+@media(max-width:1100px){.wrap{padding:22px}.hero{grid-template-columns:minmax(0,1fr) 285px}.lesson{padding:20px}.phasebar button{padding:8px;font-size:12px}.tag{display:none}.chromosome-row{grid-template-columns:145px 1fr}.chromosome-row svg{width:145px}.review-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:800px){.hero{grid-template-columns:1fr}.lesson{display:grid;grid-template-columns:1fr 1fr;gap:12px}.lesson h2{margin:4px 0}.lesson .event{margin:0}.lesson .recognize{margin:0}.count-badge{margin:0;padding:9px}.phasebar{display:flex;overflow:auto;padding-bottom:6px}.phasebar button{flex:0 0 125px}.learning-grid,.count-panel{grid-template-columns:1fr}.wrap{padding:17px}.stage-top{padding:12px 12px 0}.controls{padding:12px}.header-tools button{font-size:12px;padding:8px}.brandmark{display:none}.control-row{flex-wrap:wrap}.review-grid{grid-template-columns:1fr}.card{padding:20px}header{gap:10px}.lesson>p{font-size:14px}.stage-note{padding:0 12px 10px}.switch{font-size:12px}.chromosome-row{grid-template-columns:145px 1fr}.header-tools{gap:4px}footer{flex-direction:column}}
+@media(max-width:430px){.lesson{grid-template-columns:1fr}.lesson h2{font-size:25px}.chromosome-row{grid-template-columns:1fr}.chromosome-row svg{height:180px;width:100%}.speed{font-size:12px}.stage-top .eyebrow{display:none}h1{font-size:29px}.header-tools button{padding:8px}.number-example b{font-size:25px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header><div class="brand"><div class="brandmark" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="none" stroke="#157965" stroke-width="2"/><ellipse cx="20" cy="20" rx="7" ry="9" fill="#b888c7"/><path d="M17 15L23 25M23 15L17 25" stroke="#fff" stroke-width="2"/></svg></div><div><div class="eyebrow">Life science · Explore & observe</div><h1>The cell cycle</h1></div></div><div class="header-tools"><span class="tag">Grades 6–8</span><button id="fullscreen" aria-label="Open fullscreen">Full screen ↗</button></div></header>
+<p class="muted">Follow one cell as it grows, organizes its chromosomes, and becomes two daughter cells.</p>
+<nav class="phasebar" aria-label="Choose a phase" id="phasebar"></nav>
+<section class="hero" aria-label="Cell cycle animation">
+<div class="stage">
+<div class="stage-top"><div class="segmented" role="group" aria-label="Cell type"><button id="animal" aria-pressed="true">Animal cell</button><button id="plant" aria-pressed="false">Plant cell</button></div><label class="switch"><input id="labels" type="checkbox" checked> Show labels</label></div>
+<div class="canvas-wrap"><canvas id="cellCanvas" role="img" aria-label="Animated cell-cycle model. Four model chromosomes are tracked through division."></canvas></div>
+<p class="stage-note" id="sceneNote">Model cell: 4 chromosomes. Colors help you follow each chromosome; they are not natural colors.</p>
+<div class="controls"><div class="timeline-label"><span id="timeLabel">Interphase · G₁: growth</span><span id="elapsed">0:00 / 1:48</span></div><label class="sr-only" for="timeline">Scrub through the cell cycle</label><input id="timeline" type="range" min="0" max="108" step="0.01" value="0"><div class="control-row"><div class="playset"><button class="primary" id="play" aria-pressed="true">Ⅱ Pause</button><button id="restart" aria-label="Restart animation">↺ Restart</button><button id="next" aria-label="Go to next phase">Next →</button></div><label class="speed">Speed <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label></div></div>
+</div>
+<aside class="lesson"><div><div class="eyebrow" id="category">The preparation phase</div><h2 id="phaseTitle">Interphase</h2></div><p id="phaseSummary"></p><div class="event"><div class="eyebrow">What is happening now?</div><p id="now"></p></div><div class="recognize"><strong>How to recognize it</strong><p id="recognition"></p></div><div class="count-badge"><span id="countText">Chromosomes in the cell</span><b id="count">4</b></div></aside>
+</section>
+<section class="learning-grid" aria-label="Explore cell structures and repair">
+<article class="card"><div class="eyebrow">Look closer</div><h2>One chromosome. Two copies.</h2><p>This enlarged, duplicated chromosome is the form you see during early mitosis.</p><div class="chromosome-row"><svg viewBox="0 0 180 230" role="img" aria-label="A duplicated chromosome with two sister chromatids joined at the centromere"><defs><linearGradient id="chromGrad" x1="0" x2="1"><stop stop-color="#75348d"/><stop offset=".5" stop-color="#c286d7"/><stop offset="1" stop-color="#85469e"/></linearGradient></defs><path d="M50 30C45 70 73 82 82 115C71 150 44 157 48 200" fill="none" stroke="url(#chromGrad)" stroke-width="16" stroke-linecap="round"/><path d="M130 30C135 70 107 82 98 115C109 150 136 157 132 200" fill="none" stroke="url(#chromGrad)" stroke-width="16" stroke-linecap="round"/><path d="M79 115H100" stroke="#f1bc52" stroke-width="11" stroke-linecap="round"/><path d="M47 28C47 67 73 86 80 114M80 119C70 148 48 163 47 197M133 28C133 67 107 86 100 114M100 119C110 148 132 163 133 197" fill="none" stroke="#ecd4f4" stroke-width="2" opacity=".6"/><text x="90" y="224" text-anchor="middle" font-family="system-ui" fill="#586f79" font-size="11">Enlarged model</text></svg><div class="facts"><div><strong><span class="dot"></span> Sister chromatids</strong>Two matching copies. Each whole side is one chromatid, not each arm.</div><div><strong><span class="dot" style="background:#d99f32"></span> Centromere</strong>Each chromatid has a centromeric region. Sister chromatids are held together there until separation.</div><div><strong>After they separate</strong>Each chromatid becomes an individual chromosome.</div></div></div><div class="fact-strip"><span class="chip">2 sister chromatids = 1 duplicated chromosome</span><button id="inspect">Show in cell ↗</button></div></article>
+<article class="card"><div class="repair-head"><div><div class="eyebrow">Why cells divide</div><h2>Repair & replacement</h2></div><button id="repairRestart" aria-label="Replay skin repair animation">↺ Replay</button></div><p>Some living skin cells divide to make new cells. New cells grow and move to help repair a cut and replace cells that are worn out. Dead skin cells do not divide.</p><canvas id="repairCanvas" role="img" aria-label="Simplified animation of living cells dividing near a gap in skin and filling it with new cells."></canvas><p class="repair-caption" id="repairCaption">Living cells near damaged tissue can divide to help repair it.</p><p class="note">Cell division also helps multicellular organisms grow. In some single-celled eukaryotes, division is a way to reproduce.</p></article>
+</section>
+<section class="card count-panel" aria-label="Chromosome numbers and cell cycle timing">
+<div><div class="eyebrow">Same number in each daughter cell</div><h2>Keep the complete set</h2><p class="muted">Mitosis gives each new nucleus one full chromosome set. Cytokinesis separates the cytoplasm into two cells.</p><label class="number-input">Parent cell chromosomes <input id="parentCount" type="number" min="1" max="200" step="1" value="12"></label><div class="number-example" aria-live="polite"><div><b id="beforeCount">12</b><span>Parent cell</span></div><span class="arrow">→</span><div><b id="daughterCount1">12</b><span>Daughter cell 1</span></div><span>+</span><div><b id="daughterCount2">12</b><span>Daughter cell 2</span></div></div><p class="note">Under normal mitosis, the daughters have the same genetic information as the parent. The main animation uses 4 chromosomes for clarity; this number box is a separate example.</p></div>
+<div><div class="eyebrow">A cycle of preparation & division</div><h2>Interphase takes most of the time</h2><p class="muted">During interphase, the cell performs its normal activities, grows, makes more organelles, copies its DNA, and prepares to divide.</p><div class="timebar" aria-hidden="true"><div></div><div></div></div><div class="timekey"><strong style="color:var(--teal)">Interphase: most of the cycle</strong><span>Mitotic phase</span></div><p class="note">Illustrative proportions only. Real timing varies among cells. Our playback slows down the division stages so you can study them.</p><p style="margin-top:15px;font-size:14px"><strong>Mitosis:</strong> division of the nucleus.<br><strong>Cytokinesis:</strong> division of the cytoplasm.</p><p class="note">Cytokinesis overlaps late mitosis. It is shown in its own segment here to make the cell’s physical separation easier to follow.</p></div>
+</section>
+<details class="card review"><summary>Review the quiz & study-guide topics</summary><div class="review-grid"><div><h3>Interphase & structures</h3><ul><li><strong>Interphase:</strong> usually the longest phase; growth and preparation.</li><li><strong>Chromatin:</strong> DNA with proteins, loosely packed during interphase.</li><li><strong>Sister chromatids:</strong> two copies in one duplicated chromosome.</li><li><strong>Centromere:</strong> region where sister chromatids are joined; spindle fibers attach through kinetochores.</li></ul></div><div><h3>The four mitosis stages</h3><ul><li><strong>Prophase:</strong> chromosomes condense.</li><li><strong>Metaphase:</strong> duplicated chromosomes line up in the middle.</li><li><strong>Anaphase:</strong> sister chromatids separate toward opposite poles.</li><li><strong>Telophase:</strong> nuclear membranes form around the two sets.</li></ul></div><div><h3>Division & its results</h3><ul><li><strong>Cytokinesis:</strong> cytoplasm divides.</li><li><strong>Plant cells:</strong> a cell plate grows from the center outward.</li><li><strong>Daughter cells:</strong> same chromosome number as the parent.</li><li><strong>Skin repair:</strong> living cells divide to replace lost or damaged cells.</li></ul></div></div><div class="model-notes"><strong>About this model:</strong> A two-dimensional teaching illustration, not microscope footage. Four color-coded chromosomes are tracked consistently; colors, cell dimensions, organelle numbers, and phase durations are schematic. Condensed chromatid arm lengths remain fixed through separation. Each callout and spindle attachment follows the structure it identifies. The four-stage scheme follows your lesson: late-prophase events, sometimes called prometaphase, are included under prophase. Plant spindle poles are shown without animal centrioles. Cytokinesis begins during late mitosis. Most mature cells do not continually divide; this model follows a cell that is preparing to divide.</div></details>
+<footer><span>Keyboard: Space = play/pause · ← / → = move through time. Touch: drag the timeline.</span><span>Science reference: <a href="https://openstax.org/books/biology-2e/pages/10-2-the-cell-cycle" target="_blank" rel="noopener">OpenStax · The Cell Cycle</a></span></footer>
+<div id="phaseAnnouncement" class="sr-only" aria-live="polite"></div>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)), mix=(a,b,t)=>a+(b-a)*t;
+const smooth=(a,b,t)=>{const u=clamp((t-a)/(b-a));return u*u*(3-2*u)};
+const phases=[
+{name:'Interphase',start:0,end:32,jump:4,group:'Growth & preparation',summary:'The cell grows and prepares to divide. Most of the real cell cycle is spent in interphase.',recognize:'An intact nucleus contains loosely packed chromatin. You do not see distinct X-shaped chromosomes.'},
+{name:'Prophase',start:32,end:47,jump:38,group:'Mitosis · 1 of 4',summary:'Chromatin condenses into visible, duplicated chromosomes. The spindle develops, and the nuclear membrane breaks down.',recognize:'Condensed chromosomes are visible, but they are not yet lined up across the center.'},
+{name:'Metaphase',start:47,end:61,jump:55,group:'Mitosis · 2 of 4',summary:'Duplicated chromosomes line up across the middle. Spindle fibers connect each sister chromatid to an opposite pole.',recognize:'Look for a row of duplicated chromosomes across the cell’s center, like cell A in the study guide.'},
+{name:'Anaphase',start:61,end:75,jump:69,group:'Mitosis · 3 of 4',summary:'Sister chromatids separate. Spindle fibers move them toward opposite poles. Each separated chromatid is now a chromosome. Its centromere leads toward a pole while the arms trail. The model keeps the arms at a consistent length.',recognize:'Two groups of separated chromosomes move apart, like cell B in the study guide.'},
+{name:'Telophase',start:75,end:87,jump:82,group:'Mitosis · 4 of 4',summary:'Nuclear membranes form around the two chromosome sets. The chromosomes begin to uncoil, and the spindle breaks down.',recognize:'Two new nuclei form in one dividing cell. Each nucleus receives a complete chromosome set.'},
+{name:'Cytokinesis',start:87,end:100,jump:93,group:'Division of the cytoplasm',summary:'The cytoplasm and its contents separate into two daughter cells. This process overlaps the end of mitosis.',recognize:'Animal cells pinch inward. Plant cells build a cell plate from the middle outward.'},
+{name:'Daughter cells',start:100,end:108,jump:106,group:'The result of division',summary:'Two daughter cells have formed. Each has the same chromosome number and, in normal mitosis, the same genetic information as the parent.',recognize:'Two separate cells, each with its own cell membrane, cytoplasm, and nucleus.'}
+];
+let time=0,playing=!matchMedia('(prefers-reduced-motion: reduce)').matches,speed=1,type='animal',showLabels=true,lastFrame=null,lastPanel='',repairTime=0,repairPlaying=playing;
+
+phases.forEach((p,i)=>{const b=document.createElement('button');b.textContent=p.name;const sub=document.createElement('span');sub.textContent=i===0?'Grow & prepare':i<5?'Mitosis':i===5?'Cytoplasm divides':'Two complete sets';b.append(sub);b.onclick=()=>seek(p.jump);b.id='phase'+i;$('phasebar').append(b)});
+const canvas=$('cellCanvas'),ctx=canvas.getContext('2d'),repairCanvas=$('repairCanvas'),rctx=repairCanvas.getContext('2d');
+function fitCanvas(el,context,w,h){const ratio=Math.min(window.devicePixelRatio||1,2);const width=Math.max(1,el.clientWidth);el.width=Math.round(width*ratio);el.height=Math.round(width*h/w*ratio);context.setTransform(el.width/w,0,0,el.height/h,0,0)}
+function resize(){fitCanvas(canvas,ctx,1000,580);fitCanvas(repairCanvas,rctx,600,220);draw();drawRepair()}
+function ellipse(c,x,y,rx,ry,fill,stroke,width=2,alpha=1){if(alpha<=0)return;c.save();c.globalAlpha*=alpha;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=width;c.stroke()}c.restore()}
+function line(c,x1,y1,x2,y2,color,width=1,alpha=1){c.save();c.globalAlpha*=alpha;c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();c.restore()}
+function label(text,x,y,targetX,targetY,align='left',color='#426774'){if(!showLabels)return;ctx.save();ctx.font='600 15px system-ui';const w=ctx.measureText(text).width;const edge=align==='right'?x-w:x;ctx.strokeStyle='#8caaa3';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(targetX,targetY);ctx.lineTo(align==='right'?edge-10:edge+w+10,y-5);ctx.stroke();ellipse(ctx,targetX,targetY,3,3,color);ctx.fillStyle='#fff';ctx.fillRect(edge-7,y-19,w+14,26);ctx.fillStyle=color;ctx.fillText(text,edge,y);ctx.restore()}
+function pointsPath(c,pts,color,width,alpha=1){if(alpha<=0)return;c.save();c.globalAlpha*=alpha;c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.lineJoin='round';c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.stroke();c.restore()}
+// Geometry and drawing share one state, so callouts and attachments follow the same structures.
+const CHROMOSOMES=[
+ {color:'#9853ae',arm:30,start:{x:-36,y:-43},lane:-90,col:-28,row:-43},
+ {color:'#ce6c9b',arm:26,start:{x:36,y:-43},lane:-30,col:28,row:-43},
+ {color:'#c58828',arm:30,start:{x:-36,y:43},lane:30,col:-28,row:43},
+ {color:'#bb9f28',arm:26,start:{x:36,y:43},lane:90,col:28,row:43}
+];
+function geometry(t,cellType=type){
+ const growth=smooth(0,32,t),elongation=smooth(62,78,t),separation=smooth(61,75,t);
+ const align=smooth(44,47,t),relax=smooth(79,87,t),drift=cellType==='animal'?12*smooth(100,106,t):0;
+ const condensation=smooth(32,41,t)*(1-smooth(78,87,t));
+ const rx=cellType==='animal'?mix(184,218,growth)+82*elongation:mix(260,310,growth);
+ const ry=cellType==='animal'?mix(174,218,growth)-38*elongation:mix(175,200,growth);
+ const lobe=150*smooth(62,93,t),neck=ry*(1-smooth(71,100,t));
+ const movingPole=smooth(33,44,t),poleDistance=180+85*elongation;
+ const poles=cellType==='animal'?[
+  {x:500+mix(Math.hypot(120,58),poleDistance,movingPole)*Math.cos(mix(Math.atan2(58,120),Math.PI,movingPole))-drift,
+   y:300+mix(Math.hypot(120,58),poleDistance,movingPole)*Math.sin(mix(Math.atan2(58,120),Math.PI,movingPole))},
+  {x:500+mix(Math.hypot(138,63),poleDistance,movingPole)*Math.cos(mix(Math.atan2(63,138),0,movingPole))+drift,
+   y:300+mix(Math.hypot(138,63),poleDistance,movingPole)*Math.sin(mix(Math.atan2(63,138),0,movingPole))}
+ ]:[{x:500-poleDistance,y:300},{x:500+poleDistance,y:300}];
+ const fibers=smooth(34,44,t)*(1-smooth(75,79,t));
+ const attachments=smooth(44,47,t)*(1-smooth(75,78,t));
+ const envelope=1-smooth(37,44,t),newEnvelopes=smooth(78,84,t);
+ const copies=smooth(12,22,t),nuclearRadius=mix(114,120,growth);
+ const nuclei=[{x:350-drift,y:300,r:106},{x:650+drift,y:300,r:106}];
+ const entries=[];
+ for(let i=0;i<4;i++)for(let j=0;j<2;j++){
+  const chr=CHROMOSOMES[i],dir=j===0?-1:1;
+  const baseX=mix(500+chr.start.x,500,align),baseY=mix(300+chr.start.y,300+chr.lane,align);
+  const targetX=(j===0?350:650)+chr.col,targetY=300+chr.row;
+  const x=mix(baseX+dir*4,targetX,separation)+dir*drift;
+  const y=mix(baseY,targetY,separation);
+  const visibility=j===0?1:copies;
+  // The arms pivot about the centromere. Their lengths stay fixed while condensed.
+  const dx=mix(dir*11,-dir*11,smooth(61,66,t));
+  const dy=Math.sqrt(chr.arm*chr.arm-dx*dx);
+  const pts=[];
+  for(let k=0;k<=32;k++){
+   const u=k/32,amount=Math.abs(2*u-1),rodX=dx*amount,rodY=(u<.5?-1:1)*dy*amount;
+   const a=u*Math.PI*3.8+i*1.3+j*.17;
+   const looseX=18*Math.sin(a)+8*Math.sin(u*19+i)+j*3;
+   const looseY=(u-.5)*70+8*Math.cos(a*1.6);
+   pts.push({x:x+mix(looseX,rodX,condensation),y:y+mix(looseY,rodY,condensation)});
+  }
+  entries.push({i,j,dir,color:chr.color,arm:chr.arm,x,y,pts,visibility,
+   kinetochore:{x:x+dir*3.7,y},pole:poles[j]});
+ }
+ return {t,cellType,growth,elongation,separation,condensation,align,relax,rx,ry,lobe,neck,drift,
+  poles,fibers,attachments,envelope,newEnvelopes,copies,nuclearRadius,nuclei,entries,
+  plate:smooth(78,100,t),daughterCells:t>=100?2:0,wholeChromosomes:t>=61&&t<100?8:4};
+}
+function chromatid(c,entry,g){
+ pointsPath(c,entry.pts,entry.color,mix(2.2,7,g.condensation),entry.visibility);
+ pointsPath(c,entry.pts,'#f8eafa',1.8,g.condensation*.32*entry.visibility);
+ if(g.condensation>.01){
+  // Each chromatid retains its own centromeric region after separation.
+  ellipse(c,entry.x,entry.y,3.2,3.2,'#e2b94e','#97782c',.7,g.condensation*entry.visibility);
+  ellipse(c,entry.kinetochore.x,entry.y,1.8,2.7,'#3f735d',null,0,g.attachments*entry.visibility);
+ }
+}
+function nucleus(x,y,r,alpha=1){
+ if(alpha<=0)return;
+ const grad=ctx.createRadialGradient(x-20,y-22,2,x,y,r);
+ grad.addColorStop(0,'#f7ebf9');grad.addColorStop(1,'#e1d0ed');
+ ellipse(ctx,x,y,r,r*.96,grad,'#9974ad',2.2,alpha);
+}
+function cellFill(){
+ const grad=ctx.createRadialGradient(425,230,25,500,300,350);
+ grad.addColorStop(0,'#f4fbf6');grad.addColorStop(.55,'#dceee7');grad.addColorStop(1,'#bddfd4');return grad;
+}
+function divisionPath(c,cx,cy,rx,ry,d,neck){
+ // At d=0 and neck=ry this is an ellipse; at d=rx/2 and neck=0 it is two touching ellipses.
+ const k=.5522847498307936,x0=cx-rx,x1=cx-d,x2=cx+d,x3=cx+rx,top=cy-ry,bot=cy+ry;
+ const h=k*d*(neck/ry),v=k*(ry-neck)*smooth(.85,1,1-neck/ry);
+ c.beginPath();c.moveTo(x0,cy);
+ c.bezierCurveTo(x0,cy-k*ry,x1-k*(rx-d),top,x1,top);
+ c.bezierCurveTo(x1+k*d,top,cx-h,cy-neck-v,cx,cy-neck);
+ c.bezierCurveTo(cx+h,cy-neck-v,x2-k*d,top,x2,top);
+ c.bezierCurveTo(x2+k*(rx-d),top,x3,cy-k*ry,x3,cy);
+ c.bezierCurveTo(x3,cy+k*ry,x2+k*(rx-d),bot,x2,bot);
+ c.bezierCurveTo(x2-k*d,bot,cx+h,cy+neck+v,cx,cy+neck);
+ c.bezierCurveTo(cx-h,cy+neck+v,x1+k*d,bot,x1,bot);
+ c.bezierCurveTo(x1-k*(rx-d),bot,x0,cy+k*ry,x0,cy);c.closePath();
+}
+function organelle(x,y,alpha=1){
+ ctx.save();ctx.globalAlpha*=alpha;ctx.translate(x,y);ctx.rotate(.4);
+ ellipse(ctx,0,0,11,5.5,'#e8c394','#b38a58',1.2);
+ for(let i=-7;i<=7;i+=5){ctx.beginPath();ctx.moveTo(i,-3.5);ctx.quadraticCurveTo(i+4,0,i,3.5);ctx.strokeStyle='#b38a58';ctx.lineWidth=.9;ctx.stroke()}
+ ctx.restore();
+}
+function spindlePole(p,g,index){
+ const visibility=g.cellType==='animal'?(index===0?1:g.copies):g.fibers;
+ if(visibility<=0)return;
+ if(g.cellType==='animal'){
+  ellipse(ctx,p.x,p.y,9,9,'#d6e7cd',null,0,visibility);
+  line(ctx,p.x-4,p.y-5,p.x-4,p.y+5,'#7c9d65',3,visibility);
+  line(ctx,p.x,p.y+2,p.x+6,p.y+2,'#7c9d65',3,visibility);
+  for(let i=0;i<10;i++){
+   const a=i*Math.PI/5;
+   line(ctx,p.x+11*Math.cos(a),p.y+11*Math.sin(a),p.x+23*Math.cos(a),p.y+23*Math.sin(a),'#aac597',1,g.fibers);
+  }
+ }else{
+  // Broad spindle-organizing region; no centrosome/centriole icon in the plant model.
+  ellipse(ctx,p.x,p.y,4,10,'#92b998',null,0,g.fibers*.7);
+ }
+}
+function fiberTo(c,p,k,alpha){
+ c.save();c.globalAlpha*=alpha;c.strokeStyle='#77a980';c.lineWidth=1.6;
+ c.beginPath();c.moveTo(p.x,p.y);c.quadraticCurveTo(mix(p.x,k.x,.55),p.y,k.x,k.y);c.stroke();c.restore();
+}
+function fiberMidpoint(p,k){return {x:mix(p.x,k.x,.525),y:.75*p.y+.25*k.y}}
+function draw(){
+ const g=geometry(time);ctx.clearRect(0,0,1000,580);ctx.fillStyle='#fff';ctx.fillRect(0,0,1000,580);
+ const fill=cellFill();ctx.save();ctx.shadowColor='#335d4420';ctx.shadowBlur=12;ctx.shadowOffsetY=5;
+ if(type==='animal'){
+  if(time<100){divisionPath(ctx,500,300,g.rx,g.ry,g.lobe,g.neck);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle='#6c9e93';ctx.lineWidth=3;ctx.stroke()}
+  else for(const n of g.nuclei)ellipse(ctx,n.x,300,150,180,fill,'#6c9e93',3);
+ }else{
+  ctx.shadowBlur=0;ctx.beginPath();ctx.roundRect(500-g.rx,300-g.ry,g.rx*2,g.ry*2,26);
+  ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle='#90a95f';ctx.lineWidth=9;ctx.stroke();
+  ctx.beginPath();ctx.roundRect(507-g.rx,307-g.ry,g.rx*2-14,g.ry*2-14,21);ctx.strokeStyle='#5d9985';ctx.lineWidth=2;ctx.stroke();
+ }
+ ctx.restore();
+ // Organelles stay in the cytoplasm, outside both old and re-forming nuclei.
+ for(let i=0;i<12;i++){
+  const side=i%2?1:-1,initial=i*Math.PI/6+.35,final=Math.floor(i/2)*Math.PI/3+.45;
+  const initialR=mix(139,175,g.growth),move=smooth(64,77,time);
+  const x0=500+Math.cos(initial)*initialR,y0=300+Math.sin(initial)*initialR;
+  const x1=500+side*(150+g.drift)+125*Math.cos(final),y1=300+150*Math.sin(final);
+  organelle(mix(x0,x1,move),mix(y0,y1,move),i<6?1:smooth(4,28,time));
+ }
+ // Interpolar fibers overlap at the middle; attachment fibers end at the matching kinetochore.
+ for(let lane=-2;lane<=2;lane++){
+  const sign=lane<0?-1:1,bend=lane*36,endY=300+lane*40;
+  for(let j=0;j<2;j++){
+   const p=g.poles[j],endX=j===0?540:460;
+   ctx.save();ctx.globalAlpha*=g.fibers*.42;ctx.strokeStyle='#96be9c';ctx.lineWidth=1.3;
+   ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.quadraticCurveTo(mix(p.x,endX,.52),300+bend,endX,endY);ctx.stroke();ctx.restore();
+  }
+ }
+ for(const e of g.entries)fiberTo(ctx,e.pole,e.kinetochore,g.attachments*e.visibility);
+ g.poles.forEach((p,j)=>spindlePole(p,g,j));
+ ctx.save();if(time>37&&time<44)ctx.setLineDash([12,7+30*smooth(37,44,time)]);
+ nucleus(500,300,g.nuclearRadius,g.envelope);ctx.restore();
+ ellipse(ctx,521,320,12,12,'#b385bc',null,0,1-smooth(34,38,time));
+ for(const n of g.nuclei){
+  nucleus(n.x,n.y,n.r,g.newEnvelopes);
+  ellipse(ctx,n.x+24,319,10,10,'#b385bc',null,0,smooth(83,89,time));
+ }
+ for(const e of g.entries)chromatid(ctx,e,g);
+ // A small connector represents cohesion; it disappears at anaphase, without changing arm length.
+ if(time<61)for(let i=0;i<4;i++){
+  const l=g.entries[i*2],r=g.entries[i*2+1];line(ctx,l.x,l.y,r.x,r.y,'#d4b369',2,g.condensation);
+ }
+ if(type==='plant'&&g.plate>0){
+  const half=g.ry*g.plate,membraneHalf=Math.min(g.ry-7,half);
+  line(ctx,500,300-half,500,300+half,'#b5a151',7);
+  line(ctx,495,300-membraneHalf,495,300+membraneHalf,'#598d78',1.8);
+  line(ctx,505,300-membraneHalf,505,300+membraneHalf,'#598d78',1.8);
+  // Vesicles approach both growing edges and fuse into the plate, rather than orbiting along it.
+  const active=smooth(78,80,time)*(1-smooth(97,100,time));
+  for(const end of [-1,1])for(let i=0;i<4;i++){
+   const progress=(time*.26+i*.25)%1;
+   const x=500+(i%2?1:-1)*(22*(1-progress)+4);
+   const y=300+end*(half+15*(1-progress));
+   ellipse(ctx,x,y,3,3,'#dbbe70','#b29448',.6,active);
+  }
+ }
+ if(showLabels)drawLabels(g);
+ if(time>=100){ctx.save();ctx.textAlign='center';ctx.font='600 14px system-ui';ctx.fillStyle='#52786b';ctx.fillText('4 chromosomes',g.nuclei[0].x,540);ctx.fillText('4 chromosomes',g.nuclei[1].x,540);ctx.restore()}
+ window.cellCycleState={phase:phaseIndex(),time,cellType:type,chromosomesPerDaughter:4,
+  duplicated:time>=22&&time<61,wholeCellChromosomes:g.wholeChromosomes,daughterCells:g.daughterCells,
+  condensed:g.condensation,entries:g.entries,plantPlateHalf:g.ry*g.plate,plantWallHalf:g.ry,
+  oldEnvelope:g.envelope,attachments:g.attachments,newEnvelopes:g.newEnvelopes};
+}
+function drawLabels(g){
+ const e=g.entries,point=(entry,k=8)=>entry.pts[k];
+ if(time<32){
+  const membrane=type==='plant'?{x:507-g.rx,y:300-g.ry*.55}:{x:500-g.rx*.8,y:300-g.ry*.6};
+  label('Cell membrane',35,117,membrane.x,membrane.y);
+  label('Cytoplasm',35,452,370,383);
+  const a=-Math.PI/4;
+  label('Nuclear membrane',960,119,500+g.nuclearRadius*Math.cos(a),300+g.nuclearRadius*.96*Math.sin(a),'right');
+  const q=point(e[4],7);label('Chromatin',960,439,q.x,q.y,'right');
+  if(type==='plant')label('Cell wall',35,502,500-g.rx,426);
+ }else if(time<47){
+  const q=point(e[0],8);label('Condensing chromosome',32,123,q.x,q.y);
+  if(time<42)label('Nuclear membrane breaks down',963,98,500+g.nuclearRadius*.7,300-g.nuclearRadius*.69,'right');
+  if(time>=44){const p=fiberMidpoint(e[7].pole,e[7].kinetochore);label('Spindle fibers',960,462,p.x,p.y,'right')}
+  else label(type==='animal'?'Centrosome':'Spindle pole',960,460,g.poles[1].x,g.poles[1].y,'right');
+ }else if(time<61){
+  label('Aligned chromosomes',32,115,(e[0].x+e[1].x)/2,e[0].y);
+  const p=fiberMidpoint(e[7].pole,e[7].kinetochore);label('Spindle fibers',960,464,p.x,p.y,'right');
+  label('Centromere region',960,112,(e[4].x+e[5].x)/2,e[4].y,'right');
+  const q=point(e[6],4);label('Sister chromatid',32,465,q.x,q.y);
+ }else if(time<75){
+  const q=point(e[0],16);label('Separated chromosome',32,109,q.x,q.y);
+  const p=fiberMidpoint(e[7].pole,e[7].kinetochore);label('Attached spindle fiber',963,464,p.x,p.y,'right');
+  if(time>71&&type==='animal')label('Cleavage furrow begins',963,85,500,300-g.neck,'right');
+ }else if(time<100){
+  if(g.newEnvelopes>.12){const n=g.nuclei[0];label('New nuclear membrane',32,114,n.x-74.95,n.y-71.96)}
+  if(time>=79){const q=point(e[7],5);label('Chromatin uncoils',961,461,q.x,q.y,'right')}
+  if(type==='animal')label('Cleavage furrow',961,91,500,300-g.neck,'right');
+  else if(g.plate>.02)label('Growing cell plate',961,91,500,300-g.ry*g.plate,'right');
+ }else{
+  label('Daughter cell 1',32,111,g.nuclei[0].x,170);
+  label('Daughter cell 2',963,111,g.nuclei[1].x,170,'right');
+  label('Nucleus',963,462,g.nuclei[1].x+25,340,'right');
+  if(type==='plant')label('New cell wall',32,465,500,420);
+ }
+}
+function skinCell(x,y,rx=29,ry=24,alpha=1){ellipse(rctx,x,y,rx,ry,'#dce1ea','#afb9cb',1.4,alpha);ellipse(rctx,x,y,7,7,'#a99cc1',null,0,alpha)}
+function drawRepair(){
+ rctx.clearRect(0,0,600,220);rctx.fillStyle='#f4f7fb';rctx.fillRect(0,0,600,220);
+ rctx.font='600 12px system-ui';rctx.fillStyle='#667186';rctx.fillText('Simplified skin tissue • elapsed time is not to scale',16,23);
+ for(let row=0;row<3;row++)for(let col=0;col<9;col++){
+  if(col===4||col===(row%2?5:3))continue;skinCell(48+col*62,62+row*57);
+ }
+ const t=repairTime,grow=smooth(0,2,t),split=smooth(5,8,t),move=smooth(8,14,t);
+ for(let row=0;row<3;row++){
+  const x=row%2?358:234,y=62+row*57,dir=row%2?-1:1;
+  if(t<8){
+   const rx=mix(29,42,grow),d=21*smooth(3,7,t),neck=24*(1-split);
+   divisionPath(rctx,x,y,rx,24,d,neck);rctx.fillStyle='#dce1ea';rctx.fill();rctx.strokeStyle='#afb9cb';rctx.lineWidth=1.4;rctx.stroke();
+   ellipse(rctx,x,y,7,7,'#a99cc1',null,0,1-smooth(2,3,t));
+   // Four chromosomes, then four to each daughter nucleus, just as in the large model.
+   const chrom=smooth(2,3,t)*(1-smooth(6,7,t)),apart=smooth(4,6,t);
+   for(let i=0;i<4;i++)for(const side of [-1,1]){
+    const cx=x+side*mix(1.2,21,apart),cy=y+mix((i-1.5)*6,(i-1.5)*3,apart);
+    line(rctx,cx,cy-2.3,cx,cy+2.3,CHROMOSOMES[i].color,1.7,chrom);
+   }
+   for(const side of [-1,1])ellipse(rctx,x+side*21,y,7,7,'#a99cc1',null,0,smooth(6,7,t));
+  }else{
+   const radius=mix(21,29,move);
+   skinCell(mix(x-dir*21,x,move),y,radius,24);
+   skinCell(mix(x+dir*21,296,move),y,radius,24);
+  }
+ }
+ if(t<14){rctx.strokeStyle='#779284';rctx.setLineDash([3,4]);rctx.strokeRect(268,36,56,166);rctx.setLineDash([])}
+ else{rctx.font='600 12px system-ui';rctx.fillStyle='#157965';rctx.fillText('New living cells help fill the gap',192,214)}
+ $('repairCaption').textContent=t<2?'Living cells grow and prepare to divide near the damaged area.':t<6?'Mitosis separates chromosome copies into two complete sets.':t<8?'Two new nuclei form, and cytokinesis separates each parent cell into two daughter cells.':t<14?'New living cells move and grow as the tissue repairs.':'Cell division and cell movement help repair the tissue. Real healing also involves clotting, immune cells, and other processes.';
+}
+function phaseIndex(){return phases.findIndex((p,i)=>time<p.end||i===phases.length-1)}
+function updatePanel(){const i=phaseIndex(),p=phases[i],sub=time<12?'G₁: growth':time<22?'S: DNA copying':'G₂: final preparation';const key=i+'-'+(i===0?sub:'')+'-'+type;if(key!==lastPanel){lastPanel=key;$('category').textContent=p.group;$('phaseTitle').textContent=p.name;$('phaseSummary').textContent=p.summary;$('recognition').textContent=p.recognize;$('phaseAnnouncement').textContent=p.name;phases.forEach((_,j)=>$('phase'+j).setAttribute('aria-current',String(i===j)))}
+let now=i===0?(time<12?'The cell grows and makes more organelles. Its DNA remains loosely packed as chromatin.':time<22?'DNA is copied during S phase. The copies will form sister chromatids, but the DNA is still loosely packed.':'The cell completes its growth and makes final preparations for mitosis.'):
+i===1?'The chromosome copies become compact. By late prophase, the nuclear membrane has broken down and spindle fibers can attach near the centromeres.':
+i===2?'Each duplicated chromosome has two sister chromatids joined at the centromere. Fibers attach to structures at the centromere region, called kinetochores.':
+i===3?'The centromeres lead while the arms trail. The model preserves each condensed chromosome’s arm lengths. There are briefly 8 chromosomes in this still-undivided cell: 4 going to each pole.':
+i===4?'A nuclear membrane forms around each set. Both new nuclei contain 4 chromosomes, which return to loosely packed chromatin.':
+i===5?(type==='plant'?'Vesicles help build a cell plate between the new nuclei. It grows outward to meet the existing cell wall.':'The cleavage furrow deepens as the membrane pinches inward. The cytoplasm separates into two cells.'):
+'Each daughter has 4 chromosomes, matching the parent’s original number. Both cells can carry out their normal activities.';
+$('now').textContent=now;$('timeLabel').textContent=p.name+(i===0?' · '+sub:'');$('elapsed').textContent=formatTime(time)+' / 1:48';$('timeline').value=time;
+$('countText').textContent=i===3?'Chromosomes moving to each pole':i===4?'Chromosomes in each new nucleus':i>=5?'Chromosomes in each daughter set':'Chromosomes in the cell';$('count').textContent='4';
+$('sceneNote').textContent=type==='plant'?(time>=61&&time<100?'Plant model: 8 separated chromosomes in the undivided cell; 4 in each new set.':'Plant model: 4 chromosomes per cell. The cell plate reaches the existing wall; the outer wall stays intact.'):(time>=61&&time<100?'Animal model: 8 separated chromosomes in the undivided cell; 4 in each new set.':'Animal model: 4 chromosomes per cell. Colors identify chromosome copies, not natural colors.');
+$('next').disabled=i===6;canvas.setAttribute('aria-label',p.name+'. '+p.summary+' '+now)}
+function formatTime(v){return Math.floor(v/60)+':'+String(Math.floor(v%60)).padStart(2,'0')}
+function updatePlay(){ $('play').textContent=time>=108?'↺ Replay':playing?'Ⅱ Pause':'▶ Play';$('play').setAttribute('aria-pressed',String(playing))}
+function seek(t){time=clamp(t,0,108);playing=false;updatePlay();updatePanel();draw()}
+$('play').onclick=()=>{if(time>=108)time=0;playing=!playing;updatePlay()};$('restart').onclick=()=>{time=0;playing=true;lastFrame=null;updatePlay();updatePanel();draw()};$('next').onclick=()=>seek(phases[Math.min(6,phaseIndex()+1)].jump);
+$('timeline').addEventListener('input',e=>seek(Number(e.target.value)));$('speed').onchange=e=>speed=Number(e.target.value);$('labels').onchange=e=>{showLabels=e.target.checked;draw()};
+function setType(v){type=v;['animal','plant'].forEach(k=>$(k).setAttribute('aria-pressed',String(k===v)));updatePanel();draw()}
+$('animal').onclick=()=>setType('animal');$('plant').onclick=()=>setType('plant');$('inspect').onclick=()=>{seek(55);canvas.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'})};
+$('parentCount').addEventListener('input',e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=1&&n<=200){e.target.setCustomValidity('');['beforeCount','daughterCount1','daughterCount2'].forEach(k=>$(k).textContent=n)}else e.target.setCustomValidity('Enter a whole number from 1 to 200.')});
+$('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else $('fullscreen').textContent='Use browser full screen'}catch{$('fullscreen').textContent='Use browser full screen'}};
+document.addEventListener('fullscreenchange',()=>{$('fullscreen').textContent=document.fullscreenElement?'Exit full screen ↙':'Full screen ↗';resize()});
+document.addEventListener('keydown',e=>{if(['INPUT','SELECT','BUTTON','SUMMARY','TEXTAREA','A'].includes(e.target.tagName))return;if(e.code==='Space'){e.preventDefault();$('play').click()}if(e.code==='ArrowRight'){e.preventDefault();seek(time+2)}if(e.code==='ArrowLeft'){e.preventDefault();seek(time-2)}});
+$('repairRestart').onclick=()=>{repairTime=0;repairPlaying=true;drawRepair()};
+document.addEventListener('visibilitychange',()=>{lastFrame=null});
+function frame(now){const dt=lastFrame===null?0:Math.min((now-lastFrame)/1000,.08);lastFrame=now;if(playing&&!document.hidden){time=Math.min(108,time+dt*speed);if(time>=108){playing=false;updatePlay()}draw();updatePanel()}if(repairPlaying&&!document.hidden){repairTime=Math.min(16,repairTime+dt);drawRepair();if(repairTime>=16)repairPlaying=false}requestAnimationFrame(frame)}
+window.addEventListener('resize',resize);resize();updatePanel();updatePlay();requestAnimationFrame(frame);
+</script>
+</body>
+</html>
