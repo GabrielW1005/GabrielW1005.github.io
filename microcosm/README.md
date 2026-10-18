@@ -1,4 +1,4 @@
-# Microcosm 2.4 — Living worlds
+# Microcosm 2.5 — Living worlds
 
 A dependency-free Canvas game at https://gabrielw1005.github.io/microcosm/.
 
@@ -85,3 +85,8 @@ This is a biologically informed game, not a quantitative cellular or fluid simul
 ## Organism visuals
 
 Distinct silhouettes and consistent species colors accompany ciliary feeding, anterior ingestion, bacterial nutrient absorption, chemical release, contact injection and bacterial septum formation. Action labels distinguish sweeping, ingesting, anchoring and sealing. Team markers are separate from species color. See BIOLOGY.md for illustrative simplifications and TESTING.md for verification limits.
+
+
+## Survival update
+
+Guide / H opens survival instructions, controls and biology. The compact readout shows relative oxygen, temperature, water warnings and habitat food reserves; FPS counts rendered canvas frames (30 target in play, intentionally lower while paused). Cells and solid food push against membranes and rocks. Amoeba prey stays at the encounter point until sealing. Food, energy, oxygen, osmosis and temperature affect survival. Existing saves receive the new environmental state on load.

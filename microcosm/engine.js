@@ -53,6 +53,7 @@ class Game{
   if(!TYPES[type])throw Error('Unknown organism');
   this.s={format:'microcosm-colony',version:2,w:6000,h:4200,seed:seed|0,nextId:0,time:0,type,gentle,cells:[],food:[],dna:[],clouds:[],rocks:[],hazards:[],effects:[],selection:[],focus:0,score:0,meals:0,kills:0,divisions:0,transfers:0,mutationPoints:2,mutationProgress:0,discovered:[biome],paceRevision:1,autoAbility:false,speed:1,mode:'hold',dead:false};
   this.events=[];this.navCache=new Map();this.tickCount=0;this.ecologyClock=0;this.routeBudget=2;this.byId=null;
+  this.s.ecosystem=BIOMES.map(()=>({oxygen:1,reserve:60}));
   this.generate(biome);
  }
  rand(a=0,b=1){let t=this.s.seed=(this.s.seed+0x6D2B79F5)|0;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return a+(b-a)*((t^t>>>14)>>>0)/4294967296}
@@ -151,7 +152,7 @@ class Game{
  canDefend(c){const captor=this.s.cells.find(d=>d.id===c.capturedBy);return c.type==='paramecium'&&c.hp>0&&!c.division&&!c.mating&&!c.capture&&(!captor||(captor.type==='amoeba'&&captor.capture?.progress<.8))}
  threat(c,d){return d.team!==c.team&&d.hp>0&&(this.prey(d,c)||(TYPES[c.type].domain==='bacterium'&&TYPES[d.type].domain==='bacterium'))}
  findTarget(c,id){if(!id)return null;const cached=this.byId?.get(id);if(cached)return !cached.consumed&&cached.hp!==0?cached:null;return this.s.food.find(f=>f.id===id&&!f.consumed)||this.s.cells.find(f=>f.id===id&&f.hp>0)}
- capture(c,target){const meal=this.feeding(c,target);if(!meal.ok||c.capture||target.capturedBy||c.gut.length>=6)return false;const isCell=!!target.type;c.capture={id:target.id,isCell,progress:0,angle:angle(c,target),distance:c.type==='amoeba'?clamp(dist(c,target),c.r*.9+target.r,c.r+target.r+30):dist(c,target),duration:meal.duration,struggle:0,kind:isCell?(TYPES[target.type].domain==='bacterium'?'bacterium':target.type):target.kind};target.capturedBy=c.id;if(isCell){target.defendAt=this.s.time+.55;target.stun=c.type==='amoeba'?0:meal.duration+.5}return true}
+ capture(c,target){const meal=this.feeding(c,target);if(!meal.ok||c.capture||target.capturedBy||c.gut.length>=6)return false;const isCell=!!target.type;c.capture={id:target.id,isCell,progress:0,angle:angle(c,target),distance:dist(c,target),anchorX:target.x,anchorY:target.y,duration:meal.duration,struggle:0,kind:isCell?(TYPES[target.type].domain==='bacterium'?'bacterium':target.type):target.kind};target.capturedBy=c.id;if(isCell){target.defendAt=this.s.time+.55;target.stun=c.type==='amoeba'?0:meal.duration+.5}return true}
  release(c){if(!c.capture)return;const f=this.findTarget(c,c.capture.id);if(f){f.capturedBy=0;if(f.type)f.stun=.4}c.capture=null}
  escape(prey,predator){
   const away=angle(predator,prey);this.release(predator);prey.stun=0;prey.escapeGrace=2;prey.escapeTime=.6;prey.escapeAngle=away;prey.defended=1;prey.energy=Math.max(0,prey.energy-4);predator.cool=Math.max(predator.cool,2);predator.stun=.65;predator.order=null;predator.target=0;predator.path=[];predator.aiGoal=null;
@@ -238,19 +239,25 @@ class Game{
  }
  risk(p){let n=0;for(const h of this.s.hazards)if(dist(p,h)<h.r+40)n+=2;for(const q of this.s.clouds)if(dist(p,q)<Math.sqrt(q.variance)*2)n++;return n}
  move(c,dx,dy,dt){
+  if(c.capture||c.capturedBy){c.vx=0;c.vy=0;return}
   if(c.escapeTime>0&&!c.capturedBy){dx=Math.cos(c.escapeAngle);dy=Math.sin(c.escapeAngle)}
   const n=Math.hypot(dx,dy);if(n>1){dx/=n;dy/=n}if(n>.03&&!c.capture&&!c.division&&!c.mating)c.a+=delta(Math.atan2(dy,dx),c.a)*(1-Math.exp(-10*dt));
-  let speed=TYPES[c.type].speed*(1+c.traits.motility*.18)*(c.energy<10?.55:1)*(c.competent?.3:1)*(c.escapeTime>0?1.45:1);if(c.stun||c.division||c.mating||c.capture||c.capturedBy||c.integrating)speed=0;
+  let speed=TYPES[c.type].speed*(c.thermalRate||1)*(1+c.traits.motility*.18)*(c.energy<10?.55:1)*(c.competent?.3:1)*(c.escapeTime>0?1.45:1);if(c.stun||c.division||c.mating||c.capture||c.capturedBy||c.integrating)speed=0;
   const flow=c.type==='amoeba'?{x:0,y:0}:this.flow(c),damp=1-Math.exp(-38*dt);
   c.vx+=(dx*speed+flow.x-c.vx)*damp;c.vy+=(dy*speed+flow.y-c.vy)*damp;c.x+=c.vx*dt;c.y+=c.vy*dt;
   c.x=clamp(c.x,c.r,this.s.w-c.r);c.y=clamp(c.y,c.r,this.s.h-c.r);
-  for(const r of this.s.rocks){const d=dist(c,r),min=c.r*.83+r.r;if(d<min){const a=angle(r,c);c.x=r.x+Math.cos(a)*min;c.y=r.y+Math.sin(a)*min;c.contactAngle=a+Math.PI;c.contactDepth=min-d}}
+  for(const r of this.s.rocks){const d=dist(c,r),min=surfaceRadius(c,angle(c,r))+r.r+1;if(d<min){const a=angle(r,c);c.x=r.x+Math.cos(a)*min;c.y=r.y+Math.sin(a)*min;c.contactAngle=a+Math.PI;c.contactDepth=min-d}}
  }
  physiology(c,dt){
-  const b=this.biome(c),s=this.s,oxygen=b.oxygen*(this.s.hazards.some(h=>h.kind==='hypoxia'&&dist(c,h)<h.r)?.08:1);
+  const b=this.biome(c),s=this.s,env=this.environment(c),oxygen=env.oxygen;
+  c.temperature=env.temperature;c.thermalRate=clamp(Math.pow(1.65,(c.temperature-22)/10),.4,1.45);
   c.oxygen=clamp(c.oxygen+(oxygen-c.oxygen)*dt*.55-dt*.015*(1+c.traits.metabolism*.3),0,1);
-  const demand=(.075+Math.hypot(c.vx,c.vy)*.00085)*(1+c.traits.motility*.12)+c.traits.membrane*.025+c.traits.immunity*.025;
-  c.energy=clamp(c.energy-demand*dt,0,100);
+  const demand=(.25+Math.hypot(c.vx,c.vy)*.0015)*(1+c.traits.motility*.12)+c.traits.membrane*.025+c.traits.immunity*.025;
+  c.energy=clamp(c.energy-demand*c.thermalRate*dt,0,100);
+  // These aerobic model lineages cannot sustain ATP production in anoxia.
+  if(c.oxygen<.18)c.energy=Math.max(0,c.energy-dt*(.18-c.oxygen)*3);
+  if(c.oxygen<.06)this.hit(c,(.06-c.oxygen)*9*dt);
+  const stress=Math.max(0,10-c.temperature,c.temperature-34);if(stress)this.hit(c,stress*.18*dt);
   const regulator=c.traits.osmosis,saline=b.id==='brine';
   // Positive water imbalance is freshwater influx; negative is saline dehydration.
   const influx=saline?-.07/(1+regulator*.5):.032/(1+regulator*.25);
@@ -260,11 +267,11 @@ class Game{
   if(TYPES[c.type].domain==='bacterium'&&!saline)c.water=Math.max(0,c.water-dt*.035);
   if(Math.abs(c.water)>.72)this.hit(c,(Math.abs(c.water)-.7)*6*dt);
   if(c.energy<.1)this.hit(c,2*dt);
-  if(c.hp<100&&c.energy>20){c.hp=Math.min(100,c.hp+dt*(.5+c.traits.membrane*.25));c.energy-=dt*.1}
+  if(c.hp<100&&c.energy>20&&c.oxygen>.2&&Math.abs(c.water)<.72&&c.temperature>=10&&c.temperature<=34){c.hp=Math.min(100,c.hp+dt*(.5+c.traits.membrane*.25));c.energy-=dt*.1}
   for(const h of s.hazards)if(dist(c,h)<h.r){const exposure=1-dist(c,h)/h.r;if(h.kind==='acid')this.hit(c,exposure*4*dt,h);if(h.kind==='shear'&&Math.sin(s.time*1.5+h.phase)>.45)this.hit(c,exposure*3*dt,h)}
   for(const cloud of s.clouds)if(cloud.team!==c.team&&TYPES[c.type].domain==='bacterium'){const d2=(c.x-cloud.x)**2+(c.y-cloud.y)**2,concentration=cloud.power*600/cloud.variance*Math.exp(-d2/(2*cloud.variance));if(concentration>.003)this.hit(c,concentration*9*dt/(1+c.traits.immunity*.75),cloud)}
   // Energy from digestion depends on oxygen; biomass is material, not ATP.
-  for(const g of c.gut){const old=g.left,rate=(1+c.traits.digestion*.3)*dt;g.left=Math.max(0,g.left-rate);const fraction=(old-g.left)/g.total;
+  for(const g of c.gut){const old=g.left,rate=(1+c.traits.digestion*.3)*(c.thermalRate||1)*dt;g.left=Math.max(0,g.left-rate);const fraction=(old-g.left)/g.total;
    c.energy=clamp(c.energy+g.energy*fraction*(.22+.78*c.oxygen)*(1+c.traits.metabolism*.16),0,100);
    if(!c.competent)c.mass=clamp(c.mass+g.mass*fraction,0,125);
    if(old>0&&g.left===0)c.fed=.7;
@@ -284,9 +291,11 @@ class Game{
   }
   cap.progress+=dt/cap.duration;const progress=clamp(cap.progress,0,1);if(c.type!=='paramecium')c.a+=delta(cap.angle,c.a)*dt*4;
   if(c.type==='amoeba'){
-   const phase=engulfPhase(progress);if(!Number.isFinite(cap.distance))cap.distance=clamp(dist(c,t),c.r*.9+t.r,c.r+t.r+30);
+   const phase=engulfPhase(progress);if(!Number.isFinite(cap.distance))cap.distance=dist(c,t);
+   if(!Number.isFinite(cap.anchorX)||!Number.isFinite(cap.anchorY)){cap.anchorX=t.x;cap.anchorY=t.y}
+   cap.angle=angle(c,{x:cap.anchorX,y:cap.anchorY});cap.distance=Math.hypot(cap.anchorX-c.x,cap.anchorY-c.y);
    // Hold prey at the cup mouth until it closes; only then move the sealed vesicle inward.
-   const targetR=cap.distance+(c.r*.32-cap.distance)*phase.pull,wriggle=t.type&&!phase.sealed?Math.sin(this.s.time*6+t.seed)*Math.min(4,t.r*.13)*(t.escapeEffort||0):0;t.x=c.x+Math.cos(cap.angle)*targetR-Math.sin(cap.angle)*wriggle;t.y=c.y+Math.sin(cap.angle)*targetR+Math.cos(cap.angle)*wriggle;
+   const innerX=c.x+Math.cos(cap.angle)*c.r*.32,innerY=c.y+Math.sin(cap.angle)*c.r*.32;t.x=cap.anchorX+(innerX-cap.anchorX)*phase.pull;t.y=cap.anchorY+(innerY-cap.anchorY)*phase.pull;
   }else{
    const phase=ciliatePhase(c.type,progress);if(!Number.isFinite(cap.distance))cap.distance=dist(c,t);
    if(c.type==='paramecium'){
@@ -329,29 +338,80 @@ class Game{
      for(let i=s.food.length-1;i>=0;i--){const f=s.food[i];if(f.kind==='nutrient'&&!f.capturedBy&&dist(c,f)<c.r+5){c.energy=clamp(c.energy+7*(.25+.75*c.oxygen)*(1+c.traits.uptake*.2),0,100);if(!c.competent)c.mass=clamp(c.mass+6*(1+c.traits.uptake*.2),0,125);c.fed=.7;c.uptake=.7;c.uptakeAngle=angle(c,f);f.consumed=true;s.food.splice(i,1);if(c.team===0){s.meals++;if(s.meals%10===0)s.mutationPoints++}}}
     }else if(c.type==='paramecium'){
      const mouth=oralPoint(c);for(const f of s.food){if(f.kind!=='bacterium'||f.capturedBy)continue;const d=dist(f,mouth);if(d<c.r+24){f.x+=(mouth.x-f.x)*dt*2.5;f.y+=(mouth.y-f.y)*dt*2.5;if(d<8){this.capture(c,f);break}}}
-     if(!c.capture){const prey=s.cells.find(d=>!d.capturedBy&&this.prey(c,d)&&dist(d,c)<c.r+d.r+14&&Math.abs(delta(angle(c,d),c.a+.7))<1.2);if(prey)this.capture(c,prey)}
+     if(!c.capture){const prey=s.cells.find(d=>!d.capturedBy&&this.prey(c,d)&&dist(d,c)<surfaceRadius(c,angle(c,d))+surfaceRadius(d,angle(d,c))+12&&Math.abs(delta(angle(c,d),c.a+.7))<1.2);if(prey)this.capture(c,prey)}
     }
    }
    if(c.team!==0&&this.divisionReady(c)&&c.age>50&&s.cells.length<64)this.divide([c.id]);
    if(active){c.visualWait=(c.visualWait||0)+dt;if(c.visualWait>=1/15){this.membrane(c,Math.min(c.visualWait,1/15));c.visualWait=0}}else c.r+=(TYPES[c.type].r*Math.sqrt(Math.max(20,c.mass)/72)-c.r)*Math.min(1,dt*3);
   }
   dt=frameDt;
-  // Overdamped contact constraints: no billiard-ball bounce at cell scale.
-  for(let i=0;i<s.cells.length;i++)for(let j=i+1;j<s.cells.length;j++){const a=s.cells[i],b=s.cells[j];if(a.hp<=0||b.hp<=0||a.capturedBy||b.capturedBy||a.capture?.id===b.id||b.capture?.id===a.id)continue;const broad=(a.r+b.r)*1.5;if(Math.abs(a.x-b.x)>broad||Math.abs(a.y-b.y)>broad)continue;const d=dist(a,b),ang=d>.001?angle(a,b):a.seed,ia=Math.floor((ang+TAU)%TAU/TAU*40),ib=(ia+20)%40,min=(a.mem[ia].r+b.mem[ib].r)*.95;if(d<min){const push=(min-d)*.5;a.x-=Math.cos(ang)*push;a.y-=Math.sin(ang)*push;b.x+=Math.cos(ang)*push;b.y+=Math.sin(ang)*push;a.contactAngle=ang;b.contactAngle=ang+Math.PI;a.contactDepth=b.contactDepth=min-d}}
+  this.resolveContacts();
   for(const f of s.food){if(f.capturedBy)continue;if(this.tickCount%3!==f.id%3)continue;const particleDt=dt*3;const flow=this.flow(f),D=f.kind==='nutrient'?12:f.kind==='bacterium'?4:1,noise=Math.sqrt(2*D*particleDt)*1.732;
    f.x=clamp(f.x+flow.x*particleDt+this.rand(-noise,noise),8,s.w-8);f.y=clamp(f.y+flow.y*particleDt+this.rand(-noise,noise),8,s.h-8);
    if(f.kind==='detritus'){f.life-=particleDt;f.r=Math.max(2,f.r-particleDt*.15);if(ecology)this.addFood(f.x+this.rand(-20,20),f.y+this.rand(-20,20),'nutrient')}
   }s.food=s.food.filter(f=>f.life>0);
+  this.resolveFoodContacts();
   for(const d of s.dna){d.life-=dt;const f=this.flow(d);d.x=clamp(d.x+f.x*dt+this.rand(-1,1)*Math.sqrt(dt)*2,5,s.w-5);d.y=clamp(d.y+f.y*dt+this.rand(-1,1)*Math.sqrt(dt)*2,5,s.h-5)}s.dna=s.dna.filter(d=>d.life>0);
   for(const q of s.clouds){const f=this.flow(q);q.x+=f.x*dt;q.y+=f.y*dt;q.age+=dt;q.life-=dt;q.variance+=180*dt;q.power*=Math.exp(-.1*dt)}s.clouds=s.clouds.filter(c=>c.life>0).slice(-80);
   for(const e of s.effects){e.life-=dt;e.x+=e.vx*dt;e.y+=e.vy*dt;e.vx*=Math.exp(-7*dt);e.vy*=Math.exp(-7*dt)}s.effects=s.effects.filter(e=>e.life>0);
   for(const c of s.cells)if(c.hp<=0){this.release(c);if(!c.ingested){this.fx('lysis',c.x,c.y,TYPES[c.type].color,20);for(let j=0;j<5;j++)this.addFood(c.x+this.rand(-25,25),c.y+this.rand(-25,25),TYPES[c.type].domain==='bacterium'?'nutrient':'detritus');if(TYPES[c.type].domain==='bacterium')this.addDNA(c.x,c.y,c.type)}if(c.team===0)this.emit('A colony cell was lost.')}
   s.cells=s.cells.filter(c=>c.hp>0);
-  if(ecology){this.addFood();if(s.cells.length<34&&this.rand()<.12){const b=this.pick(BIOMES),type=TYPES[s.type].domain==='bacterium'?this.pick(['bacillus','injector','bacillus','amoeba']):this.pick(['amoeba','paramecium','didinium','bacillus','injector']);const c=this.cell(type,b.x+this.rand(-700,700),b.y+this.rand(-500,500),1+Math.floor(this.rand(0,3)));if(this.colony.every(p=>dist(p,c)>650)&&this.clear(c,c.r))s.cells.push(c)}}
+  if(ecology){this.ecosystemStep(2);if(s.cells.length<34&&this.rand()<.12){const b=this.pick(BIOMES),type=TYPES[s.type].domain==='bacterium'?this.pick(['bacillus','injector','bacillus','amoeba']):this.pick(['amoeba','paramecium','didinium','bacillus','injector']);const c=this.cell(type,b.x+this.rand(-700,700),b.y+this.rand(-500,500),1+Math.floor(this.rand(0,3)));if(this.colony.every(p=>dist(p,c)>650)&&this.clear(c,c.r))s.cells.push(c)}}
   const alive=this.colony;if(!alive.length){s.dead=true;s.selection=[];this.emit('The colony has ended. Your last save is available.')}else{
    if(!alive.some(c=>c.id===s.focus))s.focus=alive[0].id;s.selection=s.selection.filter(id=>alive.some(c=>c.id===id));if(!s.selection.length)s.selection=[s.focus];
    const b=this.biome(this.focus);if(!s.discovered.includes(b.id)){s.discovered.push(b.id);s.mutationPoints+=2;this.emit(b.name+' discovered · two variant choices earned.')}
   }
+ }
+ environment(p){
+  const b=this.biome(p),i=BIOMES.indexOf(b),pool=this.s.ecosystem?.[i]||{oxygen:1,reserve:60};
+  const temperature=22+9*Math.sin((p.x-1350)/650)+7*Math.sin((p.y-1050)/550);
+  const hypoxia=this.s.hazards.some(h=>h.kind==='hypoxia'&&dist(p,h)<h.r);
+  return {temperature,oxygen:clamp(b.oxygen*pool.oxygen*(hypoxia?.08:1)*(1-Math.max(0,temperature-22)*.012),0,1),reserve:pool.reserve};
+ }
+ ecosystemStep(dt){
+  for(let i=0;i<BIOMES.length;i++){
+   const b=BIOMES[i],pool=this.s.ecosystem[i],residents=this.s.cells.filter(c=>this.biome(c)===b),algae=this.s.food.filter(f=>f.kind==='alga'&&this.biome(f)===b).length;
+   // Gas exchange and photosynthesis replenish oxygen; respiration consumes it.
+   pool.oxygen=clamp(pool.oxygen+dt*(.009*(1-pool.oxygen)+algae*b.light*.00012-residents.length*.0008),0,1);
+   if(pool.reserve>=1&&this.s.food.length<550&&this.rand()<.22*b.light){
+    const x=b.x+this.rand(-700,700),y=b.y+this.rand(-650,650);
+    if(this.clear({x,y},10)){pool.reserve--;this.addFood(x,y,TYPES[this.s.type].domain==='bacterium'?'nutrient':this.rand()<.45?'alga':'bacterium')}
+   }
+  }
+ }
+ confine(c){
+  const extent=Math.max(...c.mem.map(m=>m.r));c.x=clamp(c.x,extent,this.s.w-extent);c.y=clamp(c.y,extent,this.s.h-extent);
+  for(const r of this.s.rocks){if(Math.abs(c.x-r.x)>extent+r.r+1||Math.abs(c.y-r.y)>extent+r.r+1)continue;const a=angle(c,r),d=dist(c,r),min=surfaceRadius(c,a)+r.r+1;if(d<min){c.x-=Math.cos(a)*(min-d);c.y-=Math.sin(a)*(min-d)}}
+ }
+ resolveContacts(){
+  const cells=this.s.cells.filter(c=>c.hp>0&&!c.capturedBy);
+  // Three bounded constraint passes, with broad rejection. Inelastic contact in viscous water.
+  for(let pass=0;pass<3;pass++){
+   for(let i=0;i<cells.length;i++)for(let j=i+1;j<cells.length;j++){
+    const a=cells[i],b=cells[j],broad=(a.r+b.r)*2.2;if(Math.abs(a.x-b.x)>broad||Math.abs(a.y-b.y)>broad)continue;
+    const d=dist(a,b),ang=d>.001?angle(a,b):a.seed,min=surfaceRadius(a,ang)+surfaceRadius(b,ang+Math.PI)+1;
+    if(d>=min)continue;const nx=Math.cos(ang),ny=Math.sin(ang),depth=min-d,wa=b.mass/(a.mass+b.mass),wb=1-wa;
+    a.x-=nx*depth*wa;a.y-=ny*depth*wa;b.x+=nx*depth*wb;b.y+=ny*depth*wb;
+    const closing=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;if(closing>0){a.vx-=nx*closing*wa;a.vy-=ny*closing*wa;b.vx+=nx*closing*wb;b.vy+=ny*closing*wb}
+    a.contactAngle=ang;b.contactAngle=ang+Math.PI;a.contactDepth=b.contactDepth=Math.min(3,depth);
+   }
+   for(const c of cells)this.confine(c);
+  }
+ }
+ resolveFoodContacts(){
+  // Bucket food instead of scanning every particle for every cell.
+  const grid=new Map(),size=160,key=(x,y)=>Math.floor(x/size)+','+Math.floor(y/size);
+  for(const f of this.s.food){if(f.capturedBy||f.kind==='nutrient')continue;const k=key(f.x,f.y);if(!grid.has(k))grid.set(k,[]);grid.get(k).push(f)}
+  for(const c of this.s.cells){if(c.hp<=0||c.capturedBy)continue;const gx=Math.floor(c.x/size),gy=Math.floor(c.y/size);
+   for(let x=gx-2;x<=gx+2;x++)for(let y=gy-2;y<=gy+2;y++)for(const f of grid.get(x+','+y)||[]){
+    if(f.capturedBy)continue;const d=dist(c,f);if(d>c.r*2.2+f.r)continue;
+    const a=d>.001?angle(c,f):f.seed,min=surfaceRadius(c,a)+f.r+1;
+    if(d<min){if(c.type==='paramecium'&&f.kind==='bacterium'&&!c.capture&&c.gut.length<6&&Math.abs(delta(a,c.a+.7))<.7){this.capture(c,f);continue}
+     const push=min-d;f.x+=Math.cos(a)*push;f.y+=Math.sin(a)*push;c.x-=Math.cos(a)*Math.min(.4,push*.015);c.y-=Math.sin(a)*Math.min(.4,push*.015);
+    }
+   }
+  }
+  for(const f of this.s.food){if(f.capturedBy||f.kind==='nutrient')continue;for(const r of this.s.rocks){const min=f.r+r.r;if(Math.abs(f.x-r.x)>min||Math.abs(f.y-r.y)>min)continue;const d=dist(f,r);if(d<min){const a=d>.001?angle(r,f):f.seed;f.x=r.x+Math.cos(a)*min;f.y=r.y+Math.sin(a)*min}}f.x=clamp(f.x,f.r,this.s.w-f.r);f.y=clamp(f.y,f.r,this.s.h-f.r)}
  }
  snapshot(){const s=JSON.parse(JSON.stringify(this.s));s.effects=[];for(const c of s.cells){c.path=[];c.think=0}return s}
  static fromSave(data){
@@ -361,6 +421,7 @@ class Game{
   const limits={cells:150,food:1200,dna:100,clouds:80,rocks:150,hazards:40,selection:24,discovered:4};for(const [k,n] of Object.entries(limits))if(!Array.isArray(s[k])||s[k].length>n)throw Error('Invalid '+k);
   const point=(p)=>p&&num(p.x,-300,6300)&&num(p.y,-300,4500),ids=new Set();
   for(const c of s.cells){if(!point(c)||!TYPES[c.type]||!num(c.id,1,s.nextId)||ids.has(c.id)||!num(c.hp,0,100)||!num(c.energy,0,100)||!num(c.mass,0,125)||!num(c.r,10,90)||!num(c.team,0,3)||!num(c.a,-1e12,1e12)||!num(c.vx,-2000,2000)||!num(c.vy,-2000,2000))throw Error('Invalid cell');ids.add(c.id);
+   c.temperature=Number.isFinite(c.temperature)?clamp(c.temperature,0,50):22;c.thermalRate=1;
    for(const k of ['cool','stun','invuln','age','gen','oxygen','division','mating','burst','seed'])if(!num(c[k],0,1e10))throw Error('Invalid cell process');
    if(!num(c.water,-1,1))throw Error('Invalid water balance');
    if(!c.traits||Object.keys(TRAITS).some(k=>!Number.isInteger(c.traits[k])||c.traits[k]<0||c.traits[k]>3)||c.pending&&!eligible(c.type,c.pending))throw Error('Invalid variants');
@@ -370,6 +431,7 @@ class Game{
    if(!c.samples||Object.entries(c.samples).some(([k,v])=>!eligible(c.type,k)||!Number.isInteger(v)||v<0||v>10000))throw Error('Invalid DNA samples');
    if(c.integrating&&(!eligible(c.type,c.integrating.trait)||!num(c.integrating.left,0,4)))throw Error('Invalid DNA integration');
    if(c.order&&(!point(c.order)||!num(c.order.target,0,s.nextId)))throw Error('Invalid order');
+   if(c.capture)for(const k of ['anchorX','anchorY'])if(c.capture[k]!==undefined&&!num(c.capture[k],-300,6300))throw Error('Invalid capture anchor');
    if(c.capture&&c.capture.distance!==undefined&&!num(c.capture.distance,0,300))throw Error('Invalid capture reach');
    if(c.capture&&((c.capture.duration!==undefined&&!num(c.capture.duration,1,10))||(c.capture.struggle!==undefined&&!num(c.capture.struggle,0,1))))throw Error('Invalid capture process');
    for(const k of ['escapeGrace','escapeTime','defended','escapeEffort','escapeBoost','ciliaBurst']){if(c[k]===undefined)c[k]=0;if(!num(c[k],0,5))throw Error('Invalid escape process')}
@@ -389,6 +451,8 @@ class Game{
   for(const h of s.hazards)if(!point(h)||!num(h.r,1,200)||!num(h.phase,0,TAU)||!['acid','hypoxia','shear'].includes(h.kind))throw Error('Invalid habitat');
   for(const k of ['score','meals','kills','divisions','transfers','mutationPoints','mutationProgress'])if(!num(s[k],0,1e10))throw Error('Invalid progression');
   if(!s.discovered.every(id=>BIOMES.some(b=>b.id===id))||!['hold','forage'].includes(s.mode)||!num(s.speed,.5,2)||typeof s.autoAbility!=='boolean'||typeof s.gentle!=='boolean'||typeof s.dead!=='boolean'||!s.selection.every(id=>Number.isInteger(id)))throw Error('Invalid game settings');
+  if(s.ecosystem===undefined)s.ecosystem=BIOMES.map(()=>({oxygen:1,reserve:60}));
+  if(!Array.isArray(s.ecosystem)||s.ecosystem.length!==4||s.ecosystem.some(e=>!e||!num(e.oxygen,0,1)||!num(e.reserve,0,100)))throw Error('Invalid ecosystem');
   s.effects=[];const game=Object.create(Game.prototype);game.s=s;game.events=[];game.navCache=new Map();game.tickCount=0;game.ecologyClock=0;game.routeBudget=2;game.byId=null;
   if(!game.colony.length&&!s.dead)throw Error('Save has no living colony');if(game.colony.length>24)throw Error('Colony is too large');if(game.colony.length&&!game.colony.some(c=>c.id===s.focus))s.focus=game.colony[0].id;
   if(s.paceRevision!==1){s.paceRevision=1;s.speed=1;s.autoAbility=false;s.mode='hold';for(const c of s.cells){c.rest=c.team===0?0:18;if(c.team===0){c.order=null;c.target=0;c.path=[]}}}

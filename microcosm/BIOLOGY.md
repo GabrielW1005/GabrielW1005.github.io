@@ -91,3 +91,25 @@ Primary references for the visual sequences:
 - https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1550-7408.1970.tb02366.x
 - https://www.journals.uchicago.edu/doi/10.2307/1537967
 - https://pmc.ncbi.nlm.nih.gov/articles/PMC4359589/
+
+
+## 2.5 survival and contact model
+
+Natural transformation: competent bacteria can take up extracellular DNA and integrate compatible sequences. Uptake and digestion are different processes; uptake need not produce successful integration. The game's same-lineage compatibility, selected trait fragments and integration probability are abstractions. T6SS-mediated competition can release DNA; the injector does not itself inject DNA or swallow prey.
+
+Algal endosymbiosis and kleptoplasty can supply acquired photosynthetic function in particular protists. They do not imply routine acquisition of host genes by eating. These processes are not implemented as upgrades for our generic protists.
+
+Primary references:
+- DNA uptake by retracting competence pili: https://www.nature.com/articles/s41564-018-0174-y
+- Algal endosymbiosis in Paramecium: https://www.nature.com/articles/s41396-018-0341-4
+- Kleptoplasty: https://pmc.ncbi.nlm.nih.gov/articles/PMC10041101/
+- Respiration, temperature selection and hypoxia: https://pubmed.ncbi.nlm.nih.gov/8048642/
+- Contractile vacuoles under osmotic stress: https://pubmed.ncbi.nlm.nih.gov/14610031/
+
+The game now models finite background food reserves, depletion by feeding, limited regeneration from those reserves, and decomposition. The reserve represents unmodeled substrate and nutrients, not a literal concentration or a fully mass-balanced ecosystem. Populations compete for food and consume habitat oxygen; photosynthesis and gas exchange replenish oxygen. New competitors still occasionally enter from outside the playable region.
+
+Food supports energy and biomass. Basal maintenance and activity consume energy; starvation damages cells. Severe hypoxia inhibits repair and reduces survival, while lower oxygen reduces energy yield. These are aerobic composite lineages: real bacteria vary greatly, and some survive without oxygen. Dissolved oxygen uses a relative 0–100 game index, not a concentration or the oxygen fraction of water.
+
+A spatial temperature field changes movement, digestion and energy demand. Extreme temperatures cause damage. The curve and 10–34 °C unstressed band are game tuning, not species-specific measured limits. Freshwater influx and saline dehydration remain distinct, with energy-consuming contractile-vacuole regulation in protists.
+
+Contact uses three bounded, overdamped cell-constraint passes and spatially bucketed solid-food contact. Cells can push each other without inertial rebounds. Dissolved nutrient dots represent molecules and are not solid obstacles. Captured prey can enter its captor; open amoeba cups retain the encounter location until sealing. Membrane contact is an approximate 2D constraint, not molecular adhesion, a fluid solver or exact polygon intersection.

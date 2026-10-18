@@ -5,3 +5,5 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important}}
 
 #targetInfo{position:fixed;top:157px;left:30px;max-width:240px;padding:8px 11px;border-left:2px solid #a9e9b0;background:#0b202bdd;border-radius:0 8px 8px 0;font-size:11px;line-height:1.5;color:#cce6dc;pointer-events:none}#targetInfo[data-state=blocked]{border-color:#96a5b5;color:#b8c5cf}@media(max-width:760px){#targetInfo{top:177px;left:14px;max-width:210px;font-size:10px}}
+
+#helpBtn{width:auto;min-width:48px;padding:0 8px;font-size:12px}#fps{position:fixed;right:22px;top:86px;font:11px monospace;color:#b6d4cc;pointer-events:none}#survivalReadout{position:fixed;left:30px;top:147px;max-width:min(520px,75vw);font-size:11px;color:#b6d4cc;pointer-events:none}#survivalReadout[data-alert=yes]{color:#ffd0a0}#targetInfo{top:180px}@media(max-width:760px){#fps{top:110px;right:12px;font-size:9px}#survivalReadout{top:165px;left:14px;font-size:9px;max-width:80vw}#targetInfo{top:205px}}
