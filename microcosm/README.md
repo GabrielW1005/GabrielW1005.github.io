@@ -1,6 +1,15 @@
-# Microcosm 2.1 — Living worlds
+# Microcosm 2.2 — Living worlds
 
 A dependency-free Canvas game at https://gabrielw1005.github.io/microcosm/.
+
+## Clear feeding and combat
+
+- Amoebae extend one continuous, open membrane cup around the food. The opening closes before the sealed vacuole moves inward. The full enclosure lasts about 1.85 seconds at 1× speed.
+- Food stays visible during enclosure, remains recognizable inside a pink food vacuole, then shrinks into fragments. Energy and biomass arrive gradually during digestion; a small green cue marks completion.
+- Click an edible food particle to approach and eat, or press Space near food. Feeding does not require enabling automatic abilities.
+- Damage briefly tints the membrane red. Small directional marks identify the source, and a pale segment on the health bar shows recent health loss. Contact injections, defensive filaments, toxin boundaries and cell rupture have distinct, short cues.
+- Effects use a few ordinary Canvas paths, circles and timed curves. There are no new particle physics systems, shaders, blur/glow passes, dependencies or additional simulation loops. Existing 30 Hz limits and particle caps remain in place.
+- Existing v2 saves and links still load, including captures in progress and older food vacuoles.
 
 ## Calmer, lighter update
 

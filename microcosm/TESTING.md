@@ -1,4 +1,4 @@
-# Verification — Microcosm 2.1
+# Verification — Microcosm 2.2
 
 Performed with Node 24 and native Canvas rendering. **No actual browser or Chromebook interaction/layout test was available for this release.** The DOM harness is a wiring check, not a browser substitute. Previous v1 browser-verification claims do not apply to v2.
 
@@ -50,3 +50,19 @@ Local Node/native-Canvas measurements (1366 × 768, single run, not physical Chr
 | Route searches over 5 simulated seconds | 629 | 65 | 44 |
 
 The measured existing-world simulation used about 85% less CPU time. Simulation frequency changed from 60 to 30 Hz; distant cells also update less often. Gameplay behavior differs intentionally, so these are workload measurements, not a controlled hardware benchmark. Rendering now targets 30 frames/s and uses a 1× pixel ratio. Full browser UI, GPU/compositor behavior and actual Chromebook performance remain unverified. The simplified canvas scene was rendered and visually inspected locally. Full-world save-link and local-save smoke checks pass.
+
+
+## 2.2 feeding and combat verification
+
+All 28 model tests and both native Canvas geometry tests pass. The app harness passes, including clicking a food particle to issue a targeted feeding order and a full-world save-link round trip.
+
+The new checks verify that prey stays outside until the cup closes, resources are not awarded before ingestion, saved captures resume, living ciliate prey is retained until closure, damage cues expire and respect invulnerability, digestion signals nutrient absorption, and new optional vacuole fields remain compatible with older saves. Across six headings and all three supported prey shapes, Canvas path containment confirms that food centers are outside the open cup and inside the sealed outline. Repeated rendering does not alter model state or create particles.
+
+A native Canvas contact sheet was visually inspected at reach, wrap, closure, sealed-vacuole, inward-motion, digestion, dissolution and damage stages. The ordinary habitat and a deliberately crowded scene with 24 simultaneous captures and damage flashes were timed at 1366 × 768:
+
+| Native draw workload | 2.1 | 2.2 |
+| --- | ---: | ---: |
+| Typical opening habitat, median of three batches | 0.91 ms/frame | 0.89 ms/frame |
+| 24 simultaneous captures and damage cues | 4.26 ms/frame | 6.52 ms/frame |
+
+These are local draw-only measurements, not Chromebook frame rates or a guarantee of hardware performance. The crowded case adds work for the more readable outline, while the ordinary habitat is essentially unchanged within measurement noise. The 30 Hz frame cap, coarse distant simulation and existing particle cap remain unchanged. No browser automation or physical Chromebook test was available.

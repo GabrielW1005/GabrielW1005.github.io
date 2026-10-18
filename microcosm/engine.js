@@ -4,6 +4,9 @@
 const TAU=Math.PI*2, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y), angle=(a,b)=>Math.atan2(b.y-a.y,b.x-a.x);
 const delta=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
+const smooth=v=>{v=clamp(v,0,1);return v*v*(3-2*v)};
+// A few timed curves describe the cup; no fluid solver or extra moving particles.
+const engulfPhase=p=>({reach:smooth(p/.24),wrap:smooth((p-.16)/.56),sealed:p>=.72,pull:smooth((p-.76)/.24)});
 const TYPES={
  amoeba:{name:'Amoeba',color:'#5df6c5',r:39,speed:62,ability:'Engulf',icon:'◉',cost:3,cool:1.1,domain:'eukaryote',diet:['alga','bacterium'],description:'Flow around prey. Seal a food vacuole. Digest inside.'},
  paramecium:{name:'Paramecium',color:'#56caff',r:33,speed:100,ability:'Trichocysts',icon:'✳',cost:10,cool:5,domain:'eukaryote',diet:['bacterium'],description:'Cilia sweep food inward. Defensive filaments interrupt an amoeba.'},
@@ -90,6 +93,7 @@ class Game{
  }
  addDNA(x,y,type,trait){if(this.s.dna.length<100)this.s.dna.push({id:this.id(),x,y,type,trait:trait||this.pick(Object.keys(TRAITS).filter(k=>eligible(type,k))),life:130,amount:0})}
  fx(kind,x,y,color,n=8){
+  if(kind==='lysis'){const cell=this.s.cells.find(c=>c.x===x&&c.y===y);this.s.effects.push({kind:'rupture',x,y,vx:0,vy:0,life:.6,color,r:cell?.r||20})}
   n=Math.min(n,7);for(let i=0;i<n;i++){const a=this.rand(0,TAU),v=this.rand(5,28);this.s.effects.push({kind,x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:this.rand(.3,1),color,r:this.rand(1,3)})}
   if(this.s.effects.length>90)this.s.effects.splice(0,this.s.effects.length-90);
  }
@@ -114,7 +118,7 @@ class Game{
  prey(c,d){return d.hp>0&&d.team!==c.team&&!d.capturedBy&&((c.type==='didinium'&&d.type==='paramecium')||(c.type==='amoeba'&&d.type==='paramecium'&&d.r<c.r*.8))}
  threat(c,d){return d.team!==c.team&&d.hp>0&&(this.prey(d,c)||(TYPES[c.type].domain==='bacterium'&&TYPES[d.type].domain==='bacterium'))}
  findTarget(c,id){if(!id)return null;const cached=this.byId?.get(id);if(cached)return !cached.consumed&&cached.hp!==0?cached:null;return this.s.food.find(f=>f.id===id&&!f.consumed)||this.s.cells.find(f=>f.id===id&&f.hp>0)}
- capture(c,target){if(c.capture||target.capturedBy||c.gut.length>=6)return false;const isCell=!!target.type;c.capture={id:target.id,isCell,progress:0,angle:angle(c,target),kind:isCell?target.type:target.kind};target.capturedBy=c.id;if(isCell)target.stun=2.5;return true}
+ capture(c,target){if(c.capture||target.capturedBy||c.gut.length>=6)return false;const isCell=!!target.type;c.capture={id:target.id,isCell,progress:0,angle:angle(c,target),distance:clamp(dist(c,target),c.r*.9+target.r,c.r+target.r+30),kind:isCell?target.type:target.kind};target.capturedBy=c.id;if(isCell)target.stun=2.5;return true}
  release(c){if(!c.capture)return;const f=this.findTarget(c,c.capture.id);if(f){f.capturedBy=0;if(f.type)f.stun=.4}c.capture=null}
  ability(c,auto=false){
   if(c.cool>0||c.stun>0||c.division||c.mating||c.capture||c.competent||c.integrating||c.capturedBy||c.hp<=0)return false;
@@ -129,13 +133,13 @@ class Game{
   }else if(c.type==='paramecium'){
    const enemies=this.s.cells.filter(d=>d.team!==c.team&&d.type==='amoeba'&&dist(c,d)<c.r+d.r+70);if(!auto||enemies.length){for(const d of enemies){d.stun=2.2;if(d.capture?.id===c.id)this.release(d)}c.burst=.7;success=true}
   }else if(c.type==='bacillus'){
-   if(!auto||this.s.cells.some(d=>d.team!==c.team&&TYPES[d.type].domain==='bacterium'&&dist(c,d)<145)){this.s.clouds.push({x:c.x,y:c.y,age:0,life:7,variance:350,team:c.team,type:c.type,power:1+c.traits.toxin*.4});success=true;this.fx('chemical',c.x,c.y,t.color,25)}
+   if(!auto||this.s.cells.some(d=>d.team!==c.team&&TYPES[d.type].domain==='bacterium'&&dist(c,d)<145)){this.s.clouds.push({x:c.x,y:c.y,age:0,life:7,variance:350,team:c.team,type:c.type,power:1+c.traits.toxin*.4});c.burst=.65;success=true;this.fx('chemical',c.x,c.y,t.color,4)}
   }else{
-   const q=this.s.cells.filter(d=>d.team!==c.team&&TYPES[d.type].domain==='bacterium'&&!d.capturedBy&&dist(c,d)<c.r+d.r+9).sort((a,b)=>dist(c,a)-dist(c,b))[0];if(q){this.hit(q,23,c);q.stun=.28;c.burst=.25;c.attackAngle=angle(c,q);success=true;this.fx('puncture',q.x,q.y,t.color,15)}
+   const q=this.s.cells.filter(d=>d.team!==c.team&&TYPES[d.type].domain==='bacterium'&&!d.capturedBy&&dist(c,d)<c.r+d.r+9).sort((a,b)=>dist(c,a)-dist(c,b))[0];if(q){this.hit(q,23,c);q.stun=.28;c.burst=.42;c.attackAngle=angle(c,q);c.attackLength=Math.max(c.r+6,dist(c,q)-q.r*.5);success=true}
   }
   if(success){if(c.team!==0&&(c.type==='bacillus'||c.type==='injector'))c.rest=4; c.energy-=cost;c.cool=t.cool/(1+c.traits.extrusome*.2);if(c.team===0)this.s.score++}return success;
  }
- hit(c,n,source){if(c.invuln>0||c.hp<=0)return;const factor=(c.team===0&&this.s.gentle)?.45:1;c.hp=Math.max(0,c.hp-n*factor/(1+c.traits.membrane*.15));if(c.hp<=0&&source?.team===0)this.s.kills++}
+ hit(c,n,source){if(c.invuln>0||c.hp<=0||n<=0)return;const factor=(c.team===0&&this.s.gentle)?.45:1,before=c.hp;c.hp=Math.max(0,c.hp-n*factor/(1+c.traits.membrane*.15));c.damageHP=Math.max(c.damageHP||0,before);c.hurt=.6;c.hitAngle=source?angle(c,source):null;c.hitSize=clamp(n/18,.25,1);if(c.hp<=0&&source?.team===0)this.s.kills++}
  route(c,goal){
   // A* on a spatial grid, with clearance and hazard costs. Replan only when intent changes.
   const size=95,cols=Math.ceil(this.s.w/size),rows=Math.ceil(this.s.h/size),index=(x,y)=>y*cols+x;
@@ -212,23 +216,28 @@ class Game{
   if(Math.abs(c.water)>.72)this.hit(c,(Math.abs(c.water)-.7)*6*dt);
   if(c.energy<.1)this.hit(c,2*dt);
   if(c.hp<100&&c.energy>20){c.hp=Math.min(100,c.hp+dt*(.5+c.traits.membrane*.25));c.energy-=dt*.1}
-  for(const h of s.hazards)if(dist(c,h)<h.r){const exposure=1-dist(c,h)/h.r;if(h.kind==='acid')this.hit(c,exposure*4*dt);if(h.kind==='shear'&&Math.sin(s.time*1.5+h.phase)>.45)this.hit(c,exposure*3*dt)}
-  for(const cloud of s.clouds)if(cloud.team!==c.team&&TYPES[c.type].domain==='bacterium'){const d2=(c.x-cloud.x)**2+(c.y-cloud.y)**2,concentration=cloud.power*600/cloud.variance*Math.exp(-d2/(2*cloud.variance));this.hit(c,concentration*9*dt/(1+c.traits.immunity*.75))}
+  for(const h of s.hazards)if(dist(c,h)<h.r){const exposure=1-dist(c,h)/h.r;if(h.kind==='acid')this.hit(c,exposure*4*dt,h);if(h.kind==='shear'&&Math.sin(s.time*1.5+h.phase)>.45)this.hit(c,exposure*3*dt,h)}
+  for(const cloud of s.clouds)if(cloud.team!==c.team&&TYPES[c.type].domain==='bacterium'){const d2=(c.x-cloud.x)**2+(c.y-cloud.y)**2,concentration=cloud.power*600/cloud.variance*Math.exp(-d2/(2*cloud.variance));if(concentration>.003)this.hit(c,concentration*9*dt/(1+c.traits.immunity*.75),cloud)}
   // Energy from digestion depends on oxygen; biomass is material, not ATP.
   for(const g of c.gut){const old=g.left,rate=(1+c.traits.digestion*.3)*dt;g.left=Math.max(0,g.left-rate);const fraction=(old-g.left)/g.total;
    c.energy=clamp(c.energy+g.energy*fraction*(.22+.78*c.oxygen)*(1+c.traits.metabolism*.16),0,100);
    if(!c.competent)c.mass=clamp(c.mass+g.mass*fraction,0,125);
+   if(old>0&&g.left===0)c.fed=.7;
   }
   c.gut=c.gut.filter(g=>g.left>0);
   if(c.integrating){c.integrating.left-=dt;if(c.integrating.left<=0){const trait=c.integrating.trait;if(this.rand()<.8){c.traits[trait]=clamp(c.traits[trait]+1,0,3);if(c.team===0){s.transfers++;this.emit('Compatible DNA integrated. Daughters inherit this variant.')}}else if(c.team===0)this.emit('DNA degraded before integration. Try another fragment.');c.integrating=null}}
   if(c.competent&&!c.integrating)for(let i=s.dna.length-1;i>=0;i--){const d=s.dna[i];if(dist(c,d)<c.r+10){d.amount+=dt*(1+c.traits.competence*.4);if(d.amount>=1){if(d.type===c.type&&eligible(c.type,d.trait)){c.samples[d.trait]=(c.samples[d.trait]||0)+1;if(c.team===0)this.emit('Compatible DNA collected. Open variants to integrate.')}else{c.energy=clamp(c.energy+1,0,100);if(c.team===0)this.emit('Unrelated DNA degraded; no trait gained.')}s.dna.splice(i,1)}}}
  }
- digest(c,kind){const large=kind==='paramecium',total=large?4:kind==='alga'?2:1.3;c.gut.push({kind,left:total,total,energy:large?75:kind==='alga'?24:10,mass:large?65:kind==='alga'?24:10,x:this.rand(-c.r*.4,c.r*.4),y:this.rand(-c.r*.4,c.r*.4)});if(c.team===0){this.s.meals++;this.s.mutationProgress++;if(this.s.mutationProgress>=7){this.s.mutationProgress=0;this.s.mutationPoints++;this.emit('Variant choice earned. Select a mutation for the next division.')}}}
+ digest(c,kind,prey=null){const large=kind==='paramecium',total=large?4:kind==='alga'?2.6:1.8;c.gut.push({kind,left:total,total,energy:large?75:kind==='alga'?24:10,mass:large?65:kind==='alga'?24:10,x:prey?clamp(prey.x-c.x,-c.r*.5,c.r*.5):this.rand(-c.r*.4,c.r*.4),y:prey?clamp(prey.y-c.y,-c.r*.5,c.r*.5):this.rand(-c.r*.4,c.r*.4),r:prey?clamp(prey.r*(prey.type?.6:1),3,30):large?15:kind==='alga'?7:4,angle:prey?(prey.a||prey.seed||0):0});if(c.team===0){this.s.meals++;this.s.mutationProgress++;if(this.s.mutationProgress>=7){this.s.mutationProgress=0;this.s.mutationPoints++;this.emit('Variant choice earned. Select a mutation for the next division.')}}}
  updateCapture(c,dt){
   if(!c.capture)return;const cap=c.capture,t=this.findTarget(c,cap.id);if(!t||t.hp<=0||c.hp<=0){this.release(c);return}
-  cap.progress+=dt/(c.type==='amoeba'?1.15:1.3);const progress=clamp(cap.progress,0,1);cap.angle=angle(c,t);c.a+=delta(cap.angle,c.a)*dt*4;
-  const targetR=c.r*(c.type==='amoeba'?(1.35-progress*.9):(1.3-progress));t.x+=(c.x+Math.cos(cap.angle)*targetR-t.x)*Math.min(1,dt*7);t.y+=(c.y+Math.sin(cap.angle)*targetR-t.y)*Math.min(1,dt*7);
-  if(progress>=1){this.digest(c,cap.kind);if(c.team!==0)c.rest=15; t.consumed=true;if(cap.isCell){t.ingested=true;t.hp=0;if(c.team===0)this.s.kills++}else this.s.food=this.s.food.filter(f=>f.id!==t.id);this.fx('absorb',t.x,t.y,TYPES[c.type].color,10);c.capture=null}
+  cap.progress+=dt/(c.type==='amoeba'?1.85:1.3);const progress=clamp(cap.progress,0,1);c.a+=delta(cap.angle,c.a)*dt*4;
+  if(c.type==='amoeba'){
+   const phase=engulfPhase(progress);if(!Number.isFinite(cap.distance))cap.distance=clamp(dist(c,t),c.r*.9+t.r,c.r+t.r+30);
+   // Hold prey at the cup mouth until it closes; only then move the sealed vesicle inward.
+   const targetR=cap.distance+(c.r*.32-cap.distance)*phase.pull;t.x=c.x+Math.cos(cap.angle)*targetR;t.y=c.y+Math.sin(cap.angle)*targetR;
+  }else{const targetR=c.r*(1.3-progress);t.x+=(c.x+Math.cos(cap.angle)*targetR-t.x)*Math.min(1,dt*7);t.y+=(c.y+Math.sin(cap.angle)*targetR-t.y)*Math.min(1,dt*7)}
+  if(progress>=1){this.digest(c,cap.kind,t);if(c.team!==0)c.rest=15;t.consumed=true;if(cap.isCell){t.ingested=true;t.hp=0;if(c.team===0)this.s.kills++}else this.s.food=this.s.food.filter(f=>f.id!==t.id);c.capture=null}
  }
  membrane(c,dt){
   const target=TYPES[c.type].r*Math.sqrt(Math.max(20,c.mass)/72),moving=Math.hypot(c.vx,c.vy)/TYPES[c.type].speed;c.r+=(target-c.r)*dt*3;
@@ -237,7 +246,7 @@ class Game{
    if(c.type==='amoeba')r*=1+.085*Math.sin(a*3+this.s.time*.9+c.seed)+.055*Math.sin(a*5-this.s.time*1.2)+moving*.13*Math.cos(da);
    else if(c.type==='paramecium'||TYPES[c.type].domain==='bacterium')r*=1/Math.sqrt((Math.cos(da)/1.38)**2+(Math.sin(da)/.72)**2);
    else r*=1+.06*Math.cos(da*2);
-   if(c.capture&&c.type==='amoeba'){const p=clamp(c.capture.progress,0,1),d=delta(a,c.capture.angle),spread=.8*(1-p)+.12;const lobes=Math.exp(-(((d-spread)/.24)**2))+Math.exp(-(((d+spread)/.24)**2));r+=c.r*.7*lobes*Math.sin(Math.PI*(.16+p*.75))}
+   // Engulfing uses one open cup outline in the renderer; the body remains a small spring ring.
    if(c.division){const p=1-c.division/3.2;const elong=1+p*.55,waist=1-.68*Math.sin(p*Math.PI/2);r*=Math.sqrt((Math.cos(da)*elong)**2+(Math.sin(da)*waist)**2)}
    if(c.contactDepth){r-=Math.min(c.r*.25,c.contactDepth)*Math.exp(-((delta(a,c.contactAngle)/.5)**2))}targets.push(r);sum+=r*r;
   }
@@ -249,7 +258,7 @@ class Game{
  step(dt,input={x:0,y:0}){
   if(this.s.dead)return;dt=clamp(dt,0,1/30);const s=this.s;s.time+=dt;this.tickCount++;this.ecologyClock=(this.ecologyClock||0)+dt;const ecology=this.ecologyClock>=2;if(ecology)this.ecologyClock=0;this.routeBudget=2;this.byId=new Map();for(const f of s.food)this.byId.set(f.id,f);for(const c of s.cells)this.byId.set(c.id,c);
   const before=[...s.cells],colony=this.colony;const frameDt=dt;
-  for(const c of before){if(c.hp<=0)continue;const view=this.view,visible=view?Math.abs(c.x-view.x)<view.w/2+150&&Math.abs(c.y-view.y)<view.h/2+150:false;const active=c.team===0||visible||colony.some(p=>Math.abs(c.x-p.x)<650&&Math.abs(c.y-p.y)<650);c.simWait=(c.simWait||0)+frameDt;if(!active&&c.simWait<.2)continue;dt=c.simWait;c.simWait=0;c.age+=dt;c.rest=Math.max(0,(c.rest||0)-dt);for(const k of ['cool','stun','invuln','burst'])c[k]=Math.max(0,c[k]-dt);
+  for(const c of before){if(c.hp<=0)continue;const view=this.view,visible=view?Math.abs(c.x-view.x)<view.w/2+150&&Math.abs(c.y-view.y)<view.h/2+150:false;const active=c.team===0||visible||colony.some(p=>Math.abs(c.x-p.x)<650&&Math.abs(c.y-p.y)<650);c.simWait=(c.simWait||0)+frameDt;if(!active&&c.simWait<.2)continue;dt=c.simWait;c.simWait=0;c.age+=dt;c.rest=Math.max(0,(c.rest||0)-dt);for(const k of ['cool','stun','invuln','burst','hurt','fed'])c[k]=Math.max(0,(c[k]||0)-dt);if(!c.hurt)c.damageHP=c.hp;
    if(c.capturedBy){if(active)this.membrane(c,Math.min(dt,1/30));continue}
    this.physiology(c,dt);this.updateCapture(c,dt);
    if(c.division){c.division=Math.max(0,c.division-dt);if(!c.division)this.finishDivision(c)}
@@ -260,7 +269,7 @@ class Game{
    if(c.team!==0||s.autoAbility)this.ability(c,true);
    if(!c.division&&!c.mating&&!c.capture&&!c.capturedBy&&c.gut.length<6){
     if(TYPES[c.type].domain==='bacterium'){
-     for(let i=s.food.length-1;i>=0;i--){const f=s.food[i];if(f.kind==='nutrient'&&!f.capturedBy&&dist(c,f)<c.r+5){c.energy=clamp(c.energy+7*(.25+.75*c.oxygen)*(1+c.traits.uptake*.2),0,100);if(!c.competent)c.mass=clamp(c.mass+6*(1+c.traits.uptake*.2),0,125);f.consumed=true;s.food.splice(i,1);this.fx('absorb',f.x,f.y,TYPES[c.type].color,3);if(c.team===0){s.meals++;if(s.meals%10===0)s.mutationPoints++}}}
+     for(let i=s.food.length-1;i>=0;i--){const f=s.food[i];if(f.kind==='nutrient'&&!f.capturedBy&&dist(c,f)<c.r+5){c.energy=clamp(c.energy+7*(.25+.75*c.oxygen)*(1+c.traits.uptake*.2),0,100);if(!c.competent)c.mass=clamp(c.mass+6*(1+c.traits.uptake*.2),0,125);c.fed=.7;f.consumed=true;s.food.splice(i,1);this.fx('absorb',f.x,f.y,TYPES[c.type].color,3);if(c.team===0){s.meals++;if(s.meals%10===0)s.mutationPoints++}}}
     }else if(c.type==='paramecium'){
      const mouth={x:c.x+Math.cos(c.a+.7)*c.r*.5,y:c.y+Math.sin(c.a+.7)*c.r*.5};for(const f of s.food){if(f.kind!=='bacterium'||f.capturedBy)continue;const d=dist(f,mouth);if(d<c.r+24){f.x+=(mouth.x-f.x)*dt*2.5;f.y+=(mouth.y-f.y)*dt*2.5;if(d<8){this.capture(c,f);break}}}
     }
@@ -303,6 +312,9 @@ class Game{
    if(!c.samples||Object.entries(c.samples).some(([k,v])=>!eligible(c.type,k)||!Number.isInteger(v)||v<0||v>10000))throw Error('Invalid DNA samples');
    if(c.integrating&&(!eligible(c.type,c.integrating.trait)||!num(c.integrating.left,0,4)))throw Error('Invalid DNA integration');
    if(c.order&&(!point(c.order)||!num(c.order.target,0,s.nextId)))throw Error('Invalid order');
+   if(c.capture&&c.capture.distance!==undefined&&!num(c.capture.distance,0,300))throw Error('Invalid capture reach');
+   if(c.gut.some(g=>(g.r!==undefined&&!num(g.r,1,30))||(g.angle!==undefined&&!num(g.angle,-1e10,1e10))))throw Error('Invalid food vacuole');
+   c.hurt=0;c.fed=0;c.damageHP=c.hp;c.hitAngle=null;
    if(c.capture&&(!num(c.capture.id,1,s.nextId)||!num(c.capture.progress,0,1.1)||!num(c.capture.angle,-1e10,1e10)||!['alga','bacterium','paramecium'].includes(c.capture.kind)))throw Error('Invalid capture');
    if(!num(c.capturedBy,0,s.nextId)||!num(c.mate,0,s.nextId)||typeof c.competent!=='boolean')throw Error('Invalid cell state');
    c.path=[];c.think=0;c.target=0;c.aiGoal=null;
@@ -331,5 +343,5 @@ class Game{
  }
 }
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)}
-const api={Game,TYPES,TRAITS,BIOMES,TAU,clamp,dist,delta,eligible,segmentDistance};if(typeof module!=='undefined')module.exports=api;root.MC=api;
+const api={Game,TYPES,TRAITS,BIOMES,TAU,clamp,dist,delta,eligible,segmentDistance,engulfPhase};if(typeof module!=='undefined')module.exports=api;root.MC=api;
 })(typeof window!=='undefined'?window:globalThis);
