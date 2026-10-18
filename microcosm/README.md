@@ -1,4 +1,4 @@
-# Microcosm 2.3 — Living worlds
+# Microcosm 2.4 — Living worlds
 
 A dependency-free Canvas game at https://gabrielw1005.github.io/microcosm/.
 
@@ -80,3 +80,8 @@ Imported snapshots are validated before replacement. A linked snapshot opens wit
 No build or install is required for the game. Serve the directory as static files. Run the core tests with `node --test tests/model.test.cjs`. The DOM/canvas smoke harness additionally requires `@napi-rs/canvas` and uses `CODEX_PRIMARY_RUNTIME_NODE_MODULES` to locate it in the authoring environment.
 
 This is a biologically informed game, not a quantitative cellular or fluid simulation. The optional in-game guide distinguishes mechanisms from gameplay abstractions.
+
+
+## Organism visuals
+
+Distinct silhouettes and consistent species colors accompany ciliary feeding, anterior ingestion, bacterial nutrient absorption, chemical release, contact injection and bacterial septum formation. Action labels distinguish sweeping, ingesting, anchoring and sealing. Team markers are separate from species color. See BIOLOGY.md for illustrative simplifications and TESTING.md for verification limits.

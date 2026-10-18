@@ -81,3 +81,10 @@ Local native Canvas measurements at 1366 × 768 (median of three batches):
 | 24 simultaneous captures and damage cues | 5.16 ms/frame | 6.37 ms/frame |
 
 These are draw-only measurements, not Chromebook FPS. Starting ecosystem composition changed, so the opening scenes are not identical. The new splines and small escape indicators add some draw work but no particle system, physics solver or extra simulation loop. Existing caps remain. Actual classroom hardware performance and long-term ecological balance still need playtesting.
+
+
+## 2.4 organism animation verification
+
+52 checks pass (46 model tests, five native Canvas checks and the app wiring harness). New checks cover side-groove feeding, staged anterior ingestion, surface-based injector contact, bacterial absorption without food vacuoles, prey identity and legacy saves. All species action stages render without mutating model state or allocating simulation particles. A 16-panel native Canvas contact sheet was visually inspected.
+
+A local 1366 × 768 draw benchmark measured opening scenes at 0.73–1.62 ms/frame; a crowded 24-actor scene changed from 3.27 to 4.40 ms/frame. These are noisy local native-Canvas measurements, not browser FPS or Chromebook results. Effects add drawing work but no fluid solver or extra particle simulation. Actual browser layout, input and classroom hardware remain unverified.

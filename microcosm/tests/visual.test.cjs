@@ -16,3 +16,17 @@ test('drawing repeated capture and damage frames creates no simulation objects o
 });
 
 test('pseudopods advance asymmetrically and fit elongated prey without a circular arc',()=>{const g=new Game('amoeba','garden',7),a=g.focus,r=new Renderer(createCanvas(500,500));a.capture={progress:.42,angle:0};const prey={x:a.x+65,y:a.y,r:20,type:'paramecium',a:0};const cup=r.cup(a,prey);assert(Math.abs(cup.u-cup.v)>.15);assert(cup.rx>cup.ry);let arcs=0;const original=r.ctx.arc;r.ctx.arc=(...args)=>{arcs++;return original.apply(r.ctx,args)};r.path(a,cup);assert.equal(arcs,0)});
+
+test('every organism renders its action stages without changing the model or making particles',()=>{
+ const r=new Renderer(createCanvas(1366,768));r.resize(1366,768);r.freeCamera=true;
+ for(const type of ['paramecium','didinium','bacillus','injector'])for(const progress of [.1,.55,.92]){
+  const g=new Game(type,'garden',77),a=g.focus;g.s.cells=[a];g.s.food=[];g.s.rocks=[];g.s.hazards=[];g.s.dna=[];g.s.clouds=[];a.a=0;r.camera={x:a.x,y:a.y};
+  if(type==='paramecium'||type==='didinium'){const p=g.cell(type==='didinium'?'paramecium':'bacillus',a.x+60,a.y,1);p.r=type==='didinium'?26:12;p.mass=type==='didinium'?45:26;g.s.cells.push(p);assert(g.capture(a,p));a.capture.progress=progress;g.updateCapture(a,0)}else{a.burst=type==='injector'?.4:.5;a.uptake=.4;a.uptakeAngle=.7;a.attackAngle=0;a.attackLength=a.r+3;a.division=1.4}
+  const before=JSON.stringify(g.s);for(let i=0;i<5;i++)r.draw(g,1/30);assert.equal(JSON.stringify(g.s),before);
+ }
+});
+test('species color is retained across factions and the contact spike remains short',()=>{
+ const g=new Game('injector','garden',7),a=g.focus,r=new Renderer(createCanvas(400,300));a.x=100;a.y=100;a.a=0;a.burst=.45;a.attackAngle=0;a.attackLength=200;
+ const calls=[],original=r.ctx.lineTo;r.ctx.lineTo=(x,y)=>{calls.push([x,y]);return original.call(r.ctx,x,y)};r.injection(a,'#ff7498');assert(Math.max(...calls.map(p=>p[0]))<=global.MC.surfaceRadius(a,0)+7);
+ const strokes=[],appendages=r.appendages;r.appendages=function(cell,s,color,detail){strokes.push(color);return appendages.call(this,cell,s,color,detail)};for(const team of [0,1,2,3]){a.team=team;r.cell(a,g)}assert(strokes.every(c=>c===global.MC.TYPES.injector.color));
+});

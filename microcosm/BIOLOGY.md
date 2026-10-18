@@ -77,3 +77,17 @@ Research:
 - [Field-based microbial chemotaxis research](https://www.nature.com/articles/s41586-022-04614-3).
 
 All graphics are original procedural drawings. No research images are reproduced.
+
+
+## 2.4 readable organism animations
+
+Paramecium uses a side oral groove, beating cilia and a forming food vacuole. Didinium shows two ciliary bands, anterior contact anchoring, widening of its feeding opening and gradual prey ingestion. These are schematic 2D sequences, with time and relative organism sizes adjusted for readability.
+
+Bacteria show a nucleoid without a nuclear envelope, a cell envelope, nutrient entry and chromosome separation before septum closure. Flagellar traces suggest rotating bundles. The T6SS animation shows an internal contracting sheath and a short contact spike, not a projectile or a food intake organ. Chemical release is represented by a few symbols and a fading diffusion field. Species colors, molecule symbols and visible molecular machinery are educational overlays, not literal microscopy colors or scale.
+
+Paramecium's escape action animates faster ciliary beating and schematic trichocyst discharge; successful open-cup escape is attributed to swimming and struggle, not universal protection by trichocysts.
+
+Primary references for the visual sequences:
+- https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1550-7408.1970.tb02366.x
+- https://www.journals.uchicago.edu/doi/10.2307/1537967
+- https://pmc.ncbi.nlm.nih.gov/articles/PMC4359589/

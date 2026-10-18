@@ -1,5 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const {Game,TYPES,dist,segmentDistance}=require('../engine.js');
+const {oralPoint,bodyRatio,captureStage,surfaceRadius}=require('../engine.js');
 function empty(type='amoeba'){const g=new Game(type,'garden',123);g.s.cells=[g.focus];g.s.food=[];g.s.rocks=[];g.s.hazards=[];g.s.dna=[];g.s.autoAbility=false;g.s.mode='hold';g.focus.invuln=0;return g}
 function advance(g,seconds){for(let i=0;i<Math.ceil(seconds*60);i++)g.step(1/60)}
 test('engulfment encloses visible prey before digestion adds biomass',()=>{const g=empty(),c=g.focus;c.mass=50;g.addFood(c.x+50,c.y,'alga');const id=g.s.food[0].id;assert(g.ability(c));const duration=c.capture.duration;advance(g,.5);assert(g.s.food.some(f=>f.id===id));assert(c.capture);assert.equal(c.mass,50);advance(g,duration-.45);assert(!g.s.food.some(f=>f.id===id));assert(c.gut.length);advance(g,2.7);assert(c.mass>70);assert.equal(c.gut.length,0)});
@@ -51,3 +52,22 @@ test('old saved captures lacking duration and struggle still complete',()=>{cons
 test('Paramecium can reach and ingest living bacteria from an approach order',()=>{const g=empty('paramecium'),a=g.focus,b=g.cell('bacillus',a.x+180,a.y,1);b.r=12;b.mass=26;b.stun=20;b.cool=20;g.s.cells.push(b);g.command(b.x,b.y,b.id);advance(g,5);assert(!g.s.cells.some(c=>c.id===b.id));assert(g.s.meals>=1)});
 test('bacterial AI flees a protist grazer even at full health',()=>{const g=empty(),a=g.focus,b=g.cell('bacillus',a.x+120,a.y,1);g.s.cells.push(b);const direction=g.brain(b,.1);assert.equal(b.intent,'flee');assert(direction.x>0)});
 test('healthy ciliates can swim out without a trichocyst discharge',()=>{const g=empty(),a=g.focus,b=g.cell('paramecium',a.x+60,a.y,1);b.r=26;b.mass=45;b.cool=20;g.s.cells.push(b);assert(g.capture(a,b));advance(g,2.6);assert.equal(b.capturedBy,0);assert.equal(b.burst,0);assert.equal(g.s.meals,0)});
+
+test('Paramecium captures at its side groove without spinning toward an internal meal',()=>{
+ const g=empty('paramecium'),a=g.focus;a.a=0;g.addFood(a.x+25,a.y+25,'bacterium');const food=g.s.food[0];g.capture(a,food);a.capture.progress=.28;g.updateCapture(a,0);assert(dist(food,oralPoint(a))<.001);assert.equal(captureStage(a),'Ingesting');g.command(food.x,food.y,food.id);
+ for(let i=0;i<10;i++)g.step(1/30,{x:0,y:-1});assert.equal(a.a,0);assert(food.y>a.y);assert(dist(food,a)<dist(oralPoint(a),a));assert.equal(a.gut.length,0);
+});
+test('Didinium anchors first, ingests through the anterior end, then retains prey identity in a vacuole',()=>{
+ const g=empty('didinium'),a=g.focus;a.a=0;const p=g.cell('paramecium',a.x+65,a.y,1);p.r=26;p.mass=45;g.s.cells.push(p);g.capture(a,p);const distance=a.capture.distance;a.capture.progress=.15;g.updateCapture(a,0);assert(Math.abs(dist(a,p)-distance)<.001);assert.equal(captureStage(a),'Anchored');assert(!a.gut.length);
+ a.capture.progress=.65;g.updateCapture(a,0);assert(p.x>a.x&&dist(a,p)<distance);assert.equal(captureStage(a),'Ingesting');const restored=Game.fromSave(g.snapshot());advance(restored,2);assert.equal(restored.focus.gut[0].preyType,'paramecium');
+});
+test('T6SS respects the actual cell surfaces and cannot bridge an empty gap',()=>{
+ const g=empty('injector'),a=g.focus,b=g.cell('bacillus',a.x+40,a.y,1);g.s.cells.push(b);for(const c of [a,b]){c.a=Math.PI/2;c.mem.forEach((m,i)=>m.r=c.r*bodyRatio(c.type,i/40*Math.PI*2-c.a))}assert(!g.ability(a));assert.equal(b.hp,100);
+ b.x=a.x+surfaceRadius(a,0)+surfaceRadius(b,Math.PI)+2;assert(g.ability(a));assert(b.hp<100);assert(a.attackLength<=surfaceRadius(a,0)+5);assert.equal(a.gut.length,0);
+});
+test('bacterial uptake cues follow a consumed nutrient and never create a digestive vacuole',()=>{
+ const g=empty('bacillus'),a=g.focus;g.addFood(a.x+18,a.y,'nutrient');const id=g.s.food[0].id,energy=a.energy;g.step(1/30);assert(!g.s.food.some(f=>f.id===id));assert(a.energy>energy);assert(a.uptake>0);assert(Math.abs(a.uptakeAngle)<.01);assert.equal(a.gut.length,0);advance(g,.8);assert.equal(a.uptake,0);
+});
+test('old vacuoles remain valid and living bacterial prey retains its visible identity',()=>{
+ const g=empty('paramecium'),a=g.focus,b=g.cell('injector',a.x+15,a.y+10,1);b.r=12;b.mass=26;b.energy=0;b.cool=10;g.s.cells.push(b);g.capture(a,b);advance(g,1.6);assert.equal(a.gut[0].preyType,'injector');const saved=g.snapshot();delete saved.cells[0].gut[0].preyType;assert.doesNotThrow(()=>Game.fromSave(saved));saved.cells[0].gut[0].preyType='unknown';assert.throws(()=>Game.fromSave(saved));
+});
