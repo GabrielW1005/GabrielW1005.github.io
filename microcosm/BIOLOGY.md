@@ -1,15 +1,18 @@
-# Biology and model notes — Microcosm 2.1
+# Biology and model notes — Microcosm 2.3
 
 The game keeps organism-specific mechanisms separate. Its parameter values, colors, relative visual scales, faction rules and progression rewards are gameplay choices. Real organisms do not deliberately buy mutations, choose strategic routes or follow a human player's colony commands.
 
 ## Enclosure, digestion and transport
 
-The amoeba proceeds through attachment, pseudopod extension, enclosure, and an internal food vacuole. Prey remains present during capture. Biomass and energy are released gradually by digestion after internalization. A moving cell boundary is modeled with damped radial springs and contact constraints; the game does not solve actin networks or cytoplasmic fluid dynamics.
+The amoeba proceeds through attachment, pseudopod extension, enclosure, and an internal food vacuole. Broad pseudopods can change the cell's polarity and spread around food; they are not a uniform expanding circular ring. The game uses two uneven, sequentially extending lobes, an irregular opening, and prey-oriented dimensions. Prey remains outside the open cup until closure. Biomass and energy are released gradually by digestion after internalization. The idle boundary uses damped radial springs and contact constraints; the feeding outline is a small animated spline. These illustrate the sequence without solving actin networks, membrane tension or cytoplasmic fluid dynamics.
 
 Paramecium uses a localized feeding current near an oral groove. Didinium captures ciliate prey at its anterior end. Dissolved nutrient parcels cross bacterial membranes without a phagosome. Detritus releases dissolved nutrient parcels; this represents decomposition and environmental processing, not a complete microbial enzyme model. Prey DNA is not automatically converted into abilities.
 
+The game's feeding gate combines an organism-specific diet with prey-to-predator radius. Amoebae accept modeled bacteria and Paramecium up to 0.85 of their radius; Paramecium accepts bacteria up to 0.55; Didinium accepts Paramecium up to 1.65. These are deliberately tuned game limits, not universal biological thresholds or measured maximum prey sizes. The species roster is selective, and bacterial sizes are exaggerated relative to protists for visibility. Feeding duration grows with prey size and slows at low energy; these times are likewise illustrative.
+
 Research:
 
+- [Jeon & Jeon, scanning electron microscope observations of Amoeba proteus during phagocytosis](https://pubmed.ncbi.nlm.nih.gov/1271309/).
 - [Phagocytic cup closure research, PMC6541287](https://pmc.ncbi.nlm.nih.gov/articles/PMC6541287/).
 - [Amoeba proteus phagosome acidification experiment, PMID 6885916](https://pubmed.ncbi.nlm.nih.gov/6885916/).
 - [Rogers, Waigh & Lu: Intracellular Microrheology of Motile Amoeba proteus](https://pmc.ncbi.nlm.nih.gov/articles/PMC2275677/).
@@ -17,7 +20,11 @@ Research:
 
 ## Contact capture, puncture and chemical competition
 
-Didinium toxicysts are close-contact prey-capture organelles. Paramecium trichocysts are a distinct defensive system; the game does not make them reliable protection from Didinium. The T6SS bacterium is separately identified as a composite Gram-negative model: its injector acts at contact range and damages a neighboring cell. It is not a distant grappling hook and is not an amoeba organelle.
+Didinium toxicysts are close-contact prey-capture organelles that anchor and immobilize ciliate prey before ingestion. Paramecium trichocysts are a distinct system whose effectiveness depends on the predator; they are not universal armor and do not reliably stop Didinium. Paramecium can often avoid amoeba enclosure by swimming away, while discharge after complete enclosure does not provide a dependable escape. Accordingly, the open-cup defense in the game is a ciliary escape swim and continued struggle, not a trichocyst attack that stuns the amoeba. A short filament cue can accompany a free-cell defensive response, but it deals no stun damage.
+
+Before closure, the game's struggle meter compares prey motility, reserves and health with the captor's condition. Manual steering away contributes effort; NPC prey attempts escape automatically. Paramecium's Space action temporarily boosts swimming effort. Escape costs energy and grants a brief recapture grace period. These formulas, cooldowns and the interruption of an open cup by a strong hit are gameplay abstractions. Once enclosed, this escape action is unavailable. Didinium's anchored capture is treated separately.
+
+The T6SS bacterium is separately identified as a composite Gram-negative model: its injector acts at contact range and damages a neighboring bacterium. It is not a distant grappling hook and is not an amoeba organelle. The modeled immunity variant reduces chemical and injection damage; it is a coarse stand-in for specific resistance mechanisms, not protection from every toxin or secretion system. Killing a rival does not directly award ingestion resources.
 
 The Bacillus-like bacterium releases a bacteriocin field. A Gaussian profile widens with time, drifts and decays; its concentration determines damage. The faction immunity model compresses real toxin/target/immunity specificity. Bacteria do not universally share one toxin or one set of defenses. The composite T6SS model's competence capability is also not universal.
 
@@ -25,6 +32,8 @@ Research:
 
 - [Didinium toxicysts contacting Paramecium, Cell Image Library CIL:40951](https://www.cellimagelibrary.org/images/40951).
 - [Transitions between three swimming gaits in Paramecium escape](https://pmc.ncbi.nlm.nih.gov/articles/PMC3088577/).
+- [Harumoto, predator-specific trichocyst defense and amoeba escape observations](https://www.jstage.jst.go.jp/article/jjprotozool/35/2/35_125/_pdf).
+- [Miyake & Harumoto, trichocyst defense against Monodinium, with comparison to Didinium](https://www.sciencedirect.com/science/article/pii/S0932473996800484).
 - [A family of Type VI secretion system effector proteins that form ion-selective pores](https://www.nature.com/articles/s41467-019-13439-0).
 - [Bacillus subtilis bacteriocin production and immunity](https://pmc.ncbi.nlm.nih.gov/articles/PMC94516/).
 

@@ -1,12 +1,16 @@
-# Microcosm 2.2 — Living worlds
+# Microcosm 2.3 — Living worlds
 
 A dependency-free Canvas game at https://gabrielw1005.github.io/microcosm/.
 
-## Clear feeding and combat
+## Organic engulfment, diets and defenses
 
-- Amoebae extend one continuous, open membrane cup around the food. The opening closes before the sealed vacuole moves inward. The full enclosure lasts about 1.85 seconds at 1× speed.
+- Amoebae grow broad, uneven pseudopods around prey. One lobe leads and the other follows; their shape follows the prey's outline and orientation. The opening closes before a sealed food vacuole moves inward. Feeding takes roughly 3–5 seconds at 1× speed, and longer when energy is low.
 - Food stays visible during enclosure, remains recognizable inside a pink food vacuole, then shrinks into fragments. Energy and biomass arrive gradually during digestion; a small green cue marks completion.
 - Click an edible food particle to approach and eat, or press Space near food. Feeding does not require enabling automatic abilities.
+- Diet and relative size determine which organisms can be eaten. Amoebae can engulf smaller bacteria and ciliates; Paramecia sweep sufficiently small bacteria into an oral groove; Didinium specializes in ciliate capture and can handle proportionally larger prey. Bacteria absorb dissolved nutrients and compete using their own contact or chemical abilities.
+- Hover or tap a target for a small edible, attack or blocked cue and an explanation. Impossible feeding orders are rejected. New worlds mix predators, grazers and bacteria within the existing population limit.
+- Living prey can struggle out before an amoeba's cup closes. Motility, health and energy affect the outcome. Steer away when caught; Paramecium can press Space for an escape swim. NPC prey also tries to escape. Exhausted prey is easier to retain, and a sufficiently strong hit interrupts an open capture.
+- Chemical resistance reduces toxin and contact-injection damage. Didinium's anchored capture differs from an amoeba's open cup; Paramecium's escape action cannot simply undo it. Exact size cutoffs, timings and resistance coefficients are game rules, not measured biological constants.
 - Damage briefly tints the membrane red. Small directional marks identify the source, and a pale segment on the health bar shows recent health loss. Contact injections, defensive filaments, toxin boundaries and cell rupture have distinct, short cues.
 - Effects use a few ordinary Canvas paths, circles and timed curves. There are no new particle physics systems, shaders, blur/glow passes, dependencies or additional simulation loops. Existing 30 Hz limits and particle caps remain in place.
 - Existing v2 saves and links still load, including captures in progress and older food vacuoles.
@@ -42,9 +46,9 @@ A dependency-free Canvas game at https://gabrielw1005.github.io/microcosm/.
 | Click destination or prey | Navigate / pursue |
 | Right-click | Issue an order, even on a friendly cell |
 | WASD / arrows | Direct movement of selected cells |
-| Space | Organism-specific ability |
+| Space | Organism-specific ability / Paramecium escape swim |
 | R | Divide ready selected cells |
-| X / Stop | Cancel selected cells’ movement orders |
+| X / Stop | Cancel selected cells’ orders and release open captures |
 | Q / Tab / 1–9 | All cells / cycle / numbered cell |
 | G | Mutation and DNA variants |
 | E | Bacterial competence |

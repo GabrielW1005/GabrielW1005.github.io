@@ -1,4 +1,4 @@
-# Verification — Microcosm 2.2
+# Verification — Microcosm 2.3
 
 Performed with Node 24 and native Canvas rendering. **No actual browser or Chromebook interaction/layout test was available for this release.** The DOM harness is a wiring check, not a browser substitute. Previous v1 browser-verification claims do not apply to v2.
 
@@ -66,3 +66,18 @@ A native Canvas contact sheet was visually inspected at reach, wrap, closure, se
 | 24 simultaneous captures and damage cues | 4.26 ms/frame | 6.52 ms/frame |
 
 These are local draw-only measurements, not Chromebook frame rates or a guarantee of hardware performance. The crowded case adds work for the more readable outline, while the ordinary habitat is essentially unchanged within measurement noise. The 30 Hz frame cap, coarse distant simulation and existing particle cap remain unchanged. No browser automation or physical Chromebook test was available.
+
+## 2.3 organic engulfment and defense verification
+
+All 41 model cases and all three native Canvas geometry tests pass. Added checks cover diet and relative size restrictions, small living bacteria entering the oral groove, reaching that groove from an approach order, open-cup escape swimming, automatic prey defense and cooldowns, exhausted versus motile prey, the sealed-cup and Didinium exceptions, capture interruption, injection resistance, bacterial threat avoidance, bounded mixed populations, and older saved captures without new fields.
+
+Geometry checks verify asymmetric pseudopods without circular arc construction, prey-oriented elongated cups, containment only after closure at six headings for three prey shapes, and rendering that does not change model state. A native Canvas contact sheet was visually inspected through extension, closure, inward movement and digestion. The app harness passes, including blocked-target feedback, the captured Paramecium escape button, and full-world save links (about 15 KB in this run); it does not establish actual DOM layout or touch behavior.
+
+Local native Canvas measurements at 1366 × 768 (median of three batches):
+
+| Draw workload | 2.2 | 2.3 |
+| --- | ---: | ---: |
+| Typical opening habitat | 0.85 ms/frame | 1.15 ms/frame |
+| 24 simultaneous captures and damage cues | 5.16 ms/frame | 6.37 ms/frame |
+
+These are draw-only measurements, not Chromebook FPS. Starting ecosystem composition changed, so the opening scenes are not identical. The new splines and small escape indicators add some draw work but no particle system, physics solver or extra simulation loop. Existing caps remain. Actual classroom hardware performance and long-term ecological balance still need playtesting.

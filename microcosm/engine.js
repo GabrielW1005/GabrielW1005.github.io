@@ -6,16 +6,18 @@ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y), angle=(a,b)=>Math.atan2(b.y-a.y,b
 const delta=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
 const smooth=v=>{v=clamp(v,0,1);return v*v*(3-2*v)};
 // A few timed curves describe the cup; no fluid solver or extra moving particles.
-const engulfPhase=p=>({reach:smooth(p/.24),wrap:smooth((p-.16)/.56),sealed:p>=.72,pull:smooth((p-.76)/.24)});
+const engulfPhase=p=>({reach:smooth(p/.38),wrap:smooth((p-.12)/.68),sealed:p>=.8,pull:smooth((p-.84)/.16)});
+// These relative radii are game tuning in an exaggerated 2D scale, not biological constants.
+const FEEDING={amoeba:{prey:['bacillus','injector','paramecium'],limit:.85,mode:'engulf'},paramecium:{prey:['bacillus','injector'],limit:.55,mode:'graze'},didinium:{prey:['paramecium'],limit:1.65,mode:'capture'}};
 const TYPES={
  amoeba:{name:'Amoeba',color:'#5df6c5',r:39,speed:62,ability:'Engulf',icon:'◉',cost:3,cool:1.1,domain:'eukaryote',diet:['alga','bacterium'],description:'Flow around prey. Seal a food vacuole. Digest inside.'},
- paramecium:{name:'Paramecium',color:'#56caff',r:33,speed:100,ability:'Trichocysts',icon:'✳',cost:10,cool:5,domain:'eukaryote',diet:['bacterium'],description:'Cilia sweep food inward. Defensive filaments interrupt an amoeba.'},
+ paramecium:{name:'Paramecium',color:'#56caff',r:33,speed:100,ability:'Escape',icon:'✳',cost:10,cool:5,domain:'eukaryote',diet:['bacterium'],description:'Cilia sweep bacteria inward. Swim out of an open cup; extrusomes are not universal armor.'},
  didinium:{name:'Didinium',color:'#ffab63',r:32,speed:86,ability:'Capture',icon:'↠',cost:7,cool:2.4,domain:'eukaryote',diet:[],description:'Contact a ciliate with the proboscis. Immobilize and ingest it.'},
  bacillus:{name:'Bacillus-like',color:'#c8a0ff',r:20,speed:75,ability:'Bacteriocin',icon:'⁙',cost:13,cool:10,domain:'bacterium',diet:['nutrient'],description:'Absorb dissolved nutrients. Release a selective toxin. Take up compatible DNA.'},
  injector:{name:'T6SS bacterium',color:'#ff7498',r:21,speed:78,ability:'Contact injector',icon:'↣',cost:5,cool:3.5,domain:'bacterium',diet:['nutrient'],description:'A composite Gram-negative model. Touch a rival to inject a toxin; no long-range harpoon.'}
 };
 const TRAITS={
- motility:{name:'Motility',icon:'➟',text:'Faster movement; higher movement energy cost.',all:true},
+ motility:{name:'Motility',icon:'➟',text:'Faster movement and stronger escape from an open amoeba cup; higher movement energy cost.',all:true},
  membrane:{name:'Membrane repair',icon:'⬡',text:'Faster repair and less membrane damage; higher maintenance.',all:true},
  metabolism:{name:'Respiration',icon:'ϟ',text:'More energy from food when oxygen is available; greater oxygen demand.',all:true},
  sensing:{name:'Sensing',icon:'◎',text:'Find food and threats farther away.',all:true},
@@ -23,7 +25,7 @@ const TRAITS={
  osmosis:{name:'Water balance',icon:'◌',text:'More effective water regulation; pumping uses energy.',all:true},
  extrusome:{name:'Extrusomes',icon:'✳',text:'Faster replenishment of contact or defensive organelles.',types:['paramecium','didinium','injector']},
  toxin:{name:'Bacteriocin output',icon:'⁙',text:'More local toxin activity; release consumes more energy.',types:['bacillus']},
- immunity:{name:'Toxin resistance',icon:'◇',text:'Less damage from the modeled rival toxin; upkeep costs energy.',all:true},
+ immunity:{name:'Toxin resistance',icon:'◇',text:'Less damage from modeled bacterial clouds and contact injection; upkeep costs energy.',all:true},
  uptake:{name:'Transporters',icon:'⇥',text:'More efficient dissolved nutrient uptake.',types:['bacillus','injector']},
  competence:{name:'Competence',icon:'⧖',text:'Faster uptake of compatible extracellular DNA.',types:['bacillus','injector']}
 };
@@ -76,7 +78,7 @@ class Game{
   for(let i=0;i<24;i++){const a=this.rand(0,TAU),r=this.rand(55,270);this.addFood(p.x+Math.cos(a)*r,p.y+Math.sin(a)*r,TYPES[s.type].domain==='bacterium'?'nutrient':i%3?'bacterium':'alga')}
   const bacterial=TYPES[s.type].domain==='bacterium';
   for(let i=0;i<36;i++){
-   const q=BIOMES[i%4],t=bacterial?(i%3===0?'injector':'bacillus'):(i%12===0?'didinium':i%5===0?'amoeba':'paramecium');
+   const q=BIOMES[i%4],t=bacterial?(i%12===0?'amoeba':i%9===0?'paramecium':i%3===0?'injector':'bacillus'):(i%12===0?'didinium':i%7===0?'amoeba':i%3===0?(i%2?'injector':'bacillus'):'paramecium');
    const c=this.cell(t,clamp(q.x+this.rand(-820,820),100,s.w-100),clamp(q.y+this.rand(-760,760),100,s.h-100),i%3+1);
    c.energy=this.rand(t==='didinium'?45:60,85);if(dist(c,p)>520&&this.clear(c,c.r))s.cells.push(c);
   }
@@ -114,32 +116,62 @@ class Game{
   c.x=clamp(c.x+Math.cos(a)*rr,rr,this.s.w-rr);c.y=clamp(c.y+Math.sin(a)*rr,rr,this.s.h-rr);d.x=clamp(d.x-Math.cos(a)*rr,rr,this.s.w-rr);d.y=clamp(d.y-Math.sin(a)*rr,rr,this.s.h-rr);
   this.s.cells.push(d);if(c.team===0){this.s.divisions++;this.s.mutationPoints++;if(this.s.selection.includes(c.id))this.s.selection.push(d.id);this.emit('Two daughters. Both belong to your colony.');this.fx('division',c.x,c.y,TYPES[c.type].color,22)}
  }
- edible(c,f){return TYPES[c.type].diet.includes(f.kind)}
- prey(c,d){return d.hp>0&&d.team!==c.team&&!d.capturedBy&&((c.type==='didinium'&&d.type==='paramecium')||(c.type==='amoeba'&&d.type==='paramecium'&&d.r<c.r*.8))}
+ feeding(c,target){
+  const fail=reason=>({ok:false,reason,mode:'none'}),rule=FEEDING[c.type];
+  if(!target||target.consumed||target.hp===0)return fail('Target gone');
+  if(target.type&&target.team===c.team)return fail('Same colony');
+  if(target.capturedBy&&target.capturedBy!==c.id)return fail('Already captured');
+  if(target.escapeGrace>0)return fail('Escaping');
+  const diet=target.type?rule?.prey.includes(target.type):TYPES[c.type].diet.includes(target.kind);
+  if(!diet)return fail(TYPES[c.type].domain==='bacterium'?'Absorbs dissolved nutrients':'Outside this organism’s diet');
+  const ratio=target.r/c.r,limit=rule?.limit||1;
+  if(ratio>limit)return fail('Too large to swallow');
+  const duration=c.type==='amoeba'?(2.8+ratio*2.6)*(c.energy<25?1.25:1):c.type==='didinium'?1.7+ratio*.8:1.5;
+  return {ok:true,mode:rule?.mode||'absorb',reason:'Edible',ratio,limit,duration};
+ }
+ edible(c,f){return this.feeding(c,f).ok}
+ prey(c,d){return !!d.type&&this.feeding(c,d).ok}
+ interaction(c,target){
+  const meal=this.feeding(c,target);if(meal.ok)return {...meal,glyph:'◉',text:meal.mode==='absorb'?'Absorb nutrients':meal.mode==='graze'?'Small enough for the oral groove':meal.mode==='capture'?'Ciliate prey · contact capture':target.type==='paramecium'?'Edible · fast swimmers can escape':'Edible · surround and digest'};
+  const rival=target?.type&&target.team!==c.team&&target.hp>0;
+  if(rival&&TYPES[c.type].domain==='bacterium'&&TYPES[target.type].domain==='bacterium')return {ok:true,mode:'attack',glyph:'↣',text:c.type==='injector'?'Contact injection · resistance reduces damage':'Local toxin · resistance reduces damage'};
+  return {...meal,glyph:'⊘',text:meal.reason};
+ }
+ canDefend(c){const captor=this.s.cells.find(d=>d.id===c.capturedBy);return c.type==='paramecium'&&c.hp>0&&!c.division&&!c.mating&&!c.capture&&(!captor||(captor.type==='amoeba'&&captor.capture?.progress<.8))}
  threat(c,d){return d.team!==c.team&&d.hp>0&&(this.prey(d,c)||(TYPES[c.type].domain==='bacterium'&&TYPES[d.type].domain==='bacterium'))}
  findTarget(c,id){if(!id)return null;const cached=this.byId?.get(id);if(cached)return !cached.consumed&&cached.hp!==0?cached:null;return this.s.food.find(f=>f.id===id&&!f.consumed)||this.s.cells.find(f=>f.id===id&&f.hp>0)}
- capture(c,target){if(c.capture||target.capturedBy||c.gut.length>=6)return false;const isCell=!!target.type;c.capture={id:target.id,isCell,progress:0,angle:angle(c,target),distance:clamp(dist(c,target),c.r*.9+target.r,c.r+target.r+30),kind:isCell?target.type:target.kind};target.capturedBy=c.id;if(isCell)target.stun=2.5;return true}
+ capture(c,target){const meal=this.feeding(c,target);if(!meal.ok||c.capture||target.capturedBy||c.gut.length>=6)return false;const isCell=!!target.type;c.capture={id:target.id,isCell,progress:0,angle:angle(c,target),distance:clamp(dist(c,target),c.r*.9+target.r,c.r+target.r+30),duration:meal.duration,struggle:0,kind:isCell?(TYPES[target.type].domain==='bacterium'?'bacterium':target.type):target.kind};target.capturedBy=c.id;if(isCell){target.defendAt=this.s.time+.55;target.stun=c.type==='amoeba'?0:meal.duration+.5}return true}
  release(c){if(!c.capture)return;const f=this.findTarget(c,c.capture.id);if(f){f.capturedBy=0;if(f.type)f.stun=.4}c.capture=null}
+ escape(prey,predator){
+  const away=angle(predator,prey);this.release(predator);prey.stun=0;prey.escapeGrace=2;prey.escapeTime=.6;prey.escapeAngle=away;prey.defended=1;prey.energy=Math.max(0,prey.energy-4);predator.cool=Math.max(predator.cool,2);predator.stun=.65;predator.order=null;predator.target=0;predator.path=[];predator.aiGoal=null;
+  if(prey.team===0||predator.team===0)this.emit('Escaped before the membrane closed.');
+ }
  ability(c,auto=false){
-  if(c.cool>0||c.stun>0||c.division||c.mating||c.capture||c.competent||c.integrating||c.capturedBy||c.hp<=0)return false;
+  if(c.cool>0||c.stun>0||c.division||c.mating||c.capture||c.competent||c.integrating||(c.capturedBy&&!this.canDefend(c))||c.hp<=0)return false;
   if(auto&&c.team!==0&&(c.rest>0||((c.type==='amoeba'||c.type==='didinium'||TYPES[c.type].domain==='bacterium')&&c.energy>=72)))return false;
   const t=TYPES[c.type],cost=t.cost+(c.type==='bacillus'?c.traits.toxin*2:0);if(c.energy<cost+4)return false;let success=false;
   if(c.type==='amoeba'){
-   const q=this.s.food.filter(f=>!f.capturedBy&&this.edible(c,f)&&dist(c,f)<c.r+f.r+29).concat(this.s.cells.filter(d=>this.prey(c,d)&&dist(c,d)<c.r+d.r*.6+20)).sort((a,b)=>dist(c,a)-dist(c,b))[0];
+   const candidates=this.s.food.filter(f=>!f.capturedBy&&this.edible(c,f)&&dist(c,f)<c.r+f.r+29).concat(this.s.cells.filter(d=>!d.capturedBy&&this.prey(c,d)&&dist(c,d)<c.r+d.r*.6+20)),preferred=c.order?.target||c.target;
+   const q=candidates.find(f=>f.id===preferred)||candidates.sort((a,b)=>dist(c,a)-dist(c,b))[0];
    if(q)success=this.capture(c,q);
   }else if(c.type==='didinium'){
    const p={x:c.x+Math.cos(c.a)*c.r,y:c.y+Math.sin(c.a)*c.r};const q=this.s.cells.find(d=>this.prey(c,d)&&dist(p,d)<d.r+18&&Math.abs(delta(angle(c,d),c.a))<.95);
    if(q){success=this.capture(c,q);this.fx('puncture',q.x,q.y,t.color,12)}
   }else if(c.type==='paramecium'){
-   const enemies=this.s.cells.filter(d=>d.team!==c.team&&d.type==='amoeba'&&dist(c,d)<c.r+d.r+70);if(!auto||enemies.length){for(const d of enemies){d.stun=2.2;if(d.capture?.id===c.id)this.release(d)}c.burst=.7;success=true}
+   const enemies=this.s.cells.filter(d=>d.team!==c.team&&(d.type==='amoeba'||d.type==='didinium')&&dist(c,d)<c.r+d.r+45);if(!auto||enemies.length){const captor=enemies.find(d=>d.id===c.capturedBy),danger=captor||enemies[0];
+    // Amoeba avoidance is primarily ciliary swimming, not a trichocyst stun attack.
+    if(captor?.type==='amoeba'&&captor.capture.progress<.8){captor.capture.struggle=clamp((captor.capture.struggle||0)+.28,0,1);c.escapeBoost=1.2;c.escapeEffort=1}
+    else{c.burst=.7;if(danger){c.escapeTime=.6;c.escapeAngle=angle(danger,c)}}
+    c.ciliaBurst=.8;c.defended=1;success=true;
+   }
   }else if(c.type==='bacillus'){
    if(!auto||this.s.cells.some(d=>d.team!==c.team&&TYPES[d.type].domain==='bacterium'&&dist(c,d)<145)){this.s.clouds.push({x:c.x,y:c.y,age:0,life:7,variance:350,team:c.team,type:c.type,power:1+c.traits.toxin*.4});c.burst=.65;success=true;this.fx('chemical',c.x,c.y,t.color,4)}
   }else{
-   const q=this.s.cells.filter(d=>d.team!==c.team&&TYPES[d.type].domain==='bacterium'&&!d.capturedBy&&dist(c,d)<c.r+d.r+9).sort((a,b)=>dist(c,a)-dist(c,b))[0];if(q){this.hit(q,23,c);q.stun=.28;c.burst=.42;c.attackAngle=angle(c,q);c.attackLength=Math.max(c.r+6,dist(c,q)-q.r*.5);success=true}
+   const q=this.s.cells.filter(d=>d.team!==c.team&&TYPES[d.type].domain==='bacterium'&&!d.capturedBy&&dist(c,d)<c.r+d.r+9).sort((a,b)=>dist(c,a)-dist(c,b))[0];if(q){this.hit(q,23/(1+q.traits.immunity*.5),c);q.stun=.28;c.burst=.42;c.attackAngle=angle(c,q);c.attackLength=Math.max(c.r+6,dist(c,q)-q.r*.5);success=true}
   }
   if(success){if(c.team!==0&&(c.type==='bacillus'||c.type==='injector'))c.rest=4; c.energy-=cost;c.cool=t.cool/(1+c.traits.extrusome*.2);if(c.team===0)this.s.score++}return success;
  }
- hit(c,n,source){if(c.invuln>0||c.hp<=0||n<=0)return;const factor=(c.team===0&&this.s.gentle)?.45:1,before=c.hp;c.hp=Math.max(0,c.hp-n*factor/(1+c.traits.membrane*.15));c.damageHP=Math.max(c.damageHP||0,before);c.hurt=.6;c.hitAngle=source?angle(c,source):null;c.hitSize=clamp(n/18,.25,1);if(c.hp<=0&&source?.team===0)this.s.kills++}
+ hit(c,n,source){if(c.invuln>0||c.hp<=0||n<=0)return;const factor=(c.team===0&&this.s.gentle)?.45:1,before=c.hp;c.hp=Math.max(0,c.hp-n*factor/(1+c.traits.membrane*.15));c.damageHP=Math.max(c.damageHP||0,before);c.hurt=.6;c.hitAngle=source?angle(c,source):null;c.hitSize=clamp(n/18,.25,1);if(c.capture&&c.capture.progress<.8&&n>=12){this.release(c);c.cool=Math.max(c.cool,1.5)}if(c.hp<=0&&source?.team===0)this.s.kills++}
  route(c,goal){
   // A* on a spatial grid, with clearance and hazard costs. Replan only when intent changes.
   const size=95,cols=Math.ceil(this.s.w/size),rows=Math.ceil(this.s.h/size),index=(x,y)=>y*cols+x;
@@ -163,6 +195,7 @@ class Game{
   if(c.order){
    const target=this.findTarget(c,c.order.target);
    if(c.order.target&&!target){c.order=null;c.target=0;c.path=[];return {x:0,y:0}}
+   if(target&&!this.interaction(c,target).ok){if(c.team===0)this.emit(this.interaction(c,target).text);c.order=null;c.target=0;c.path=[];return {x:0,y:0}}
    goal=target||c.order;
    if(!target&&dist(c,goal)<12){c.order=null;c.target=0;c.path=[];c.intent='hold';return {x:0,y:0}}
    if(target&&dist(c,target)<c.r+target.r+18){c.a=angle(c,target);this.ability(c,true)}
@@ -172,13 +205,13 @@ class Game{
    c.think=1.1+this.rand(0,.6);const old=c.target;
    let danger=null,bestDanger=radius;
    for(const d of this.s.cells){if(!this.threat(c,d))continue;const dd=dist(c,d);if(dd<bestDanger){bestDanger=dd;danger=d}}
-   if(danger&&(c.hp<40||TYPES[c.type].domain==='eukaryote'&&this.prey(danger,c))){c.intent='flee';c.target=0;const a=angle(danger,c);c.aiGoal={x:clamp(c.x+Math.cos(a)*150,50,this.s.w-50),y:clamp(c.y+Math.sin(a)*150,50,this.s.h-50)}}
+   if(danger&&(c.hp<40||this.prey(danger,c))){c.intent='flee';c.target=0;const a=angle(danger,c);c.aiGoal={x:clamp(c.x+Math.cos(a)*150,50,this.s.w-50),y:clamp(c.y+Math.sin(a)*150,50,this.s.h-50)}}
    else{
     let chosen=null,best=Infinity;
-    if(c.energy<72&&!c.rest)for(const d of this.s.cells){const dd=dist(c,d);if(this.prey(c,d)&&dd<radius&&dd<best){chosen=d;best=dd}}
+    if(c.energy<72&&!c.rest)for(const d of this.s.cells){const dd=dist(c,d),score=dd+(c.type==='amoeba'&&d.type==='paramecium'&&d.energy>25?160:0)+d.traits.motility*25;if(this.prey(c,d)&&dd<radius&&score<best){chosen=d;best=score}}
     // Chemical fighting is local competition, not perpetual pursuit.
     if(TYPES[c.type].domain==='bacterium'&&c.energy<72&&c.energy>25&&!c.rest&&danger&&bestDanger<100){chosen=danger;best=bestDanger}
-    if(!chosen)for(const f of this.s.food){if(f.capturedBy||f.consumed||!this.edible(c,f))continue;const dd=Math.abs(c.x-f.x)+Math.abs(c.y-f.y);if(dd>radius*1.6||dd>best)continue;const score=dist(c,f)+this.risk(f)*70;if(score<best){best=score;chosen=f}}
+    if(!chosen||TYPES[c.type].domain==='eukaryote')for(const f of this.s.food){if(f.capturedBy||f.consumed||!this.edible(c,f))continue;const dd=Math.abs(c.x-f.x)+Math.abs(c.y-f.y);if(dd>radius*1.6||dd>best)continue;const score=dist(c,f)+this.risk(f)*70;if(score<best){best=score;chosen=f}}
     if(chosen){c.target=chosen.id;c.aiGoal=null;c.intent=chosen.type?'hunt':'forage'}else{c.target=0;c.intent='explore';if(!c.aiGoal||dist(c,c.aiGoal)<30)c.aiGoal={x:clamp(c.x+this.rand(-210,210),80,this.s.w-80),y:clamp(c.y+this.rand(-210,210),80,this.s.h-80)}}
    }
    if(c.target!==old){c.path=[];c.routeAt=0}
@@ -194,8 +227,9 @@ class Game{
  }
  risk(p){let n=0;for(const h of this.s.hazards)if(dist(p,h)<h.r+40)n+=2;for(const q of this.s.clouds)if(dist(p,q)<Math.sqrt(q.variance)*2)n++;return n}
  move(c,dx,dy,dt){
+  if(c.escapeTime>0&&!c.capturedBy){dx=Math.cos(c.escapeAngle);dy=Math.sin(c.escapeAngle)}
   const n=Math.hypot(dx,dy);if(n>1){dx/=n;dy/=n}if(n>.03)c.a+=delta(Math.atan2(dy,dx),c.a)*(1-Math.exp(-10*dt));
-  let speed=TYPES[c.type].speed*(1+c.traits.motility*.18)*(c.energy<10?.55:1)*(c.competent?.3:1);if(c.stun||c.division||c.mating||c.capture||c.capturedBy||c.integrating)speed=0;
+  let speed=TYPES[c.type].speed*(1+c.traits.motility*.18)*(c.energy<10?.55:1)*(c.competent?.3:1)*(c.escapeTime>0?1.45:1);if(c.stun||c.division||c.mating||c.capture||c.capturedBy||c.integrating)speed=0;
   const flow=c.type==='amoeba'?{x:0,y:0}:this.flow(c),damp=1-Math.exp(-38*dt);
   c.vx+=(dx*speed+flow.x-c.vx)*damp;c.vy+=(dy*speed+flow.y-c.vy)*damp;c.x+=c.vx*dt;c.y+=c.vy*dt;
   c.x=clamp(c.x,c.r,this.s.w-c.r);c.y=clamp(c.y,c.r,this.s.h-c.r);
@@ -231,11 +265,17 @@ class Game{
  digest(c,kind,prey=null){const large=kind==='paramecium',total=large?4:kind==='alga'?2.6:1.8;c.gut.push({kind,left:total,total,energy:large?75:kind==='alga'?24:10,mass:large?65:kind==='alga'?24:10,x:prey?clamp(prey.x-c.x,-c.r*.5,c.r*.5):this.rand(-c.r*.4,c.r*.4),y:prey?clamp(prey.y-c.y,-c.r*.5,c.r*.5):this.rand(-c.r*.4,c.r*.4),r:prey?clamp(prey.r*(prey.type?.6:1),3,30):large?15:kind==='alga'?7:4,angle:prey?(prey.a||prey.seed||0):0});if(c.team===0){this.s.meals++;this.s.mutationProgress++;if(this.s.mutationProgress>=7){this.s.mutationProgress=0;this.s.mutationPoints++;this.emit('Variant choice earned. Select a mutation for the next division.')}}}
  updateCapture(c,dt){
   if(!c.capture)return;const cap=c.capture,t=this.findTarget(c,cap.id);if(!t||t.hp<=0||c.hp<=0){this.release(c);return}
-  cap.progress+=dt/(c.type==='amoeba'?1.85:1.3);const progress=clamp(cap.progress,0,1);c.a+=delta(cap.angle,c.a)*dt*4;
+  if(!cap.duration)cap.duration=this.feeding(c,t).duration||3.5;
+  if(c.type==='amoeba'&&t.type&&cap.progress<.8){
+   const effort=t.escapeBoost>0?1:t.escapeEffort||0,grip=.45+c.hp*.0035+c.energy*.0025,power=((t.type==='paramecium'?1.15:.65)+t.traits.motility*.28+(t.r/c.r)*.4+(t.escapeBoost>0?.8:0))*(.15+.85*Math.min(1,t.energy/50))*(.35+t.hp*.0065);
+   cap.struggle=clamp((cap.struggle||0)+dt*(effort?Math.max(.02,power-grip)*1.6:-.35),0,1);t.energy=Math.max(0,t.energy-dt*effort*.9);
+   if(cap.struggle>=1){this.escape(t,c);return}
+  }
+  cap.progress+=dt/cap.duration;const progress=clamp(cap.progress,0,1);c.a+=delta(cap.angle,c.a)*dt*4;
   if(c.type==='amoeba'){
    const phase=engulfPhase(progress);if(!Number.isFinite(cap.distance))cap.distance=clamp(dist(c,t),c.r*.9+t.r,c.r+t.r+30);
    // Hold prey at the cup mouth until it closes; only then move the sealed vesicle inward.
-   const targetR=cap.distance+(c.r*.32-cap.distance)*phase.pull;t.x=c.x+Math.cos(cap.angle)*targetR;t.y=c.y+Math.sin(cap.angle)*targetR;
+   const targetR=cap.distance+(c.r*.32-cap.distance)*phase.pull,wriggle=t.type&&!phase.sealed?Math.sin(this.s.time*6+t.seed)*Math.min(4,t.r*.13)*(t.escapeEffort||0):0;t.x=c.x+Math.cos(cap.angle)*targetR-Math.sin(cap.angle)*wriggle;t.y=c.y+Math.sin(cap.angle)*targetR+Math.cos(cap.angle)*wriggle;
   }else{const targetR=c.r*(1.3-progress);t.x+=(c.x+Math.cos(cap.angle)*targetR-t.x)*Math.min(1,dt*7);t.y+=(c.y+Math.sin(cap.angle)*targetR-t.y)*Math.min(1,dt*7)}
   if(progress>=1){this.digest(c,cap.kind,t);if(c.team!==0)c.rest=15;t.consumed=true;if(cap.isCell){t.ingested=true;t.hp=0;if(c.team===0)this.s.kills++}else this.s.food=this.s.food.filter(f=>f.id!==t.id);c.capture=null}
  }
@@ -243,7 +283,7 @@ class Game{
   const target=TYPES[c.type].r*Math.sqrt(Math.max(20,c.mass)/72),moving=Math.hypot(c.vx,c.vy)/TYPES[c.type].speed;c.r+=(target-c.r)*dt*3;
   const N=c.mem.length,targets=[];let sum=0;
   for(let i=0;i<N;i++){const a=i/N*TAU,da=delta(a,c.a);let r=c.r;
-   if(c.type==='amoeba')r*=1+.085*Math.sin(a*3+this.s.time*.9+c.seed)+.055*Math.sin(a*5-this.s.time*1.2)+moving*.13*Math.cos(da);
+   if(c.type==='amoeba')r*=1+.16*Math.sin(a*3+this.s.time*.32+c.seed)+.08*Math.sin(a*5-this.s.time*.45)+moving*.18*Math.cos(da);
    else if(c.type==='paramecium'||TYPES[c.type].domain==='bacterium')r*=1/Math.sqrt((Math.cos(da)/1.38)**2+(Math.sin(da)/.72)**2);
    else r*=1+.06*Math.cos(da*2);
    // Engulfing uses one open cup outline in the renderer; the body remains a small spring ring.
@@ -258,8 +298,8 @@ class Game{
  step(dt,input={x:0,y:0}){
   if(this.s.dead)return;dt=clamp(dt,0,1/30);const s=this.s;s.time+=dt;this.tickCount++;this.ecologyClock=(this.ecologyClock||0)+dt;const ecology=this.ecologyClock>=2;if(ecology)this.ecologyClock=0;this.routeBudget=2;this.byId=new Map();for(const f of s.food)this.byId.set(f.id,f);for(const c of s.cells)this.byId.set(c.id,c);
   const before=[...s.cells],colony=this.colony;const frameDt=dt;
-  for(const c of before){if(c.hp<=0)continue;const view=this.view,visible=view?Math.abs(c.x-view.x)<view.w/2+150&&Math.abs(c.y-view.y)<view.h/2+150:false;const active=c.team===0||visible||colony.some(p=>Math.abs(c.x-p.x)<650&&Math.abs(c.y-p.y)<650);c.simWait=(c.simWait||0)+frameDt;if(!active&&c.simWait<.2)continue;dt=c.simWait;c.simWait=0;c.age+=dt;c.rest=Math.max(0,(c.rest||0)-dt);for(const k of ['cool','stun','invuln','burst','hurt','fed'])c[k]=Math.max(0,(c[k]||0)-dt);if(!c.hurt)c.damageHP=c.hp;
-   if(c.capturedBy){if(active)this.membrane(c,Math.min(dt,1/30));continue}
+  for(const c of before){if(c.hp<=0)continue;const view=this.view,visible=view?Math.abs(c.x-view.x)<view.w/2+150&&Math.abs(c.y-view.y)<view.h/2+150:false;const active=c.team===0||visible||colony.some(p=>Math.abs(c.x-p.x)<650&&Math.abs(c.y-p.y)<650);c.simWait=(c.simWait||0)+frameDt;if(!active&&c.simWait<.2)continue;dt=c.simWait;c.simWait=0;c.age+=dt;c.rest=Math.max(0,(c.rest||0)-dt);for(const k of ['cool','stun','invuln','burst','hurt','fed','escapeGrace','escapeTime','defended','escapeBoost','ciliaBurst'])c[k]=Math.max(0,(c[k]||0)-dt);if(!c.hurt)c.damageHP=c.hp;
+   if(c.capturedBy){const captor=this.s.cells.find(d=>d.id===c.capturedBy),manual=c.team===0&&s.selection.includes(c.id);c.escapeEffort=manual&&captor?Math.max(0,input.x*Math.cos(angle(captor,c))+input.y*Math.sin(angle(captor,c))):1;if((!manual||s.autoAbility)&&s.time>=(c.defendAt||0)&&this.canDefend(c))this.ability(c,true);if(active)this.membrane(c,Math.min(dt,1/30));continue}
    this.physiology(c,dt);this.updateCapture(c,dt);
    if(c.division){c.division=Math.max(0,c.division-dt);if(!c.division)this.finishDivision(c)}
    if(c.mating){c.mating=Math.max(0,c.mating-dt);const partner=s.cells.find(d=>d.id===c.mate&&d.hp>0);if(!partner){c.mating=0;c.mate=0}else if(c.mating===0){for(const k of Object.keys(TRAITS))if(eligible(c.type,k))c.traits[k]=Math.max(c.traits[k],partner.traits[k]);c.mate=0;if(c.team===0)s.transfers++}}
@@ -272,6 +312,7 @@ class Game{
      for(let i=s.food.length-1;i>=0;i--){const f=s.food[i];if(f.kind==='nutrient'&&!f.capturedBy&&dist(c,f)<c.r+5){c.energy=clamp(c.energy+7*(.25+.75*c.oxygen)*(1+c.traits.uptake*.2),0,100);if(!c.competent)c.mass=clamp(c.mass+6*(1+c.traits.uptake*.2),0,125);c.fed=.7;f.consumed=true;s.food.splice(i,1);this.fx('absorb',f.x,f.y,TYPES[c.type].color,3);if(c.team===0){s.meals++;if(s.meals%10===0)s.mutationPoints++}}}
     }else if(c.type==='paramecium'){
      const mouth={x:c.x+Math.cos(c.a+.7)*c.r*.5,y:c.y+Math.sin(c.a+.7)*c.r*.5};for(const f of s.food){if(f.kind!=='bacterium'||f.capturedBy)continue;const d=dist(f,mouth);if(d<c.r+24){f.x+=(mouth.x-f.x)*dt*2.5;f.y+=(mouth.y-f.y)*dt*2.5;if(d<8){this.capture(c,f);break}}}
+     if(!c.capture){const prey=s.cells.find(d=>!d.capturedBy&&this.prey(c,d)&&dist(d,c)<c.r+d.r+14&&Math.abs(delta(angle(c,d),c.a+.7))<1.2);if(prey)this.capture(c,prey)}
     }
    }
    if(c.team!==0&&this.divisionReady(c)&&c.age>50&&s.cells.length<64)this.divide([c.id]);
@@ -289,7 +330,7 @@ class Game{
   for(const e of s.effects){e.life-=dt;e.x+=e.vx*dt;e.y+=e.vy*dt;e.vx*=Math.exp(-7*dt);e.vy*=Math.exp(-7*dt)}s.effects=s.effects.filter(e=>e.life>0);
   for(const c of s.cells)if(c.hp<=0){this.release(c);if(!c.ingested){this.fx('lysis',c.x,c.y,TYPES[c.type].color,20);for(let j=0;j<5;j++)this.addFood(c.x+this.rand(-25,25),c.y+this.rand(-25,25),TYPES[c.type].domain==='bacterium'?'nutrient':'detritus');if(TYPES[c.type].domain==='bacterium')this.addDNA(c.x,c.y,c.type)}if(c.team===0)this.emit('A colony cell was lost.')}
   s.cells=s.cells.filter(c=>c.hp>0);
-  if(ecology){this.addFood();if(s.cells.length<34&&this.rand()<.12){const b=this.pick(BIOMES),type=TYPES[s.type].domain==='bacterium'?this.pick(['bacillus','injector']):this.pick(['amoeba','paramecium','didinium']);const c=this.cell(type,b.x+this.rand(-700,700),b.y+this.rand(-500,500),1+Math.floor(this.rand(0,3)));if(this.colony.every(p=>dist(p,c)>650)&&this.clear(c,c.r))s.cells.push(c)}}
+  if(ecology){this.addFood();if(s.cells.length<34&&this.rand()<.12){const b=this.pick(BIOMES),type=TYPES[s.type].domain==='bacterium'?this.pick(['bacillus','injector','bacillus','amoeba']):this.pick(['amoeba','paramecium','didinium','bacillus','injector']);const c=this.cell(type,b.x+this.rand(-700,700),b.y+this.rand(-500,500),1+Math.floor(this.rand(0,3)));if(this.colony.every(p=>dist(p,c)>650)&&this.clear(c,c.r))s.cells.push(c)}}
   const alive=this.colony;if(!alive.length){s.dead=true;s.selection=[];this.emit('The colony has ended. Your last save is available.')}else{
    if(!alive.some(c=>c.id===s.focus))s.focus=alive[0].id;s.selection=s.selection.filter(id=>alive.some(c=>c.id===id));if(!s.selection.length)s.selection=[s.focus];
    const b=this.biome(this.focus);if(!s.discovered.includes(b.id)){s.discovered.push(b.id);s.mutationPoints+=2;this.emit(b.name+' discovered · two variant choices earned.')}
@@ -313,6 +354,9 @@ class Game{
    if(c.integrating&&(!eligible(c.type,c.integrating.trait)||!num(c.integrating.left,0,4)))throw Error('Invalid DNA integration');
    if(c.order&&(!point(c.order)||!num(c.order.target,0,s.nextId)))throw Error('Invalid order');
    if(c.capture&&c.capture.distance!==undefined&&!num(c.capture.distance,0,300))throw Error('Invalid capture reach');
+   if(c.capture&&((c.capture.duration!==undefined&&!num(c.capture.duration,1,10))||(c.capture.struggle!==undefined&&!num(c.capture.struggle,0,1))))throw Error('Invalid capture process');
+   for(const k of ['escapeGrace','escapeTime','defended','escapeEffort','escapeBoost','ciliaBurst']){if(c[k]===undefined)c[k]=0;if(!num(c[k],0,5))throw Error('Invalid escape process')}
+   if(c.escapeAngle===undefined)c.escapeAngle=0;if(!num(c.escapeAngle,-1e12,1e12))throw Error('Invalid escape direction');
    if(c.gut.some(g=>(g.r!==undefined&&!num(g.r,1,30))||(g.angle!==undefined&&!num(g.angle,-1e10,1e10))))throw Error('Invalid food vacuole');
    c.hurt=0;c.fed=0;c.damageHP=c.hp;c.hitAngle=null;
    if(c.capture&&(!num(c.capture.id,1,s.nextId)||!num(c.capture.progress,0,1.1)||!num(c.capture.angle,-1e10,1e10)||!['alga','bacterium','paramecium'].includes(c.capture.kind)))throw Error('Invalid capture');
@@ -343,5 +387,5 @@ class Game{
  }
 }
 function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)}
-const api={Game,TYPES,TRAITS,BIOMES,TAU,clamp,dist,delta,eligible,segmentDistance,engulfPhase};if(typeof module!=='undefined')module.exports=api;root.MC=api;
+const api={Game,TYPES,TRAITS,BIOMES,FEEDING,TAU,clamp,dist,delta,eligible,segmentDistance,engulfPhase,smooth};if(typeof module!=='undefined')module.exports=api;root.MC=api;
 })(typeof window!=='undefined'?window:globalThis);

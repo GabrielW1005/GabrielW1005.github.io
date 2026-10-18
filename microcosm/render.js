@@ -1,5 +1,5 @@
 (function(root){'use strict';
-const {TAU,TYPES,BIOMES,clamp,dist,engulfPhase}=root.MC;
+const {TAU,TYPES,BIOMES,clamp,dist,engulfPhase,smooth}=root.MC;
 class Renderer{
  constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.camera={x:1350,y:1050};this.zoom=1.65;this.width=1200;this.height=800;this.dpr=1;this.labels=false}
  resize(w,h,dpr=1){this.width=w;this.height=h;this.dpr=1;this.canvas.width=Math.round(w*this.dpr);this.canvas.height=Math.round(h*this.dpr)}
@@ -13,28 +13,30 @@ class Renderer{
   const c=this.ctx,N=cell.mem.length,step=2;const point=i=>({x:cell.x+Math.cos(i/N*TAU)*cell.mem[i].r,y:cell.y+Math.sin(i/N*TAU)*cell.mem[i].r});const first=point(0),last=point(N-step);c.beginPath();c.moveTo((last.x+first.x)/2,(last.y+first.y)/2);for(let i=0;i<N;i+=step){const p=point(i),n=point((i+step)%N);c.quadraticCurveTo(p.x,p.y,(p.x+n.x)/2,(p.y+n.y)/2)}c.closePath()
  }
  cup(cell,target){
-  const phase=engulfPhase(clamp(cell.capture.progress,0,1)),inner=target.r*(target.type==='paramecium'?1.38:1)+4,start=cell.r*.65+inner*.9;
-  return {...phase,angle:cell.capture.angle,d:start+(dist(cell,target)-start)*phase.reach,inner,outer:inner+7,gap:2.5*(1-phase.wrap),target};
+  const p=clamp(cell.capture.progress,0,1),phase=engulfPhase(p),relative=(target.a||target.seed||0)-cell.capture.angle,elong=target.type==='paramecium'?1.38:target.type?1.2:1;
+  const rx=target.r*Math.sqrt((elong*Math.cos(relative))**2+(.8*Math.sin(relative))**2)+5,ry=target.r*Math.sqrt((elong*Math.sin(relative))**2+(.8*Math.cos(relative))**2)+5;
+  const lead=cell.seed%2<1?1:-1,upper=smooth(p/.68),lower=smooth((p-.18)/.62),u=lead>0?upper:lower,v=lead>0?lower:upper;
+  return {...phase,p,angle:cell.capture.angle,d:dist(cell,target),rx,ry,inner:Math.max(rx,ry),u,v,lead,target};
+ }
+ contour(points){
+  const c=this.ctx,n=points.length;c.beginPath();c.moveTo(points[0].x,points[0].y);
+  // A small, closed cubic spline with blunt, uneven lobes. No circular cup arcs.
+  for(let i=0;i<n;i++){const prev=points[(i+n-1)%n],a=points[i],b=points[(i+1)%n],next=points[(i+2)%n];c.bezierCurveTo(a.x+(b.x-prev.x)*.15,a.y+(b.y-prev.y)*.15,b.x-(next.x-a.x)*.15,b.y-(next.y-a.y)*.15,b.x,b.y)}c.closePath();
  }
  cupPath(a,g){
-  const c=this.ctx,b=g.angle,root=.72,point=t=>{const i=Math.round(((t+b)%TAU+TAU)%TAU/TAU*40)%40,r=a.mem[i].r;return {x:Math.cos(t)*r,y:Math.sin(t)*r}};
-  // One continuous membrane: the forward edge splits into two curved pseudopods.
-  c.save();c.translate(a.x,a.y);c.rotate(b);c.beginPath();const lower=point(root);c.moveTo(lower.x,lower.y);
-  const step=(TAU-2*root)/17;for(let i=0;i<17;i++){const p=point(root+(i+.5)*step),n=point(root+(i+1)*step);c.quadraticCurveTo(p.x,p.y,n.x,n.y)}const upper=point(TAU-root);
-  if(g.sealed){
-   const front=Math.max(g.d+g.outer*(1-.4*g.pull),a.r*1.04),side=Math.max(g.outer*(1-.4*g.pull),a.r*.55);
-   c.bezierCurveTo(upper.x+12,upper.y+10,front,-side,front,0);c.bezierCurveTo(front,side,lower.x+12,lower.y-10,lower.x,lower.y);
-  }else{
-   const {d,inner,outer,gap}=g,back=2.8;
-   c.quadraticCurveTo(upper.x+12,upper.y+10,d+Math.cos(-back)*outer,Math.sin(-back)*outer);c.arc(d,0,outer,-back,-gap);
-   const tipX=d+Math.cos(-gap)*(inner+3.5),tipY=Math.sin(-gap)*(inner+3.5);
-   c.quadraticCurveTo(tipX+Math.sin(gap)*5,tipY+Math.cos(gap)*5,d+Math.cos(-gap)*inner,Math.sin(-gap)*inner);
-   // The empty opening is part of the outline, so the food is visibly outside until closure.
-   c.arc(d,0,inner,-gap,-TAU+gap,true);
-   c.quadraticCurveTo(tipX+Math.sin(gap)*5,-tipY-Math.cos(gap)*5,d+Math.cos(gap)*outer,Math.sin(gap)*outer);
-   c.arc(d,0,outer,gap,back);c.quadraticCurveTo(lower.x+12,lower.y-10,lower.x,lower.y);
-  }
-  c.closePath();c.restore();
+  const c=this.ctx,rootU=.85+.07*g.lead,rootL=.75-.06*g.lead,points=[];
+  const body=t=>{const i=Math.round(((t+g.angle)%TAU+TAU)%TAU/TAU*40)%40,r=a.mem[i].r;return {x:Math.cos(t)*r,y:Math.sin(t)*r}};
+  for(let i=0;i<=16;i++)points.push(body(rootL+(TAU-rootU-rootL)*i/16));
+  const upper=points.at(-1),lower=points[0],r=a.r,rx=g.rx,ry=g.ry,reach=g.reach,d=g.d,back=r*.52+(d-rx*1.2-r*.52)*reach;
+  const tip=(growth,sign)=>{const closing=smooth((growth-.7)/.3),x=r*.7+(d+rx*1.55-r*.7)*growth,y=sign*((r*.52+(ry+5-r*.52)*smooth(growth/.55))*(1-closing)+.55*(1-g.wrap));return {x,y}};
+  const u=tip(g.u,-1),v=tip(g.v,1),width=r*.28*(1-.5*g.pull);
+  // Each side advances on its own schedule; the broad cytoplasm follows behind it.
+  const shoulderU={x:upper.x+(Math.max(r*.95,d*.82)-upper.x)*g.u,y:Math.min(upper.y,-ry-width)*(1-.12*g.pull)};
+  const shoulderL={x:lower.x+(Math.max(r*.86,d*.7)-lower.x)*g.v,y:Math.max(lower.y,ry+width*.85)*(1-.12*g.pull)};
+  if(g.sealed){const settle=g.pull,front=d+rx*1.55,normal=r*1.05;u.x=v.x=front+(normal-front)*settle;u.y=-Math.max(ry*.55,r*.2)*(1-settle*.3);v.y=Math.max(ry*.48,r*.18)*(1-settle*.3)}
+  if(g.sealed)points.push(shoulderU,{x:u.x-width*.3,y:u.y-width*.8},{x:u.x+width*.2,y:0},{x:v.x-width*.35,y:v.y+width*.7},shoulderL);
+  else{points.push(shoulderU,{x:u.x-width*.22,y:u.y-width*.75},{x:u.x+width*.18,y:u.y-width*.25},u,{x:back+(u.x-back)*.48,y:-Math.max(ry*1.15,r*.32)*g.reach},{x:back,y:ry*.1*g.lead*reach},{x:back+(v.x-back)*.46,y:Math.max(ry*1.12,r*.3)*g.reach},v,{x:v.x+width*.14,y:v.y+width*.22},{x:v.x-width*.3,y:v.y+width*.68},shoulderL);}
+  c.save();c.translate(a.x,a.y);c.rotate(g.angle);this.contour(points);c.restore();
  }
 
  draw(game,dt=.016,drag=null){
@@ -59,6 +61,7 @@ class Renderer{
   for(const f of s.food)if(!f.capturedBy&&this.visible(f,25))this.food(f,s.time);
   for(const d of s.dna)if(this.visible(d,20)){c.save();c.translate(d.x,d.y);c.rotate(Math.sin(s.time+d.id)*.4);for(let k=0;k<2;k++){c.strokeStyle=k?'#ffb1ec':'#bd8dff';c.lineWidth=1.6;c.beginPath();for(let i=0;i<=14;i++){const x=i-7,y=Math.sin(i*.6+k*Math.PI)*4;if(i)c.lineTo(x,y);else c.moveTo(x,y)}c.stroke()}c.restore()}
   for(const a of s.cells)if(this.visible(a,130)&&!a.capturedBy)this.cell(a,game);
+  const inspect=this.targetId?game.findTarget(p,this.targetId):null;if(inspect&&p){const info=game.interaction(p,inspect),rr=inspect.r+7;c.strokeStyle=info.ok?(info.mode==='attack'?'#ffb380':'#b7ffbc'):'#a3aeb8';c.lineWidth=1.2;for(const sign of [-1,1]){c.beginPath();c.moveTo(inspect.x+sign*rr,inspect.y-rr*.4);c.lineTo(inspect.x+sign*rr,inspect.y-rr*.7);c.lineTo(inspect.x+sign*(rr-5),inspect.y-rr*.7);c.moveTo(inspect.x+sign*rr,inspect.y+rr*.4);c.lineTo(inspect.x+sign*rr,inspect.y+rr*.7);c.lineTo(inspect.x+sign*(rr-5),inspect.y+rr*.7);c.stroke()}}
   for(const a of game.selected)if(a.order){c.strokeStyle=TYPES[a.type].color+'60';c.lineWidth=1/this.zoom;c.setLineDash([4,6]);c.beginPath();c.moveTo(a.x,a.y);for(const p of a.path)c.lineTo(p.x,p.y);c.lineTo(a.order.x,a.order.y);c.stroke();c.setLineDash([]);this.circle(a.order.x,a.order.y,9,null,TYPES[a.type].color,1)}
   for(const e of s.effects)if(this.visible(e,50)){c.globalAlpha=clamp(e.life*1.5,0,1);if(e.kind==='rupture'){this.circle(e.x,e.y,e.r+(1-e.life/.6)*12,null,e.color,1.8)}else this.circle(e.x,e.y,e.r,e.color)}c.globalAlpha=1;c.restore();
   if(drag&&Math.hypot(drag.x2-drag.x,drag.y2-drag.y)>8){c.fillStyle='#6de7ca12';c.strokeStyle='#72f2d0';c.lineWidth=1;c.setLineDash([5,4]);c.fillRect(drag.x,drag.y,drag.x2-drag.x,drag.y2-drag.y);c.strokeRect(drag.x,drag.y,drag.x2-drag.x,drag.y2-drag.y);c.setLineDash([])}
@@ -72,7 +75,7 @@ class Renderer{
  cell(a,game){const c=this.ctx,s=game.s,t=TYPES[a.type],selected=s.selection.includes(a.id),detail=selected||this.zoom>=1.4,color=a.team===0?t.color:a.team===1?'#f19387':a.team===2?'#d1a4fa':'#f1d27b',target=a.capture?game.findTarget(a,a.capture.id):null,cup=target&&a.type==='amoeba'?this.cup(a,target):null;
   if(selected)this.circle(a.x,a.y,a.r*1.5,null,color+'70',1/this.zoom);
 
-  if(a.type==='paramecium'||a.type==='didinium'){c.strokeStyle=color+'85';c.lineWidth=.85;for(let i=0;i<40;i+=detail?3:5){if(a.type==='didinium'&&i%5>1)continue;const b=i/40*TAU,r=a.mem[i].r,beat=Math.sin(s.time*9+i*.8);c.beginPath();c.moveTo(a.x+Math.cos(b)*r,a.y+Math.sin(b)*r);c.quadraticCurveTo(a.x+Math.cos(b+.06*beat)*(r+4),a.y+Math.sin(b+.06*beat)*(r+4),a.x+Math.cos(b+.12*beat)*(r+8),a.y+Math.sin(b+.12*beat)*(r+8));c.stroke()}}
+  if(a.type==='paramecium'||a.type==='didinium'){c.strokeStyle=color+'85';c.lineWidth=.85;for(let i=0;i<40;i+=detail?3:5){if(a.type==='didinium'&&i%5>1)continue;const b=i/40*TAU,r=a.mem[i].r,beat=Math.sin(s.time*(a.ciliaBurst>0?18:9)+i*.8);c.beginPath();c.moveTo(a.x+Math.cos(b)*r,a.y+Math.sin(b)*r);c.quadraticCurveTo(a.x+Math.cos(b+.06*beat)*(r+4),a.y+Math.sin(b+.06*beat)*(r+4),a.x+Math.cos(b+.12*beat)*(r+8),a.y+Math.sin(b+.12*beat)*(r+8));c.stroke()}}
   if(TYPES[a.type].domain==='bacterium'){c.strokeStyle=color+'95';c.lineWidth=1;for(let k=0;k<1;k++){c.beginPath();for(let i=0;i<14;i++){const bx=-a.r-i*2,by=Math.sin(i*.5+s.time*8+k)*4+(k-1)*7,x=a.x+Math.cos(a.a)*bx-Math.sin(a.a)*by,y=a.y+Math.sin(a.a)*bx+Math.cos(a.a)*by;if(i)c.lineTo(x,y);else c.moveTo(x,y)}c.stroke()}}
   this.path(a,cup);c.fillStyle=color+(cup?'35':'22');c.fill();c.strokeStyle=color;c.lineWidth=cup?1.8:1.3;c.stroke();
 
@@ -83,12 +86,13 @@ class Renderer{
   if(a.type==='paramecium'){const x=a.x+Math.cos(a.a+.7)*a.r*.5,y=a.y+Math.sin(a.a+.7)*a.r*.5;this.ellipse(x,y,3,8,a.a+.4,'#04293099',color+'c0',.7)}
   if(a.type==='didinium'){const x=a.x+Math.cos(a.a)*a.r*1.05,y=a.y+Math.sin(a.a)*a.r*1.05;this.ellipse(x,y,7,4,a.a,color+'66',color,1);if(a.capture){const target=game.findTarget(a,a.capture.id);if(target){c.strokeStyle='#ffd9a3';c.lineWidth=1.5;c.beginPath();c.moveTo(x,y);c.lineTo(target.x,target.y);c.stroke()}}}
   if(target){const pull=cup?.pull||clamp(a.capture.progress,0,1),scale=target.type?1-.4*pull:1;
-   if(cup?.sealed)this.circle(target.x,target.y,cup.inner*(1-.4*pull),'#09262e','#ffc5e8',1.4);
-   this.preyIcon(target.type||target.kind,target.x,target.y,target.r*scale,target.a||target.seed||0,s.time);
-   if(cup&&!cup.sealed){c.save();c.translate(a.x,a.y);c.rotate(cup.angle);for(const sign of [-1,1])this.circle(cup.d+Math.cos(cup.gap)*(cup.inner+3.5),Math.sin(cup.gap)*(cup.inner+3.5)*sign,1.8,'#d7fff0');c.restore()}
+   if(cup?.sealed)this.ellipse(target.x,target.y,cup.rx*(1-.4*pull),cup.ry*(1-.4*pull),cup.angle,'#09262e','#ffc5e8',1.3);
+   this.preyIcon(target.type||target.kind,target.x,target.y,target.r*scale,target.a||target.seed||0,s.time);if(target.ciliaBurst>0){c.strokeStyle='#9ce9ff';c.lineWidth=1.3;for(let i=0;i<6;i++){const b=i*TAU/6,r=target.r*1.1;c.beginPath();c.moveTo(target.x+Math.cos(b)*r,target.y+Math.sin(b)*r);c.lineTo(target.x+Math.cos(b+.12*Math.sin(s.time*18))*(r+6),target.y+Math.sin(b+.12*Math.sin(s.time*18))*(r+6));c.stroke()}}
+   if(a.capture.struggle>.08){const w=target.r*1.6;c.fillStyle='#102b37';c.fillRect(target.x-w/2,target.y-target.r*1.6,w,2.5);c.fillStyle='#81dfff';c.fillRect(target.x-w/2,target.y-target.r*1.6,w*a.capture.struggle,2.5)}
   }
   if(a.burst>0){if(a.type==='paramecium'){for(let i=0;i<12;i++){const b=i/12*TAU,r=a.mem[Math.floor(i/12*40)].r;c.strokeStyle=color+'bd';c.lineWidth=1.6;c.beginPath();c.moveTo(a.x+Math.cos(b)*r,a.y+Math.sin(b)*r);c.lineTo(a.x+Math.cos(b)*(r+40*a.burst/.7),a.y+Math.sin(b)*(r+40*a.burst/.7));c.stroke()}}else if(a.type==='injector'){const b=a.attackAngle??a.a,r=a.r,reach=a.attackLength||r+15;c.save();c.globalAlpha=Math.min(1,a.burst/.18);c.translate(a.x,a.y);c.rotate(b);c.strokeStyle='#fff0cf';c.lineWidth=2.4;c.beginPath();c.moveTo(r*.6,0);c.lineTo(reach,0);c.moveTo(reach-5,-3);c.lineTo(reach,0);c.lineTo(reach-5,3);c.stroke();c.restore()}else if(a.type==='bacillus'){c.save();c.globalAlpha=a.burst/.65;this.circle(a.x,a.y,a.r+24*(1-a.burst/.65),null,'#e4b6ff',2);c.restore()}}
   if(a.hurt>0){const fade=clamp(a.hurt/.6,0,1);c.save();c.globalAlpha=fade;this.path(a,cup);c.fillStyle='#ff526b30';c.fill();c.strokeStyle='#ff7488';c.lineWidth=2.2;c.stroke();if(Number.isFinite(a.hitAngle)){const b=a.hitAngle,i=Math.round(((b%TAU)+TAU)%TAU/TAU*40)%40,r=a.mem[i].r+3;c.translate(a.x+Math.cos(b)*r,a.y+Math.sin(b)*r);c.rotate(b);c.strokeStyle='#ffe5bd';c.lineWidth=1.8;c.beginPath();for(const sign of [-1,0,1]){c.moveTo(2,sign*3);c.lineTo(6+4*(a.hitSize||.3),sign*7)}c.stroke()}c.restore()}
+  if(a.defended>0){c.save();c.globalAlpha=Math.min(1,a.defended);c.strokeStyle='#91dcff';c.lineWidth=1.8;const x=a.x,y=a.y-a.r*1.65;c.beginPath();c.moveTo(x-5,y-5);c.lineTo(x+5,y-5);c.lineTo(x+4,y+2);c.lineTo(x,y+6);c.lineTo(x-4,y+2);c.closePath();c.stroke();c.restore()}
   if(a.fed>0){const p=1-a.fed/.7;c.save();c.globalAlpha=1-p;for(let i=0;i<3;i++)this.circle(a.x-5+i*5,a.y-a.r*.55-p*15,1.7,'#b4ff98');c.restore()}
   if(a.competent){c.setLineDash([2,4]);this.circle(a.x,a.y,a.r*1.5,null,'#e8b4ff',1);c.setLineDash([])}
   if(a.mating){const partner=s.cells.find(v=>v.id===a.mate);if(partner){c.strokeStyle='#edb2ff';c.lineWidth=3;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(partner.x,partner.y);c.stroke()}}
@@ -96,6 +100,7 @@ class Renderer{
   if(a.team===0){this.circle(a.x,a.y-a.r*1.55,2.4,selected?'#e7fff8':color);if(this.labels){c.textAlign='center';c.font='8px system-ui';c.fillStyle='#d3e9e6';c.fillText(t.name+' · '+a.intent,a.x,a.y-a.r*1.8)}}
  }
  preyIcon(kind,x,y,r,angle,time){
+  if(kind==='bacillus'||kind==='injector'){this.ellipse(x,y,r*1.2,r*.72,angle,TYPES[kind].color+'44',TYPES[kind].color,1.2);this.ellipse(x,y,r*.35,r*.16,angle,'#dcc8f4');return}
   if(kind==='paramecium'){this.ellipse(x,y,r*1.38,r*.72,angle,'#f1938738','#ffd0af',1.2);this.ellipse(x,y,r*.25,r*.17,angle,'#ccb4ef');return}
   this.food({kind,x,y,r,seed:angle},time);
  }
