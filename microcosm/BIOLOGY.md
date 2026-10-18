@@ -1,4 +1,4 @@
-# Biology and model notes — Microcosm 2
+# Biology and model notes — Microcosm 2.1
 
 The game keeps organism-specific mechanisms separate. Its parameter values, colors, relative visual scales, faction rules and progression rewards are gameplay choices. Real organisms do not deliberately buy mutations, choose strategic routes or follow a human player's colony commands.
 
@@ -47,7 +47,7 @@ Research:
 
 The model connects digestion to nutrient availability, aerobic energy yield to oxygen, membrane repair to reserves, water imbalance to osmotic conditions, and nuclei/nucleoids to inheritance and division. Eukaryotic cells show nucleus, mitochondria, lysosomal structures, food vacuoles, contractile vacuole, ER and ribosome dots. Bacteria show a nucleoid and ribosomes and do not have membrane-bound nuclei, mitochondria or lysosomes. Bacterial respiration is modeled at the membrane.
 
-Organelles drift and have local collision constraints within the deformable cell. Their positions, shapes and numbers are illustrations; moving a displayed mitochondrion does not simulate a change in its molecular output. Lysosomal digestion is associated with each food vacuole. Protein production and maintenance are aggregate resource costs, not individual ribosomal translation events. Golgi trafficking, cytoskeletal chemistry and detailed membrane pumps are not simulated.
+Organelles have lightweight animated drift and boundary confinement within the deformable cell. Pairwise organelle collisions are omitted for performance. Their positions, shapes and numbers are illustrations; moving a displayed mitochondrion does not simulate a change in its molecular output. Lysosomal digestion is associated with each food vacuole. Protein production and maintenance are aggregate resource costs, not individual ribosomal translation events. Golgi trafficking, cytoskeletal chemistry and detailed membrane pumps are not simulated.
 
 Freshwater conditions tend to drive water inward; the contractile vacuole's cycle reduces excess water. A saline habitat produces dehydration instead. The osmoregulation variant reduces imbalance. Oxygen alone is not a food source. Photosynthesis is represented by the algal habitat, not by giving the player amoeba arbitrary chloroplasts. Endosymbiosis and kleptoplasty remain interesting future mechanisms but are not included in this release.
 
@@ -60,7 +60,7 @@ Research:
 
 Velocity relaxes rapidly toward propulsion plus environmental flow, with no inertial bouncing. Small particles use stochastic displacement proportional to the square root of the time step; their diffusion is larger than whole-cell motion. Toxin variance increases over time and concentration falls with spreading and decay. These are qualitative low-Reynolds-number and diffusion models, not a calibrated Navier–Stokes solver or measured intracellular rheology.
 
-AI has bounded sensing and resource choices, threat avoidance, obstacle-aware A* routes, feeding and resource-dependent reproduction. Strategic navigation is a game convenience, not evidence that microbes plan paths. Factions are not taxonomic units. Habitat inflow and population limits prevent extinction or unbounded growth in the teaching game.
+AI has bounded sensing and resource choices, threat avoidance, cached obstacle-aware A* routes, feeding and resource-dependent reproduction. Predation is gated by reserves and a post-feeding pause. Selected player cells obey manual orders; distant ecology is updated at a coarser rate. Strategic navigation is a game convenience, not evidence that microbes plan paths. Factions are not taxonomic units. Habitat inflow and population limits prevent extinction or unbounded growth in the teaching game.
 
 Research:
 

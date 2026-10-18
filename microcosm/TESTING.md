@@ -1,4 +1,4 @@
-# Verification — Microcosm 2
+# Verification — Microcosm 2.1
 
 Performed with Node 24 and native Canvas rendering. **No actual browser or Chromebook interaction/layout test was available for this release.** The DOM harness is a wiring check, not a browser substitute. Previous v1 browser-verification claims do not apply to v2.
 
@@ -35,3 +35,18 @@ Run `node --test tests/model.test.cjs`.
 ## Remaining limits
 
 Actual browser rendering, DOM layout at mobile/Chromebook sizes, browser clipboard permissions, actual download dialogs, hardware performance and prolonged game balance require playtesting. The responsive CSS and browser API fallbacks are implemented but are not claimed to be verified on physical devices. Biological parameters and effects remain schematic, as described in BIOLOGY.md and the in-game guide.
+
+
+## 2.1 control and performance verification
+
+All 23 model checks pass, including six additional regressions: selected cells do not forage on their own; releasing keys stops autonomous movement; click destinations finish and remain settled; unselected cells can forage independently; old v2 saves migrate to calm controls without losing the player; and new runs have a quiet opening buffer. The app harness also exercises Stop and X and verifies that a delayed frame cannot trigger unbounded simulation catch-up.
+
+Local Node/native-Canvas measurements (1366 × 768, single run, not physical Chromebook FPS):
+
+| Measurement | Previous build | 2.1, same initial saved world | 2.1, new lighter world |
+| --- | ---: | ---: | ---: |
+| CPU time for 5 simulated seconds | 1,819 ms | 269 ms | 72 ms |
+| Native canvas draw time/frame | 4.02 ms | 2.41 ms | 0.84 ms |
+| Route searches over 5 simulated seconds | 629 | 65 | 44 |
+
+The measured existing-world simulation used about 85% less CPU time. Simulation frequency changed from 60 to 30 Hz; distant cells also update less often. Gameplay behavior differs intentionally, so these are workload measurements, not a controlled hardware benchmark. Rendering now targets 30 frames/s and uses a 1× pixel ratio. Full browser UI, GPU/compositor behavior and actual Chromebook performance remain unverified. The simplified canvas scene was rendered and visually inspected locally. Full-world save-link and local-save smoke checks pass.
