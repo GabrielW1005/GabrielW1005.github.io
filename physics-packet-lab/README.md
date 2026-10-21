@@ -39,7 +39,7 @@ No external CDN, analytics, login, or network service is used after the page ass
 
 ## Maintaining the materials
 
-Run `node tests/verify-models.mjs` to check the model invariants. The original packet data is in `maintainer/content/packet.json`. To regenerate printable files, install Python reportlab and DejaVu fonts, then run `python maintainer/build_pdfs.py`; PDFs are written under `maintainer/output/pdf`. Keep data.js and the PDFs synchronized when editing problem content.
+Run `node tests/verify-models.mjs` to check the model invariants. The original packet data is in `maintainer/content/packet.json`. To regenerate printable files, install Python reportlab and the Liberation Serif, Liberation Sans Narrow, and Liberation Mono fonts, then run `python maintainer/build_pdfs.py`; PDFs are written under `maintainer/output/pdf`. Set `PHYSICS_PACKET_FONT_DIR` if the fonts are in a custom folder. The printable pages use plain worksheet typography, blank answer space, and page-specific formulas. Keep data.js and the PDFs synchronized when editing problem content.
 
 ## Verification
 

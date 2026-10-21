@@ -1,226 +1,278 @@
 from pathlib import Path
-import json, math, re, html
+import json, math, re, html, os
 from reportlab.pdfgen import canvas
-from reportlab.lib.colors import Color, black, white, HexColor
+from reportlab.lib.colors import black, white, Color
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Paragraph, Table, TableStyle
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_LEFT, TA_CENTER
-ROOT=Path(__file__).resolve().parent
-OUT=ROOT/'output/pdf';OUT.mkdir(parents=True,exist_ok=True)
-for name,file in [('Body','DejaVuSans.ttf'),('Bold','DejaVuSans-Bold.ttf'),('Mono','DejaVuSansMono.ttf')]:
- pdfmetrics.registerFont(TTFont(name,'/usr/share/fonts/truetype/dejavu/'+file))
-pdfmetrics.registerFontFamily('Body',normal='Body',bold='Bold',italic='Body',boldItalic='Bold')
-W,H=612,792
-M=42; CW=W-2*M
-INK=HexColor('#17202a');GRAY=HexColor('#505962');LINE=HexColor('#b9c0c5');PALE=HexColor('#f4f5f5')
+ROOT=Path(__file__).resolve().parent;OUT=ROOT/'output/pdf';OUT.mkdir(parents=True,exist_ok=True)
+FONT_CANDIDATES=[
+ Path(os.environ.get('PHYSICS_PACKET_FONT_DIR','/nonexistent')),
+ Path('/usr/share/fonts/truetype/liberation'),
+ Path('/usr/share/fonts/truetype/liberation2'),
+ Path('/usr/share/fonts/truetype/msttcorefonts'),
+ Path(os.environ.get('CODEX_PRIMARY_RUNTIME_ROOT','/opt/codex/runtimes/codex-primary-runtime'))/'dependencies/native/libreoffice-headless/libreoffice/share/fonts/truetype',
+]
+def font_file(filename):
+ for directory in FONT_CANDIDATES:
+  candidate=directory/filename
+  if candidate.is_file():return str(candidate)
+ raise FileNotFoundError(f'Missing {filename}. Install Liberation Serif, Liberation Sans Narrow, and Liberation Mono, or set PHYSICS_PACKET_FONT_DIR to a folder containing them.')
+for name,file in [('Body','LiberationSerif-Regular.ttf'),('BodyBold','LiberationSerif-Bold.ttf'),('BodyItalic','LiberationSerif-Italic.ttf'),('Head','LiberationSansNarrow-Bold.ttf'),('HeadItalic','LiberationSansNarrow-BoldItalic.ttf'),('Sans','LiberationSansNarrow-Regular.ttf'),('Mono','LiberationMono-Regular.ttf')]:
+ pdfmetrics.registerFont(TTFont(name,font_file(file)))
+pdfmetrics.registerFontFamily('Body',normal='Body',bold='BodyBold',italic='BodyItalic',boldItalic='BodyBold')
+W,H=612,792;M=45;CW=W-2*M;GAP=25;COL=(CW-GAP)/2
 APP='https://gabrielw1005.github.io/physics-packet-lab/'
 
 def clean(t):
- return str(t).replace('−','-').replace('–','-').replace('—',' - ').replace('‑','-')
-def esc(t): return html.escape(clean(t))
-def para(c,t,x,y,w,size=11,leading=None,bold=False,color=INK):
- st=ParagraphStyle('p',fontName='Bold' if bold else 'Body',fontSize=size,leading=leading or size*1.35,textColor=color,spaceAfter=0)
- p=Paragraph(t,st); ww,hh=p.wrap(w,1000)
- p.drawOn(c,x,y-hh)
- return y-hh
+ return str(t).replace('−','-').replace('–','-').replace('—',' - ').replace('‑','-').replace('’',"'").replace('“','"').replace('”','"')
+def esc(t):return html.escape(clean(t))
+def para(c,t,x,y,w,size=12,leading=None,font='Body'):
+ st=ParagraphStyle('p',fontName=font,fontSize=size,leading=leading or size*1.24,textColor=black)
+ t=re.sub(r' {2,}',lambda m:'&nbsp;'*len(m.group()),t)
+ p=Paragraph(t,st);_,hh=p.wrap(w,1000);p.drawOn(c,x,y-hh);return y-hh
 
-def h(c,t,x,y,size=13):
- return para(c,t,x,y,CW,size, size*1.2,True)
-def rule(c,y,x=M,w=CW):
- c.setStrokeColor(LINE); c.setLineWidth(.6);c.line(x,y,x+w,y)
-def footer(c,series,page,total):
- rule(c,36)
- c.setFont('Body',8);c.setFillColor(GRAY);c.drawString(M,23,series)
- c.drawRightString(W-M,23,f'{page} / {total}')
-def header(c,kicker,title,page,total,subtitle=None):
- c.setFillColor(GRAY);c.setFont('Bold',9);c.drawString(M,758,kicker.upper())
- y=para(c,title,M,745,CW,20,24,True)
- if subtitle:y=para(c,subtitle,M,y-6,CW,10.5,14,color=GRAY)
- return y-13
+def text(c,t,x,y,size=12,font='Body',align='left'):
+ c.setFillColor(black);c.setFont(font,size)
+ getattr(c,{'left':'drawString','center':'drawCentredString','right':'drawRightString'}[align])(x,y,clean(t))
+def heading(c,t,x,y,size=14):text(c,t,x,y,size,'Head')
+def header(c,label,title,page,total):
+ text(c,label,M,755,15,'Head');text(c,f'GRADE 8   •   {page} / {total}',W-M,756,10,'Head','right')
+ c.setStrokeColor(black);c.setLineWidth(.6);c.line(M,747,W-M,747)
+ text(c,title,M,722,19,'HeadItalic')
+ return 703
 
-def lines(c,y,n=2,gap=17,x=M+3,w=CW-6):
- for i in range(n):rule(c,y-i*gap,x,w)
- return y-n*gap
+def footer(c,series,page,total,app=False):
+ if app:
+  text(c,APP,M,28,8.5,'Sans');c.linkURL(APP,(M,24,W-M,36),relative=0)
+ text(c,str(page),M,17,9,'Head');text(c,series,W-M,17,9,'Sans','right')
 
-def bullet(c,title,text,y,x=M,w=CW,size=11):
- return para(c,f'<b>{title}</b> {text}',x,y,w,size)-8
+def arrow(c,x1,y1,x2,y2,width=1.4,head=6):
+ c.setStrokeColor(black);c.setFillColor(black);c.setLineWidth(width);c.line(x1,y1,x2,y2)
+ a=math.atan2(y2-y1,x2-x1);path=c.beginPath();path.moveTo(x2,y2)
+ path.lineTo(x2-head*math.cos(a-.45),y2-head*math.sin(a-.45));path.lineTo(x2-head*math.cos(a+.45),y2-head*math.sin(a+.45));path.close();c.drawPath(path,fill=1,stroke=0)
 
-def box(c,title,body,x,y,w,size=11):
- st=ParagraphStyle('b',fontName='Body',fontSize=size,leading=size*1.35,textColor=INK)
- p=Paragraph(f'<b>{title}</b><br/>{body}',st);_,ph=p.wrap(w-20,1000)
- c.setFillColor(PALE);c.setStrokeColor(LINE);c.roundRect(x,y-ph-20,w,ph+20,4,fill=1,stroke=1)
- p.drawOn(c,x+10,y-ph-10)
- return y-ph-20
+def frac(c,n,d,cx,y,size=13,w=None):
+ # y is fraction bar position.
+ fw=w or max(pdfmetrics.stringWidth(clean(n),'Body',size),pdfmetrics.stringWidth(clean(d),'Body',size))+9
+ text(c,n,cx,y+5,size,align='center');text(c,d,cx,y-size-3,size,align='center')
+ c.setLineWidth(.6);c.line(cx-fw/2,y,cx+fw/2,y);return fw
 
-def grid_table(c,headers,rows,x,y,widths,size=10.8,rowpadding=7):
- data=[]
- for r in [headers]+rows:
-  data.append([Paragraph(esc(v).replace('\n','<br/>'),ParagraphStyle('t',fontName='Bold' if len(data)==0 else 'Body',fontSize=size,leading=size*1.3,textColor=INK)) for v in r])
- t=Table(data,colWidths=widths,hAlign='LEFT')
- t.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('BACKGROUND',(0,0),(-1,0),PALE),('LINEBELOW',(0,0),(-1,0),.8,LINE),('LINEBELOW',(0,1),(-1,-1),.35,LINE),('LEFTPADDING',(0,0),(-1,-1),7),('RIGHTPADDING',(0,0),(-1,-1),7),('TOPPADDING',(0,0),(-1,-1),rowpadding),('BOTTOMPADDING',(0,0),(-1,-1),rowpadding)]))
- _,th=t.wrap(sum(widths),1000); t.drawOn(c,x,y-th);return y-th
-
-def formula_guide():
- fn=OUT/'Physics_Quick_Guide.pdf';c=canvas.Canvas(str(fn),pagesize=(W,H));c.setTitle('Physical Science Formula and Concept Guide')
- y=header(c,'Physical Science • Grade 8','Formula & concept guide',1,2,'Page 1: choose the relationship, keep the units, and track direction.')
- y=box(c,'Start every calculation','1. List what you know.  2. Identify what you need.<br/>3. Choose a formula.  4. Substitute numbers with units.<br/>5. Calculate.  6. Check the size, unit, and direction of the answer.',M,y,CW,11)-14
- y=grid_table(c,['Find','Relationship','Units / what it means'],[
- ['Displacement','Δx = final position - initial position','Signed change in position (m). Distance is the whole path length.'],
- ['Average speed','speed = total distance ÷ total time','m/s; direction is not included. Include all travel and stopping time.'],
- ['Average velocity','vavg = displacement ÷ total time','m/s with a direction or a + / - sign.'],
- ['Acceleration','a = (vf - vi) ÷ t','m/s²; vf = final velocity, vi = initial velocity; t is elapsed time.'],
- ['Final velocity','vf = vi + a × t','m/s; use a constant acceleration during the stated interval.'],
- ['Net force','Fnet = sum of signed forces','N. Choose a positive direction before adding forces on ONE object.'],
- ['Force / acceleration','Fnet = m × a\na = Fnet ÷ m\nm = Fnet ÷ a','N; kg; m/s². Use NET force, not automatically the applied force.'],
- ['Weight','weight = m × g','N. In this packet, g ≈ 10 m/s² on Earth. Mass is in kg.'],
- ['Momentum','p = m × v','kg·m/s, with direction. p is momentum; v is velocity.']
- ],M,y,[110,177,241],10.6,7)-13
- y=para(c,'<b>Useful rearrangements:</b> distance = speed × time; time = distance ÷ speed. For momentum: v = p ÷ m and m = p ÷ v.',M,y,CW,11)-13
- y=box(c,'Use changes, not clock readings','<b>Elapsed time = final time - initial time.</b> From 4 s to 11 s, the elapsed time is 11 - 4 = <b>7 s</b>.<br/>For a straight segment on a position-time graph: velocity = change in position ÷ change in time. Speed is the size of that result.',M,y,CW,10.7)
- footer(c,'Motion & Forces • Student reference',1,2);c.showPage()
- y=header(c,'Physical Science • Grade 8','Explain it & solve it',2,2,'Page 2: use the model that matches the situation.')
- y=grid_table(c,['Core idea','What to remember'],[
- ['Velocity & acceleration','Velocity is speed with direction. Acceleration is a change in speed OR direction. Turning at constant speed still means accelerating.'],
- ['Net force & inertia','Balanced forces give zero acceleration: rest OR constant velocity. Inertia resists changes in motion; more mass means more inertia.'],
- ['Newton’s three laws','1st: zero net force means constant velocity. 2nd: net force = mass × acceleration. 3rd: two interacting objects exert equal, opposite forces on EACH OTHER.'],
- ['Gravity & friction','Mass measures amount of matter (kg); weight is gravitational force (N). Friction opposes sliding (or its tendency) between surfaces. Air resistance opposes motion through air.']
- ],M,y,[121,407],10.6,6)-12
- y=h(c,'Worked example 1 • Slowing down',M,y,12)
- y=para(c,'A cyclist travels east at 7 m/s, then slows to 3 m/s in 2 s. Take east as positive.<br/><b>1.</b> Change in velocity: 3 - 7 = -4 m/s.<br/><b>2.</b> Divide by time: a = -4 ÷ 2 = <b>-2 m/s²</b> (west).<br/><b>3.</b> Check: acceleration is opposite the eastward velocity, so speed decreases.<br/><b>A negative acceleration does not always mean slowing down.</b> If velocity is also negative, negative acceleration makes the speed increase.',M,y-5,CW,10.7,14.2)-13
- y=h(c,'Worked example 2 • Opposing forces',M,y,12)
- y=para(c,'A 12 kg cart is pushed right with 18 N; friction is 6 N left.<br/><b>1.</b> Choose right as positive.  <b>2.</b> Fnet = 18 + (-6) = 12 N.<br/><b>3.</b> a = 12 ÷ 12 = <b>1 m/s² right</b>.<br/><b>4.</b> Check: the cart accelerates toward the greater force.',M,y-5,CW,10.7,14.2)-13
- y=h(c,'Momentum challenge • Two carts stick together',M,y,12)
- y=para(c,'If outside forces have negligible effect during the collision:<br/><b>1.</b> Add initial momenta: ptotal = m₁v₁ + m₂v₂ (keep signs).<br/><b>2.</b> Add masses: mtotal = m₁ + m₂.<br/><b>3.</b> Shared final velocity = ptotal ÷ mtotal.<br/>Example: 1 kg at 3 m/s meets 2 kg at rest. vfinal = (1 × 3 + 2 × 0) ÷ (1 + 2) = <b>1 m/s</b> in the original direction.',M,y-5,CW,10.7,14.2)-13
- y=box(c,'Read a graph','<b>Distance-time:</b> slope = speed; steeper means faster; flat means stopped.<br/><b>Speed-time:</b> change in speed ÷ time gives acceleration along a fixed direction. Flat means steady speed; the object may still turn.<br/>Speed graphs do not show direction; signed position and velocity graphs can.',M,y,CW,10.4)
- if y<44: print('WARNING guide p2 low',y)
- footer(c,'Motion & Forces • Student reference',2,2);c.showPage();c.save();return fn
-
-def math_guide():
- fn=OUT/'Math_Review_Guide.pdf';c=canvas.Canvas(str(fn),pagesize=(W,H));c.setTitle('Physical Science Prerequisite Math Review')
- y=header(c,'Physical Science • Grade 8','Math review: number skills',1,2,'Use this page when signs, decimals, or fractions get in the way of the science.')
- y=h(c,'1  Positive and negative numbers',M,y,13)
- y=para(c,'On a number line, positive is right of zero and negative is left. In physics, a sign can show direction: for example, east + and west -.',M,y-6,CW,11)-8
- y=grid_table(c,['Operation','How to do it','Example'],[
- ['Add different signs','Subtract sizes; keep the sign of the number farther from zero.','14 + (-9) = 5\n-14 + 9 = -5'],
- ['Subtract','Add the opposite of the second number.','4 - 11 = 4 + (-11) = -7\n4 - (-3) = 4 + 3 = 7'],
- ['Multiply or divide','Same signs → positive. Different signs → negative.','(-12) ÷ 3 = -4\n(-3) × (-2) = 6']
- ],M,y,[116,242,170],10.7,7)-8
- y=para(c,'<b>Try:</b>  A. 9 + (-14) = ______   B. 2 - (-5) = ______   C. -18 ÷ 6 = ______',M,y,CW,10.6)-18
- y=h(c,'2  Decimals',M,y,13)
- y=para(c,'<b>Add/subtract:</b> line up decimal points. Add zeros when helpful: 6.00 - 2.75 = <b>3.25</b>.<br/><b>Multiply:</b> multiply whole numbers first, then place the decimal. For 1.2 × 0.4, do 12 × 4 = 48; two decimal places gives <b>0.48</b>.<br/><b>Divide:</b> shift both decimal points the same amount so the divisor is a whole number: 7.2 ÷ 0.6 = 72 ÷ 6 = <b>12</b>.',M,y-6,CW,11,15)-8
- y=para(c,'<b>Estimate first:</b> 9.6 ÷ 3 should be a little more than 3, not 32 or 0.32.<br/><b>Try:</b>  D. 5.4 - 1.85 = ______   E. 0.3 × 8 = ______   F. 4.5 ÷ 0.5 = ______',M,y,CW,10.6,14.5)-19
- y=h(c,'3  Fractions are division',M,y,13)
- y=para(c,'<b>Meaning:</b> 3/4 means 3 ÷ 4 = <b>0.75</b>. A fraction bar groups the whole numerator: (12 - 4)/2 = 8/2 = <b>4</b>.<br/><b>Multiply:</b> multiply tops and bottoms: (2/3) × (3/4) = 6/12 = <b>1/2</b>.<br/><b>Divide:</b> multiply by the reciprocal (flip the second fraction): (3/4) ÷ (1/2) = (3/4) × (2/1) = 6/4 = <b>1.5</b>.<br/><b>Add/subtract:</b> use the same denominator first: 1/2 + 1/4 = 2/4 + 1/4 = <b>3/4</b>.',M,y-6,CW,11,15)-8
- y=para(c,'<b>Try:</b>  G. 3/5 = ______ (decimal)   H. (9 - 3)/2 = ______<br/>I. (1/2) × (2/3) = ______   J. (2/3) ÷ (1/3) = ______',M,y,CW,10.6,15)-12
- y=box(c,'Check your practice','A -5; B 7; C -3; D 3.55; E 2.4; F 9; G 0.6; H 3; I 1/3; J 2.',M,y,CW,10.3)
- if y<44: print('WARNING math p1 low',y)
- footer(c,'Motion & Forces • Prerequisite math',1,2);c.showPage()
- y=header(c,'Physical Science • Grade 8','Math review: equations & units',2,2,'A letter stands for a number. Undo operations to find its value.')
- y=h(c,'4  One-step equations: keep both sides equal',M,y,13)
- y=grid_table(c,['Equation','Undo it on BOTH sides','Solution'],[
- ['x + 7 = 19','Subtract 7: x = 19 - 7','x = 12'],
- ['x - 6 = 11','Add 6: x = 11 + 6','x = 17'],
- ['4x = 18','Divide by 4: x = 18 ÷ 4','x = 4.5'],
- ['x/5 = 3','Multiply by 5: x = 3 × 5','x = 15']
- ],M,y-7,[126,282,120],10.8,6)-9
- y=para(c,'<b>Check by substitution:</b> for 4x = 18, replace x with 4.5. Since 4 × 4.5 = 18, the solution works.<br/><b>Try:</b> K. x + 8 = 15   L. 6x = 21   M. x/4 = 2.5',M,y,CW,10.8,15)-17
- y=h(c,'5  Substitute carefully; follow the order',M,y,13)
- y=para(c,'Work in this order: <b>parentheses</b>, then multiply/divide from left to right, then add/subtract from left to right.<br/>Example: a = (vf - vi)/t, where vf = 2, vi = 8, t = 3.<br/><b>1.</b> Write a = (2 - 8)/3.  <b>2.</b> Subtract inside parentheses: -6/3.<br/><b>3.</b> Divide: a = <b>-2</b>. In this physics formula, the unit is m/s².<br/><b>Do not enter</b> 2 - 8 ÷ 3; that leaves out the grouping.',M,y-6,CW,11,15)-8
- y=para(c,'<b>Try:</b> N. (4 - 10)/2 = ______   O. 3 + 0.5 × 8 = ______',M,y,CW,10.8)-17
- y=h(c,'6  Match units before you calculate',M,y,13)
- y=para(c,'<b>1 minute = 60 seconds • 1 kilometer = 1,000 meters • 1,000 grams = 1 kilogram.</b><br/>To get m/s, divide meters by seconds. Convert a time in minutes before using it with meters: 1.5 min × 60 = <b>90 s</b>.<br/>To use Fnet = ma, convert mass to kg: 750 g ÷ 1,000 = <b>0.75 kg</b>.<br/><b>m/s²</b> means “meters per second, each second.” It is a unit of acceleration, not a request to square the final answer.',M,y-6,CW,11,15)-8
- y=para(c,'<b>Try:</b> P. 2.5 min = ______ s   Q. 400 g = ______ kg<br/>R. 0.8 km = ______ m',M,y,CW,10.8,15)-17
- y=para(c,'<b>Finish well:</b> Keep calculator digits until the end. Round to two decimal places if needed: 10 ÷ 3 ≈ 3.33. Write the <b>unit</b> and <b>direction</b> when needed. Distance and speed cannot be negative.',M,y,CW,11,15)-12
- y=box(c,'Check your practice','K 7; L 3.5; M 10; N -3; O 7; P 150 s; Q 0.4 kg; R 800 m.',M,y,CW,10.3)
- if y<44:print('WARNING math p2 low',y)
- footer(c,'Motion & Forces • Prerequisite math',2,2);c.showPage();c.save();return fn
-
-def compact_data(c,tb,x,y,w):
- heads=tb['headers'];rows=tb['rows']
- data=[[heads[0]]+[r[0] for r in rows],[heads[1]]+[r[1] for r in rows]]
- first=138
- return grid_table(c,data[0],[data[1]],x,y,[first]+[(w-first)/len(rows)]*len(rows),9.8,4)
+def cart(c,x,y,w=44,h=23,label=''):
+ c.setStrokeColor(black);c.setFillColor(white);c.setLineWidth(.8);c.rect(x,y,w,h,fill=0,stroke=1)
+ c.circle(x+10,y-4,4,fill=0,stroke=1);c.circle(x+w-10,y-4,4,fill=0,stroke=1)
+ if label:text(c,label,x+w/2,y+7,11,align='center')
+def point(c,x,y,r=2.5):c.circle(x,y,r,fill=1,stroke=0)
 
 def mini_graph(c,g,x,y,w,h):
- # y is top; labels and tick marks included in the supplied rectangle.
- left=x+35;right=x+w-8;bottom=y-h+25;top=y-19
- xx=g['x'];yy=g['y'];xmin=0;xmax=max(xx);ymin=0;ymax=max(yy)
- def X(v):return left+(v-xmin)/(xmax-xmin)*(right-left)
- def Y(v):return bottom+(v-ymin)/(ymax-ymin)*(top-bottom)
- c.setStrokeColor(LINE);c.setLineWidth(.4)
+ left=x+30;right=x+w-7;bottom=y-h+25;top=y-18
+ xx=g['x'];yy=g['y'];xmin=0;xmax=max(xx);ymin=min(0,min(yy));ymax=max(yy)
+ if ymax==ymin:ymax=ymin+1
+ X=lambda v:left+(v-xmin)/(xmax-xmin)*(right-left)
+ Y=lambda v:bottom+(v-ymin)/(ymax-ymin)*(top-bottom)
+ c.setStrokeColor(Color(.72,.72,.72));c.setLineWidth(.35)
  for v in sorted(set(yy+[0])):
-  c.line(left,Y(v),right,Y(v));c.setFont('Body',8);c.setFillColor(GRAY);c.drawRightString(left-5,Y(v)-3,str(v))
+  c.line(left,Y(v),right,Y(v));text(c,str(v),left-5,Y(v)-3,9,'Sans','right')
  for v in sorted(set(xx)):
-  c.line(X(v),bottom,X(v),top);c.drawCentredString(X(v),bottom-12,str(v))
- c.setStrokeColor(INK);c.setLineWidth(.8);c.line(left,bottom,right,bottom);c.line(left,bottom,left,top)
- c.setFillColor(INK);c.setFont('Bold',9);c.drawString(left,y-9,g['yLabel']);c.setFont('Body',8);c.drawCentredString((left+right)/2,bottom-23,g['xLabel'])
- c.setLineWidth(1.7)
+  c.setStrokeColor(Color(.72,.72,.72));c.line(X(v),bottom,X(v),top);text(c,str(v),X(v),bottom-12,9,'Sans','center')
+ c.setStrokeColor(black);c.setLineWidth(.7);c.line(left,bottom,right,bottom);c.line(left,bottom,left,top)
+ text(c,g['yLabel'],left,y-8,10,'Head');text(c,g['xLabel'],(left+right)/2,bottom-24,9,'Sans','center')
+ c.setStrokeColor(black);c.setLineWidth(1.4)
  for i in range(len(xx)-1):c.line(X(xx[i]),Y(yy[i]),X(xx[i+1]),Y(yy[i+1]))
- for xv,yv in zip(xx,yy):c.circle(X(xv),Y(yv),2.4,fill=1,stroke=0)
+ for xv,yv in zip(xx,yy):point(c,X(xv),Y(yv),2)
+
+def compact_table(c,tb,x,y,w):
+ data=[[tb['headers'][0]]+[r[0] for r in tb['rows']],[tb['headers'][1]]+[r[1] for r in tb['rows']]]
+ first=92;cols=[first]+[(w-first)/(len(data[0])-1)]*(len(data[0])-1)
+ pp=[]
+ for i,row in enumerate(data):
+  pp.append([Paragraph(esc(v),ParagraphStyle('t',fontName='BodyBold' if j==0 else 'Body',fontSize=10.6,leading=12)) for j,v in enumerate(row)])
+ t=Table(pp,colWidths=cols);t.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'MIDDLE'),('LEFTPADDING',(0,0),(-1,-1),1),('RIGHTPADDING',(0,0),(-1,-1),1),('TOPPADDING',(0,0),(-1,-1),4),('BOTTOMPADDING',(0,0),(-1,-1),4),('LINEBELOW',(0,0),(-1,0),.5,black)]))
+ _,hh=t.wrap(w,1000);t.drawOn(c,x,y-hh);return y-hh
+
+FORMULAS={
+1:['<b>Distance</b> = add all path lengths.','<b>Displacement</b> = final position - initial position.'],
+2:['<b>Average speed</b> = total distance ÷ total elapsed time.','<b>Distance</b> = speed × time.   Velocity is speed with direction.'],
+3:['<b>a</b> = (v<sub>f</sub> - v<sub>i</sub>) ÷ Δt     <b>v<sub>f</sub></b> = v<sub>i</sub> + a × Δt     <b>Δt</b> = final time - initial time','v<sub>i</sub> = initial velocity; v<sub>f</sub> = final velocity. Right/east is positive.'],
+4:['<b>Slope</b> = change in vertical value ÷ change in time.','Distance-time slope gives average speed for that interval. For straight motion in the<br/>positive direction, speed-time slope gives acceleration.'],
+5:['<b>Weight</b> = mass × g. Use g = 10 m/s² on Earth.','At steady velocity, <b>F<sub>net</sub> = 0</b>. Static friction adjusts up to its maximum.'],
+6:['<b>F<sub>net</sub></b> = rightward forces - leftward forces. Choose right as positive.','<b>F<sub>net</sub> = 0</b> means constant velocity, which can include rest.'],
+7:['<b>F<sub>net</sub> = ma</b>       <b>a = F<sub>net</sub> ÷ m</b>       <b>m = F<sub>net</sub> ÷ a</b>','Force: N     Mass: kg     Acceleration: m/s²'],
+8:['<b>Momentum: p = mv.</b> For carts that stick: <b>v<sub>f</sub> = (m<sub>1</sub>v<sub>1</sub> + m<sub>2</sub>v<sub>2</sub>) ÷ (m<sub>1</sub> + m<sub>2</sub>).</b>','Use this collision model when external forces have negligible effect during collision.<br/>A third-law force pair is equal and opposite and acts on two different objects.']
+}
 
 def packet(data):
- fn=OUT/'Physical_Science_Packet.pdf';c=canvas.Canvas(str(fn),pagesize=(W,H));c.setTitle('Grade 8 Motion and Forces Practice Packet')
+ fn=OUT/'Physical_Science_Packet.pdf';c=canvas.Canvas(str(fn),pagesize=(W,H));c.setTitle('Physical Science Practice Packet')
  for sec in data['sections']:
-  num=sec['number'];y=header(c,f'Motion & Forces • Grade 8 • Topic {num}',esc(sec['title']),num,8,esc(sec['subtitle']))
-  c.setFont('Body',10);c.setFillColor(INK);c.drawString(M,y-1,'Name: ____________________________________    Date: ______________')
-  y-=18
-  y=para(c,'Show your steps and units for calculations. Use complete ideas for explanations.',M,y,CW,9.7,13)-8
-  warm=sec['warmups'];warmtext='   '.join(f'<b>{i+1}.</b> {esc(w["prompt"])}' for i,w in enumerate(warm))
-  y=box(c,'Math warm-up • just the math',warmtext,M,y,CW,10.2)-12
-  avail=y-60;stats=[]
-  for p in sec['problems']:
-   plot=p['id']=='P14';tw=CW-223 if plot else CW-12
-   st=ParagraphStyle('m',fontName='Body',fontSize=11,leading=14.6)
-   pr=Paragraph(esc(p['prompt']),st);_,ph=pr.wrap(tw,1000)
-   extra=42 if p.get('table') and not plot else 0
-   base=max(ph,90) if plot else ph
-   stats.append((p,pr,ph,extra,base,plot))
-  fixed=sum(22+base+ex+10 for _,_,_,ex,base,_ in stats)
-  free=avail-fixed
-  if free<70:print('WARNING writing space',num,free)
-  weights=[1.3 if p['type']=='quantitative' else 1 for p,_,_,_,_,_ in stats]
-  for (p,pr,ph,extra,base,plot),weight in zip(stats,weights):
-   c.setFillColor(INK);c.setFont('Bold',11);c.drawString(M,y-11,f'{p["id"]}  {clean(p["title"])}')
-   tag='CALCULATE' if p['type']=='quantitative' else 'EXPLAIN';c.setFont('Body',8);c.setFillColor(GRAY);c.drawRightString(W-M,y-10,tag)
-   y-=22;pr.drawOn(c,M+6,y-ph)
-   if plot:mini_graph(c,p['graph'],W-M-211,y+1,211,90)
-   y-=base+5
-   if p.get('table') and not plot:y=compact_data(c,p['table'],M+6,y,CW-12)-3
-   space=max(12,free*weight/sum(weights));n=max(1,int(space//18));bottom=y-space
-   for li in range(n):rule(c,y-12-li*18,M+6,CW-12)
-   y=bottom-5
-  c.setFont('Body',8);c.setFillColor(GRAY);c.drawString(M,44,'Explore these problems: '+APP)
-  c.linkURL(APP,(M,40,W-M,52),relative=0)
-  footer(c,'Motion & Forces • Practice packet',num,8);c.showPage()
+  n=sec['number'];y=header(c,'Physical Science Practice',sec['title'],n,8)
+  for f in FORMULAS[n]:y=para(c,f,M,y,CW,11.5,14.5)-4
+  heading(c,'Math Skills',M,y-10,12.5);wy=y-28
+  for i,p in enumerate(sec['warmups']):
+   prompt=re.sub(r'\.\s*[A-Za-z]\s*=\s*_+', '.', p['prompt'])
+   prompt=re.sub(r'\s*=\s*_+', '', prompt).strip()
+   prompt=re.sub(r'_+','',prompt)
+   para(c,f'<b>{p["id"]}.</b> {esc(prompt)}',M+i*(CW/3),wy,CW/3-12,11.8,14.7)
+  heading(c,'Practice',M,wy-59,12.5)
+  start=wy-76;bottom=63;rowh=(start-bottom)/2
+  for i,p in enumerate(sec['problems']):
+   x=M+(i%2)*(COL+GAP);py=start-(i//2)*rowh
+   py=para(c,f'<b>{p["id"]}. {esc(p["title"])}</b>',x,py,COL,11.9,14.7)-6
+   py=para(c,esc(p['prompt']),x,py,COL,12,15)-8
+   if p.get('table') and p['id']!='P14':py=compact_table(c,p['table'],x,py,COL)
+   if p['id']=='P14':mini_graph(c,p['graph'],x,py,COL,108);py-=108
+   low=start-(i//2+1)*rowh+9
+   if py<low:print('OVERFLOW packet',p['id'],py,low)
+  footer(c,'Motion and Forces',n,8,True);c.showPage()
  c.save();return fn
+
+def formula_guide():
+ fn=OUT/'Physics_Quick_Guide.pdf';c=canvas.Canvas(str(fn),pagesize=(W,H));c.setTitle('Physical Science Quick Guide')
+ header(c,'Quick Guide','Describing Motion',1,2)
+ # Motion path
+ heading(c,'1. Distance and displacement',M,691,13)
+ para(c,'<b>Distance:</b> the whole path.  <b>Displacement:</b> finish - start.',M,679,CW,12)
+ x0=M+35;x1=M+220;xf=M+151;y=629
+ arrow(c,x0,y,x1,y);text(c,'8 m east',M+127,y+9,11,align='center')
+ arrow(c,x1,y-24,xf,y-24);text(c,'3 m west',M+192,y-40,11,align='center')
+ point(c,x0,y);text(c,'start: 0 m',x0,y-17,10,align='center');point(c,xf,y-24);text(c,'finish: +5 m',xf,y-55,10,align='center')
+ para(c,'Distance = 8 + 3 = <b>11 m</b><br/>Displacement = 5 - 0 = <b>5 m east</b>',M+290,636,230,12,17)
+ # Speed
+ heading(c,'2. Speed and velocity',M,557,13)
+ text(c,'average speed =',M,530,12);frac(c,'total distance','total elapsed time',M+157,529,12)
+ para(c,'Example: 150 m in 100 s<br/>150 ÷ 100 = <b>1.5 m/s</b>',M+289,541,230,12,17)
+ text(c,'Distance = speed × time',M,488,12,'BodyBold');text(c,'Time = distance ÷ speed',M+280,488,12,'BodyBold')
+ arrow(c,M+20,465,M+90,465);text(c,'2 m/s east',M+118,461,11)
+ arrow(c,M+330,465,M+260,465);text(c,'2 m/s west',M+347,461,11)
+ para(c,'Same speed. Different velocities because direction is different.',M,449,CW,12)
+ # Acceleration
+ heading(c,'3. Acceleration: a change in velocity',M,417,13)
+ text(c,'a =',M,389,14,'BodyItalic');frac(c,'final velocity - initial velocity','elapsed time',M+132,389,12,223)
+ para(c,'<b>Elapsed time = final time - initial time.</b><br/>From 2 s to 6 s: 6 - 2 = 4 s.',M+293,402,229,11.8,16)
+ para(c,'Example: a cyclist goes east from 3 m/s to 9 m/s in 4 s.',M,361,CW,12)
+ text(c,'1. Find the change: 9 - 3 = 6 m/s',M,333,12);text(c,'2. Divide: 6 ÷ 4 = 1.5 m/s² east',M+269,333,12)
+ para(c,'v<sub>i</sub> = initial velocity; v<sub>f</sub> = final velocity. <b>v<sub>f</sub> = v<sub>i</sub> + a × elapsed time.</b><br/>Acceleration opposite velocity slows an object. A minus sign shows direction,<br/>not always slowing.',M,323,CW,11.7,15)
+ # graphs
+ heading(c,'4. Read the axes before reading the graph',M,262,13)
+ mini_graph(c,{'x':[0,10,20],'y':[0,15,15],'xLabel':'Time (s)','yLabel':'Total distance (m)'},M,248,236,122)
+ mini_graph(c,{'x':[0,2,4],'y':[1,3,5],'xLabel':'Time (s)','yLabel':'Speed (m/s)'},M+281,248,236,122)
+ para(c,'Slope = speed. Flat means stopped.<br/>First 10 s: 15 ÷ 10 = <b>1.5 m/s</b>.',M,115,245,11.7,15)
+ para(c,'For straight motion in the positive direction:<br/>(5 - 1) ÷ 4 = <b>1 m/s²</b>.',M+281,115,241,11.7,15)
+ para(c,'A speed graph does not show direction. Constant speed can still include turning.',M,71,CW,11.5)
+ footer(c,'Motion and Forces • Quick Guide',1,2);c.showPage()
+ # Force page
+ header(c,'Quick Guide','Forces and Momentum',2,2)
+ heading(c,'1. Combine forces, then find acceleration',M,691,13)
+ cart(c,M+89,627,65,29,'12 kg');arrow(c,M+89,642,M+53,642);text(c,'6 N left',M+56,659,11,align='center');arrow(c,M+154,642,M+262,642);text(c,'18 N right',M+207,659,11,align='center')
+ para(c,'<b>F<sub>net</sub> = ma; a = F<sub>net</sub> ÷ m</b><br/><b>m = F<sub>net</sub> ÷ a</b><br/>1. F<sub>net</sub> = 18 - 6 = <b>12 N right</b>.<br/>2. a = 12 ÷ 12 = <b>1 m/s² right</b>.',M+290,677,230,11.8,16)
+ para(c,'<b>Zero net force:</b> rest or constant velocity. <b>Inertia:</b> resistance to a change in motion.<br/>More mass means more inertia. Use net force, not just one push or pull.',M,603,CW,11.8,15)
+ heading(c,'2. Gravity and friction',M,556,13)
+ para(c,'<b>Weight = mass × g</b>     Earth: g ≈ 10 m/s²<br/>A 3 kg bag weighs 3 × 10 = <b>30 N</b>.<br/>Mass is measured in <b>kg</b>; weight in <b>N</b>.',M,541,290,12,17)
+ c.setStrokeColor(black);c.rect(M+383,531,32,35,stroke=1,fill=0);arrow(c,M+399,531,M+399,493);text(c,'weight: 30 N',M+399,479,11,align='center')
+ para(c,'Friction opposes sliding. Static friction adjusts to the push, up to its limit.<br/>A 7 N push on a resting crate is balanced by <b>7 N</b> of friction if its limit is higher.',M,462,CW,11.7,15)
+ heading(c,'3. Action and reaction act on different objects',M,417,13)
+ cart(c,M+73,360,56,29,'A');cart(c,M+129,360,56,29,'B')
+ arrow(c,M+73,374,M+16,374);arrow(c,M+185,374,M+242,374)
+ text(c,'40 N on A',M+44,399,10.7,align='center');text(c,'40 N on B',M+214,399,10.7,align='center')
+ para(c,'During a push; ignore friction.<br/>Equal forces act on different carts.<br/>With equal net forces: lighter means<br/>more acceleration.',M+275,398,247,11.5,14)
+ para(c,'<b>Turning at steady speed:</b> velocity changes direction. Net force points toward the<br/>center; tire-road static friction can supply this inward force.',M,336,CW,11.8,15)
+ heading(c,'4. Momentum and carts that stick together',M,287,13)
+ text(c,'p = mass × velocity',M,264,13,'BodyBold');text(c,'Momentum unit: kg·m/s',M+292,264,12)
+ cart(c,M+17,212,49,25,'1 kg');arrow(c,M+67,226,M+113,226);text(c,'3 m/s',M+91,242,11,align='center');cart(c,M+142,212,49,25,'2 kg');text(c,'at rest',M+166,249,11,align='center')
+ arrow(c,M+219,226,M+274,226);cart(c,M+315,212,80,25,'3 kg');arrow(c,M+396,226,M+450,226);text(c,'1 m/s',M+425,242,11,align='center')
+ para(c,'When external forces have negligible effect during the brief collision:',M,188,CW,11.8)
+ para(c,'1. Add momentum: (1 × 3) + (2 × 0) = <b>3 kg·m/s</b>.<br/>2. Add the masses: 1 + 2 = <b>3 kg</b>.<br/>3. Shared velocity = total momentum ÷ total mass = 3 ÷ 3 = <b>1 m/s right</b>.',M,165,CW,12,18)
+ para(c,'<b>Every calculation:</b> formula → substitute → calculate → unit and direction.',M,82,CW,12)
+ footer(c,'Motion and Forces • Quick Guide',2,2);c.showPage();c.save();return fn
+
+def practice(c,items,y):
+ text(c,'Practice:',M,y,12,'BodyBold')
+ positions=[M+64,M+231,M+398] if len(items)==3 else [M+64,M+300]
+ for item,x in zip(items,positions):text(c,item,x,y,12)
+
+def math_guide():
+ fn=OUT/'Math_Review_Guide.pdf';c=canvas.Canvas(str(fn),pagesize=(W,H));c.setTitle('Math Skills Review')
+ header(c,'Math Skills','Numbers, Decimals, and Fractions',1,2)
+ heading(c,'1. Negative numbers: move on the number line',M,692,13)
+ left=M+35;right=W-M-35;yy=647
+ arrow(c,left-10,yy,right+10,yy,1)
+ for i in range(-5,6):
+  xx=left+(i+5)/10*(right-left);c.setLineWidth(.6);c.line(xx,yy-4,xx,yy+4);text(c,str(i),xx,yy-18,10.5,align='center')
+ xx=lambda v:left+(v+5)/10*(right-left)
+ arrow(c,xx(2),yy+18,xx(-3),yy+18,1.4);text(c,'subtract 5: move left',xx(-.5),yy+29,11,align='center')
+ para(c,'<b>2 - 5 = -3</b>     Subtracting a negative means add: <b>4 - (-3) = 4 + 3 = 7</b>.',M,610,CW,12)
+ para(c,'Multiply/divide: same signs → positive; different signs → negative.<br/>(-3) × (-2) = 6        (-12) ÷ 3 = -4',M,585,CW,12,16)
+ practice(c,['A. 9 + (-14)','B. 2 - (-5)','C. -18 ÷ 6'],535)
+ heading(c,'2. Decimals: line up places; estimate the answer',M,507,13)
+ text(c,'Subtract',M+10,483,11.5,'Head');text(c,'Multiply',M+186,483,11.5,'Head');text(c,'Divide',M+370,483,11.5,'Head')
+ for s,yy in [('  6.00',457),('- 2.75',438),('  3.25',413)]:text(c,s,M+20,yy,13,'Mono')
+ c.setLineWidth(.6);c.line(M+20,432,M+84,432)
+ para(c,'1.2 × 0.4<br/>12 × 4 = 48<br/>Two decimal places:<br/><b>0.48</b>',M+186,467,160,12,17)
+ para(c,'7.2 ÷ 0.6<br/>Shift both decimals:<br/>72 ÷ 6 = <b>12</b>',M+370,467,151,12,17)
+ practice(c,['D. 5.4 - 1.85','E. 0.3 × 8','F. 4.5 ÷ 0.5'],374)
+ heading(c,'3. Fractions are division',M,344,13)
+ frac(c,'3','4',M+11,316,13,20);text(c,'= 3 ÷ 4 = 0.75',M+29,311,13)
+ # fraction picture: three of four equal parts
+ for i in range(4):
+  c.setFillColor(Color(.78,.78,.78) if i<3 else white);c.setStrokeColor(black);c.rect(M+244+i*35,301,35,24,fill=1,stroke=1)
+ text(c,'3 of 4 equal parts',M+314,286,11,align='center')
+ text(c,'Add: use the same denominator.',M,274,12)
+ text(c,'1/2 + 1/4 = 2/4 + 1/4 = 3/4',M+220,274,12)
+ text(c,'Multiply tops and bottoms.',M,248,12);text(c,'(2/3) × (3/4) = 6/12 = 1/2',M+220,248,12)
+ text(c,'Divide: flip the second fraction.',M,222,12);text(c,'(3/4) ÷ (1/2) = (3/4) × (2/1) = 1.5',M+220,222,12)
+ para(c,'A fraction bar groups the entire top: <b>(9 - 3)/2 = 6/2 = 3</b>.',M,201,CW,12)
+ practice(c,['G. 3/5 as a decimal','H. (9 - 3)/2'],165)
+ text(c,'I. (1/2) × (2/3)',M+64,141,12);text(c,'J. (2/3) ÷ (1/3)',M+300,141,12)
+ heading(c,'Check',M,100,12)
+ para(c,'A -5; B 7; C -3; D 3.55; E 2.4; F 9; G 0.6; H 3; I 1/3; J 2.',M,88,CW,10.8)
+ footer(c,'Motion and Forces • Math Review',1,2);c.showPage()
+ # Math page2
+ header(c,'Math Skills','Equations, Order, and Units',2,2)
+ heading(c,'1. Solve an equation: do the same thing to both sides',M,692,13)
+ text(c,'x + 7 = 19',M+91,655,15,'BodyBold','center');text(c,'4x = 18',M+361,655,15,'BodyBold','center')
+ arrow(c,M+91,642,M+91,610,1);text(c,'subtract 7 from both sides',M+112,623,11.5)
+ arrow(c,M+361,642,M+361,610,1);text(c,'divide both sides by 4',M+377,623,11.5)
+ text(c,'x = 12',M+91,590,15,'BodyBold','center');text(c,'x = 4.5',M+361,590,15,'BodyBold','center')
+ text(c,'Check: 12 + 7 = 19.',M+40,565,12);text(c,'Check: 4 × 4.5 = 18.',M+310,565,12)
+ para(c,'Undo addition with subtraction. Undo multiplication with division.<br/>For x/5 = 3, multiply both sides by 5: <b>x = 15</b>.',M,544,CW,12,16)
+ practice(c,['K. x + 8 = 15','L. 6x = 21','M. x/4 = 2.5'],494)
+ heading(c,'2. Substitute, then follow the order',M,465,13)
+ para(c,'Parentheses → exponents → multiply/divide → add/subtract.<br/>Work left to right within each multiplication/division or addition/subtraction step.',M,452,CW,11.5,14)
+ text(c,'a =',M+5,392,15,'BodyItalic');frac(c,'2 - 8','3',M+62,395,14,46);arrow(c,M+103,391,M+148,391);frac(c,'-6','3',M+186,395,14,38);arrow(c,M+227,391,M+273,391);text(c,'-2',M+295,387,16,'BodyBold')
+ para(c,'Do not enter 2 - 8 ÷ 3; that loses the parentheses.<br/>In acceleration, divide the change in velocity by the elapsed time.',M,374,CW,12,16)
+ practice(c,['N. (4 - 10)/2','O. 3 + 0.5 × 8'],325)
+ heading(c,'3. Convert units before calculating',M,295,13)
+ text(c,'minutes',M+18,265,12,'BodyBold');arrow(c,M+80,269,M+153,269);text(c,'seconds',M+164,265,12,'BodyBold');text(c,'× 60',M+116,282,11,align='center')
+ text(c,'grams',M+304,265,12,'BodyBold');arrow(c,M+347,269,M+419,269);text(c,'kilograms',M+430,265,12,'BodyBold');text(c,'÷ 1,000',M+383,282,11,align='center')
+ text(c,'1.5 min × 60 = 90 s',M+19,236,12);text(c,'750 g ÷ 1,000 = 0.75 kg',M+304,236,12)
+ para(c,'<b>1 km = 1,000 m.</b> For m/s, use meters and seconds. For F = ma, use kilograms.<br/><b>m/s²</b> means “meters per second, each second.” It describes acceleration.',M,214,CW,12,16)
+ practice(c,['P. 2.5 min in seconds','Q. 400 g in kilograms'],163)
+ text(c,'R. 0.8 km in meters',M+64,140,12)
+ para(c,'<b>Finish:</b> round only at the end. Include the unit and direction when needed.',M,120,CW,11.8)
+ heading(c,'Check',M,88,12);para(c,'K 7; L 3.5; M 10; N -3; O 7; P 150 s; Q 0.4 kg; R 800 m.',M,76,CW,10.8)
+ footer(c,'Motion and Forces • Math Review',2,2);c.showPage();c.save();return fn
 
 def teacher_key(data):
  fn=OUT/'Teacher_Answer_Key.pdf';c=canvas.Canvas(str(fn),pagesize=(W,H));c.setTitle('Physical Science Teacher Answer Key')
  for page in range(4):
-  y=header(c,'Teacher reference','Answers & teaching notes',page+1,4,'32 main problems: 16 quantitative + 16 conceptual. Math warm-ups are additional.')
-  for sec in data['sections'][2*page:2*page+2]:
-   y=h(c,f'Topic {sec["number"]} • {esc(sec["title"])}',M,y,12)
-   warm='; '.join(f'{i+1}. {clean(w["answer"])}' for i,w in enumerate(sec['warmups']))
-   y=para(c,'<b>Warm-up:</b> '+esc(warm),M,y-5,CW,10.2,13)-6
+  y=header(c,'Teacher Reference','Answers and Worked Calculations',page+1,4)
+  y=para(c,'32 main problems: 16 quantitative and 16 conceptual. Math warm-ups are additional.',M,y,CW,11.5)-19
+  for sec in data['sections'][page*2:page*2+2]:
+   heading(c,f'Topic {sec["number"]}: {sec["title"]}',M,y,13);y-=19
+   warm='; '.join(f'{p["id"]}: {clean(p["answer"])}' for p in sec['warmups'])
+   y=para(c,'<b>Math Skills:</b> '+esc(warm),M,y,CW,11.2,14)-8
    for p in sec['problems']:
-    y=para(c,f'<b>{p["id"]}.</b> {esc(p["answer"])}',M,y,CW,10.8,14.5)-4
-    if p['type']=='quantitative':
-     y=para(c,' '.join(esc(st) for st in p['steps']),M+19,y,CW-19,10.4,13.8)-7
-   source=sec.get('sourceNotes',[])
-   if isinstance(source,list):source='; '.join(map(str,source))
-   y=para(c,'<b>Curriculum alignment:</b> '+esc(source),M,y,CW,8.6,11.5,color=GRAY)-14
-   rule(c,y+5)
-  if page==3:
-   y=para(c,'<b>Teaching reminders:</b> Signs show chosen directions. Balanced forces can act on a moving object. Third-law partners act on different objects; they are not the two forces that cancel on one object. For collisions, conserve system momentum only when outside forces have negligible effect during the collision.',M,y,CW,9.3,12.3)
-  if y<45:print('WARNING teacher low',page+1,y)
-  footer(c,'Motion & Forces • Teacher answer key',page+1,4);c.showPage()
+    y=para(c,f'<b>{p["id"]}.</b> {esc(p["answer"])}',M,y,CW,11.7,14.5)-3
+    if p['type']=='quantitative':y=para(c,' '.join(esc(st) for st in p['steps']),M+18,y,CW-18,11.2,14)-8
+    else:y-=5
+   sources=sec.get('sourceNotes',[])
+   if isinstance(sources,list):sources='; '.join(map(str,sources))
+   y=para(c,'<b>Source alignment:</b> '+esc(sources),M,y,CW,9.5,12)-19
+  if page==3:y=para(c,'<b>Teaching reminders:</b> Balanced forces can act on a moving object. Third-law partners act on different objects. During a collision, conserve system momentum only when outside forces have negligible effect.',M,y,CW,10.8,13.5)
+  if y<43:print('OVERFLOW key',page+1,y)
+  footer(c,'Motion and Forces • Teacher Answer Key',page+1,4);c.showPage()
  c.save();return fn
 
 if __name__=='__main__':
- formula_guide();math_guide()
- p=ROOT/'content/packet.json'
- if p.exists():
-  data=json.loads(p.read_text());packet(data);teacher_key(data)
- for fn in OUT.glob('*.pdf'):print(fn)
+ data=json.loads((ROOT/'content/packet.json').read_text())
+ for p in [packet(data),formula_guide(),math_guide(),teacher_key(data)]:print(p)
