@@ -1,0 +1,1917 @@
+export default {
+  "title": "Motion & Forces Lab",
+  "version": "1.0",
+  "grade": 8,
+  "conventions": [
+    "Use right/east as positive unless stated otherwise.",
+    "Use g = 10 m/s² near Earth as a classroom approximation.",
+    "Write a formula, substitute values, and include units in every quantitative answer.",
+    "For conceptual answers, use a complete sentence and evidence from the situation.",
+    "Round non-terminating numerical answers to two decimal places unless told otherwise.",
+    "Simulation assumptions are identified in the app; the printed values are the packet defaults."
+  ],
+  "sections": [
+    {
+      "number": 1,
+      "title": "Position, distance & displacement",
+      "subtitle": "Choose a reference point. Keep track of direction.",
+      "sourceNotes": [
+        "20.pdf: printed pp. 7–21; distance and displacement p. 19"
+      ],
+      "warmups": [
+        {
+          "id": "W1a",
+          "prompt": "12 + 5 = ____",
+          "answer": "17"
+        },
+        {
+          "id": "W1b",
+          "prompt": "9 - (-6) = ____",
+          "answer": "15"
+        },
+        {
+          "id": "W1c",
+          "prompt": "18 - 18 = ____",
+          "answer": "0"
+        }
+      ],
+      "problems": [
+        {
+          "id": "P01",
+          "title": "The hallway delivery",
+          "type": "quantitative",
+          "prompt": "A student carries a box 12 m east from the classroom to the office, then walks 5 m west to a supply closet. What total distance does the student travel?",
+          "answer": "17 m",
+          "steps": [
+            "Add both lengths: 12 + 5 = 17 m.",
+            "Distance counts the entire path, even when direction changes."
+          ],
+          "simulation": {
+            "kind": "route",
+            "params": {
+              "start": 0,
+              "turn": 12,
+              "end": 7,
+              "speed": 1.2
+            },
+            "adjustable": [
+              {
+                "key": "turn",
+                "label": "Office position",
+                "unit": "m",
+                "min": 8,
+                "max": 25,
+                "step": 1
+              },
+              {
+                "key": "end",
+                "label": "Closet position",
+                "unit": "m",
+                "min": 0,
+                "max": 7,
+                "step": 1
+              }
+            ],
+            "notes": "East is positive. Walk at 1.2 m/s on both legs; turning time is neglected."
+          },
+          "numericAnswer": {
+            "value": 17,
+            "unit": "m",
+            "quantity": "distance"
+          }
+        },
+        {
+          "id": "P02",
+          "title": "Across the reference line",
+          "type": "quantitative",
+          "prompt": "On a straight east–west trail, the water fountain is position 0 m. A walker starts at -6 m and finishes at +9 m. Take east as positive. Find the displacement, including direction.",
+          "answer": "+15 m, or 15 m east",
+          "steps": [
+            "Displacement = final position - initial position.",
+            "9 - (-6) = 15 m; positive means east."
+          ],
+          "simulation": {
+            "kind": "route",
+            "params": {
+              "start": -6,
+              "turn": 9,
+              "end": 9,
+              "speed": 1.5
+            },
+            "adjustable": [
+              {
+                "key": "start",
+                "label": "Start position",
+                "unit": "m",
+                "min": -15,
+                "max": 0,
+                "step": 1
+              },
+              {
+                "key": "end",
+                "label": "Finish position",
+                "unit": "m",
+                "min": 1,
+                "max": 20,
+                "step": 1
+              }
+            ],
+            "notes": "Single straight trip: keep turn equal to end when end is adjusted. East is positive."
+          },
+          "numericAnswer": {
+            "value": 15,
+            "unit": "m east",
+            "quantity": "displacement"
+          }
+        },
+        {
+          "id": "P03",
+          "title": "One complete lap",
+          "type": "conceptual",
+          "prompt": "A runner completes one full lap of a circular track and stops exactly where she started. Is her distance zero, her displacement zero, both, or neither? Explain using the start and finish.",
+          "answer": "The displacement is zero because the start and finish are the same. The distance is not zero because she traveled all the way around the track.",
+          "steps": [],
+          "simulation": {
+            "kind": "circular",
+            "params": {
+              "radius": 20,
+              "speed": 3,
+              "laps": 1
+            },
+            "adjustable": [
+              {
+                "key": "radius",
+                "label": "Track radius",
+                "unit": "m",
+                "min": 10,
+                "max": 40,
+                "step": 1
+              },
+              {
+                "key": "speed",
+                "label": "Running speed",
+                "unit": "m/s",
+                "min": 1,
+                "max": 5,
+                "step": 0.5
+              }
+            ],
+            "notes": "One complete lap; constant speed. Draw the route and the start-to-finish displacement."
+          },
+          "choices": [
+            {
+              "text": "Displacement is zero; distance is not zero.",
+              "correct": true
+            },
+            {
+              "text": "Both distance and displacement are zero.",
+              "correct": false
+            },
+            {
+              "text": "Distance is zero; displacement is not zero.",
+              "correct": false
+            },
+            {
+              "text": "Neither is zero.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "P04",
+          "title": "Seated on the train",
+          "type": "conceptual",
+          "prompt": "A passenger stays seated while a train moves east at 10 m/s. Describe the passenger’s motion relative to the train, and then relative to the station platform. Why do the descriptions differ?",
+          "answer": "The passenger is at rest relative to the train and moves east at 10 m/s relative to the platform. Motion depends on the chosen reference point.",
+          "steps": [],
+          "simulation": {
+            "kind": "uniform",
+            "params": {
+              "speed": 10,
+              "time": 8,
+              "referenceSpeed": 10
+            },
+            "adjustable": [
+              {
+                "key": "speed",
+                "label": "Train speed",
+                "unit": "m/s",
+                "min": 2,
+                "max": 20,
+                "step": 1
+              },
+              {
+                "key": "referenceSpeed",
+                "label": "Reference-frame speed",
+                "unit": "m/s",
+                "min": 0,
+                "max": 20,
+                "step": 1
+              }
+            ],
+            "notes": "A stationary platform has referenceSpeed=0; the train frame has referenceSpeed equal to train speed. Constant straight-line motion."
+          },
+          "choices": [
+            {
+              "text": "At rest relative to the train; moving relative to the platform.",
+              "correct": true
+            },
+            {
+              "text": "At rest relative to both.",
+              "correct": false
+            },
+            {
+              "text": "Moving relative to the train; at rest relative to the platform.",
+              "correct": false
+            },
+            {
+              "text": "A reference point cannot change a description of motion.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Speed & velocity",
+      "subtitle": "Use a rate, a time, and a direction.",
+      "sourceNotes": [
+        "22(1).pdf: printed pp. 24–41; math skills p. 32"
+      ],
+      "warmups": [
+        {
+          "id": "W2a",
+          "prompt": "180 ÷ 120 = ____",
+          "answer": "1.5"
+        },
+        {
+          "id": "W2b",
+          "prompt": "4 × 45 = ____",
+          "answer": "180"
+        },
+        {
+          "id": "W2c",
+          "prompt": "Solve: 3t = 90. t = ____",
+          "answer": "30"
+        }
+      ],
+      "problems": [
+        {
+          "id": "P05",
+          "title": "Walking the trail",
+          "type": "quantitative",
+          "prompt": "A student walks 180 m along a straight trail in 120 s. What is the student’s average speed? Include the correct unit.",
+          "answer": "1.5 m/s",
+          "steps": [
+            "Average speed = distance ÷ elapsed time.",
+            "180 m ÷ 120 s = 1.5 m/s."
+          ],
+          "simulation": {
+            "kind": "uniform",
+            "params": {
+              "distance": 180,
+              "time": 120
+            },
+            "adjustable": [
+              {
+                "key": "distance",
+                "label": "Distance",
+                "unit": "m",
+                "min": 120,
+                "max": 200,
+                "step": 10
+              },
+              {
+                "key": "time",
+                "label": "Elapsed time",
+                "unit": "s",
+                "min": 100,
+                "max": 180,
+                "step": 10
+              }
+            ],
+            "notes": "Animation uses constant speed equal to the trip’s average; the measured average does not prove the real walk was perfectly steady."
+          },
+          "numericAnswer": {
+            "value": 1.5,
+            "unit": "m/s",
+            "quantity": "speed"
+          }
+        },
+        {
+          "id": "P06",
+          "title": "Cycling along the path",
+          "type": "quantitative",
+          "prompt": "A cyclist rides straight east at a steady 4 m/s for 45 s. How far does the cyclist travel?",
+          "answer": "180 m",
+          "steps": [
+            "Distance = speed × time.",
+            "4 m/s × 45 s = 180 m."
+          ],
+          "simulation": {
+            "kind": "uniform",
+            "params": {
+              "speed": 4,
+              "time": 45
+            },
+            "adjustable": [
+              {
+                "key": "speed",
+                "label": "Speed",
+                "unit": "m/s",
+                "min": 1,
+                "max": 8,
+                "step": 0.5
+              },
+              {
+                "key": "time",
+                "label": "Elapsed time",
+                "unit": "s",
+                "min": 10,
+                "max": 90,
+                "step": 5
+              }
+            ],
+            "notes": "Constant speed on a straight path."
+          },
+          "numericAnswer": {
+            "value": 180,
+            "unit": "m",
+            "quantity": "distance"
+          }
+        },
+        {
+          "id": "P07",
+          "title": "Jogging in opposite directions",
+          "type": "conceptual",
+          "prompt": "Two joggers pass a fountain. One moves east at 2 m/s; the other moves west at 2 m/s. Do they have the same speed? Do they have the same velocity? Explain.",
+          "answer": "They have the same speed, 2 m/s. Their velocities differ because velocity includes direction: east versus west.",
+          "steps": [],
+          "simulation": {
+            "kind": "uniform",
+            "params": {
+              "speed": 2,
+              "otherSpeed": -2,
+              "time": 8
+            },
+            "adjustable": [
+              {
+                "key": "speed",
+                "label": "Eastbound velocity",
+                "unit": "m/s",
+                "min": 1,
+                "max": 4,
+                "step": 0.5
+              },
+              {
+                "key": "otherSpeed",
+                "label": "Westbound velocity",
+                "unit": "m/s",
+                "min": -4,
+                "max": -1,
+                "step": 0.5
+              }
+            ],
+            "notes": "East is positive. Both start at the same reference point and move at constant velocities."
+          },
+          "choices": [
+            {
+              "text": "Same speed, different velocities.",
+              "correct": true
+            },
+            {
+              "text": "Same speed and same velocity.",
+              "correct": false
+            },
+            {
+              "text": "Different speeds, same velocity.",
+              "correct": false
+            },
+            {
+              "text": "Their directions do not affect velocity.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "P08",
+          "title": "The dog stops to sniff",
+          "type": "conceptual",
+          "prompt": "A dog travels along a path at 2 m/s for 10 s, stops for 10 s, then continues at 2 m/s for 10 s. Is its average speed for all 30 s equal to 2 m/s? Explain why the stop matters.",
+          "answer": "No. The dog travels 40 m in 30 s, so the average is about 1.33 m/s. The stop adds time without adding distance.",
+          "steps": [],
+          "simulation": {
+            "kind": "piecewise",
+            "params": {
+              "times": [
+                0,
+                10,
+                20,
+                30
+              ],
+              "positions": [
+                0,
+                20,
+                20,
+                40
+              ]
+            },
+            "adjustable": [],
+            "notes": "Straight path, steady motion within each moving interval, with a 10 s pause. Changes between intervals are idealized as brief."
+          },
+          "choices": [
+            {
+              "text": "Less than 2 m/s, because the stop adds time without distance.",
+              "correct": true
+            },
+            {
+              "text": "Exactly 2 m/s, because that is its speed when moving.",
+              "correct": false
+            },
+            {
+              "text": "Greater than 2 m/s, because it moves twice.",
+              "correct": false
+            },
+            {
+              "text": "Zero, because it stopped once.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Acceleration",
+      "subtitle": "Compare velocities and use elapsed time. Right/east is positive.",
+      "sourceNotes": [
+        "28.pdf: printed pp. 44–71; acceleration calculation pp. 54, 56–58"
+      ],
+      "warmups": [
+        {
+          "id": "W3a",
+          "prompt": "8 - 3 = ____",
+          "answer": "5"
+        },
+        {
+          "id": "W3b",
+          "prompt": "(14 - 4) ÷ 5 = ____",
+          "answer": "2"
+        },
+        {
+          "id": "W3c",
+          "prompt": "6 + (-0.8 × 5) = ____",
+          "answer": "2"
+        }
+      ],
+      "problems": [
+        {
+          "id": "P09",
+          "title": "The bus pulls away",
+          "type": "quantitative",
+          "prompt": "A bus travels east at 4 m/s when a stopwatch reads 3 s. At 8 s, it travels east at 14 m/s. What is its average acceleration during this interval?",
+          "answer": "+2 m/s², east",
+          "steps": [
+            "Elapsed time = 8 - 3 = 5 s.",
+            "Change in velocity = 14 - 4 = 10 m/s.",
+            "a = 10 ÷ 5 = 2 m/s² east."
+          ],
+          "simulation": {
+            "kind": "acceleration",
+            "params": {
+              "vi": 4,
+              "vf": 14,
+              "time": 5,
+              "startTime": 3,
+              "endTime": 8
+            },
+            "adjustable": [
+              {
+                "key": "vi",
+                "label": "Initial velocity",
+                "unit": "m/s",
+                "min": 2,
+                "max": 6,
+                "step": 1
+              },
+              {
+                "key": "vf",
+                "label": "Final velocity",
+                "unit": "m/s",
+                "min": 8,
+                "max": 14,
+                "step": 1
+              },
+              {
+                "key": "startTime",
+                "label": "Start reading",
+                "unit": "s",
+                "min": 1,
+                "max": 3,
+                "step": 1
+              },
+              {
+                "key": "endTime",
+                "label": "End reading",
+                "unit": "s",
+                "min": 8,
+                "max": 12,
+                "step": 1
+              }
+            ],
+            "notes": "Uniform acceleration is assumed for the demonstration; the calculation gives average acceleration over the interval."
+          },
+          "numericAnswer": {
+            "value": 2,
+            "unit": "m/s²",
+            "quantity": "acceleration"
+          }
+        },
+        {
+          "id": "P10",
+          "title": "Braking on a scooter",
+          "type": "quantitative",
+          "prompt": "A scooter moves east at 6 m/s. The rider brakes with an average acceleration of -0.8 m/s² for 5 s, while still moving east. What is the final velocity?",
+          "answer": "+2 m/s, or 2 m/s east",
+          "steps": [
+            "Final velocity = initial velocity + acceleration × time.",
+            "vf = 6 + (-0.8 × 5) = 6 - 4 = 2 m/s east."
+          ],
+          "simulation": {
+            "kind": "acceleration",
+            "params": {
+              "vi": 6,
+              "acceleration": -0.8,
+              "time": 5
+            },
+            "adjustable": [
+              {
+                "key": "vi",
+                "label": "Initial velocity",
+                "unit": "m/s",
+                "min": 5,
+                "max": 10,
+                "step": 0.5
+              },
+              {
+                "key": "acceleration",
+                "label": "Acceleration",
+                "unit": "m/s²",
+                "min": -0.8,
+                "max": -0.2,
+                "step": 0.1
+              },
+              {
+                "key": "time",
+                "label": "Braking time",
+                "unit": "s",
+                "min": 1,
+                "max": 5,
+                "step": 1
+              }
+            ],
+            "notes": "Uniform braking during the stated interval. Limits keep the scooter moving east; the model does not reverse it after stopping."
+          },
+          "numericAnswer": {
+            "value": 2,
+            "unit": "m/s",
+            "quantity": "finalVelocity"
+          }
+        },
+        {
+          "id": "P11",
+          "title": "Backing up faster",
+          "type": "conceptual",
+          "prompt": "A small remote-control car moves west. Its velocity changes from -1 m/s to -3 m/s in 2 s. Is it speeding up or slowing down? What does the negative sign tell you?",
+          "answer": "It is speeding up because its speed rises from 1 to 3 m/s. Negative velocity means west; negative acceleration here also points west and increases the speed.",
+          "steps": [],
+          "simulation": {
+            "kind": "acceleration",
+            "params": {
+              "vi": -1,
+              "vf": -3,
+              "time": 2
+            },
+            "adjustable": [
+              {
+                "key": "vi",
+                "label": "Initial velocity",
+                "unit": "m/s",
+                "min": -2,
+                "max": -0.5,
+                "step": 0.5
+              },
+              {
+                "key": "vf",
+                "label": "Final velocity",
+                "unit": "m/s",
+                "min": -5,
+                "max": -2.5,
+                "step": 0.5
+              }
+            ],
+            "notes": "East is positive. The car continues west throughout the interval, with uniform acceleration."
+          },
+          "choices": [
+            {
+              "text": "Speeding up; the negative sign indicates west.",
+              "correct": true
+            },
+            {
+              "text": "Slowing down, because every negative acceleration slows an object.",
+              "correct": false
+            },
+            {
+              "text": "Stopped, because the velocities are negative.",
+              "correct": false
+            },
+            {
+              "text": "Changing direction from west to east.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "P12",
+          "title": "Turning without speeding up",
+          "type": "conceptual",
+          "prompt": "A cyclist follows a circular path at a steady 3 m/s. Is the cyclist accelerating even though the speed stays the same? Explain what is changing.",
+          "answer": "Yes. Velocity includes direction, and the direction changes continuously around the circle. The acceleration points toward the center.",
+          "steps": [],
+          "simulation": {
+            "kind": "circular",
+            "params": {
+              "radius": 8,
+              "speed": 3,
+              "laps": 1
+            },
+            "adjustable": [
+              {
+                "key": "radius",
+                "label": "Turn radius",
+                "unit": "m",
+                "min": 5,
+                "max": 15,
+                "step": 1
+              },
+              {
+                "key": "speed",
+                "label": "Speed",
+                "unit": "m/s",
+                "min": 1,
+                "max": 4,
+                "step": 0.5
+              }
+            ],
+            "notes": "Constant-speed circular motion. Velocity is tangent to the path; acceleration points inward."
+          },
+          "choices": [
+            {
+              "text": "Yes; the direction of velocity keeps changing.",
+              "correct": true
+            },
+            {
+              "text": "No; acceleration always requires a speed increase.",
+              "correct": false
+            },
+            {
+              "text": "No; a circle has no direction.",
+              "correct": false
+            },
+            {
+              "text": "Yes; the cyclist must be getting faster.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Reading motion graphs",
+      "subtitle": "Read the axes first. Use a change in value divided by a change in time.",
+      "sourceNotes": [
+        "22(1).pdf: distance–time graphs pp. 28, 35–36; 28.pdf: speed–time graphs pp. 48, 59"
+      ],
+      "warmups": [
+        {
+          "id": "W4a",
+          "prompt": "(30 - 0) ÷ (30 - 0) = ____",
+          "answer": "1"
+        },
+        {
+          "id": "W4b",
+          "prompt": "(8 - 2) ÷ (6 - 0) = ____",
+          "answer": "1"
+        },
+        {
+          "id": "W4c",
+          "prompt": "Compare: 8/10, 16/10, 4/10. Which is greatest?",
+          "answer": "16/10 = 1.6"
+        }
+      ],
+      "problems": [
+        {
+          "id": "P13",
+          "title": "A pause on the nature walk",
+          "type": "quantitative",
+          "prompt": "The table shows a student’s total distance along a trail. The student walks forward, pauses, then walks forward again. What is the average speed over the entire 30 s, including the pause?",
+          "answer": "1.0 m/s",
+          "steps": [
+            "Use the total distance and the whole elapsed time, including the pause.",
+            "30 m ÷ 30 s = 1.0 m/s."
+          ],
+          "simulation": {
+            "kind": "piecewise",
+            "params": {
+              "times": [
+                0,
+                10,
+                20,
+                30
+              ],
+              "positions": [
+                0,
+                12,
+                12,
+                30
+              ]
+            },
+            "adjustable": [],
+            "notes": "Piecewise constant speeds: 1.2 m/s, 0, then 1.8 m/s. The graph is total distance versus time, which matches position here because the student never turns around."
+          },
+          "numericAnswer": {
+            "value": 1,
+            "unit": "m/s",
+            "quantity": "averageSpeed"
+          },
+          "table": {
+            "headers": [
+              "Time (s)",
+              "Total distance (m)"
+            ],
+            "rows": [
+              [
+                0,
+                0
+              ],
+              [
+                10,
+                12
+              ],
+              [
+                20,
+                12
+              ],
+              [
+                30,
+                30
+              ]
+            ]
+          },
+          "graph": {
+            "type": "distance-time",
+            "x": [
+              0,
+              10,
+              20,
+              30
+            ],
+            "y": [
+              0,
+              12,
+              12,
+              30
+            ],
+            "xLabel": "Time (s)",
+            "yLabel": "Total distance (m)"
+          }
+        },
+        {
+          "id": "P14",
+          "title": "Reading a scooter’s speed graph",
+          "type": "quantitative",
+          "prompt": "The scooter’s speed increases steadily as shown. It travels east throughout. Use two points to find its acceleration from 0 s to 6 s.",
+          "answer": "+1 m/s², east",
+          "steps": [
+            "Change in speed = 8 - 2 = 6 m/s.",
+            "Elapsed time = 6 - 0 = 6 s.",
+            "a = 6 ÷ 6 = 1 m/s² east."
+          ],
+          "simulation": {
+            "kind": "acceleration",
+            "params": {
+              "vi": 2,
+              "vf": 8,
+              "time": 6
+            },
+            "adjustable": [
+              {
+                "key": "vi",
+                "label": "Initial speed",
+                "unit": "m/s",
+                "min": 0,
+                "max": 4,
+                "step": 1
+              },
+              {
+                "key": "vf",
+                "label": "Final speed",
+                "unit": "m/s",
+                "min": 5,
+                "max": 10,
+                "step": 1
+              },
+              {
+                "key": "time",
+                "label": "Elapsed time",
+                "unit": "s",
+                "min": 3,
+                "max": 10,
+                "step": 1
+              }
+            ],
+            "notes": "Uniform acceleration in a fixed eastward direction; the straight speed-time graph has constant slope."
+          },
+          "numericAnswer": {
+            "value": 1,
+            "unit": "m/s²",
+            "quantity": "acceleration"
+          },
+          "table": {
+            "headers": [
+              "Time (s)",
+              "Speed (m/s)"
+            ],
+            "rows": [
+              [
+                0,
+                2
+              ],
+              [
+                2,
+                4
+              ],
+              [
+                4,
+                6
+              ],
+              [
+                6,
+                8
+              ]
+            ]
+          },
+          "graph": {
+            "type": "speed-time",
+            "x": [
+              0,
+              2,
+              4,
+              6
+            ],
+            "y": [
+              2,
+              4,
+              6,
+              8
+            ],
+            "xLabel": "Time (s)",
+            "yLabel": "Speed (m/s)"
+          }
+        },
+        {
+          "id": "P15",
+          "title": "Which interval is fastest?",
+          "type": "conceptual",
+          "prompt": "A walker’s distance–time data are shown below. Which 10 s interval has the greatest average speed? Explain how the distances, or the steepness of a graph, support your choice.",
+          "answer": "10–20 s is fastest. The walker covers 16 m then, compared with 8 m and 4 m in the other equal time intervals; its graph segment is steepest.",
+          "steps": [],
+          "simulation": {
+            "kind": "piecewise",
+            "params": {
+              "times": [
+                0,
+                10,
+                20,
+                30
+              ],
+              "positions": [
+                0,
+                8,
+                24,
+                28
+              ]
+            },
+            "adjustable": [],
+            "notes": "Forward motion only, with constant speed within each interval. Instant transitions are an idealization."
+          },
+          "choices": [
+            {
+              "text": "10–20 s: greatest distance in the same amount of time.",
+              "correct": true
+            },
+            {
+              "text": "0–10 s: the walker starts from zero distance.",
+              "correct": false
+            },
+            {
+              "text": "20–30 s: the total distance is largest.",
+              "correct": false
+            },
+            {
+              "text": "All intervals: they each last 10 s.",
+              "correct": false
+            }
+          ],
+          "table": {
+            "headers": [
+              "Time (s)",
+              "Total distance (m)"
+            ],
+            "rows": [
+              [
+                0,
+                0
+              ],
+              [
+                10,
+                8
+              ],
+              [
+                20,
+                24
+              ],
+              [
+                30,
+                28
+              ]
+            ]
+          }
+        },
+        {
+          "id": "P16",
+          "title": "What a speed graph cannot tell you",
+          "type": "conceptual",
+          "prompt": "Two cyclists each ride steadily at 3 m/s for 6 s. One rides east and one rides west. Would their speed–time graphs differ? Could those graphs alone tell you their directions?",
+          "answer": "Their speed–time graphs would be identical horizontal lines at 3 m/s. A speed–time graph does not show direction; a velocity–time graph could distinguish them.",
+          "steps": [],
+          "simulation": {
+            "kind": "uniform",
+            "params": {
+              "speed": 3,
+              "otherSpeed": -3,
+              "time": 6
+            },
+            "adjustable": [
+              {
+                "key": "speed",
+                "label": "First velocity",
+                "unit": "m/s",
+                "min": 1,
+                "max": 6,
+                "step": 1
+              },
+              {
+                "key": "otherSpeed",
+                "label": "Second velocity",
+                "unit": "m/s",
+                "min": -6,
+                "max": -1,
+                "step": 1
+              }
+            ],
+            "notes": "At the packet settings their speeds are equal but their velocities have opposite signs."
+          },
+          "choices": [
+            {
+              "text": "Identical speed graphs; direction is not shown.",
+              "correct": true
+            },
+            {
+              "text": "Different speed graphs, because west has negative speed.",
+              "correct": false
+            },
+            {
+              "text": "Identical graphs that both show east.",
+              "correct": false
+            },
+            {
+              "text": "One graph must slope downward because the cyclist goes west.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Gravity & friction",
+      "subtitle": "Mass is measured in kg. Weight and friction are forces, measured in N.",
+      "sourceNotes": [
+        "61.pdf: printed pp. 7–21; weight pp. 11, 18; static friction pp. 11, 19"
+      ],
+      "warmups": [
+        {
+          "id": "W5a",
+          "prompt": "2.5 × 10 = ____",
+          "answer": "25"
+        },
+        {
+          "id": "W5b",
+          "prompt": "Solve: f - 35 = 0. f = ____",
+          "answer": "35"
+        },
+        {
+          "id": "W5c",
+          "prompt": "1.6 × 150 = ____",
+          "answer": "240"
+        }
+      ],
+      "problems": [
+        {
+          "id": "P17",
+          "title": "How heavy is the backpack?",
+          "type": "quantitative",
+          "prompt": "A backpack has a mass of 2.5 kg. What is its weight near Earth’s surface? Use g = 10 m/s².",
+          "answer": "25 N downward",
+          "steps": [
+            "Weight = mass × gravitational acceleration.",
+            "W = 2.5 kg × 10 m/s² = 25 N downward."
+          ],
+          "simulation": {
+            "kind": "gravity",
+            "params": {
+              "mass": 2.5,
+              "g": 10,
+              "height": 1,
+              "supported": true
+            },
+            "adjustable": [
+              {
+                "key": "mass",
+                "label": "Mass",
+                "unit": "kg",
+                "min": 0.5,
+                "max": 10,
+                "step": 0.5
+              },
+              {
+                "key": "g",
+                "label": "Gravity",
+                "unit": "m/s²",
+                "min": 1.6,
+                "max": 10,
+                "step": 0.2
+              }
+            ],
+            "notes": "The backpack is held at rest. Its upward support force equals its downward weight; the object does not fall."
+          },
+          "numericAnswer": {
+            "value": 25,
+            "unit": "N",
+            "quantity": "weight"
+          }
+        },
+        {
+          "id": "P18",
+          "title": "Keeping the box moving steadily",
+          "type": "quantitative",
+          "prompt": "A student pushes a plastic equipment box across a smooth floor at a steady speed. The push is 35 N to the right. What is the sliding friction force on the box? Give its size and direction.",
+          "answer": "35 N to the left",
+          "steps": [
+            "Steady velocity means zero acceleration and zero net force.",
+            "The friction force must balance the 35 N push: 35 N to the left."
+          ],
+          "simulation": {
+            "kind": "friction",
+            "params": {
+              "mass": 20,
+              "forwardForce": 35,
+              "backwardForce": 35,
+              "vi": 1,
+              "time": 3,
+              "steady": true
+            },
+            "adjustable": [
+              {
+                "key": "forwardForce",
+                "label": "Steady push",
+                "unit": "N",
+                "min": 15,
+                "max": 50,
+                "step": 1
+              }
+            ],
+            "notes": "The box slides right at steady velocity. Infer friction as equal in size to the push, opposite in direction. When the push is adjusted, friction is kept equal to preserve the stated steady-motion condition. Vertical forces balance."
+          },
+          "numericAnswer": {
+            "value": 35,
+            "unit": "N",
+            "quantity": "frictionForce"
+          }
+        },
+        {
+          "id": "P19",
+          "title": "The same astronaut on the Moon",
+          "type": "conceptual",
+          "prompt": "An astronaut and suit have a combined mass of 150 kg. Compare their mass and weight on Earth and the Moon, where gravity is weaker. Which changes, and why?",
+          "answer": "Mass stays 150 kg because the amount of matter is unchanged. Weight is smaller on the Moon because the gravitational force is weaker.",
+          "steps": [],
+          "simulation": {
+            "kind": "gravity",
+            "params": {
+              "mass": 150,
+              "g": 1.6,
+              "compareG": 10,
+              "height": 1,
+              "supported": true
+            },
+            "adjustable": [
+              {
+                "key": "mass",
+                "label": "Astronaut and suit mass",
+                "unit": "kg",
+                "min": 100,
+                "max": 250,
+                "step": 10
+              },
+              {
+                "key": "g",
+                "label": "Local gravity",
+                "unit": "m/s²",
+                "min": 1.6,
+                "max": 10,
+                "step": 0.2
+              }
+            ],
+            "notes": "Compare Earth g=10 m/s² (classroom approximation) and Moon g=1.6 m/s². The astronaut stands supported at rest."
+          },
+          "choices": [
+            {
+              "text": "Same mass; less weight on the Moon.",
+              "correct": true
+            },
+            {
+              "text": "Less mass and less weight on the Moon.",
+              "correct": false
+            },
+            {
+              "text": "Same mass and same weight.",
+              "correct": false
+            },
+            {
+              "text": "Zero mass on the Moon.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "P20",
+          "title": "A crate that will not move",
+          "type": "conceptual",
+          "prompt": "A student pulls a crate right with 10 N, but it stays at rest. Static friction can reach a maximum of 18 N. What is the actual friction force now? Explain why it is not automatically 18 N.",
+          "answer": "Static friction is 10 N left, balancing the pull. It adjusts up to its maximum; 18 N is the limit, not the force it always exerts.",
+          "steps": [],
+          "simulation": {
+            "kind": "friction",
+            "params": {
+              "mass": 20,
+              "forwardForce": 10,
+              "staticLimit": 18,
+              "kineticFriction": 14,
+              "vi": 0,
+              "time": 3
+            },
+            "adjustable": [
+              {
+                "key": "forwardForce",
+                "label": "Applied pull",
+                "unit": "N",
+                "min": 0,
+                "max": 30,
+                "step": 1
+              }
+            ],
+            "notes": "At rest, static friction matches the pull up to 18 N. Above that threshold the crate slides; model kinetic friction as 14 N opposing motion. Vertical forces balance."
+          },
+          "choices": [
+            {
+              "text": "10 N left; static friction matches the pull while the crate stays still.",
+              "correct": true
+            },
+            {
+              "text": "18 N left, because friction always equals its maximum.",
+              "correct": false
+            },
+            {
+              "text": "0 N, because the crate is not moving.",
+              "correct": false
+            },
+            {
+              "text": "10 N right, in the same direction as the pull.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Net force & Newton’s first law",
+      "subtitle": "Combine forces on one object. Zero net force means zero acceleration.",
+      "sourceNotes": [
+        "64.pdf: printed pp. 24–39; first law pp. 33–36"
+      ],
+      "warmups": [
+        {
+          "id": "W6a",
+          "prompt": "45 - 20 = ____",
+          "answer": "25"
+        },
+        {
+          "id": "W6b",
+          "prompt": "18 + (-30) = ____",
+          "answer": "-12"
+        },
+        {
+          "id": "W6c",
+          "prompt": "18 - 18 = ____",
+          "answer": "0"
+        }
+      ],
+      "problems": [
+        {
+          "id": "P21",
+          "title": "Pulling the supply cart",
+          "type": "quantitative",
+          "prompt": "A student pulls a supply cart right with 45 N. The total friction force is 20 N left. Find the horizontal net force on the cart.",
+          "answer": "25 N right",
+          "steps": [
+            "Add signed forces: +45 + (-20).",
+            "Fnet = +25 N, meaning 25 N right."
+          ],
+          "simulation": {
+            "kind": "netforce",
+            "params": {
+              "mass": 25,
+              "forwardForce": 45,
+              "backwardForce": 20,
+              "vi": 0.5,
+              "time": 3
+            },
+            "adjustable": [
+              {
+                "key": "forwardForce",
+                "label": "Pull to the right",
+                "unit": "N",
+                "min": 25,
+                "max": 60,
+                "step": 1
+              },
+              {
+                "key": "backwardForce",
+                "label": "Resistance to the left",
+                "unit": "N",
+                "min": 0,
+                "max": 24,
+                "step": 1
+              }
+            ],
+            "notes": "The cart is already rolling right. Resistance is modeled as constant over this interval; vertical forces balance."
+          },
+          "numericAnswer": {
+            "value": 25,
+            "unit": "N",
+            "quantity": "netForce"
+          }
+        },
+        {
+          "id": "P22",
+          "title": "Two ropes, one cart",
+          "type": "quantitative",
+          "prompt": "Two students pull a low-friction cart in opposite directions. One pulls 18 N right; the other pulls 30 N left. Take right as positive. What is the net force? Give its sign and direction.",
+          "answer": "-12 N, or 12 N left",
+          "steps": [
+            "Fnet = +18 + (-30) = -12 N.",
+            "The negative sign means left."
+          ],
+          "simulation": {
+            "kind": "netforce",
+            "params": {
+              "mass": 20,
+              "forwardForce": 18,
+              "backwardForce": 30,
+              "vi": 0,
+              "time": 3
+            },
+            "adjustable": [
+              {
+                "key": "forwardForce",
+                "label": "Right rope force",
+                "unit": "N",
+                "min": 0,
+                "max": 40,
+                "step": 1
+              },
+              {
+                "key": "backwardForce",
+                "label": "Left rope force",
+                "unit": "N",
+                "min": 0,
+                "max": 40,
+                "step": 1
+              }
+            ],
+            "notes": "Both forces are applied rope tensions, not friction. Friction is neglected; constant forces act during the short demonstration."
+          },
+          "numericAnswer": {
+            "value": -12,
+            "unit": "N",
+            "quantity": "netForce"
+          }
+        },
+        {
+          "id": "P23",
+          "title": "Moving with balanced forces",
+          "type": "conceptual",
+          "prompt": "A cart rolls right at a steady 1.2 m/s. The pull is 18 N right and friction is 18 N left. Must the cart stop because the forces balance? Explain what zero net force actually means.",
+          "answer": "No. The net force and acceleration are zero, so its velocity stays constant. Balanced forces can act on a moving object.",
+          "steps": [],
+          "simulation": {
+            "kind": "netforce",
+            "params": {
+              "mass": 20,
+              "forwardForce": 18,
+              "backwardForce": 18,
+              "vi": 1.2,
+              "time": 5
+            },
+            "adjustable": [
+              {
+                "key": "forwardForce",
+                "label": "Pull right",
+                "unit": "N",
+                "min": 18,
+                "max": 30,
+                "step": 1
+              },
+              {
+                "key": "backwardForce",
+                "label": "Friction left",
+                "unit": "N",
+                "min": 0,
+                "max": 18,
+                "step": 1
+              }
+            ],
+            "notes": "At the packet settings horizontal forces balance. The cart keeps its existing velocity; vertical forces also balance."
+          },
+          "choices": [
+            {
+              "text": "No; balanced forces keep its velocity unchanged.",
+              "correct": true
+            },
+            {
+              "text": "Yes; balanced forces always stop moving objects.",
+              "correct": false
+            },
+            {
+              "text": "Yes; friction cancels the cart’s velocity instantly.",
+              "correct": false
+            },
+            {
+              "text": "No; balanced forces make it speed up.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "P24",
+          "title": "After the hockey stick lets go",
+          "type": "conceptual",
+          "prompt": "A hockey puck glides across very smooth ice after the stick is no longer touching it. Over a short interval, ignore the small friction and air resistance. What happens to its horizontal velocity? Is a continuing forward force required?",
+          "answer": "Its horizontal velocity stays constant. A continuing forward force is not needed to maintain motion when the net force is zero; the stick no longer pushes after contact ends.",
+          "steps": [],
+          "simulation": {
+            "kind": "netforce",
+            "params": {
+              "mass": 0.17,
+              "forwardForce": 0,
+              "backwardForce": 0,
+              "vi": 3,
+              "time": 4
+            },
+            "adjustable": [
+              {
+                "key": "vi",
+                "label": "Initial velocity",
+                "unit": "m/s",
+                "min": 1,
+                "max": 6,
+                "step": 0.5
+              }
+            ],
+            "notes": "Idealized short glide: horizontal friction and drag are neglected. Upward ice support balances weight."
+          },
+          "choices": [
+            {
+              "text": "It continues at constant velocity; no ongoing forward force is needed.",
+              "correct": true
+            },
+            {
+              "text": "It slows because the push has run out.",
+              "correct": false
+            },
+            {
+              "text": "It accelerates because it is already moving.",
+              "correct": false
+            },
+            {
+              "text": "The stick’s forward force stays inside the puck.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Newton’s second law",
+      "subtitle": "A net force changes velocity. More mass means more inertia.",
+      "sourceNotes": [
+        "68 (1).pdf: printed pp. 42–60; F=ma p. 52; circular motion p. 57"
+      ],
+      "warmups": [
+        {
+          "id": "W7a",
+          "prompt": "50 ÷ 25 = ____",
+          "answer": "2"
+        },
+        {
+          "id": "W7b",
+          "prompt": "Solve: 0.6m = 18. m = ____",
+          "answer": "30"
+        },
+        {
+          "id": "W7c",
+          "prompt": "24 ÷ 12 = ____; 24 ÷ 24 = ____",
+          "answer": "2; 1"
+        }
+      ],
+      "problems": [
+        {
+          "id": "P25",
+          "title": "Accelerating the equipment cart",
+          "type": "quantitative",
+          "prompt": "A 25 kg equipment cart has a horizontal net force of 50 N to the right. What is its acceleration?",
+          "answer": "2 m/s² right",
+          "steps": [
+            "Acceleration = net force ÷ mass.",
+            "a = 50 N ÷ 25 kg = 2 m/s² right."
+          ],
+          "simulation": {
+            "kind": "newton2",
+            "params": {
+              "mass": 25,
+              "forwardForce": 50,
+              "backwardForce": 0,
+              "vi": 0,
+              "time": 3
+            },
+            "adjustable": [
+              {
+                "key": "mass",
+                "label": "Cart mass",
+                "unit": "kg",
+                "min": 10,
+                "max": 50,
+                "step": 5
+              },
+              {
+                "key": "forwardForce",
+                "label": "Net force right",
+                "unit": "N",
+                "min": 10,
+                "max": 80,
+                "step": 5
+              }
+            ],
+            "notes": "The given 50 N is already the net horizontal force after any resistance. Constant net force and mass."
+          },
+          "numericAnswer": {
+            "value": 2,
+            "unit": "m/s²",
+            "quantity": "acceleration"
+          }
+        },
+        {
+          "id": "P26",
+          "title": "Finding the trolley’s mass",
+          "type": "quantitative",
+          "prompt": "A loaded trolley accelerates right at 0.6 m/s² when its horizontal net force is 18 N right. What is the trolley’s mass, including its load?",
+          "answer": "30 kg",
+          "steps": [
+            "Start with Fnet = ma and divide by a.",
+            "m = 18 N ÷ 0.6 m/s² = 30 kg."
+          ],
+          "simulation": {
+            "kind": "newton2",
+            "params": {
+              "netForce": 18,
+              "acceleration": 0.6,
+              "vi": 0,
+              "time": 4
+            },
+            "adjustable": [
+              {
+                "key": "netForce",
+                "label": "Net force",
+                "unit": "N",
+                "min": 6,
+                "max": 36,
+                "step": 3
+              },
+              {
+                "key": "acceleration",
+                "label": "Acceleration",
+                "unit": "m/s²",
+                "min": 0.2,
+                "max": 1.2,
+                "step": 0.1
+              }
+            ],
+            "notes": "Use the net force, not just an applied push. The mass is inferred from the measured acceleration."
+          },
+          "numericAnswer": {
+            "value": 30,
+            "unit": "kg",
+            "quantity": "mass"
+          }
+        },
+        {
+          "id": "P27",
+          "title": "Empty cart or loaded cart?",
+          "type": "conceptual",
+          "prompt": "The same 24 N net force acts on a 12 kg cart and a 24 kg cart. Both start at rest. Which accelerates more, and how does doubling the mass affect the acceleration?",
+          "answer": "The 12 kg cart accelerates more: 2 m/s² versus 1 m/s². With the same net force, doubling mass halves acceleration.",
+          "steps": [],
+          "simulation": {
+            "kind": "newton2",
+            "params": {
+              "mass": 12,
+              "compareMass": 24,
+              "forwardForce": 24,
+              "backwardForce": 0,
+              "vi": 0,
+              "time": 3
+            },
+            "adjustable": [
+              {
+                "key": "mass",
+                "label": "First cart mass",
+                "unit": "kg",
+                "min": 6,
+                "max": 20,
+                "step": 2
+              },
+              {
+                "key": "compareMass",
+                "label": "Second cart mass",
+                "unit": "kg",
+                "min": 22,
+                "max": 40,
+                "step": 2
+              },
+              {
+                "key": "forwardForce",
+                "label": "Net force on each cart",
+                "unit": "N",
+                "min": 12,
+                "max": 36,
+                "step": 6
+              }
+            ],
+            "notes": "Both carts receive the same constant net force. No other horizontal forces are added to the stated net force."
+          },
+          "choices": [
+            {
+              "text": "The 12 kg cart; doubling mass halves acceleration at the same net force.",
+              "correct": true
+            },
+            {
+              "text": "The 24 kg cart; more mass always means more acceleration.",
+              "correct": false
+            },
+            {
+              "text": "They accelerate equally because force alone determines acceleration.",
+              "correct": false
+            },
+            {
+              "text": "Neither accelerates because both start at rest.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "P28",
+          "title": "Force through a bicycle turn",
+          "type": "conceptual",
+          "prompt": "A cyclist makes a circular turn on level pavement at constant speed. In which direction must the net horizontal force point: forward, outward, or toward the center? Which contact force from the road can provide it?",
+          "answer": "The net horizontal force points toward the center. Static friction from the pavement on the tires provides the inward force when the tires roll without skidding.",
+          "steps": [],
+          "simulation": {
+            "kind": "circular",
+            "params": {
+              "radius": 10,
+              "speed": 4,
+              "laps": 1,
+              "mass": 75
+            },
+            "adjustable": [
+              {
+                "key": "radius",
+                "label": "Turn radius",
+                "unit": "m",
+                "min": 8,
+                "max": 20,
+                "step": 2
+              },
+              {
+                "key": "speed",
+                "label": "Speed",
+                "unit": "m/s",
+                "min": 2,
+                "max": 5,
+                "step": 0.5
+              }
+            ],
+            "notes": "Constant-speed circular motion without skidding. Horizontal static friction supplies the inward net force; vertical support balances weight."
+          },
+          "choices": [
+            {
+              "text": "Toward the center; friction from the road on the tires.",
+              "correct": true
+            },
+            {
+              "text": "Outward; the road must throw the bicycle out of the circle.",
+              "correct": false
+            },
+            {
+              "text": "Forward; constant speed requires a forward net force.",
+              "correct": false
+            },
+            {
+              "text": "There is no net force because speed is constant.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Newton’s third law & momentum",
+      "subtitle": "A force pair acts on two objects. Momentum depends on mass and velocity.",
+      "sourceNotes": [
+        "72 (1).pdf: printed pp. 63–88; momentum p. 71; force pairs pp. 73–75; conservation p. 76"
+      ],
+      "warmups": [
+        {
+          "id": "W8a",
+          "prompt": "6 × 3 = ____",
+          "answer": "18"
+        },
+        {
+          "id": "W8b",
+          "prompt": "0.5 × 1.2 = ____",
+          "answer": "0.6"
+        },
+        {
+          "id": "W8c",
+          "prompt": "0.6 ÷ (0.5 + 0.5) = ____",
+          "answer": "0.6"
+        }
+      ],
+      "problems": [
+        {
+          "id": "P29",
+          "title": "The bowling ball",
+          "type": "quantitative",
+          "prompt": "A 6 kg bowling ball rolls down the lane at 3 m/s. What is its forward momentum?",
+          "answer": "18 kg·m/s forward",
+          "steps": [
+            "Momentum = mass × velocity.",
+            "p = 6 kg × 3 m/s = 18 kg·m/s forward."
+          ],
+          "simulation": {
+            "kind": "momentum",
+            "params": {
+              "mass1": 6,
+              "velocity1": 3,
+              "time": 4,
+              "single": true
+            },
+            "adjustable": [
+              {
+                "key": "mass1",
+                "label": "Ball mass",
+                "unit": "kg",
+                "min": 3,
+                "max": 7,
+                "step": 0.5
+              },
+              {
+                "key": "velocity1",
+                "label": "Ball velocity",
+                "unit": "m/s",
+                "min": 1,
+                "max": 6,
+                "step": 0.5
+              }
+            ],
+            "notes": "The calculation uses the ball’s translational momentum. Show a short steady roll before it reaches the pins; ignore small resistance over that interval."
+          },
+          "numericAnswer": {
+            "value": 18,
+            "unit": "kg·m/s",
+            "quantity": "momentum1"
+          }
+        },
+        {
+          "id": "P30",
+          "title": "Carts that latch together",
+          "type": "quantitative",
+          "prompt": "On a level, low-friction track, a 0.5 kg cart moving right at 1.2 m/s hits a stationary 0.5 kg cart. They latch together. Ignore external horizontal forces during the brief collision. What is their shared velocity immediately afterward?",
+          "answer": "0.6 m/s right",
+          "steps": [
+            "Initial total momentum = (0.5 × 1.2) + (0.5 × 0) = 0.6 kg·m/s.",
+            "Combined mass = 0.5 + 0.5 = 1.0 kg.",
+            "Shared velocity = total momentum ÷ combined mass = 0.6 m/s right."
+          ],
+          "simulation": {
+            "kind": "momentum",
+            "params": {
+              "mass1": 0.5,
+              "velocity1": 1.2,
+              "mass2": 0.5,
+              "velocity2": 0,
+              "stick": true,
+              "time": 5
+            },
+            "adjustable": [
+              {
+                "key": "mass1",
+                "label": "Moving cart mass",
+                "unit": "kg",
+                "min": 0.25,
+                "max": 2,
+                "step": 0.25
+              },
+              {
+                "key": "velocity1",
+                "label": "Moving cart velocity",
+                "unit": "m/s",
+                "min": 0.4,
+                "max": 2,
+                "step": 0.2
+              },
+              {
+                "key": "mass2",
+                "label": "Other cart mass",
+                "unit": "kg",
+                "min": 0.25,
+                "max": 2,
+                "step": 0.25
+              }
+            ],
+            "notes": "A perfectly inelastic collision: the carts stick. Total momentum is conserved during the collision; kinetic energy is not. Velocities are signed, right positive."
+          },
+          "numericAnswer": {
+            "value": 0.6,
+            "unit": "m/s",
+            "quantity": "finalVelocity"
+          }
+        },
+        {
+          "id": "P31",
+          "title": "Skaters push apart",
+          "type": "conceptual",
+          "prompt": "Two skaters, one 40 kg and one 60 kg, push off each other on smooth ice. During contact, does either exert a larger force on the other? Do equal force sizes mean equal accelerations? Explain.",
+          "answer": "The forces are equal in size and opposite in direction, acting on different skaters. Their accelerations differ: the lighter skater accelerates more because a = F/m.",
+          "steps": [],
+          "simulation": {
+            "kind": "thirdlaw",
+            "params": {
+              "mass1": 40,
+              "mass2": 60,
+              "force": 80,
+              "time": 0.5
+            },
+            "adjustable": [
+              {
+                "key": "mass1",
+                "label": "First skater mass",
+                "unit": "kg",
+                "min": 30,
+                "max": 50,
+                "step": 5
+              },
+              {
+                "key": "mass2",
+                "label": "Second skater mass",
+                "unit": "kg",
+                "min": 55,
+                "max": 90,
+                "step": 5
+              },
+              {
+                "key": "force",
+                "label": "Force-pair magnitude",
+                "unit": "N",
+                "min": 40,
+                "max": 120,
+                "step": 10
+              }
+            ],
+            "notes": "Show a short push from rest, with equal opposite horizontal forces during contact, followed by a glide. Neglect ice friction. Vertical forces balance."
+          },
+          "choices": [
+            {
+              "text": "Equal opposite forces; the lighter skater has greater acceleration.",
+              "correct": true
+            },
+            {
+              "text": "The heavier skater exerts more force; accelerations are equal.",
+              "correct": false
+            },
+            {
+              "text": "Equal forces and equal accelerations, regardless of mass.",
+              "correct": false
+            },
+            {
+              "text": "The two forces cancel on each skater, so neither moves.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "P32",
+          "title": "Pushing off the pool wall",
+          "type": "conceptual",
+          "prompt": "A swimmer pushes backward on the pool wall. The wall pushes forward on the swimmer. Why do these equal and opposite forces not cancel when you find the net force on the swimmer?",
+          "answer": "They act on different objects. The wall’s forward force acts on the swimmer; the swimmer’s backward force acts on the wall. Only forces acting on the swimmer belong in the swimmer’s net force.",
+          "steps": [],
+          "simulation": {
+            "kind": "thirdlaw",
+            "params": {
+              "mass1": 60,
+              "mass2": 1000000,
+              "force": 120,
+              "time": 0.5,
+              "fixedSecond": true
+            },
+            "adjustable": [
+              {
+                "key": "mass1",
+                "label": "Swimmer mass",
+                "unit": "kg",
+                "min": 40,
+                "max": 90,
+                "step": 5
+              },
+              {
+                "key": "force",
+                "label": "Contact force",
+                "unit": "N",
+                "min": 60,
+                "max": 200,
+                "step": 10
+              }
+            ],
+            "notes": "During a brief wall push, the wall is effectively fixed to Earth. Show the force on the swimmer and its partner on the wall separately; neglect water drag for this short interval."
+          },
+          "choices": [
+            {
+              "text": "They act on different objects: swimmer and wall.",
+              "correct": true
+            },
+            {
+              "text": "The forward force is always larger than the backward force.",
+              "correct": false
+            },
+            {
+              "text": "The wall does not really exert a force.",
+              "correct": false
+            },
+            {
+              "text": "Equal opposite forces never cancel, even on the same object.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};

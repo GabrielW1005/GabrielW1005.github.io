@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#142c48">
+<title>Motion Lab · Packet companion</title><meta name="description" content="An interactive grade 8 physical science lab: explore every packet problem, change measurements, visualize forces and motion, and check your reasoning.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar"><div class="brand"><span class="brandmark" aria-hidden="true">↗</span><div><strong>Motion Lab</strong><small>PHYSICAL SCIENCE · GRADE 8</small></div></div><div class="top-actions"><button id="helpBtn" class="quiet" title="How to use the lab">Help</button><button id="themeBtn" class="quiet" aria-label="Switch color theme">◐ <span>Theme</span></button><button id="fullBtn" class="quiet" aria-label="Enter fullscreen">⛶ <span>Full screen</span></button></div></header>
+<main class="layout">
+<aside class="sidebar" id="sidebar">
+<div class="section-label">YOUR PACKET</div><label class="sr-only" for="sectionSelect">Packet page</label><select id="sectionSelect"></select><div id="problemList" class="problem-list"></div>
+<div class="progress-block"><div><span id="progressText">0 of 32 solved</span><button id="resetProgress" class="text-button">Reset</button></div><div class="progress-track"><div id="progressBar"></div></div><small>Progress stays on this device.</small></div>
+<button id="warmupBtn" class="warmup-button">✎ Math warm-up <span>Practice first</span></button>
+<div class="sidebar-note">One problem. A clearer picture.<br>Predict → run → explain.</div>
+</aside>
+<section class="workspace">
+<div class="problem-heading"><div><div class="eyebrow" id="eyebrow"></div><h1 id="problemTitle">Loading your lab…</h1></div><div class="step-buttons"><button id="prevBtn" aria-label="Previous problem">←</button><button id="nextBtn" aria-label="Next problem">→</button></div></div>
+<div id="problemPrompt" class="problem-prompt"></div><div id="problemTable"></div>
+<div class="modebar" role="tablist" aria-label="Lab mode"><button data-mode="demo" class="active" role="tab" aria-selected="true">Demonstrate</button><button data-mode="explore" role="tab" aria-selected="false">Explore & solve</button><button data-mode="challenge" role="tab" aria-selected="false">Challenge</button></div>
+<div class="lab-grid">
+<section class="stage-card"><div class="stage-toolbar"><span id="stageLabel">LIVE MODEL</span><label class="switch-label"><input id="vectorsToggle" type="checkbox" checked> Arrows</label><label class="switch-label"><input id="graphToggle" type="checkbox" checked> Graph</label></div><canvas id="stage" aria-label="Animated physics simulation" role="img"></canvas><div id="readouts" class="readouts"></div><div class="transport"><button id="playBtn" class="primary">▶ Run</button><button id="restartBtn" aria-label="Restart simulation">↺</button><label class="time-control"><span id="timeLabel">0.0 s</span><input id="timeSlider" type="range" min="0" max="1000" value="0" aria-label="Simulation time"></label><label class="speed-control">Speed<select id="rateSelect" aria-label="Playback speed"><option value="0.25">¼×</option><option value="0.5">½×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label></div><div class="graph-wrap" id="graphWrap"><div class="graph-label"><span id="graphTitle">POSITION & VELOCITY</span><select id="graphSelect" aria-label="Graph quantity"><option value="x">Position</option><option value="v">Velocity</option><option value="speed">Speed</option><option value="distance">Distance traveled</option><option value="a">Acceleration</option></select></div><canvas id="graph" role="img" aria-label="Graph of simulation quantities against time"></canvas></div><div id="modelNotes" class="model-notes"></div></section>
+<aside class="control-card"><div id="modeIntro"></div><div id="parameters"></div><div id="solver"></div><div id="challenge"></div><details id="stepsDetails"><summary>Show explanation & steps</summary><div id="stepsContent"></div></details></aside>
+</div>
+<footer class="workspace-footer"><span id="footerTopic"></span><span>Model time and distance are labeled. Screen drawings are schematic.</span></footer>
+</section></main>
+<dialog id="modal"><button id="closeModal" class="close-modal" aria-label="Close">×</button><div id="modalContent"></div></dialog>
+<script type="module" src="app.js"></script>
+</body></html>
