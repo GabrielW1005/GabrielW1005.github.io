@@ -1,6 +1,6 @@
 export default {
   "title": "Motion & Forces Lab",
-  "version": "2.0-experiment",
+  "version": "2.1-predict-and-test",
   "grade": 8,
   "conventions": [
     "Use right/east as positive for horizontal motion and upward as positive for vertical motion, unless stated otherwise.",
@@ -168,24 +168,6 @@ export default {
             "notes": "One complete lap; constant speed. Draw the route and the start-to-finish displacement.",
             "scene": "runner"
           },
-          "choices": [
-            {
-              "text": "Displacement is zero; distance is not zero.",
-              "correct": true
-            },
-            {
-              "text": "Both distance and displacement are zero.",
-              "correct": false
-            },
-            {
-              "text": "Distance is zero; displacement is not zero.",
-              "correct": false
-            },
-            {
-              "text": "Neither is zero.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -217,24 +199,6 @@ export default {
             "notes": "The passenger remains seated in the train. Platform frame: passenger and train move east together. Train frame: they stay still while the platform moves west. Reference-frame changes do not change the physical trip.",
             "scene": "train"
           },
-          "choices": [
-            {
-              "text": "At rest relative to the train; moving relative to the platform.",
-              "correct": true
-            },
-            {
-              "text": "At rest relative to both.",
-              "correct": false
-            },
-            {
-              "text": "Moving relative to the train; at rest relative to the platform.",
-              "correct": false
-            },
-            {
-              "text": "A reference point cannot change a description of motion.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -395,24 +359,6 @@ export default {
             "notes": "East is positive. Both start at the same reference point and move at constant velocities.",
             "scene": "runner"
           },
-          "choices": [
-            {
-              "text": "Same speed, different velocities.",
-              "correct": true
-            },
-            {
-              "text": "Same speed and same velocity.",
-              "correct": false
-            },
-            {
-              "text": "Different speeds, same velocity.",
-              "correct": false
-            },
-            {
-              "text": "Their directions do not affect velocity.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -463,24 +409,6 @@ export default {
             "notes": "Straight path, steady motion within each moving interval, with a 10 s pause. Changes between intervals are idealized as brief.",
             "scene": "dog"
           },
-          "choices": [
-            {
-              "text": "Less than 2 m/s, because the stop adds time without distance.",
-              "correct": true
-            },
-            {
-              "text": "Exactly 2 m/s, because that is its speed when moving.",
-              "correct": false
-            },
-            {
-              "text": "Greater than 2 m/s, because it moves twice.",
-              "correct": false
-            },
-            {
-              "text": "Zero, because it stopped once.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -671,24 +599,6 @@ export default {
             "notes": "East is positive. The car continues west throughout the interval, with uniform acceleration.",
             "scene": "car"
           },
-          "choices": [
-            {
-              "text": "Speeding up; the negative sign indicates west.",
-              "correct": true
-            },
-            {
-              "text": "Slowing down, because every negative acceleration slows an object.",
-              "correct": false
-            },
-            {
-              "text": "Stopped, because the velocities are negative.",
-              "correct": false
-            },
-            {
-              "text": "Changing direction from west to east.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -721,24 +631,6 @@ export default {
             ],
             "notes": "Simplified circular orbit around the Sun: gravity points inward. Sun’s GM = 1.3271244 × 10²⁰ m³/s²; speed is calculated from √(GM/r). One AU = 149.6 million km. Time is compressed; sizes are not to scale."
           },
-          "choices": [
-            {
-              "text": "Earth accelerates inward because its velocity changes direction.",
-              "correct": true
-            },
-            {
-              "text": "Earth has no acceleration because its speed is constant.",
-              "correct": false
-            },
-            {
-              "text": "Earth accelerates outward, away from the Sun.",
-              "correct": false
-            },
-            {
-              "text": "Gravity points along Earth’s direction of travel.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -1014,24 +906,6 @@ export default {
             "notes": "Forward motion only, with constant speed within each interval. Instant transitions are an idealization.",
             "scene": "walker"
           },
-          "choices": [
-            {
-              "text": "10–20 s: greatest distance in the same amount of time.",
-              "correct": true
-            },
-            {
-              "text": "0–10 s: the walker starts from zero distance.",
-              "correct": false
-            },
-            {
-              "text": "20–30 s: the total distance is largest.",
-              "correct": false
-            },
-            {
-              "text": "All intervals: they each last 10 s.",
-              "correct": false
-            }
-          ],
           "table": {
             "headers": [
               "Time (s)",
@@ -1095,24 +969,6 @@ export default {
             "notes": "At the packet settings their speeds are equal but their velocities have opposite signs.",
             "scene": "cyclist"
           },
-          "choices": [
-            {
-              "text": "Identical speed graphs; direction is not shown.",
-              "correct": true
-            },
-            {
-              "text": "Different speed graphs, because west has negative speed.",
-              "correct": false
-            },
-            {
-              "text": "Identical graphs that both show east.",
-              "correct": false
-            },
-            {
-              "text": "One graph must slope downward because the cyclist goes west.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -1276,24 +1132,6 @@ export default {
             ],
             "notes": "Both scales support the same mass at rest. Compare Earth (10 N/kg, rounded) with Mars (3.7 N/kg). Identical spring stiffness (5000 N/m) makes compression proportional to weight. Mass stays the same; scale readings are forces in newtons."
           },
-          "choices": [
-            {
-              "text": "Mass stays the same; weight is smaller on Mars.",
-              "correct": true
-            },
-            {
-              "text": "Both mass and weight are smaller on Mars.",
-              "correct": false
-            },
-            {
-              "text": "Mass is larger on Mars; weight stays the same.",
-              "correct": false
-            },
-            {
-              "text": "Mass and weight both stay the same.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -1328,24 +1166,6 @@ export default {
             "notes": "At rest, static friction matches the pull up to 18 N. Above that threshold the crate slides; model kinetic friction as 14 N opposing motion. Vertical forces balance.",
             "scene": "crate"
           },
-          "choices": [
-            {
-              "text": "10 N left; static friction matches the pull while the crate stays still.",
-              "correct": true
-            },
-            {
-              "text": "18 N left, because friction always equals its maximum.",
-              "correct": false
-            },
-            {
-              "text": "0 N, because the crate is not moving.",
-              "correct": false
-            },
-            {
-              "text": "10 N right, in the same direction as the pull.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -1548,24 +1368,6 @@ export default {
             ],
             "notes": "Straight, level flight at constant velocity. Each control keeps its opposing force pair equal. Horizontal net force and vertical net force are both zero. The airplane can move without accelerating."
           },
-          "choices": [
-            {
-              "text": "The airplane keeps its velocity because net force and acceleration are zero.",
-              "correct": true
-            },
-            {
-              "text": "It must stop because the net force is zero.",
-              "correct": false
-            },
-            {
-              "text": "Lift cancels thrust, so it moves upward.",
-              "correct": false
-            },
-            {
-              "text": "There are no forces acting on it.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -1599,24 +1401,6 @@ export default {
             "notes": "Idealized short glide: horizontal friction and drag are neglected. Upward ice support balances weight.",
             "scene": "puck"
           },
-          "choices": [
-            {
-              "text": "It continues at constant velocity; no ongoing forward force is needed.",
-              "correct": true
-            },
-            {
-              "text": "It slows because the push has run out.",
-              "correct": false
-            },
-            {
-              "text": "It accelerates because it is already moving.",
-              "correct": false
-            },
-            {
-              "text": "The stick’s forward force stays inside the puck.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -1801,24 +1585,6 @@ export default {
             ],
             "notes": "The same horizontal NET force acts on each airplane. The planes are already flying at 5 m/s initially. Constant masses and forces; vertical forces are assumed to balance during this short interval. Compare accelerations using a = Fnet/m."
           },
-          "choices": [
-            {
-              "text": "The 0.4 kg plane accelerates twice as fast as the 0.8 kg plane.",
-              "correct": true
-            },
-            {
-              "text": "The 0.8 kg plane accelerates twice as fast.",
-              "correct": false
-            },
-            {
-              "text": "They accelerate equally because the net forces are equal.",
-              "correct": false
-            },
-            {
-              "text": "Neither accelerates because the forces are the same on both planes.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -1859,24 +1625,6 @@ export default {
             "notes": "Constant-speed circular motion without skidding. Horizontal static friction supplies the inward net force; vertical support balances weight.",
             "scene": "cyclist"
           },
-          "choices": [
-            {
-              "text": "Toward the center; friction from the road on the tires.",
-              "correct": true
-            },
-            {
-              "text": "Outward; the road must throw the bicycle out of the circle.",
-              "correct": false
-            },
-            {
-              "text": "Forward; constant speed requires a forward net force.",
-              "correct": false
-            },
-            {
-              "text": "There is no net force because speed is constant.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -2097,24 +1845,6 @@ export default {
             ],
             "notes": "A head-on, ideal elastic collision: a short spring-like compression makes equal and opposite contact forces on the two marbles. Use Contact to freeze that brief instant. Glass deformation is greatly enlarged in the drawing; track friction is ignored."
           },
-          "choices": [
-            {
-              "text": "Equal and opposite forces act on two different marbles.",
-              "correct": true
-            },
-            {
-              "text": "The moving marble exerts a larger force.",
-              "correct": false
-            },
-            {
-              "text": "The stationary marble exerts no force.",
-              "correct": false
-            },
-            {
-              "text": "The two forces cancel on each individual marble.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
@@ -2173,24 +1903,6 @@ export default {
             ],
             "notes": "Head-on collision with external horizontal forces neglected during impact. An ideal elastic collision is used to show momentum transfer; real stones may lose some kinetic energy. Total system momentum stays constant in either case."
           },
-          "choices": [
-            {
-              "text": "Individual momenta change, but total system momentum stays constant.",
-              "correct": true
-            },
-            {
-              "text": "Total momentum disappears when the first stone slows.",
-              "correct": false
-            },
-            {
-              "text": "Both stones gain the same amount of momentum.",
-              "correct": false
-            },
-            {
-              "text": "Momentum is conserved only when objects stick together.",
-              "correct": false
-            }
-          ],
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }

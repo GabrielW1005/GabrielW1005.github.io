@@ -80,7 +80,7 @@ function orbitScene(pal,problem,p,s,arrows){
  else{person(c,xx,yy+25,pal.blue,s.t*5,-Math.sin(theta)>=0?1:-1);ellipse(c,cx+r,cy,4,4,pal.orange);text(c,'start / finish',cx+r+12,cy+39,pal.muted,11,'center');}
  if(problem.id==='P03'){c.strokeStyle=pal.blue;c.lineWidth=4;c.beginPath();c.arc(cx,cy,r,0,-Math.min(TAU,theta),true);c.stroke();if(Math.abs(num(s.displacement))>.001)arrow(c,cx+r,cy,xx-(cx+r),yy-cy,pal.orange);text(c,'blue arc: distance · orange arrow: displacement',w/2,25,pal.muted,12,'center');}
  if(arrows&&problem.id!=='P03'){arrow(c,xx,yy,-Math.sin(theta)*65,-Math.cos(theta)*65,pal.blue);arrow(c,xx,yy,-Math.cos(theta)*54,Math.sin(theta)*54,pal.orange);}
- line(c,cx,cy,cx+r*.75,cy,pal.line,1,[4,4]);const radius=orbital?`${format(num(s.radius)/1e9,1)} million km`:`radius ${format(num(s.radius))} m`;text(c,radius,cx+r*.42,cy+17,pal.muted,11,'center');
+ line(c,cx,cy,cx+r*.75,cy,pal.line,1,[4,4]);const radius=orbital?`${format(num(s.radius)/1e9,1)} million km`:`radius ${format(num(s.radius))} m`;text(c,radius,cx+r*.42,cy+(orbital?67:17),pal.muted,11,'center');
  text(c,orbital?`Speed ${format(num(s.speed)/1000,2)} km/s`:`Speed ${format(num(s.speed))} m/s`,20,problem.id==='P03'?51:24,pal.ink,13,'left',true);
  if(arrows&&problem.id!=='P03'){line(c,22,54,46,54,pal.blue,3);text(c,'velocity: tangent',55,54,pal.blue,12);line(c,22,79,46,79,pal.orange,3);text(c,orbital?'gravity: inward':problem.id==='P28'?'net force: inward':'acceleration: inward',55,79,pal.orange,12);}
  caption(pal,orbital?'Simplified circular orbit · sizes enlarged · gravity changes the direction of velocity.':problem.id==='P03'?'Follow one full lap: the path has length, but start and finish coincide.':'View from above · tire–road friction supplies the inward net force.');
@@ -159,4 +159,169 @@ export function drawGraph(canvas,problem,p,t,{quantity='x',hideAnswers=false,the
  traces.forEach((trace,j)=>{c.strokeStyle=trace.color;c.lineWidth=j?2:2.6;c.setLineDash(trace.dash);c.beginPath();let started=false;trace.values.forEach((val,i)=>{if(!Number.isFinite(val)){started=false;return;}if(!started){c.moveTo(X(times[i]),Y(val));started=true;}else c.lineTo(X(times[i]),Y(val));});c.stroke();c.setLineDash([]);if(traces.length>1){const xx=L+j*(R-L)/traces.length;line(c,xx,34,xx+14,34,trace.color,2,trace.dash);text(c,trace.label,xx+19,34,pal.muted,9);}});
  const cursor=clamp(t,0,duration),current=field(now,quantity)/convert;line(c,X(cursor),T,X(cursor),B,pal.orange,1.5,[3,4]);if(Number.isFinite(current))ellipse(c,X(cursor),Y(current),4,4,pal.orange);
  canvas.setAttribute('aria-label',`${title} against time. Current value ${format(current)} ${unit}. ${quantity==='totalMomentum'?'The system total is the sum of the two individual momenta.':''}`);
+}
+
+/* Prediction playback: both experiments use one clock and one spatial scale. */
+function experimentState(problem,params,time,opts){
+ const trial=opts.trial,referenceProblem=trial.referenceProblem||problem,referenceParams=trial.referenceParams||params,proposalProblem=trial.problem||trial.trialProblem||problem,proposalParams=trial.params||trial.trialParams||params,ri=modelInfo(referenceProblem,referenceParams),pi=modelInfo(proposalProblem,proposalParams),duration=Math.max(.01,num(trial.duration,Math.max(ri.duration,pi.duration))),clock=Number.isFinite(opts.progress)?clamp(opts.progress,0,1)*duration:clamp(time,0,duration),refEnd=Math.min(ri.duration,num(trial.referenceSampleTime,ri.duration)),proposalEnd=Math.min(pi.duration,num(trial.sampleTime,pi.duration)),rt=Math.min(clock,refEnd),pt=Math.min(clock,proposalEnd);
+ return {trial,referenceProblem,referenceParams,proposalProblem,proposalParams,ri,pi,duration,clock,progress:clock/duration,refEnd,proposalEnd,rt,pt,reference:evaluate(referenceProblem,referenceParams,rt),proposal:evaluate(proposalProblem,proposalParams,pt),range:[Math.min(ri.range[0],pi.range[0]),Math.max(ri.range[1],pi.range[1])]};
+}
+function experimentLegend(pal,e){
+ const {c,w}=pal;line(c,20,23,42,23,pal.blue,4,[5,4]);text(c,e.trial.referenceLabel||'Given situation',51,23,pal.blue,13,'left',true,w*.43-40);line(c,w*.53,23,w*.53+22,23,pal.orange,4);text(c,e.trial.proposalLabel||(e.trial.overlay?.type==='vector'?'Your prediction':'Your test'),w*.53+31,23,pal.orange,13,'left',true,w*.44-32);
+}
+function experimentResult(pal,e){
+ const {c,w,h}=pal,t=e.trial,hasNumbers=Number.isFinite(t.value)&&Number.isFinite(t.expected),difference=t.value-t.expected;
+ const result=hasNumbers?`${e.referenceProblem.numericAnswer?'Given':'Goal'}: ${format(t.expected)} ${t.unit||''}    Your test: ${format(t.value)} ${t.unit||''}    Difference: ${difference>0?'+':''}${format(difference)} ${t.unit||''}`:(t.comparisonLabel||'Compare the physical situation with your test.');
+ if(e.progress>=.995){round(c,13,h-42,w-26,32,7,pal.fill);text(c,result,w/2,h-26,t.correct?pal.green:pal.ink,13,'center',true,w-44);}
+ else text(c,`Testing both situations · elapsed ${format(e.clock/(e.ri.timeScale||1))} ${e.ri.timeUnit||'s'}`,w/2,h-22,pal.muted,12,'center');
+}
+function experimentValue(state,quantity,params={}){
+ if(['finalVelocity','initialVelocity','velocity','vf','vi'].includes(quantity))return state.v;
+ if(quantity==='acceleration')return state.a;
+ if(quantity==='mass')return state.mass??state.bodies[0]?.mass??params.mass;
+ if(quantity==='displacement')return state.displacement??state.x-num(params.start);
+ if(quantity==='averageSpeed')return state.t>0?state.distance/state.t:0;
+ if(quantity==='frictionForce')return Math.abs(state.forces.find(f=>/friction/i.test(f.label))?.value??0);
+ if(quantity==='time')return state.t;
+ if(quantity==='momentum1')return state.bodies[0]?.mass*state.bodies[0]?.v;
+ if(quantity==='momentum2')return state.bodies[1]?.mass*state.bodies[1]?.v;
+ if(quantity==='force')return state.force1??state.forces.find(f=>f.body===0)?.value??0;
+ return state[quantity];
+}
+function experimentReadout(pal,e,state,params,x,y,color){
+ const value=comparisonValue(state,e.trial.quantity,params,e.referenceProblem),label={distance:'distance',displacement:'displacement',finalVelocity:'v',velocity:'v',acceleration:'a',netForce:'net force',frictionForce:'friction now',mass:'mass',totalMomentum:'system p',speed:'speed',averageSpeed:'average speed'}[e.trial.quantity]||'';if(Number.isFinite(value))text(pal.c,`${label} ${format(value)} ${e.trial.unit||''}`,x,y,color,13,'right',true);
+}
+function comparisonValue(state,quantity,params,problem){
+ const second=['P07','P16','P27'].includes(problem.id)?state.bodies[1]:null;
+ if(second){if(['velocity','v','finalVelocity'].includes(quantity))return second.v;if(quantity==='speed')return Math.abs(second.v);if(['acceleration','a'].includes(quantity))return second.a;if(quantity==='x')return second.x;if(quantity==='distance')return second.distance;}
+ return experimentValue(state,quantity,params);
+}
+function comparisonRange(e){let [min,max]=e.range;if(!Number.isFinite(min)||!Number.isFinite(max)||max-min<1e-9){min=-1;max=1;}return[min,max];}
+function experimentMotion(pal,e,arrows){
+ const {c,w,h}=pal,[min,max]=comparisonRange(e),L=65,R=w-65,X=z=>L+(z-min)/(max-min)*(R-L),laneY=[h*.40,h*.75],small=h<420,scale=small?.8:1.1,interval=e.trial.overlay?.type==='interval'?e.trial.overlay:null;
+ for(let i=0;i<=4;i++){const xx=L+(R-L)*i/4;line(c,xx,62,xx,h-68,pal.line,.8,[3,6]);text(c,format(min+(max-min)*i/4,1),xx,h-57,pal.muted,11,'center');}text(c,'position (m), right / east positive',L,49,pal.muted,11);
+ [[e.reference,e.referenceProblem,e.referenceParams,e.rt,e.refEnd],[e.proposal,e.proposalProblem,e.proposalParams,e.pt,e.proposalEnd]].forEach(([state,problem,p,t,end],run)=>{
+  const y=laneY[run],color=run?pal.orange:pal.blue;
+  line(c,L,y+5,R,y+5,pal.line,2);text(c,run?'YOUR TEST':'GIVEN',20,y-(small?72:91),color,11,'left',true);if(interval){const from=run?interval.start:interval.expectedStart,to=run?interval.end:interval.expectedEnd,avg=(evaluate(problem,p,to).distance-evaluate(problem,p,from).distance)/(to-from);text(c,`window average ${format(avg)} m/s`,w-23,y-(small?72:91),color,12,'right',true);}else experimentReadout(pal,e,state,p,w-23,y-(small?72:91),color);
+  state.bodies.forEach((b,i)=>{const multiple=state.bodies.length>1,bodyScale=multiple?scale*.72:scale,yy=y+(multiple?14:0)-i*(small?43:60),xx=X(b.x);c.save();c.translate(xx,yy);c.scale(bodyScale,bodyScale);object(c,0,0,multiple?(i?pal.orange:pal.blue):color,problem,t,b.v);c.restore();if(i>0)text(c,b.label||'object 2',xx,yy+13,pal.orange,10,'center');
+   if(arrows&&!multiple&&Math.abs(b.v)>.001){const len=clamp(Math.abs(b.v)*7,24,64);arrow(c,xx,yy-72*scale,Math.sign(b.v)*len,0,color,`${format(b.v)} m/s`,10);}
+  });
+  if(e.clock>end+.001)text(c,`paused at ${format(end)} s`,w-23,y+26,color,10,'right');
+  if(state.bodies.length>1)text(c,`blue v ${format(state.bodies[0].v)} · orange v ${format(state.bodies[1].v)} m/s`,20,y+27,color,10);
+  if(state.bodies.length===1&&state.forces.length&&arrows){const net=state.netForce??state.forces.filter(f=>f.axis==='horizontal'&&f.body===0).reduce((a,f)=>a+f.value,0);text(c,`net force ${format(net)} N`,20,y+26,color,11);}
+ });
+}
+function experimentTrain(pal,e,arrows){
+ const {c,w,h}=pal,[min,max]=comparisonRange(e),L=83,R=w-83,X=z=>L+(z-min)/(max-min)*(R-L),laneY=h<420?[h*.31,h*.69]:[h*.39,h*.75],carWidth=clamp(w*.19,110,170),carHeight=h<420?66:82,figureScale=h<420?.70:.90,step=Math.max(10,Math.ceil((max-min)/100)*20);
+ [[e.reference,e.referenceParams,e.rt],[e.proposal,e.proposalParams,e.pt]].forEach(([s,p,t],i)=>{const y=laneY[i],col=i?pal.orange:pal.blue,passengerX=X(s.x),center=passengerX-8,refSpeed=num(s.referenceSpeed),label=i?`YOUR OBSERVER: ${format(refSpeed)} m/s east`:`GIVEN OBSERVER: ${format(refSpeed)} m/s east`;
+  line(c,L-35,y+carHeight/2+8,R+35,y+carHeight/2+8,pal.line,3);
+  for(let j=-15;j<=25;j++){const place=j*step,xx=X(place-refSpeed*t);if(xx>L-40&&xx<R+40){line(c,xx,y+carHeight/2+8,xx,y+carHeight/2+16,pal.muted);text(c,`${format(place)} m`,xx,y+carHeight/2+22,pal.muted,9,'center');}}
+  round(c,center-carWidth/2,y-carHeight/2,carWidth,carHeight,9,pal.fill,col);round(c,center-carWidth/2+7,y-carHeight/2+7,carWidth-14,carHeight-20,5,pal.white);for(const dx of[-carWidth*.32,carWidth*.32])ellipse(c,center+dx,y+carHeight/2+4,7,7,col);
+  c.save();c.translate(passengerX,y+carHeight*.31);c.scale(figureScale,figureScale);person(c,0,0,col,0,1,true);line(c,-6,-41,-6,-17,pal.orange,4);line(c,-6,-17,24,-17,pal.orange,4);line(c,-6,-16,-6,0,pal.orange,3);c.restore();
+  text(c,label,20,y-carHeight/2-27,col,11,'left',true);text(c,`passenger v = ${format(s.v)} m/s`,w-22,y-carHeight/2-27,col,12,'right',true);
+  if(arrows&&Math.abs(s.v)>.001)arrow(c,passengerX,y-carHeight/2-9,Math.sign(s.v)*47,0,col);
+ });
+}
+function experimentVertical(pal,e,arrows){
+ const {c,w,h}=pal,[min,max]=comparisonRange(e),top=h<420?111:135,bottom=h-72,Y=value=>bottom-(value-min)/(max-min)*(bottom-top),xs=[w*.31,w*.73],maxForce=Math.max(1,...e.reference.forces.concat(e.proposal.forces).map(f=>Math.abs(f.value))),spriteScale=h<420?.65:.9;
+ for(let i=0;i<=4;i++){const value=min+(max-min)*i/4,yy=Y(value);line(c,60,yy,w-25,yy,pal.line,.8,[4,6]);text(c,format(value,1),49,yy,pal.muted,11,'right');}text(c,'height (m) · up +',20,50,pal.muted,11);
+ [[e.reference,e.referenceProblem,e.referenceParams,e.rt],[e.proposal,e.proposalProblem,e.proposalParams,e.pt]].forEach(([state,problem,p,t],run)=>{
+  const color=run?pal.orange:pal.blue,x=xs[run],y=Y(state.x);c.save();c.translate(x,y);c.scale(spriteScale,spriteScale);flightObject(c,0,0,color,problem.simulation.scene||'drone',t,pal);c.restore();
+  if(arrows){state.forces.filter(f=>f.axis==='vertical').forEach(f=>{const len=Math.abs(f.value)/maxForce*(h<420?52:82),xx=x+(f.value>0?-62:62)*spriteScale;arrow(c,xx,y,0,-Math.sign(f.value)*len,f.value>0?pal.green:color);});if(Math.abs(state.v)>.001)arrow(c,x+105*spriteScale,y,0,-Math.sign(state.v)*35,color);}
+  text(c,`height ${format(state.x)} m`,x,71,color,12,'center',true);text(c,`net ${format(state.netForce)} N · v ${format(state.v)} m/s`,x,92,color,11,'center');
+ });
+}
+function experimentCircular(pal,e,arrows){
+ const {c,w,h}=pal,cx=w*.49,cy=h*.50,maxRadius=Math.max(num(e.reference.radius,1),num(e.proposal.radius,1)),radiusPx=Math.min(w*.32,h*.33),orbital=e.referenceParams.orbital;
+ if(orbital){ellipse(c,cx,cy,23,23,pal.orange);text(c,'Sun',cx,cy+38,pal.muted,11,'center');}else ellipse(c,cx,cy,3,3,pal.muted);
+ [[e.reference,e.referenceProblem,e.referenceParams,e.rt,e.refEnd],[e.proposal,e.proposalProblem,e.proposalParams,e.pt,e.proposalEnd]].forEach(([state,problem,p,t,end],run)=>{
+  const color=run?pal.orange:pal.blue,r=num(state.radius)*radiusPx/maxRadius,theta=num(state.theta),x=cx+r*Math.cos(theta),y=cy-r*Math.sin(theta);c.strokeStyle=color;c.globalAlpha=.35;c.lineWidth=2;c.setLineDash(run?[]:[6,5]);c.beginPath();c.arc(cx,cy,r,0,TAU);c.stroke();c.setLineDash([]);c.globalAlpha=1;
+  if(problem.id==='P03'){c.strokeStyle=color;c.lineWidth=run?3:7;c.globalAlpha=run?1:.35;c.beginPath();c.arc(cx,cy,r,0,-Math.min(TAU,theta),true);c.stroke();c.globalAlpha=1;}
+  if(orbital){ellipse(c,x,y,run?10:15,run?10:15,color);}
+  else if(problem.id==='P28'){topBike(c,x,y,color,Math.atan2(-Math.cos(theta),-Math.sin(theta)));}
+  else{ellipse(c,x,y,run?8:12,run?8:12,color);if(arrows&&state.displacement>.001)arrow(c,cx+r,cy,x-cx-r,y-cy,color);}
+  text(c,`${run?'Your':'Given'} distance: ${format(state.distance)} m`,20,h-(run?65:87),color,12,'left',true,w-50);
+  if(e.clock>end+.001)chip(c,'your chosen finish',x,clamp(y+29,70,h-108),pal,color);
+ });
+}
+function comparisonCollisionGeometry(pal,e,state){
+ const {w}=pal,[min,max]=comparisonRange(e),b=state.bodies,R=b.map(o=>num(o.radius,.03)),compression=Math.max(0,num(state.compression)),factor=clamp(1-compression/(R[0]+R[1]),.3,1),base=pal.h<420?21:30,radii=[base*factor,base*factor],gap=Math.max(0,b[1].x-b[0].x-R[0]-R[1])*(w-210)/(max-min),sep=radii[0]+radii[1]+gap,m=b[0].mass+b[1].mass,center=(b[0].x*b[0].mass+b[1].x*b[1].mass)/m,raw=95+(center-min)*(w-190)/(max-min),mid=clamp(raw,55+sep*b[1].mass/m,w-55-sep*b[0].mass/m);
+ return {xs:[mid-sep*b[1].mass/m,mid+sep*b[0].mass/m],radii,base,factor};
+}
+function experimentCollision(pal,e,arrows){
+ const {c,w,h}=pal,ys=[h*.37,h*.73];
+ [[e.reference,e.referenceProblem,e.rt],[e.proposal,e.proposalProblem,e.pt]].forEach(([s,problem,t],run)=>{const color=run?pal.orange:pal.blue,g=comparisonCollisionGeometry(pal,e,s),y=ys[run];line(c,30,y+g.base+1,w-30,y+g.base+1,pal.line,2);text(c,run?'YOUR TEST':'GIVEN',20,y-g.base-48,color,11,'left',true);text(c,`system p = ${format(s.totalMomentum)} kg·m/s`,w-22,y-g.base-48,color,12,'right',true);
+  s.bodies.forEach((b,i)=>{const bodyColor=i?pal.green:color,ry=g.base/Math.sqrt(g.factor);collisionObject(c,g.xs[i],y,g.radii[i],ry,bodyColor,problem.simulation.scene||'clay',i,pal);text(c,`${format(b.mass)} kg`,g.xs[i]+(i?23:-23),y+g.base+18,bodyColor,10,i?'left':'right');
+   if(arrows&&s.contact){const f=s.forces.find(f=>f.body===i);if(f&&Math.abs(f.value)>.00001)arrow(c,g.xs[i],y-g.base-15,Math.sign(f.value)*42,0,bodyColor);}
+   else if(arrows&&Math.abs(b.v)>.001)arrow(c,g.xs[i],y-g.base-15,Math.sign(b.v)*40,0,bodyColor,`${format(b.v)} m/s`,10);
+  });
+ });
+}
+/* A damped spring scale: m x'' + c x' + k x = mg, released unstretched. */
+function loadedScale(params,t){const mass=Math.max(.000001,num(params.mass,1)),g=Math.max(0,num(params.g,10)),k=Math.max(.000001,num(params.springK,500)),zeta=.45,omega=Math.sqrt(k/mass),d=Math.sqrt(1-zeta*zeta),wd=omega*d,tt=Math.max(0,t),decay=Math.exp(-zeta*omega*tt),eq=mass*g/k,x=eq*(1-decay*(Math.cos(wd*tt)+zeta/d*Math.sin(wd*tt))),v=eq*omega/d*decay*Math.sin(wd*tt);return {mass,g,k,weight:mass*g,x,v,force:k*x,equilibrium:eq};}
+function experimentScale(pal,e,arrows){
+ const {c,w,h}=pal,rs=loadedScale(e.referenceParams,e.clock),ps=loadedScale(e.proposalParams,e.clock),maxExtension=Math.max(.001,rs.equilibrium,ps.equilibrium)*1.24,span=Math.max(55,h-220),ppm=span/maxExtension,beam=75,rest=32,xs=[w*.28,w*.72],astronaut=e.referenceProblem.simulation.scene==='astronaut';
+ [[rs,e.referenceParams],[ps,e.proposalParams]].forEach(([s,p],i)=>{const x=xs[i],color=i?pal.orange:pal.blue;
+  if(astronaut){const floor=h-82,neutral=floor-Math.max(80,h*.30),compression=s.x/maxExtension*Math.max(55,h*.17),plate=neutral+compression;round(c,x-53,floor,106,10,3,pal.line);spring(c,x,plate+5,floor,color,18);line(c,x-57,plate,x+57,plate,color,4);c.save();c.translate(x,plate);c.scale(h<420?.85:1.3,h<420?.85:1.3);person(c,0,0,color,0,1);ellipse(c,0,-53,10,10,null,color);c.restore();text(c,`${format(s.mass)} kg`,x,58,color,13,'center',true);}
+  else{const end=beam+rest+s.x*ppm;line(c,x-65,beam-6,x+65,beam-6,pal.line,5);spring(c,x,beam,end,color,14);line(c,x,end,x,end+8,color,2);round(c,x-29,end+8,58,37,5,color);text(c,`${format(s.mass)} kg`,x,end+27,pal.white,12,'center',true);const eqY=beam+rest+s.equilibrium*ppm;line(c,x-72,eqY,x+72,eqY,color,1,[4,4]);}
+  text(c,`spring reading ${format(s.force)} N`,x,h-63,color,13,'center',true);text(c,`weight ${format(s.weight)} N`,x,astronaut?78:49,color,12,'center');
+ });
+ text(c,'Damped scales: spring readings settle to the weights.',w/2,62,pal.muted,10,'center',false,w-36);
+}
+function originalCollisionOrigin(pal,problem,s,info,index){
+ const {w,h}=pal,b=s.bodies,R=b.map(o=>num(o.radius,.1)),sumR=R[0]+R[1],factor=clamp(1-num(s.compression)/sumR,.3,1),baseSize=clamp(Math.min(h*.067,w*.055),25,43),baseR=problem.simulation.scene==='bowling'?[baseSize,baseSize*.55]:problem.simulation.scene==='curling'?[baseSize*1.12,baseSize*1.12]:[baseSize,baseSize],radii=baseR.map(r=>r*factor),gap=Math.max(0,b[1].x-b[0].x-sumR)*(w-210)/(info.range[1]-info.range[0]),sep=radii[0]+radii[1]+gap,m=b[0].mass+b[1].mass,cm=(b[0].x*b[0].mass+b[1].x*b[1].mass)/m,raw=100+(cm-info.range[0])*(w-210)/(info.range[1]-info.range[0]),mid=clamp(raw,70+sep*b[1].mass/m,w-70-sep*b[0].mass/m),xs=[mid-sep*b[1].mass/m,mid+sep*b[0].mass/m],Y=h*(h<430?.52:.60);
+ return{x:xs[index],y:Y+37-baseR[index]/Math.sqrt(factor),radius:baseR[index]/Math.sqrt(factor)};
+}
+function vectorReveal(e){const start=e.trial.overlay.origin==='body'&&e.referenceProblem.simulation.kind==='momentum'?e.refEnd:0;return clamp((e.clock-start)/Math.max(.01,e.duration-start),0,1);}
+function experimentVector(canvas,pal,e,opts){
+ const o=e.trial.overlay;drawScene(canvas,e.referenceProblem,e.referenceParams,e.rt,{...opts,arrows:false});const {c,w,h}=pal;let origin;
+ if(o.origin==='orbit'||o.origin==='turn'){const r=Math.min(h*.32,w*.32);origin={x:w*.49+r,y:h*.50};}
+ else if(e.referenceProblem.simulation.kind==='momentum')origin=originalCollisionOrigin(pal,e.referenceProblem,e.reference,e.ri,o.body??1);
+ else{const[min,max]=e.ri.range;origin={x:58+(e.reference.x-min)/(max-min)*(w-116),y:h-123};}
+ const contactOrigin=e.referenceProblem.simulation.kind==='momentum'?{...origin}:null;if(contactOrigin)origin={...origin,y:origin.y-origin.radius-17};
+ const reveal=vectorReveal(e),max=Math.max(.000001,Math.abs(o.magnitude),Math.abs(o.expectedMagnitude)),extent=Math.min(w*.20,h*.25,140),vector=(angle,mag,color,growth,dashed)=>{const rad=angle*Math.PI/180,length=mag/max*extent*growth,dx=Math.cos(rad)*length,dy=-Math.sin(rad)*length;c.globalAlpha=dashed?.45:1;if(dashed)line(c,origin.x,origin.y,origin.x+dx,origin.y+dy,color,7,[5,5]);arrow(c,origin.x,origin.y,dx,dy,color);c.globalAlpha=1;};
+ const ready=e.referenceProblem.simulation.kind!=='momentum'||e.clock>=e.refEnd;
+ if(ready){if(contactOrigin){line(c,contactOrigin.x,contactOrigin.y-contactOrigin.radius,origin.x,origin.y,pal.muted,1.5);ellipse(c,origin.x,origin.y,2.5,2.5,pal.muted);}if(Math.abs(o.expectedMagnitude)<.000001){ellipse(c,origin.x,origin.y,9,9,null,pal.blue);text(c,'physical force: 0 N',origin.x,origin.y+32,pal.blue,12,'center');}if(Math.abs(o.magnitude)<.000001){ellipse(c,origin.x,origin.y,5,5,pal.orange);text(c,'your force: 0 N',origin.x,origin.y-25,pal.orange,12,'center');}vector(o.expectedAngle,o.expectedMagnitude,pal.blue,1,true);vector(o.angle,o.magnitude,pal.orange,reveal,false);if(e.referenceProblem.simulation.kind==='momentum'){const partner=originalCollisionOrigin(pal,e.referenceProblem,e.reference,e.ri,0),length=Math.abs(o.expectedMagnitude)/max*extent,forceY=partner.y-partner.radius-17;line(c,partner.x,partner.y-partner.radius,partner.x,forceY,pal.muted,1.5);ellipse(c,partner.x,forceY,2.5,2.5,pal.muted);arrow(c,partner.x,forceY,-length,0,pal.blue);}}
+ round(c,9,6,w-18,38,7,pal.panel);experimentLegend(pal,e);text(c,`${o.expectedLabel||'Physical force'} (blue) · ${o.label||'Your proposed force'} (orange)`,w/2,61,pal.muted,11,'center',false,w-28);
+ experimentResult(pal,e);
+}
+export function drawExperiment(canvas,problem,params,time,opts={}){
+ if(!opts.trial||opts.trial.ok===false){drawScene(canvas,problem,params,time,opts);return;}
+ const e=experimentState(problem,params,time,opts),pal=setup(canvas,opts.theme),kind=e.referenceProblem.simulation.kind;
+ if(e.trial.overlay?.type==='vector'){experimentVector(canvas,pal,e,opts);return;}
+ experimentLegend(pal,e);
+ if(kind==='gravity')experimentScale(pal,e,opts.arrows!==false);
+ else if(e.referenceProblem.simulation.scene==='train')experimentTrain(pal,e,opts.arrows!==false);
+ else if(kind==='circular')experimentCircular(pal,e,opts.arrows!==false);
+ else if(kind==='momentum')experimentCollision(pal,e,opts.arrows!==false);
+ else if(e.reference.axis==='vertical'||e.proposal.axis==='vertical')experimentVertical(pal,e,opts.arrows!==false);
+ else experimentMotion(pal,e,opts.arrows!==false);
+ experimentResult(pal,e);
+ canvas.setAttribute('aria-label',`Comparison. Given situation and your test use the same position and time scales. ${e.trial.comparisonLabel||''} ${e.progress>=.995?`Given result ${e.trial.expected} ${e.trial.unit}; your test ${e.trial.value} ${e.trial.unit}.`:''}`);
+}
+function vectorGraph(pal,e){
+ const {c,w,h}=pal,o=e.trial.overlay,cx=w*.5,cy=h*.59,extent=Math.max(25,Math.min(w*.32,h*.31)),max=Math.max(.000001,Math.abs(o.magnitude),Math.abs(o.expectedMagnitude)),reveal=vectorReveal(e);
+ line(c,cx-extent-10,cy,cx+extent+10,cy,pal.line);line(c,cx,cy-extent-10,cx,cy+extent+10,pal.line);text(c,'right +',w-12,cy+15,pal.muted,10,'right');text(c,'up +',cx+7,cy-extent-13,pal.muted,10);
+ if(e.referenceProblem.simulation.kind==='momentum'&&e.clock<e.refEnd){text(c,'Approaching contact…',w/2,h*.55,pal.muted,12,'center');return;}
+ const draw=(angle,magnitude,col,growth)=>{const rad=angle*Math.PI/180,len=magnitude/max*extent*growth;arrow(c,cx,cy,Math.cos(rad)*len,-Math.sin(rad)*len,col);};draw(o.expectedAngle,o.expectedMagnitude,pal.blue,1);draw(o.angle,o.magnitude,pal.orange,reveal);
+ text(c,'Force vectors: same scale',12,13,pal.muted,11);line(c,13,33,29,33,pal.blue,3);text(c,'given',35,33,pal.blue,10);line(c,100,33,116,33,pal.orange,3);text(c,'your test',122,33,pal.orange,10);
+}
+export function drawExperimentGraph(canvas,problem,params,time,opts={}){
+ if(!opts.trial||opts.trial.ok===false){drawGraph(canvas,problem,params,time,opts);return;}
+ const e=experimentState(problem,params,time,opts),pal=setup(canvas,opts.theme),{c,w,h}=pal,k=e.referenceProblem.simulation.kind;
+ if(e.trial.overlay?.type==='vector'){vectorGraph(pal,e);canvas.setAttribute('aria-label','Given and proposed force vectors, using the same scale.');return;}
+ const gravity=k==='gravity',quantity=gravity?'weight':opts.quantity||e.ri.graphKey||'x',orbital=!!e.referenceParams.orbital,convert=orbital?(['x','distance'].includes(quantity)?1e9:['v','speed'].includes(quantity)?1e3:1):1,units={x:'m',distance:'m',v:'m/s',speed:'m/s',a:'m/s²',netForce:'N',force:'N',weight:'N',totalMomentum:'kg·m/s',momentum1:'kg·m/s',momentum2:'kg·m/s'},names={x:'Position',distance:'Distance',v:'Velocity',speed:'Speed',a:'Acceleration',netForce:'Net force',force:'Contact force',weight:'Spring reading',totalMomentum:'System momentum',momentum1:'Object 1 momentum',momentum2:'Object 2 momentum'},unit=convert===1e9?'million km':convert===1e3?'km/s':units[quantity]||e.trial.unit||'';
+ let times=Array.from({length:141},(_,i)=>e.duration*i/140);for(const state of[e.reference,e.proposal])if(state.collisionTime!==undefined)for(let i=0;i<=24;i++)times.push(state.collisionTime+num(state.contactDuration,.01)*i/24);times=times.filter(x=>x>=0&&x<=e.duration).sort((a,b)=>a-b);
+ const runs=[{problem:e.referenceProblem,params:e.referenceParams,end:e.refEnd,color:pal.blue,label:e.trial.referenceLabel?.startsWith('Earth')?'Earth':'given',dash:[5,4]},{problem:e.proposalProblem,params:e.proposalParams,end:e.proposalEnd,color:pal.orange,label:e.trial.proposalLabel?.startsWith('Other')?'other planet':'your test',dash:[]}];
+ runs.forEach(run=>{run.values=times.map(t=>{if(!gravity&&t>run.end+1e-9)return NaN;if(gravity)return loadedScale(run.params,t).force;return comparisonValue(evaluate(run.problem,run.params,t),quantity,run.params,run.problem)/convert;});});
+ const guide=e.trial.overlay?.type==='interval'?times.map(t=>comparisonValue(evaluate(e.referenceProblem,e.referenceParams,t),quantity,e.referenceParams,e.referenceProblem)/convert):[];
+ const values=runs.flatMap(r=>r.values).concat(guide).filter(Number.isFinite);let lo=Math.min(0,...values),hi=Math.max(0,...values);if(hi-lo<1e-9){hi+=.5;lo-=.5;}const pad=(hi-lo)*.12;lo-=pad;hi+=pad;
+ const L=w<290?43:50,R=w-13,T=h<180?45:52,B=h-34,X=t=>L+(R-L)*t/e.duration,Y=value=>B-(value-lo)/(hi-lo)*(B-T);
+ if(e.trial.overlay?.type==='interval'){const o=e.trial.overlay;c.globalAlpha=.12;c.fillStyle=pal.blue;c.fillRect(X(o.expectedStart),T,X(o.expectedEnd)-X(o.expectedStart),B-T);c.fillStyle=pal.orange;c.fillRect(X(o.start),T,X(o.end)-X(o.start),B-T);c.globalAlpha=1;}
+ for(let i=0;i<=3;i++){const value=lo+(hi-lo)*i/3;line(c,L,Y(value),R,Y(value),pal.line);text(c,format(value,hi-lo<.1?4:1),L-6,Y(value),pal.muted,10,'right');}
+ for(let i=0;i<=4;i++){const t=e.duration*i/4;line(c,X(t),T,X(t),B,pal.line,.7);text(c,format(t/(e.ri.timeScale||1),1),X(t),B+14,pal.muted,10,'center');}line(c,L,B,R,B,pal.muted);if(lo<0&&hi>0)line(c,L,Y(0),R,Y(0),pal.muted,.7);
+ text(c,`${names[quantity]||quantity} (${unit})`,L,13,pal.muted,11,'left',false,w-L-10);text(c,`elapsed ${e.ri.timeUnit==='days'?'days':'seconds'}`,R,h-7,pal.muted,9,'right');
+ if(guide.length){c.strokeStyle=pal.muted;c.globalAlpha=.35;c.lineWidth=2;c.beginPath();guide.forEach((v,i)=>{if(i===0)c.moveTo(X(times[i]),Y(v));else c.lineTo(X(times[i]),Y(v));});c.stroke();c.globalAlpha=1;}
+ runs.forEach((run,index)=>{const lx=L+index*(R-L)*.5;line(c,lx,32,lx+20,32,run.color,3,run.dash);text(c,run.label,lx+26,32,run.color,10);c.strokeStyle=run.color;c.lineWidth=index?2.5:4;c.setLineDash(run.dash);c.globalAlpha=index?1:.6;c.beginPath();let started=false;times.forEach((t,i)=>{const value=run.values[i];if(t>e.clock+.00001||!Number.isFinite(value)){started=false;return;}if(!started){c.moveTo(X(t),Y(value));started=true;}else c.lineTo(X(t),Y(value));});c.stroke();c.setLineDash([]);c.globalAlpha=1;const currentTime=gravity?e.clock:Math.min(e.clock,run.end),current=gravity?loadedScale(run.params,currentTime).force:comparisonValue(evaluate(run.problem,run.params,currentTime),quantity,run.params,run.problem)/convert;if(Number.isFinite(current))ellipse(c,X(currentTime),Y(current),4,4,run.color);});
+ line(c,X(e.clock),T,X(e.clock),B,pal.muted,1,[3,4]);canvas.setAttribute('aria-label',`Comparison graph: ${names[quantity]||quantity}. Given situation is dashed blue; your test is orange. Both use the same axes.`);
 }

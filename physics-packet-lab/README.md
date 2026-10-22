@@ -4,11 +4,13 @@ A dependency-free web app for the revised 32-question grade 8 packet. It runs fr
 
 ## Classroom use
 
-Choose a numbered packet problem, adjust the values, and run or inspect its model in one experiment workspace. The large simulation and its graph appear side by side. The question, prediction/goal, and controls remain available without scrolling the whole page on laptop screens. The problem menu, full question, math warm-ups, and explanations open when needed.
+Choose a numbered packet problem, adjust the values, and test an idea in one experiment workspace. The large simulation and its graph appear side by side. The question, prediction/goal, and controls remain available without scrolling the whole page on laptop screens. The problem menu, full question, math warm-ups, and explanations open when needed.
 
 - **Packet values** restores the printed scenario.
-- Predictions use the current experiment values; changing a value changes the calculation.
-- Conceptual questions refer to the printed scenario. Restore its values before checking its reasoning.
+- **Test prediction** runs a physical trial implied by the entered answer beside the given situation. Both runs use the same time and coordinate scales. Feedback explains the difference and confirms a matching prediction.
+- Conceptual questions use continuous controls and observable experiment goals. There are no multiple-choice answers.
+- Trial explanations identify which assumption changes when testing an answer, so a proposed value is never substituted into an inconsistent physical model.
+- Changing the scenario measurements clears the previous trial. Packet values restores the printed conditions.
 - Play, pause, restart, and the timeline let students inspect the same model at any instant.
 - Graphs and numerical readings come from the same physical state as the animation.
 - Fullscreen and light/dark themes support classroom displays.
@@ -35,14 +37,16 @@ The local development project serves `dist/`. On GitHub Pages, its contents are 
 
 - `dist/data.js`: revised packet text, adjustable experiment values, and goals.
 - `dist/physics.js`: deterministic physical state and calculations.
-- `dist/rendering.js`: scene and graph drawing.
+- `dist/rendering.js`: scene, shared-scale prediction comparison, and graph drawing.
+- `dist/experiments.js`: physical prediction trials and conceptual exploration tasks.
 - `dist/app.js`, `index.html`, `styles.css`: interface.
 - `dist/downloads/`: the three current student PDFs.
 - `maintainer/`: printable source content and PDF generator.
 - `tests/verify-models.mjs`: packet-answer checks and physical invariants.
+- `tests/verify-experiments.mjs`: entered-answer trials and conceptual goal checks.
 
-Run `node tests/verify-models.mjs` in either the development project or the published source. The publication copy uses imports for its flat file layout.
+Run `node tests/verify-models.mjs` and `node tests/verify-experiments.mjs` in either the development project or the published source. The publication copy uses imports for its flat file layout.
 
-Verified: all 16 packet numerical answers; 564 model snapshots; collision momentum, energy, contact and force invariants; vertical force signs; spring scales; train reference frames; orbital vectors; and browser interaction checks with a 1024 × 600 viewport.
+The model checks cover all 16 packet numerical answers, collision momentum and contact forces, vertical force signs, spring scales, train reference frames, orbital vectors, and edited measurements. Experiment checks cover correct and incorrect proposed values and the conceptual goals. Browser QA covers the prediction interaction and the side-by-side stage/graph layout.
 
 No CDN, analytics, login, or network service is used after page assets load. Progress stays in the current browser and can be reset. Explanations are intentionally available for learning.

@@ -16,7 +16,7 @@ for(const p of all){
   }
  }
  if(p.numericAnswer)near(solve(p,base).value,p.numericAnswer.value);
- else assert.equal(p.choices.filter(c=>c.correct).length,1,p.id);
+ else assert.ok(!p.choices,`${p.id}: conceptual tasks must not use multiple choice`);
 }
 // Source synchronization prevents the simulation from silently answering an older packet.
 const sourceUrl=new URL('../maintainer/content/packet.json',import.meta.url);
