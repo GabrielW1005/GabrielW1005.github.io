@@ -1,14 +1,13 @@
 {
   "title": "Motion & Forces Lab",
-  "version": "1.0",
+  "version": "2.0-experiment",
   "grade": 8,
   "conventions": [
-    "Use right/east as positive unless stated otherwise.",
-    "Use g = 10 m/s² near Earth as a classroom approximation.",
+    "Use right/east as positive for horizontal motion and upward as positive for vertical motion, unless stated otherwise.",
+    "Use g = 10 m/s² near Earth as a classroom approximation. Use g = 3.7 m/s² on Mars when given.",
     "Write a formula, substitute values, and include units in every quantitative answer.",
     "For conceptual answers, use a complete sentence and evidence from the situation.",
-    "Round non-terminating numerical answers to two decimal places unless told otherwise.",
-    "Simulation assumptions are identified in the app; the printed values are the packet defaults."
+    "Round non-terminating numerical answers to two decimal places unless told otherwise."
   ],
   "sections": [
     {
@@ -72,11 +71,16 @@
                 "step": 1
               }
             ],
-            "notes": "East is positive. Walk at 1.2 m/s on both legs; turning time is neglected."
+            "notes": "East is positive. Walk at 1.2 m/s on both legs; turning time is neglected.",
+            "scene": "walkerbox"
           },
           "numericAnswer": {
             "value": 17,
             "unit": "m",
+            "quantity": "distance"
+          },
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
             "quantity": "distance"
           }
         },
@@ -116,11 +120,16 @@
                 "step": 1
               }
             ],
-            "notes": "Single straight trip: keep turn equal to end when end is adjusted. East is positive."
+            "notes": "Single straight trip: keep turn equal to end when end is adjusted. East is positive.",
+            "scene": "walker"
           },
           "numericAnswer": {
             "value": 15,
             "unit": "m east",
+            "quantity": "displacement"
+          },
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
             "quantity": "displacement"
           }
         },
@@ -156,7 +165,8 @@
                 "step": 0.5
               }
             ],
-            "notes": "One complete lap; constant speed. Draw the route and the start-to-finish displacement."
+            "notes": "One complete lap; constant speed. Draw the route and the start-to-finish displacement.",
+            "scene": "runner"
           },
           "choices": [
             {
@@ -175,7 +185,10 @@
               "text": "Neither is zero.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         },
         {
           "id": "P04",
@@ -189,27 +202,20 @@
             "params": {
               "speed": 10,
               "time": 8,
-              "referenceSpeed": 10
+              "frame": 0
             },
             "adjustable": [
               {
                 "key": "speed",
-                "label": "Train speed",
+                "label": "Train velocity",
                 "unit": "m/s",
                 "min": 2,
                 "max": 20,
                 "step": 1
-              },
-              {
-                "key": "referenceSpeed",
-                "label": "Reference-frame speed",
-                "unit": "m/s",
-                "min": 0,
-                "max": 20,
-                "step": 1
               }
             ],
-            "notes": "A stationary platform has referenceSpeed=0; the train frame has referenceSpeed equal to train speed. Constant straight-line motion."
+            "notes": "The passenger remains seated in the train. Platform frame: passenger and train move east together. Train frame: they stay still while the platform moves west. Reference-frame changes do not change the physical trip.",
+            "scene": "train"
           },
           "choices": [
             {
@@ -228,7 +234,10 @@
               "text": "A reference point cannot change a description of motion.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         }
       ]
     },
@@ -291,11 +300,16 @@
                 "step": 10
               }
             ],
-            "notes": "Animation uses constant speed equal to the trip’s average; the measured average does not prove the real walk was perfectly steady."
+            "notes": "Animation uses constant speed equal to the trip’s average; the measured average does not prove the real walk was perfectly steady.",
+            "scene": "walker"
           },
           "numericAnswer": {
             "value": 1.5,
             "unit": "m/s",
+            "quantity": "speed"
+          },
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
             "quantity": "speed"
           }
         },
@@ -333,11 +347,16 @@
                 "step": 5
               }
             ],
-            "notes": "Constant speed on a straight path."
+            "notes": "Constant speed on a straight path.",
+            "scene": "cyclist"
           },
           "numericAnswer": {
             "value": 180,
             "unit": "m",
+            "quantity": "distance"
+          },
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
             "quantity": "distance"
           }
         },
@@ -373,7 +392,8 @@
                 "step": 0.5
               }
             ],
-            "notes": "East is positive. Both start at the same reference point and move at constant velocities."
+            "notes": "East is positive. Both start at the same reference point and move at constant velocities.",
+            "scene": "runner"
           },
           "choices": [
             {
@@ -392,7 +412,10 @@
               "text": "Their directions do not affect velocity.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         },
         {
           "id": "P08",
@@ -415,10 +438,30 @@
                 20,
                 20,
                 40
-              ]
+              ],
+              "distanceScale": 1,
+              "timeScale": 1
             },
-            "adjustable": [],
-            "notes": "Straight path, steady motion within each moving interval, with a 10 s pause. Changes between intervals are idealized as brief."
+            "adjustable": [
+              {
+                "key": "distanceScale",
+                "label": "All route distances ×",
+                "unit": "",
+                "min": 0.5,
+                "max": 1.2,
+                "step": 0.1
+              },
+              {
+                "key": "timeScale",
+                "label": "All time intervals ×",
+                "unit": "",
+                "min": 1,
+                "max": 2,
+                "step": 0.25
+              }
+            ],
+            "notes": "Straight path, steady motion within each moving interval, with a 10 s pause. Changes between intervals are idealized as brief.",
+            "scene": "dog"
           },
           "choices": [
             {
@@ -437,16 +480,20 @@
               "text": "Zero, because it stopped once.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         }
       ]
     },
     {
       "number": 3,
       "title": "Acceleration",
-      "subtitle": "Compare velocities and use elapsed time. Right/east is positive.",
+      "subtitle": "Compare velocities and use elapsed time. Right/east is positive; curved paths change velocity.",
       "sourceNotes": [
-        "28.pdf: printed pp. 44–71; acceleration calculation pp. 54, 56–58"
+        "28.pdf: printed pp. 44–71; acceleration calculation pp. 54, 56–58",
+        "Planet-orbit extension: NASA, Chapter 3: Gravity & Mechanics, Acceleration in Orbit; https://science.nasa.gov/learn/basics-of-space-flight/chapter3-3/ (circular-orbit model)."
       ],
       "warmups": [
         {
@@ -461,8 +508,8 @@
         },
         {
           "id": "W3c",
-          "prompt": "6 + (-0.8 × 5) = ____",
-          "answer": "2"
+          "prompt": "2 + (0.5 × 4) = ____",
+          "answer": "4"
         }
       ],
       "problems": [
@@ -520,62 +567,72 @@
                 "step": 1
               }
             ],
-            "notes": "Uniform acceleration is assumed for the demonstration; the calculation gives average acceleration over the interval."
+            "notes": "Uniform acceleration is assumed for the demonstration; the calculation gives average acceleration over the interval.",
+            "scene": "bus"
           },
           "numericAnswer": {
             "value": 2,
             "unit": "m/s²",
             "quantity": "acceleration"
+          },
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
+            "quantity": "acceleration"
           }
         },
         {
           "id": "P10",
-          "title": "Braking on a scooter",
+          "title": "The runner speeds up",
           "type": "quantitative",
-          "prompt": "A scooter moves east at 6 m/s. The rider brakes with an average acceleration of -0.8 m/s² for 5 s, while still moving east. What is the final velocity?",
-          "answer": "+2 m/s, or 2 m/s east",
+          "prompt": "A runner moves east at 2 m/s, then accelerates at 0.5 m/s² for 4 s while continuing east. What is the runner’s final velocity?",
+          "answer": "+4 m/s, or 4 m/s east",
           "steps": [
             "Final velocity = initial velocity + acceleration × time.",
-            "vf = 6 + (-0.8 × 5) = 6 - 4 = 2 m/s east."
+            "vf = 2 + (0.5 × 4) = 4 m/s east."
           ],
+          "numericAnswer": {
+            "value": 4,
+            "unit": "m/s",
+            "quantity": "finalVelocity"
+          },
           "simulation": {
             "kind": "acceleration",
+            "scene": "runner",
             "params": {
-              "vi": 6,
-              "acceleration": -0.8,
-              "time": 5
+              "vi": 2,
+              "acceleration": 0.5,
+              "time": 4
             },
             "adjustable": [
               {
                 "key": "vi",
                 "label": "Initial velocity",
                 "unit": "m/s",
-                "min": 5,
-                "max": 10,
+                "min": 0,
+                "max": 4,
                 "step": 0.5
               },
               {
                 "key": "acceleration",
                 "label": "Acceleration",
                 "unit": "m/s²",
-                "min": -0.8,
-                "max": -0.2,
+                "min": 0,
+                "max": 1,
                 "step": 0.1
               },
               {
                 "key": "time",
-                "label": "Braking time",
+                "label": "Elapsed time",
                 "unit": "s",
                 "min": 1,
-                "max": 5,
-                "step": 1
+                "max": 6,
+                "step": 0.5
               }
             ],
-            "notes": "Uniform braking during the stated interval. Limits keep the scooter moving east; the model does not reverse it after stopping."
+            "notes": "Constant acceleration on a straight eastward path. East is positive."
           },
-          "numericAnswer": {
-            "value": 2,
-            "unit": "m/s",
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
             "quantity": "finalVelocity"
           }
         },
@@ -611,7 +668,8 @@
                 "step": 0.5
               }
             ],
-            "notes": "East is positive. The car continues west throughout the interval, with uniform acceleration."
+            "notes": "East is positive. The car continues west throughout the interval, with uniform acceleration.",
+            "scene": "car"
           },
           "choices": [
             {
@@ -630,60 +688,60 @@
               "text": "Changing direction from west to east.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         },
         {
           "id": "P12",
-          "title": "Turning without speeding up",
+          "title": "Earth in orbit",
           "type": "conceptual",
-          "prompt": "A cyclist follows a circular path at a steady 3 m/s. Is the cyclist accelerating even though the speed stays the same? Explain what is changing.",
-          "answer": "Yes. Velocity includes direction, and the direction changes continuously around the circle. The acceleration points toward the center.",
+          "prompt": "Model Earth’s orbit around the Sun as a circle traveled at constant speed. Is Earth accelerating in this model? Explain what changes and what force keeps its path curved.",
+          "answer": "Yes. Earth’s velocity changes direction continuously, even at constant speed. The Sun’s gravity provides an inward force and acceleration toward the Sun. The circular orbit is a simplified model.",
           "steps": [],
           "simulation": {
             "kind": "circular",
+            "scene": "orbit",
             "params": {
-              "radius": 8,
-              "speed": 3,
-              "laps": 1
+              "radius": 149600000000,
+              "orbital": true,
+              "laps": 1,
+              "orbitAU": 1
             },
             "adjustable": [
               {
-                "key": "radius",
-                "label": "Turn radius",
-                "unit": "m",
-                "min": 5,
-                "max": 15,
-                "step": 1
-              },
-              {
-                "key": "speed",
-                "label": "Speed",
-                "unit": "m/s",
-                "min": 1,
-                "max": 4,
-                "step": 0.5
+                "key": "orbitAU",
+                "label": "Orbit radius",
+                "unit": "AU",
+                "min": 0.6,
+                "max": 1.5,
+                "step": 0.1
               }
             ],
-            "notes": "Constant-speed circular motion. Velocity is tangent to the path; acceleration points inward."
+            "notes": "Simplified circular orbit around the Sun: gravity points inward. Sun’s GM = 1.3271244 × 10²⁰ m³/s²; speed is calculated from √(GM/r). One AU = 149.6 million km. Time is compressed; sizes are not to scale."
           },
           "choices": [
             {
-              "text": "Yes; the direction of velocity keeps changing.",
+              "text": "Earth accelerates inward because its velocity changes direction.",
               "correct": true
             },
             {
-              "text": "No; acceleration always requires a speed increase.",
+              "text": "Earth has no acceleration because its speed is constant.",
               "correct": false
             },
             {
-              "text": "No; a circle has no direction.",
+              "text": "Earth accelerates outward, away from the Sun.",
               "correct": false
             },
             {
-              "text": "Yes; the cyclist must be getting faster.",
+              "text": "Gravity points along Earth’s direction of travel.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         }
       ]
     },
@@ -736,10 +794,30 @@
                 12,
                 12,
                 30
-              ]
+              ],
+              "distanceScale": 1,
+              "timeScale": 1
             },
-            "adjustable": [],
-            "notes": "Piecewise constant speeds: 1.2 m/s, 0, then 1.8 m/s. The graph is total distance versus time, which matches position here because the student never turns around."
+            "adjustable": [
+              {
+                "key": "distanceScale",
+                "label": "All route distances ×",
+                "unit": "",
+                "min": 0.5,
+                "max": 1.2,
+                "step": 0.1
+              },
+              {
+                "key": "timeScale",
+                "label": "All time intervals ×",
+                "unit": "",
+                "min": 1,
+                "max": 2,
+                "step": 0.25
+              }
+            ],
+            "notes": "Piecewise constant speeds: 1.2 m/s, 0, then 1.8 m/s. The graph is total distance versus time, which matches position here because the student never turns around.",
+            "scene": "walker"
           },
           "numericAnswer": {
             "value": 1,
@@ -786,6 +864,10 @@
             ],
             "xLabel": "Time (s)",
             "yLabel": "Total distance (m)"
+          },
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
+            "quantity": "averageSpeed"
           }
         },
         {
@@ -832,7 +914,8 @@
                 "step": 1
               }
             ],
-            "notes": "Uniform acceleration in a fixed eastward direction; the straight speed-time graph has constant slope."
+            "notes": "Uniform acceleration in a fixed eastward direction; the straight speed-time graph has constant slope.",
+            "scene": "scooter"
           },
           "numericAnswer": {
             "value": 1,
@@ -879,6 +962,10 @@
             ],
             "xLabel": "Time (s)",
             "yLabel": "Speed (m/s)"
+          },
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
+            "quantity": "acceleration"
           }
         },
         {
@@ -902,10 +989,30 @@
                 8,
                 24,
                 28
-              ]
+              ],
+              "distanceScale": 1,
+              "timeScale": 1
             },
-            "adjustable": [],
-            "notes": "Forward motion only, with constant speed within each interval. Instant transitions are an idealization."
+            "adjustable": [
+              {
+                "key": "distanceScale",
+                "label": "All route distances ×",
+                "unit": "",
+                "min": 0.5,
+                "max": 1.2,
+                "step": 0.1
+              },
+              {
+                "key": "timeScale",
+                "label": "All time intervals ×",
+                "unit": "",
+                "min": 1,
+                "max": 2,
+                "step": 0.25
+              }
+            ],
+            "notes": "Forward motion only, with constant speed within each interval. Instant transitions are an idealization.",
+            "scene": "walker"
           },
           "choices": [
             {
@@ -948,6 +1055,9 @@
                 28
               ]
             ]
+          },
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
           }
         },
         {
@@ -982,7 +1092,8 @@
                 "step": 1
               }
             ],
-            "notes": "At the packet settings their speeds are equal but their velocities have opposite signs."
+            "notes": "At the packet settings their speeds are equal but their velocities have opposite signs.",
+            "scene": "cyclist"
           },
           "choices": [
             {
@@ -1001,22 +1112,26 @@
               "text": "One graph must slope downward because the cyclist goes west.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         }
       ]
     },
     {
       "number": 5,
-      "title": "Gravity & friction",
-      "subtitle": "Mass is measured in kg. Weight and friction are forces, measured in N.",
+      "title": "Gravity, planets & friction",
+      "subtitle": "Mass stays the same from planet to planet. Weight depends on gravity.",
       "sourceNotes": [
-        "61.pdf: printed pp. 7–21; weight pp. 11, 18; static friction pp. 11, 19"
+        "61.pdf: printed pp. 7–21; weight pp. 11, 18; static friction pp. 11, 19",
+        "Mars surface gravity rounded to 3.7 m/s²: NASA Glenn Research Center, Mars; https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/mars/."
       ],
       "warmups": [
         {
           "id": "W5a",
-          "prompt": "2.5 × 10 = ____",
-          "answer": "25"
+          "prompt": "20 × 3.7 = ____",
+          "answer": "74"
         },
         {
           "id": "W5b",
@@ -1025,52 +1140,58 @@
         },
         {
           "id": "W5c",
-          "prompt": "1.6 × 150 = ____",
-          "answer": "240"
+          "prompt": "150 × 3.7 = ____",
+          "answer": "555"
         }
       ],
       "problems": [
         {
           "id": "P17",
-          "title": "How heavy is the backpack?",
+          "title": "A science instrument on Mars",
           "type": "quantitative",
-          "prompt": "A backpack has a mass of 2.5 kg. What is its weight near Earth’s surface? Use g = 10 m/s².",
-          "answer": "25 N downward",
+          "prompt": "A science instrument has a mass of 20 kg. What would its weight be on the surface of Mars? Use Mars’s gravitational acceleration, g = 3.7 m/s².",
+          "answer": "74 N downward",
           "steps": [
             "Weight = mass × gravitational acceleration.",
-            "W = 2.5 kg × 10 m/s² = 25 N downward."
+            "W = 20 kg × 3.7 m/s² = 74 N downward."
           ],
+          "numericAnswer": {
+            "value": 74,
+            "unit": "N",
+            "quantity": "weight"
+          },
           "simulation": {
             "kind": "gravity",
+            "scene": "instrument",
             "params": {
-              "mass": 2.5,
-              "g": 10,
-              "height": 1,
-              "supported": true
+              "mass": 20,
+              "g": 3.7,
+              "supported": true,
+              "springK": 500,
+              "planet": "Mars"
             },
             "adjustable": [
               {
                 "key": "mass",
-                "label": "Mass",
+                "label": "Instrument mass",
                 "unit": "kg",
-                "min": 0.5,
-                "max": 10,
-                "step": 0.5
+                "min": 5,
+                "max": 40,
+                "step": 1
               },
               {
                 "key": "g",
-                "label": "Gravity",
-                "unit": "m/s²",
+                "label": "Gravity strength",
+                "unit": "N/kg",
                 "min": 1.6,
                 "max": 10,
-                "step": 0.2
+                "step": 0.1
               }
             ],
-            "notes": "The backpack is held at rest. Its upward support force equals its downward weight; the object does not fall."
+            "notes": "A calibrated spring scale supports the instrument at rest. Weight = mg; the upward scale force balances weight. The same spring stiffness (500 N/m) is used at every setting; larger weight stretches it farther. Mars: 3.7 N/kg; Earth classroom value: 10 N/kg."
           },
-          "numericAnswer": {
-            "value": 25,
-            "unit": "N",
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
             "quantity": "weight"
           }
         },
@@ -1104,68 +1225,78 @@
                 "step": 1
               }
             ],
-            "notes": "The box slides right at steady velocity. Infer friction as equal in size to the push, opposite in direction. When the push is adjusted, friction is kept equal to preserve the stated steady-motion condition. Vertical forces balance."
+            "notes": "The box slides right at steady velocity. Infer friction as equal in size to the push, opposite in direction. When the push is adjusted, friction is kept equal to preserve the stated steady-motion condition. Vertical forces balance.",
+            "scene": "box"
           },
           "numericAnswer": {
             "value": 35,
             "unit": "N",
             "quantity": "frictionForce"
+          },
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
+            "quantity": "frictionForce"
           }
         },
         {
           "id": "P19",
-          "title": "The same astronaut on the Moon",
+          "title": "The same astronaut on another planet",
           "type": "conceptual",
-          "prompt": "An astronaut and suit have a combined mass of 150 kg. Compare their mass and weight on Earth and the Moon, where gravity is weaker. Which changes, and why?",
-          "answer": "Mass stays 150 kg because the amount of matter is unchanged. Weight is smaller on the Moon because the gravitational force is weaker.",
+          "prompt": "An astronaut and suit have a combined mass of 150 kg on Earth. If they were on Mars, where surface gravity is weaker, would their mass change? Would their weight change? Explain.",
+          "answer": "Their mass would stay 150 kg because the amount of matter is unchanged. Their weight would be smaller on Mars because the gravitational force would be weaker.",
           "steps": [],
           "simulation": {
             "kind": "gravity",
+            "scene": "astronaut",
             "params": {
               "mass": 150,
-              "g": 1.6,
+              "g": 3.7,
               "compareG": 10,
-              "height": 1,
-              "supported": true
+              "supported": true,
+              "springK": 5000,
+              "planet": "Mars"
             },
             "adjustable": [
               {
                 "key": "mass",
-                "label": "Astronaut and suit mass",
+                "label": "Astronaut + suit mass",
                 "unit": "kg",
                 "min": 100,
-                "max": 250,
-                "step": 10
+                "max": 200,
+                "step": 5
               },
               {
                 "key": "g",
-                "label": "Local gravity",
-                "unit": "m/s²",
+                "label": "Other planet’s gravity",
+                "unit": "N/kg",
                 "min": 1.6,
                 "max": 10,
-                "step": 0.2
+                "step": 0.1
               }
             ],
-            "notes": "Compare Earth g=10 m/s² (classroom approximation) and Moon g=1.6 m/s². The astronaut stands supported at rest."
+            "notes": "Both scales support the same mass at rest. Compare Earth (10 N/kg, rounded) with Mars (3.7 N/kg). Identical spring stiffness (5000 N/m) makes compression proportional to weight. Mass stays the same; scale readings are forces in newtons."
           },
           "choices": [
             {
-              "text": "Same mass; less weight on the Moon.",
+              "text": "Mass stays the same; weight is smaller on Mars.",
               "correct": true
             },
             {
-              "text": "Less mass and less weight on the Moon.",
+              "text": "Both mass and weight are smaller on Mars.",
               "correct": false
             },
             {
-              "text": "Same mass and same weight.",
+              "text": "Mass is larger on Mars; weight stays the same.",
               "correct": false
             },
             {
-              "text": "Zero mass on the Moon.",
+              "text": "Mass and weight both stay the same.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         },
         {
           "id": "P20",
@@ -1194,7 +1325,8 @@
                 "step": 1
               }
             ],
-            "notes": "At rest, static friction matches the pull up to 18 N. Above that threshold the crate slides; model kinetic friction as 14 N opposing motion. Vertical forces balance."
+            "notes": "At rest, static friction matches the pull up to 18 N. Above that threshold the crate slides; model kinetic friction as 14 N opposing motion. Vertical forces balance.",
+            "scene": "crate"
           },
           "choices": [
             {
@@ -1213,179 +1345,230 @@
               "text": "10 N right, in the same direction as the pull.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         }
       ]
     },
     {
       "number": 6,
-      "title": "Net force & Newton’s first law",
-      "subtitle": "Combine forces on one object. Zero net force means zero acceleration.",
+      "title": "Vertical net forces & Newton’s first law",
+      "subtitle": "For vertical forces, choose upward as positive. Balanced forces mean zero acceleration.",
       "sourceNotes": [
-        "64.pdf: printed pp. 24–39; first law pp. 33–36"
+        "64.pdf: printed pp. 24–39; first law pp. 33–36",
+        "Original vertical-force applications use the same signed-force and first-law curriculum relationships."
       ],
       "warmups": [
         {
           "id": "W6a",
-          "prompt": "45 - 20 = ____",
-          "answer": "25"
+          "prompt": "15,000 - 12,000 = ____",
+          "answer": "3,000"
         },
         {
           "id": "W6b",
-          "prompt": "18 + (-30) = ____",
-          "answer": "-12"
+          "prompt": "9,800 + (-10,000) = ____",
+          "answer": "-200"
         },
         {
           "id": "W6c",
-          "prompt": "18 - 18 = ____",
+          "prompt": "12,000 - 12,000 = ____",
           "answer": "0"
         }
       ],
       "problems": [
         {
           "id": "P21",
-          "title": "Pulling the supply cart",
+          "title": "Forces on a helicopter",
           "type": "quantitative",
-          "prompt": "A student pulls a supply cart right with 45 N. The total friction force is 20 N left. Find the horizontal net force on the cart.",
-          "answer": "25 N right",
+          "prompt": "A helicopter experiences an upward lifting force of 15,000 N and a downward weight of 12,000 N. Ignore other vertical forces. What is the vertical net force? Include its direction.",
+          "answer": "3,000 N upward",
           "steps": [
-            "Add signed forces: +45 + (-20).",
-            "Fnet = +25 N, meaning 25 N right."
+            "Choose upward as positive.",
+            "Fnet = 15,000 - 12,000 = 3,000 N upward."
           ],
+          "numericAnswer": {
+            "value": 3000,
+            "unit": "N",
+            "quantity": "netForce"
+          },
           "simulation": {
             "kind": "netforce",
+            "scene": "helicopter",
             "params": {
-              "mass": 25,
-              "forwardForce": 45,
-              "backwardForce": 20,
-              "vi": 0.5,
-              "time": 3
+              "axis": "vertical",
+              "upwardForce": 15000,
+              "weight": 12000,
+              "g": 10,
+              "vi": 0,
+              "height": 20,
+              "time": 4,
+              "ground": true
             },
             "adjustable": [
               {
-                "key": "forwardForce",
-                "label": "Pull to the right",
+                "key": "upwardForce",
+                "label": "Upward rotor force",
                 "unit": "N",
-                "min": 25,
-                "max": 60,
-                "step": 1
+                "min": 8000,
+                "max": 20000,
+                "step": 500
               },
               {
-                "key": "backwardForce",
-                "label": "Resistance to the left",
+                "key": "weight",
+                "label": "Weight",
                 "unit": "N",
-                "min": 0,
-                "max": 24,
-                "step": 1
+                "min": 8000,
+                "max": 16000,
+                "step": 500
+              },
+              {
+                "key": "vi",
+                "label": "Initial vertical velocity",
+                "unit": "m/s",
+                "min": -3,
+                "max": 3,
+                "step": 0.5
               }
             ],
-            "notes": "The cart is already rolling right. Resistance is modeled as constant over this interval; vertical forces balance."
+            "notes": "Up is positive. Ignore other vertical forces while airborne. The animation infers mass from weight ÷ 10 N/kg and assumes constant forces. Net force sets acceleration, not the direction of existing motion. Ground support is added if it lands."
           },
-          "numericAnswer": {
-            "value": 25,
-            "unit": "N",
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
             "quantity": "netForce"
           }
         },
         {
           "id": "P22",
-          "title": "Two ropes, one cart",
+          "title": "Forces on a hot-air balloon",
           "type": "quantitative",
-          "prompt": "Two students pull a low-friction cart in opposite directions. One pulls 18 N right; the other pulls 30 N left. Take right as positive. What is the net force? Give its sign and direction.",
-          "answer": "-12 N, or 12 N left",
+          "prompt": "A hot-air balloon has an upward buoyant force of 9,800 N and a total weight of 10,000 N. Ignore air resistance. Take upward as positive. Find the vertical net force, including its sign and direction.",
+          "answer": "-200 N, or 200 N downward",
           "steps": [
-            "Fnet = +18 + (-30) = -12 N.",
-            "The negative sign means left."
+            "Add the signed vertical forces: Fnet = 9,800 + (-10,000).",
+            "Fnet = -200 N; the negative sign means downward."
           ],
+          "numericAnswer": {
+            "value": -200,
+            "unit": "N",
+            "quantity": "netForce"
+          },
           "simulation": {
             "kind": "netforce",
+            "scene": "balloon",
             "params": {
-              "mass": 20,
-              "forwardForce": 18,
-              "backwardForce": 30,
+              "axis": "vertical",
+              "upwardForce": 9800,
+              "weight": 10000,
+              "g": 10,
               "vi": 0,
-              "time": 3
+              "height": 40,
+              "time": 6,
+              "ground": true
             },
             "adjustable": [
               {
-                "key": "forwardForce",
-                "label": "Right rope force",
+                "key": "upwardForce",
+                "label": "Upward buoyant force",
                 "unit": "N",
-                "min": 0,
-                "max": 40,
-                "step": 1
+                "min": 9000,
+                "max": 11000,
+                "step": 100
               },
               {
-                "key": "backwardForce",
-                "label": "Left rope force",
+                "key": "weight",
+                "label": "Weight",
                 "unit": "N",
-                "min": 0,
-                "max": 40,
-                "step": 1
+                "min": 9000,
+                "max": 11000,
+                "step": 100
+              },
+              {
+                "key": "vi",
+                "label": "Initial vertical velocity",
+                "unit": "m/s",
+                "min": -2,
+                "max": 2,
+                "step": 0.5
               }
             ],
-            "notes": "Both forces are applied rope tensions, not friction. Friction is neglected; constant forces act during the short demonstration."
+            "notes": "Up is positive. Ignore air resistance during this short interval. Mass is inferred from weight ÷ 10 N/kg. A downward net force means downward acceleration; a balloon already rising may still rise while slowing."
           },
-          "numericAnswer": {
-            "value": -12,
-            "unit": "N",
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
             "quantity": "netForce"
           }
         },
         {
           "id": "P23",
-          "title": "Moving with balanced forces",
+          "title": "Balanced forces in flight",
           "type": "conceptual",
-          "prompt": "A cart rolls right at a steady 1.2 m/s. The pull is 18 N right and friction is 18 N left. Must the cart stop because the forces balance? Explain what zero net force actually means.",
-          "answer": "No. The net force and acceleration are zero, so its velocity stays constant. Balanced forces can act on a moving object.",
+          "prompt": "An airplane flies straight and level at constant speed. Upward lift balances its weight, and forward thrust balances drag. Must the airplane stop because the forces balance? Explain what zero net force means.",
+          "answer": "No. Zero net force means zero acceleration, so the airplane keeps its current velocity. Balanced forces can act on a moving object; lift balancing weight also means no vertical acceleration.",
           "steps": [],
           "simulation": {
             "kind": "netforce",
+            "scene": "airplane",
             "params": {
-              "mass": 20,
-              "forwardForce": 18,
-              "backwardForce": 18,
-              "vi": 1.2,
+              "balancedFlight": true,
+              "mass": 1200,
+              "forwardForce": 3000,
+              "backwardForce": 3000,
+              "weight": 12000,
+              "upwardForce": 12000,
+              "vi": 60,
               "time": 5
             },
             "adjustable": [
               {
-                "key": "forwardForce",
-                "label": "Pull right",
-                "unit": "N",
-                "min": 18,
-                "max": 30,
-                "step": 1
+                "key": "vi",
+                "label": "Flight speed",
+                "unit": "m/s",
+                "min": 30,
+                "max": 90,
+                "step": 5
               },
               {
-                "key": "backwardForce",
-                "label": "Friction left",
+                "key": "forwardForce",
+                "label": "Thrust and drag (each)",
                 "unit": "N",
-                "min": 0,
-                "max": 18,
-                "step": 1
+                "min": 1000,
+                "max": 5000,
+                "step": 500
+              },
+              {
+                "key": "weight",
+                "label": "Lift and weight (each)",
+                "unit": "N",
+                "min": 8000,
+                "max": 16000,
+                "step": 1000
               }
             ],
-            "notes": "At the packet settings horizontal forces balance. The cart keeps its existing velocity; vertical forces also balance."
+            "notes": "Straight, level flight at constant velocity. Each control keeps its opposing force pair equal. Horizontal net force and vertical net force are both zero. The airplane can move without accelerating."
           },
           "choices": [
             {
-              "text": "No; balanced forces keep its velocity unchanged.",
+              "text": "The airplane keeps its velocity because net force and acceleration are zero.",
               "correct": true
             },
             {
-              "text": "Yes; balanced forces always stop moving objects.",
+              "text": "It must stop because the net force is zero.",
               "correct": false
             },
             {
-              "text": "Yes; friction cancels the cart’s velocity instantly.",
+              "text": "Lift cancels thrust, so it moves upward.",
               "correct": false
             },
             {
-              "text": "No; balanced forces make it speed up.",
+              "text": "There are no forces acting on it.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         },
         {
           "id": "P24",
@@ -1413,7 +1596,8 @@
                 "step": 0.5
               }
             ],
-            "notes": "Idealized short glide: horizontal friction and drag are neglected. Upward ice support balances weight."
+            "notes": "Idealized short glide: horizontal friction and drag are neglected. Upward ice support balances weight.",
+            "scene": "puck"
           },
           "choices": [
             {
@@ -1432,187 +1616,212 @@
               "text": "The stick’s forward force stays inside the puck.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         }
       ]
     },
     {
       "number": 7,
       "title": "Newton’s second law",
-      "subtitle": "A net force changes velocity. More mass means more inertia.",
+      "subtitle": "Find the net force first, then divide by the total mass.",
       "sourceNotes": [
-        "68 (1).pdf: printed pp. 42–60; F=ma p. 52; circular motion p. 57"
+        "68 (1).pdf: printed pp. 42–60; F=ma p. 52; circular motion p. 57",
+        "Original bird, drone, and model-airplane applications use Fnet = ma; bird forces are averages over takeoff."
       ],
       "warmups": [
         {
           "id": "W7a",
-          "prompt": "50 ÷ 25 = ____",
+          "prompt": "(6 - 5) ÷ 0.50 = ____",
           "answer": "2"
         },
         {
           "id": "W7b",
-          "prompt": "Solve: 0.6m = 18. m = ____",
-          "answer": "30"
+          "prompt": "Solve: 1.5m = 3. m = ____",
+          "answer": "2"
         },
         {
           "id": "W7c",
-          "prompt": "24 ÷ 12 = ____; 24 ÷ 24 = ____",
+          "prompt": "0.8 ÷ 0.4 = ____; 0.8 ÷ 0.8 = ____",
           "answer": "2; 1"
         }
       ],
       "problems": [
         {
           "id": "P25",
-          "title": "Accelerating the equipment cart",
+          "title": "A bird takes off",
           "type": "quantitative",
-          "prompt": "A 25 kg equipment cart has a horizontal net force of 50 N to the right. What is its acceleration?",
-          "answer": "2 m/s² right",
+          "prompt": "Just after leaving the ground, the air exerts an average upward force of 6 N on a 0.50 kg bird. Its weight is 5 N downward. Ignore other vertical forces. Find the bird’s average vertical acceleration.",
+          "answer": "2 m/s² upward",
           "steps": [
-            "Acceleration = net force ÷ mass.",
-            "a = 50 N ÷ 25 kg = 2 m/s² right."
+            "Find the average net force: 6 - 5 = 1 N upward.",
+            "Use a = Fnet ÷ m.",
+            "a = 1 N ÷ 0.50 kg = 2 m/s² upward."
           ],
+          "numericAnswer": {
+            "value": 2,
+            "unit": "m/s²",
+            "quantity": "acceleration"
+          },
           "simulation": {
             "kind": "newton2",
+            "scene": "bird",
             "params": {
-              "mass": 25,
-              "forwardForce": 50,
-              "backwardForce": 0,
+              "axis": "vertical",
+              "mass": 0.5,
+              "g": 10,
+              "upwardForce": 6,
               "vi": 0,
-              "time": 3
+              "height": 0.1,
+              "time": 2,
+              "ground": true
             },
             "adjustable": [
               {
                 "key": "mass",
-                "label": "Cart mass",
+                "label": "Bird mass",
                 "unit": "kg",
-                "min": 10,
-                "max": 50,
-                "step": 5
+                "min": 0.3,
+                "max": 0.8,
+                "step": 0.05
               },
               {
-                "key": "forwardForce",
-                "label": "Net force right",
+                "key": "upwardForce",
+                "label": "Average upward air force",
                 "unit": "N",
-                "min": 10,
-                "max": 80,
-                "step": 5
+                "min": 3,
+                "max": 10,
+                "step": 0.5
               }
             ],
-            "notes": "The given 50 N is already the net horizontal force after any resistance. Constant net force and mass."
+            "notes": "Up is positive. Weight is mass × 10 N/kg. During this short interval the wingbeat-averaged upward force is treated as constant; instantaneous wing forces vary. Ground support is added if the bird returns to the ground."
           },
-          "numericAnswer": {
-            "value": 2,
-            "unit": "m/s²",
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
             "quantity": "acceleration"
           }
         },
         {
           "id": "P26",
-          "title": "Finding the trolley’s mass",
+          "title": "Finding a drone’s mass",
           "type": "quantitative",
-          "prompt": "A loaded trolley accelerates right at 0.6 m/s² when its horizontal net force is 18 N right. What is the trolley’s mass, including its load?",
-          "answer": "30 kg",
+          "prompt": "A drone accelerates upward at 1.5 m/s² when the net upward force on it is 3 N. What is the drone’s total mass, including its battery?",
+          "answer": "2 kg",
           "steps": [
             "Start with Fnet = ma and divide by a.",
-            "m = 18 N ÷ 0.6 m/s² = 30 kg."
+            "m = 3 N ÷ 1.5 m/s² = 2 kg."
           ],
+          "numericAnswer": {
+            "value": 2,
+            "unit": "kg",
+            "quantity": "mass"
+          },
           "simulation": {
             "kind": "newton2",
+            "scene": "drone",
             "params": {
-              "netForce": 18,
-              "acceleration": 0.6,
+              "axis": "vertical",
+              "netForce": 3,
+              "acceleration": 1.5,
+              "g": 10,
               "vi": 0,
-              "time": 4
+              "height": 1,
+              "time": 3,
+              "ground": true
             },
             "adjustable": [
               {
                 "key": "netForce",
-                "label": "Net force",
+                "label": "Net upward force",
                 "unit": "N",
-                "min": 6,
-                "max": 36,
-                "step": 3
+                "min": 0.5,
+                "max": 8,
+                "step": 0.5
               },
               {
                 "key": "acceleration",
-                "label": "Acceleration",
+                "label": "Upward acceleration",
                 "unit": "m/s²",
-                "min": 0.2,
-                "max": 1.2,
-                "step": 0.1
+                "min": 0.5,
+                "max": 4,
+                "step": 0.5
               }
             ],
-            "notes": "Use the net force, not just an applied push. The mass is inferred from the measured acceleration."
+            "notes": "The given force is already NET force. Mass = net force ÷ acceleration. For the force diagram, weight = mg and upward rotor force = weight + net force. These are different from the given net force."
           },
-          "numericAnswer": {
-            "value": 30,
-            "unit": "kg",
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
             "quantity": "mass"
           }
         },
         {
           "id": "P27",
-          "title": "Empty cart or loaded cart?",
+          "title": "Two model airplanes",
           "type": "conceptual",
-          "prompt": "The same 24 N net force acts on a 12 kg cart and a 24 kg cart. Both start at rest. Which accelerates more, and how does doubling the mass affect the acceleration?",
-          "answer": "The 12 kg cart accelerates more: 2 m/s² versus 1 m/s². With the same net force, doubling mass halves acceleration.",
+          "prompt": "Two model airplanes have masses of 0.4 kg and 0.8 kg. The same 0.8 N forward net force acts on each. Which has the greater acceleration? How does doubling the mass affect acceleration when net force stays the same?",
+          "answer": "The 0.4 kg airplane has the greater acceleration: 2 m/s² versus 1 m/s². At the same net force, doubling mass halves acceleration.",
           "steps": [],
           "simulation": {
             "kind": "newton2",
+            "scene": "modelplanes",
             "params": {
-              "mass": 12,
-              "compareMass": 24,
-              "forwardForce": 24,
-              "backwardForce": 0,
-              "vi": 0,
+              "mass": 0.4,
+              "compareMass": 0.8,
+              "netForce": 0.8,
+              "vi": 5,
               "time": 3
             },
             "adjustable": [
               {
                 "key": "mass",
-                "label": "First cart mass",
+                "label": "Blue plane mass",
                 "unit": "kg",
-                "min": 6,
-                "max": 20,
-                "step": 2
+                "min": 0.2,
+                "max": 0.8,
+                "step": 0.1
               },
               {
                 "key": "compareMass",
-                "label": "Second cart mass",
+                "label": "Orange plane mass",
                 "unit": "kg",
-                "min": 22,
-                "max": 40,
-                "step": 2
+                "min": 0.4,
+                "max": 1.6,
+                "step": 0.1
               },
               {
-                "key": "forwardForce",
-                "label": "Net force on each cart",
+                "key": "netForce",
+                "label": "Same forward net force",
                 "unit": "N",
-                "min": 12,
-                "max": 36,
-                "step": 6
+                "min": 0.4,
+                "max": 1.6,
+                "step": 0.2
               }
             ],
-            "notes": "Both carts receive the same constant net force. No other horizontal forces are added to the stated net force."
+            "notes": "The same horizontal NET force acts on each airplane. The planes are already flying at 5 m/s initially. Constant masses and forces; vertical forces are assumed to balance during this short interval. Compare accelerations using a = Fnet/m."
           },
           "choices": [
             {
-              "text": "The 12 kg cart; doubling mass halves acceleration at the same net force.",
+              "text": "The 0.4 kg plane accelerates twice as fast as the 0.8 kg plane.",
               "correct": true
             },
             {
-              "text": "The 24 kg cart; more mass always means more acceleration.",
+              "text": "The 0.8 kg plane accelerates twice as fast.",
               "correct": false
             },
             {
-              "text": "They accelerate equally because force alone determines acceleration.",
+              "text": "They accelerate equally because the net forces are equal.",
               "correct": false
             },
             {
-              "text": "Neither accelerates because both start at rest.",
+              "text": "Neither accelerates because the forces are the same on both planes.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         },
         {
           "id": "P28",
@@ -1647,7 +1856,8 @@
                 "step": 0.5
               }
             ],
-            "notes": "Constant-speed circular motion without skidding. Horizontal static friction supplies the inward net force; vertical support balances weight."
+            "notes": "Constant-speed circular motion without skidding. Horizontal static friction supplies the inward net force; vertical support balances weight.",
+            "scene": "cyclist"
           },
           "choices": [
             {
@@ -1666,57 +1876,76 @@
               "text": "There is no net force because speed is constant.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         }
       ]
     },
     {
       "number": 8,
-      "title": "Newton’s third law & momentum",
-      "subtitle": "A force pair acts on two objects. Momentum depends on mass and velocity.",
+      "title": "Collisions, momentum & Newton’s third law",
+      "subtitle": "Momentum can transfer in a collision. A force pair acts on two different objects.",
       "sourceNotes": [
-        "72 (1).pdf: printed pp. 63–88; momentum p. 71; force pairs pp. 73–75; conservation p. 76"
+        "72 (1).pdf: printed pp. 63–88; momentum p. 71; force pairs pp. 73–75; conservation p. 76",
+        "System momentum is the sum of the objects’ momenta. For the clay-ball collision, total horizontal momentum is unchanged when external horizontal forces are negligible."
       ],
       "warmups": [
         {
           "id": "W8a",
-          "prompt": "6 × 3 = ____",
+          "prompt": "(6 × 3) + (1.5 × 0) = ____",
           "answer": "18"
         },
         {
           "id": "W8b",
-          "prompt": "0.5 × 1.2 = ____",
-          "answer": "0.6"
+          "prompt": "0.10 × 2 = ____",
+          "answer": "0.20"
         },
         {
           "id": "W8c",
-          "prompt": "0.6 ÷ (0.5 + 0.5) = ____",
-          "answer": "0.6"
+          "prompt": "0.20 + 0 = ____",
+          "answer": "0.20"
         }
       ],
       "problems": [
         {
           "id": "P29",
-          "title": "The bowling ball",
+          "title": "A bowling ball and a pin",
           "type": "quantitative",
-          "prompt": "A 6 kg bowling ball rolls down the lane at 3 m/s. What is its forward momentum?",
+          "prompt": "A 6 kg bowling ball rolls forward at 3 m/s toward a stationary 1.5 kg pin. What is the total momentum of the ball-and-pin system just before impact?",
           "answer": "18 kg·m/s forward",
           "steps": [
-            "Momentum = mass × velocity.",
-            "p = 6 kg × 3 m/s = 18 kg·m/s forward."
+            "Find each momentum: ball = 6 × 3 = 18 kg·m/s forward; pin = 1.5 × 0 = 0 kg·m/s.",
+            "Add the momenta: total = 18 + 0 = 18 kg·m/s forward."
           ],
+          "numericAnswer": {
+            "value": 18,
+            "unit": "kg·m/s",
+            "quantity": "totalMomentum"
+          },
           "simulation": {
             "kind": "momentum",
+            "scene": "bowling",
             "params": {
               "mass1": 6,
+              "mass2": 1.5,
               "velocity1": 3,
-              "time": 4,
-              "single": true
+              "velocity2": 0,
+              "radius1": 0.1085,
+              "radius2": 0.06,
+              "collisionTime": 1.2,
+              "preImpact": true,
+              "time": 1.2,
+              "bodyLabels": [
+                "Ball",
+                "Pin"
+              ]
             },
             "adjustable": [
               {
                 "key": "mass1",
-                "label": "Ball mass",
+                "label": "Bowling ball mass",
                 "unit": "kg",
                 "min": 3,
                 "max": 7,
@@ -1727,191 +1956,252 @@
                 "label": "Ball velocity",
                 "unit": "m/s",
                 "min": 1,
-                "max": 6,
+                "max": 5,
                 "step": 0.5
+              },
+              {
+                "key": "mass2",
+                "label": "Pin mass",
+                "unit": "kg",
+                "min": 1.3,
+                "max": 1.6,
+                "step": 0.1
               }
             ],
-            "notes": "The calculation uses the ball’s translational momentum. Show a short steady roll before it reaches the pins; ignore small resistance over that interval."
+            "notes": "This model stops just before impact. The pin is part of the system even though its initial momentum is zero. Add both momenta; no post-impact pin motion is assumed."
           },
-          "numericAnswer": {
-            "value": 18,
-            "unit": "kg·m/s",
-            "quantity": "momentum1"
+          "goal": {
+            "prompt": "Calculate the requested quantity for the values you set. Restore packet values to solve the printed problem.",
+            "quantity": "totalMomentum"
           }
         },
         {
           "id": "P30",
-          "title": "Carts that latch together",
+          "title": "Clay balls stick together",
           "type": "quantitative",
-          "prompt": "On a level, low-friction track, a 0.5 kg cart moving right at 1.2 m/s hits a stationary 0.5 kg cart. They latch together. Ignore external horizontal forces during the brief collision. What is their shared velocity immediately afterward?",
-          "answer": "0.6 m/s right",
+          "prompt": "A 0.10 kg clay ball moving right at 2 m/s hits a stationary 0.10 kg clay ball on a smooth, level surface. They stick together. Ignore external horizontal forces during the brief collision. What is the total momentum of the two-ball system before and immediately after the collision?",
+          "answer": "0.20 kg·m/s right, both before and immediately after the collision.",
           "steps": [
-            "Initial total momentum = (0.5 × 1.2) + (0.5 × 0) = 0.6 kg·m/s.",
-            "Combined mass = 0.5 + 0.5 = 1.0 kg.",
-            "Shared velocity = total momentum ÷ combined mass = 0.6 m/s right."
+            "Moving ball: p = 0.10 × 2 = 0.20 kg·m/s right. Stationary ball: p = 0.10 × 0 = 0 kg·m/s.",
+            "Total momentum before = 0.20 + 0 = 0.20 kg·m/s right.",
+            "Total momentum after = 0.20 kg·m/s right because system momentum is conserved during this brief collision."
           ],
+          "numericAnswer": {
+            "value": 0.2,
+            "unit": "kg·m/s",
+            "quantity": "totalMomentum"
+          },
           "simulation": {
             "kind": "momentum",
+            "scene": "clay",
             "params": {
-              "mass1": 0.5,
-              "velocity1": 1.2,
-              "mass2": 0.5,
+              "mass1": 0.1,
+              "mass2": 0.1,
+              "velocity1": 2,
               "velocity2": 0,
-              "stick": true,
-              "time": 5
+              "radius1": 0.023,
+              "radius2": 0.023,
+              "collisionTime": 1,
+              "contactDuration": 0.008,
+              "restitution": 0,
+              "time": 2,
+              "bodyLabels": [
+                "Clay 1",
+                "Clay 2"
+              ]
             },
             "adjustable": [
               {
                 "key": "mass1",
-                "label": "Moving cart mass",
+                "label": "Blue clay mass",
                 "unit": "kg",
-                "min": 0.25,
-                "max": 2,
-                "step": 0.25
-              },
-              {
-                "key": "velocity1",
-                "label": "Moving cart velocity",
-                "unit": "m/s",
-                "min": 0.4,
-                "max": 2,
-                "step": 0.2
+                "min": 0.05,
+                "max": 0.2,
+                "step": 0.05
               },
               {
                 "key": "mass2",
-                "label": "Other cart mass",
+                "label": "Orange clay mass",
                 "unit": "kg",
-                "min": 0.25,
-                "max": 2,
-                "step": 0.25
+                "min": 0.05,
+                "max": 0.2,
+                "step": 0.05
+              },
+              {
+                "key": "velocity1",
+                "label": "Blue clay velocity",
+                "unit": "m/s",
+                "min": 0.5,
+                "max": 3,
+                "step": 0.5
               }
             ],
-            "notes": "A perfectly inelastic collision: the carts stick. Total momentum is conserved during the collision; kinetic energy is not. Velocities are signed, right positive."
+            "notes": "The clay balls deform and stick in a short, perfectly inelastic collision. External horizontal forces are neglected. Total system momentum is conserved; kinetic energy decreases. Use Contact to inspect the brief interaction."
           },
-          "numericAnswer": {
-            "value": 0.6,
-            "unit": "m/s",
-            "quantity": "finalVelocity"
+          "goal": {
+            "prompt": "Find total system momentum before AND after the collision. It should be the same when external horizontal forces are neglected.",
+            "quantity": "totalMomentum"
           }
         },
         {
           "id": "P31",
-          "title": "Skaters push apart",
+          "title": "Two marbles collide",
           "type": "conceptual",
-          "prompt": "Two skaters, one 40 kg and one 60 kg, push off each other on smooth ice. During contact, does either exert a larger force on the other? Do equal force sizes mean equal accelerations? Explain.",
-          "answer": "The forces are equal in size and opposite in direction, acting on different skaters. Their accelerations differ: the lighter skater accelerates more because a = F/m.",
+          "prompt": "A moving marble hits a stationary marble. During the collision, does the moving marble exert a larger force on the stationary one, or are the forces equal in size? Explain the directions and which object each force acts on.",
+          "answer": "The forces are equal in size and opposite in direction. Each marble exerts a force on the other marble. The pair acts on two different objects, so the forces do not cancel when finding the net force on just one marble.",
           "steps": [],
           "simulation": {
-            "kind": "thirdlaw",
+            "kind": "momentum",
+            "scene": "marbles",
             "params": {
-              "mass1": 40,
-              "mass2": 60,
-              "force": 80,
-              "time": 0.5
+              "mass1": 0.02,
+              "mass2": 0.02,
+              "velocity1": 0.5,
+              "velocity2": 0,
+              "radius1": 0.012,
+              "radius2": 0.012,
+              "collisionTime": 1,
+              "contactDuration": 0.001,
+              "restitution": 1,
+              "time": 2.5,
+              "bodyLabels": [
+                "Marble 1",
+                "Marble 2"
+              ]
             },
             "adjustable": [
               {
                 "key": "mass1",
-                "label": "First skater mass",
+                "label": "Blue marble mass",
                 "unit": "kg",
-                "min": 30,
-                "max": 50,
-                "step": 5
+                "min": 0.01,
+                "max": 0.04,
+                "step": 0.005
               },
               {
                 "key": "mass2",
-                "label": "Second skater mass",
+                "label": "Orange marble mass",
                 "unit": "kg",
-                "min": 55,
-                "max": 90,
-                "step": 5
+                "min": 0.01,
+                "max": 0.04,
+                "step": 0.005
               },
               {
-                "key": "force",
-                "label": "Force-pair magnitude",
-                "unit": "N",
-                "min": 40,
-                "max": 120,
-                "step": 10
+                "key": "velocity1",
+                "label": "Blue marble velocity",
+                "unit": "m/s",
+                "min": 0.2,
+                "max": 1,
+                "step": 0.1
               }
             ],
-            "notes": "Show a short push from rest, with equal opposite horizontal forces during contact, followed by a glide. Neglect ice friction. Vertical forces balance."
+            "notes": "A head-on, ideal elastic collision: a short spring-like compression makes equal and opposite contact forces on the two marbles. Use Contact to freeze that brief instant. Glass deformation is greatly enlarged in the drawing; track friction is ignored."
           },
           "choices": [
             {
-              "text": "Equal opposite forces; the lighter skater has greater acceleration.",
+              "text": "Equal and opposite forces act on two different marbles.",
               "correct": true
             },
             {
-              "text": "The heavier skater exerts more force; accelerations are equal.",
+              "text": "The moving marble exerts a larger force.",
               "correct": false
             },
             {
-              "text": "Equal forces and equal accelerations, regardless of mass.",
+              "text": "The stationary marble exerts no force.",
               "correct": false
             },
             {
-              "text": "The two forces cancel on each skater, so neither moves.",
+              "text": "The two forces cancel on each individual marble.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         },
         {
           "id": "P32",
-          "title": "Pushing off the pool wall",
+          "title": "A curling-stone collision",
           "type": "conceptual",
-          "prompt": "A swimmer pushes backward on the pool wall. The wall pushes forward on the swimmer. Why do these equal and opposite forces not cancel when you find the net force on the swimmer?",
-          "answer": "They act on different objects. The wall’s forward force acts on the swimmer; the swimmer’s backward force acts on the wall. Only forces acting on the swimmer belong in the swimmer’s net force.",
+          "prompt": "A curling stone hits another stone at rest. The first slows down and the second starts moving. Ignore external horizontal forces during the brief collision. Has momentum disappeared? Explain what happens to each stone’s momentum and their combined momentum.",
+          "answer": "Momentum is transferred between the stones. Each stone’s momentum changes, but the total momentum of the two-stone system stays the same during the collision because external horizontal forces are neglected.",
           "steps": [],
           "simulation": {
-            "kind": "thirdlaw",
+            "kind": "momentum",
+            "scene": "curling",
             "params": {
-              "mass1": 60,
-              "mass2": 1000000,
-              "force": 120,
-              "time": 0.5,
-              "fixedSecond": true
+              "mass1": 20,
+              "mass2": 20,
+              "velocity1": 1,
+              "velocity2": 0,
+              "radius1": 0.145,
+              "radius2": 0.145,
+              "collisionTime": 1,
+              "contactDuration": 0.01,
+              "restitution": 1,
+              "time": 3,
+              "bodyLabels": [
+                "Stone 1",
+                "Stone 2"
+              ]
             },
             "adjustable": [
               {
                 "key": "mass1",
-                "label": "Swimmer mass",
+                "label": "Blue stone mass",
                 "unit": "kg",
-                "min": 40,
-                "max": 90,
-                "step": 5
+                "min": 17,
+                "max": 20,
+                "step": 1
               },
               {
-                "key": "force",
-                "label": "Contact force",
-                "unit": "N",
-                "min": 60,
-                "max": 200,
-                "step": 10
+                "key": "mass2",
+                "label": "Orange stone mass",
+                "unit": "kg",
+                "min": 17,
+                "max": 20,
+                "step": 1
+              },
+              {
+                "key": "velocity1",
+                "label": "Blue stone velocity",
+                "unit": "m/s",
+                "min": 0.5,
+                "max": 2,
+                "step": 0.1
               }
             ],
-            "notes": "During a brief wall push, the wall is effectively fixed to Earth. Show the force on the swimmer and its partner on the wall separately; neglect water drag for this short interval."
+            "notes": "Head-on collision with external horizontal forces neglected during impact. An ideal elastic collision is used to show momentum transfer; real stones may lose some kinetic energy. Total system momentum stays constant in either case."
           },
           "choices": [
             {
-              "text": "They act on different objects: swimmer and wall.",
+              "text": "Individual momenta change, but total system momentum stays constant.",
               "correct": true
             },
             {
-              "text": "The forward force is always larger than the backward force.",
+              "text": "Total momentum disappears when the first stone slows.",
               "correct": false
             },
             {
-              "text": "The wall does not really exert a force.",
+              "text": "Both stones gain the same amount of momentum.",
               "correct": false
             },
             {
-              "text": "Equal opposite forces never cancel, even on the same object.",
+              "text": "Momentum is conserved only when objects stick together.",
               "correct": false
             }
-          ]
+          ],
+          "goal": {
+            "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
+          }
         }
       ]
     }
-  ]
+  ],
+  "revisionStatus": {
+    "scope": "App synchronized to packet revision 1.2",
+    "appUpdateAuthorized": true,
+    "pendingAppSync": false,
+    "momentumRevision": "Questions 29 and 30 ask total system momentum; no final shared velocity is required."
+  }
 }

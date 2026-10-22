@@ -1,146 +1,147 @@
-/* Analytic SI-unit teaching models. No frame-rate-dependent integration. */
+/* SI-unit analytic models. Rendering and playback never change the calculations. */
 const finite=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
-const positive=(v,d=1)=>Math.max(0.000001,finite(v,d));
+const positive=(v,d=1)=>Math.max(1e-9,finite(v,d));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const q=(key,label,unit)=>({key,label,unit});
+export const format=(value,digits)=>{if(!Number.isFinite(value))return '—';const precision=digits??(Math.abs(value)>0&&Math.abs(value)<.1?4:2);return Number(value.toFixed(precision)).toLocaleString('en-US',{maximumFractionDigits:precision});};
 function pathLength(vi,a,t){const turn=a!==0?-vi/a:-1;const x=u=>vi*u+.5*a*u*u;return turn>0&&turn<t?Math.abs(x(turn))+Math.abs(x(t)-x(turn)):Math.abs(x(t));}
-export const format=(value,digits=2)=>Number.isFinite(value)?Number(value.toFixed(digits)).toLocaleString('en-US',{maximumFractionDigits:digits}):'—';
 function motion(p){
- const suppliedA=p.acceleration??p.a;let vi=p.vi??p.initialVelocity,vf=p.vf??p.finalVelocity,time=p.time;
+ let time=p.startTime!==undefined&&p.endTime!==undefined?finite(p.endTime)-finite(p.startTime):p.time;
+ const suppliedA=p.acceleration??p.a;let vi=p.vi??p.initialVelocity,vf=p.vf??p.finalVelocity;
  if(time===undefined&&suppliedA!==undefined&&finite(suppliedA)!==0)time=(finite(vf)-finite(vi))/finite(suppliedA);
- time=positive(time,5);
- if(vi===undefined&&vf!==undefined&&suppliedA!==undefined)vi=finite(vf)-finite(suppliedA)*time;
+ time=positive(time,5);if(vi===undefined&&vf!==undefined&&suppliedA!==undefined)vi=finite(vf)-finite(suppliedA)*time;
  vi=finite(vi);const a=suppliedA!==undefined?finite(suppliedA):(finite(vf,vi)-vi)/time;
  return {time,vi,a,vf:vi+a*time};
 }
-function forceMotion(p,kind){
- const suppliedNet=p.netForce??p.force;
- const candidate=suppliedNet!==undefined?finite(suppliedNet):finite(p.forwardForce)-finite(p.backwardForce);
- const mass=positive(p.mass,p.acceleration?candidate/p.acceleration:10);
- let forward=finite(p.forwardForce,suppliedNet??(p.acceleration!==undefined?mass*finite(p.acceleration):0)),backward=finite(p.backwardForce,p.kineticFriction??0),vi=finite(p.vi),net=forward-backward;
- const staticLimit=Math.max(0,finite(p.staticLimit,0));
- if(p.steady){backward=forward;net=0;}
- let stuck=kind==='friction'&&Math.abs(vi)<1e-9&&staticLimit>0&&Math.abs(forward)<=staticLimit;
- if(stuck){backward=forward;net=0;}
- if(suppliedNet!==undefined&&p.forwardForce===undefined){net=finite(suppliedNet);forward=net;backward=0;}
- const a=net/mass,frictionStop=kind==='friction'&&vi*a<0,stop=frictionStop?-vi/a:Infinity;
- return {mass,forward,backward,net,a,vi,stuck,stop,time:positive(p.time,5)};
-}
 function uniform(p){let time=p.time,speed=p.speed,distance=p.distance;if(time===undefined)time=finite(distance)/positive(speed);time=positive(time,5);if(speed===undefined)speed=finite(distance)/time;return{time,speed:finite(speed),distance:finite(speed)*time};}
-function route(p){const start=finite(p.start),turn=finite(p.turn),end=finite(p.end),speed=positive(p.speed,1.5);const d1=Math.abs(turn-start),d2=Math.abs(end-turn);return{start,turn,end,speed,d1,d2,distance:d1+d2,duration:Math.max(.1,(d1+d2)/speed)};}
-function piecewise(p){const times=p.times||[0,10,20,30],positions=p.positions||[0,12,12,30];return{times,positions,duration:positive(times.at(-1)-times[0]),distance:positions.slice(1).reduce((s,x,i)=>s+Math.abs(x-positions[i]),0)};}
-function momentum(p){const m1=positive(p.mass1,2),m2=positive(p.mass2,2),v1=finite(p.velocity1,2),v2=finite(p.velocity2),rel=v1-v2,tc=2,bodyGap=.7;const gap=bodyGap+Math.max(0,rel)*tc;const vf=(m1*v1+m2*v2)/(m1+m2);return{m1,m2,v1,v2,vf,tc,gap,bodyGap,collides:rel>0,time:positive(p.time,5)};}
+function route(p,id){const start=finite(p.start),end=finite(p.end),turn=id==='P02'?end:finite(p.turn),speed=positive(p.speed,1.5);const d1=Math.abs(turn-start),d2=Math.abs(end-turn);return{start,turn,end,speed,d1,d2,distance:d1+d2,duration:Math.max(.1,(d1+d2)/speed)};}
+function piecewise(p){const ts=positive(p.timeScale,1),ds=positive(p.distanceScale,1),times=(p.times||[0,10,20,30]).map(x=>x*ts),positions=(p.positions||[0,12,12,30]).map(x=>x*ds);return{times,positions,duration:positive(times.at(-1)-times[0]),distance:positions.slice(1).reduce((s,x,i)=>s+Math.abs(x-positions[i]),0)};}
+function circular(p){const radius=p.orbital?positive(p.orbitAU,1)*149600000000:positive(p.radius,4),speed=p.orbital?Math.sqrt(1.3271244e20/radius):positive(p.speed,2);return{radius,speed,omega:speed/radius,duration:2*Math.PI*radius/speed*positive(p.laps,1)};}
+function forceMotion(p,kind){
+ const vertical=p.axis==='vertical',g=positive(p.g,10),givenNet=p.netForce??p.force;
+ let mass,forward,backward,net;
+ if(vertical){
+  mass=p.mass!==undefined?positive(p.mass):p.weight!==undefined?positive(p.weight)/g:positive(finite(givenNet)/positive(p.acceleration));
+  backward=p.weight!==undefined?positive(p.weight):mass*g;
+  forward=p.upwardForce!==undefined?finite(p.upwardForce):backward+finite(givenNet,mass*finite(p.acceleration));net=forward-backward;
+ }else{
+  const candidate=givenNet!==undefined?finite(givenNet):finite(p.forwardForce)-finite(p.backwardForce);
+  mass=p.balancedFlight?positive(p.weight,12000)/g:positive(p.mass,p.acceleration?candidate/p.acceleration:10);
+  forward=finite(p.forwardForce,givenNet??mass*finite(p.acceleration));backward=finite(p.backwardForce,p.kineticFriction??0);
+  if(p.steady||p.balancedFlight)backward=forward;
+  net=forward-backward;
+ }
+ const vi=finite(p.vi),staticLimit=Math.max(0,finite(p.staticLimit)),stuck=kind==='friction'&&Math.abs(vi)<1e-9&&staticLimit>0&&Math.abs(forward)<=staticLimit;
+ if(stuck){backward=forward;net=0;}
+ const a=net/mass,frictionStop=kind==='friction'&&vi*a<0,stop=frictionStop?-vi/a:Infinity;
+ return{mass,forward,backward,net,a,vi,stuck,stop,time:positive(p.time,5),vertical,height:Math.max(0,finite(p.height))};
+}
+function landingTime(height,vi,a){
+ if(height<=0&&vi<=0&&a<=0)return 0;
+ if(Math.abs(a)<1e-12)return vi<0?-height/vi:Infinity;
+ const disc=vi*vi-2*a*height;if(disc<0)return Infinity;
+ const roots=[(-vi-Math.sqrt(disc))/a,(-vi+Math.sqrt(disc))/a].filter(t=>t>=0&&vi+a*t<0);
+ return roots.length?Math.min(...roots):Infinity;
+}
+function collision(p){
+ const m1=positive(p.mass1,.1),m2=positive(p.mass2,.1),v1=finite(p.velocity1,2),v2=finite(p.velocity2),rel=v1-v2;
+ const r1=positive(p.radius1,.1),r2=positive(p.radius2,.1),R=r1+r2,tc=positive(p.collisionTime,1),M=m1+m2,mu=m1*m2/M,vcm=(m1*v1+m2*v2)/M;
+ const e=clamp(finite(p.restitution),0,1),contactDuration=Math.min(positive(p.contactDuration,.01),rel>0?.4*R/rel:1),duration=p.preImpact?tc:positive(p.time,3);
+ const initial1=-(R+Math.max(0,rel)*tc)/2,initial2=-initial1;
+ return{m1,m2,v1,v2,rel,r1,r2,R,tc,M,mu,vcm,e,contactDuration,duration,initial1,initial2,collides:rel>0};
+}
+function collisionState(p,t){
+ const m=collision(p),tt=clamp(t,0,m.duration),tau=tt-m.tc;let x1=m.initial1+m.v1*tt,x2=m.initial2+m.v2*tt,v1=m.v1,v2=m.v2,a1=0,a2=0,compression=0,F=0,contact=false,phase=p.preImpact?'pre-impact':'approach';
+ if(m.collides&&!p.preImpact&&tau>=0){
+  const d=m.contactDuration,cm0=(m.m1*(m.initial1+m.v1*m.tc)+m.m2*(m.initial2+m.v2*m.tc))/m.M;
+  if(tau<d){
+   contact=true;phase='contact';let relV;
+   if(m.e===0){compression=m.rel*tau-.5*m.rel*tau*tau/d;relV=m.rel*(1-tau/d);F=m.mu*m.rel/d;}
+   else{const omega=Math.PI/d;compression=m.rel/omega*Math.sin(omega*tau);relV=m.rel*Math.cos(omega*tau);F=m.mu*omega*omega*compression;}
+   x1=cm0+m.vcm*tau-m.m2/m.M*(m.R-compression);x2=cm0+m.vcm*tau+m.m1/m.M*(m.R-compression);
+   v1=m.vcm+m.m2/m.M*relV;v2=m.vcm-m.m1/m.M*relV;a1=-F/m.m1;a2=F/m.m2;
+  }else{
+   const vf1=m.vcm-m.e*m.m2/m.M*m.rel,vf2=m.vcm+m.e*m.m1/m.M*m.rel;
+   compression=m.e===0?.5*m.rel*d:0;const sep=m.R-compression;
+   x1=cm0+m.vcm*d-m.m2/m.M*sep+vf1*(tau-d);x2=cm0+m.vcm*d+m.m1/m.M*sep+vf2*(tau-d);v1=vf1;v2=vf2;
+   contact=m.e===0;phase=contact?'together':'separated';
+  }
+ }
+ const bodies=[{x:x1,v:v1,a:a1,mass:m.m1,radius:m.r1,label:p.bodyLabels?.[0]||'Object 1'},{x:x2,v:v2,a:a2,mass:m.m2,radius:m.r2,label:p.bodyLabels?.[1]||'Object 2'}];
+ bodies.forEach((b,i)=>{const v0=i?m.v2:m.v1,initial=i?m.initial2:m.initial1;b.distance=Math.abs(b.x-initial);if(tt>m.tc&&v0*b.v<0){const omega=Math.PI/m.contactDuration,cross=Math.acos(clamp((i?1:-1)*m.vcm*m.M/((i?m.m1:m.m2)*m.rel),-1,1))/omega;if(cross>=0&&cross<=m.contactDuration&&tt>m.tc+cross){const turn=collisionState(p,m.tc+cross).bodies[i].x;b.distance=Math.abs(turn-initial)+Math.abs(b.x-turn);}}});
+ return{...m,t:tt,bodies,contact,collisionPhase:phase,compression,contactForce:F,collided:!p.preImpact&&tt>=m.tc,collisionTime:m.tc,contactDuration:m.contactDuration,totalMomentum:m.m1*v1+m.m2*v2,momentum1:m.m1*v1,momentum2:m.m2*v2,kineticEnergy:.5*m.m1*v1*v1+.5*m.m2*v2*v2};
+}
 export function solve(problem,p,quantity=problem.numericAnswer?.quantity){
  let value=NaN,unit='',formula='',steps=[];const kind=problem.simulation.kind;
- if(kind==='route'){const r=route(p);if(/displacement/i.test(quantity)){value=r.end-r.start;unit='m';formula='displacement = final position − starting position';}else if(/velocity/i.test(quantity)){value=(r.end-r.start)/r.duration;unit='m/s';formula='average velocity = displacement ÷ total time';}else{value=r.distance;unit='m';formula='distance = first path length + second path length';}}
- else if(kind==='piecewise'){const r=piecewise(p);if(quantity==='distance'){value=r.distance;unit='m';formula='distance = sum of all path lengths';}else{value=r.distance/r.duration;unit='m/s';formula='average speed = total distance ÷ total time';}}
- else if(kind==='uniform'){
-  if(quantity==='time'){value=uniform(p).distance/positive(uniform(p).speed);unit='s';formula='time = distance ÷ speed';}
-  else if(quantity==='distance'){value=uniform(p).distance;unit='m';formula='distance = speed × time';}
-  else{value=uniform(p).speed;unit='m/s';formula='speed = distance ÷ time';}
- }
- else if(kind==='acceleration'){
-  const a=motion(p).a;
-  if(['finalVelocity','vf'].includes(quantity)){value=motion(p).vf;unit='m/s';formula='final velocity = initial velocity + acceleration × time';}
-  else if(['initialVelocity','vi'].includes(quantity)){value=motion(p).vi;unit='m/s';formula='initial velocity = final velocity − acceleration × time';}
-  else if(quantity==='time'){value=motion(p).time;unit='s';formula='time = change in velocity ÷ acceleration';}
-  else{value=motion(p).a;unit='m/s²';formula='acceleration = (final velocity − initial velocity) ÷ time';}
- }
- else if(kind==='gravity'){
-  if(quantity==='mass'){value=finite(p.weight)/positive(p.g,9.8);unit='kg';formula='mass = weight ÷ gravitational field strength';}
-  else{value=positive(p.mass)*positive(p.g,9.8);unit='N';formula='weight = mass × gravitational field strength';}
- }
- else if(['friction','netforce','newton2'].includes(kind)){
-  const f=forceMotion(p,kind);
-  if(quantity==='frictionForce'){value=f.forward;unit='N';formula='steady velocity: friction magnitude = applied force magnitude';}
-  else if(quantity==='mass'){value=p.mass!==undefined?f.mass:f.net/positive(p.acceleration);unit='kg';formula='mass = net force ÷ acceleration';}
-  else if(quantity==='acceleration'){value=f.net/f.mass;unit='m/s²';formula='acceleration = net force ÷ mass';}
-  else{value=f.net;unit='N';formula='net force = forward force − backward force';}
- }
- else if(kind==='thirdlaw'){
-  if(quantity==='acceleration1'){value=finite(p.force)/positive(p.mass1);unit='m/s²';formula='acceleration of object 1 = force ÷ mass of object 1';}
-  else if(quantity==='acceleration2'){value=finite(p.force)/positive(p.mass2);unit='m/s²';formula='acceleration of object 2 = force ÷ mass of object 2';}
-  else{value=finite(p.force);unit='N';formula='reaction force magnitude = action force magnitude';}
- }
- else if(kind==='momentum'){
-  const m=momentum(p);
-  if(quantity==='finalVelocity'){value=m.vf;unit='m/s';formula='final velocity = (m₁v₁ + m₂v₂) ÷ (m₁ + m₂)';}
-  else if(quantity==='totalMomentum'){value=m.m1*m.v1+m.m2*m.v2;unit='kg·m/s';formula='total momentum = m₁v₁ + m₂v₂';}
-  else{value=m.m1*m.v1;unit='kg·m/s';formula='momentum = mass × velocity';}
- }
- else if(kind==='circular'){value=positive(p.speed)**2/positive(p.radius);unit='m/s²';formula='inward acceleration = speed² ÷ radius (extension)';}
- return {value,unit,formula,steps};
+ if(kind==='route'){const r=route(p,problem.id);if(/displacement/i.test(quantity)){value=r.end-r.start;unit='m';formula='displacement = final position − starting position';steps=[`${format(r.end)} − (${format(r.start)}) = ${format(value)} m`];}else{value=r.distance;unit='m';formula='distance = first path length + second path length';steps=[`${format(r.d1)} + ${format(r.d2)} = ${format(value)} m`];}}
+ else if(kind==='piecewise'){const r=piecewise(p);value=quantity==='distance'?r.distance:r.distance/r.duration;unit=quantity==='distance'?'m':'m/s';formula=quantity==='distance'?'distance = sum of path lengths':'average speed = total distance ÷ total elapsed time';steps=quantity==='distance'?[`Add the path lengths: ${r.positions.slice(1).map((x,i)=>format(Math.abs(x-r.positions[i]))).join(' + ')} = ${format(r.distance)} m.`]:[`${format(r.distance)} m ÷ ${format(r.duration)} s = ${format(r.distance/r.duration)} m/s`];}
+ else if(kind==='uniform'){const u=uniform(p);if(quantity==='time'){value=u.time;unit='s';formula='time = distance ÷ speed';}else if(quantity==='distance'){value=u.distance;unit='m';formula='distance = speed × time';}else{value=u.speed;unit='m/s';formula='speed = distance ÷ time';}steps=[`Distance ${format(u.distance)} m; speed ${format(u.speed)} m/s; time ${format(u.time)} s.`];}
+ else if(kind==='acceleration'){const m=motion(p);if(['finalVelocity','vf'].includes(quantity)){value=m.vf;unit='m/s';formula='final velocity = initial velocity + acceleration × time';steps=[`${format(m.vi)} + ${format(m.a)} × ${format(m.time)} = ${format(value)} m/s`];}else if(['initialVelocity','vi'].includes(quantity)){value=m.vi;unit='m/s';formula='initial velocity = final velocity − acceleration × time';}else if(quantity==='time'){value=m.time;unit='s';formula='time = change in velocity ÷ acceleration';}else{value=m.a;unit='m/s²';formula='acceleration = (final velocity − initial velocity) ÷ elapsed time';steps=[`Elapsed time = ${p.startTime!==undefined?`${format(p.endTime)} − ${format(p.startTime)} = `:''}${format(m.time)} s.`,`(${format(m.vf)} − ${format(m.vi)}) ÷ ${format(m.time)} = ${format(value)} m/s²`];}}
+ else if(kind==='gravity'){value=positive(p.mass)*positive(p.g,10);unit='N';formula='weight = mass × gravitational field strength';steps=[`${format(p.mass)} × ${format(p.g)} = ${format(value)} N downward.`,`At rest, the scale provides ${format(value)} N upward, so net force is zero.`];}
+ else if(['friction','netforce','newton2'].includes(kind)){const f=forceMotion(p,kind);if(quantity==='frictionForce'){value=f.backward;unit='N';formula='steady velocity: friction magnitude = push magnitude';}else if(quantity==='mass'){value=f.mass;unit='kg';formula='mass = net force ÷ acceleration';steps=[`${format(f.net)} ÷ ${format(f.a)} = ${format(value)} kg`];}else if(quantity==='acceleration'){value=f.a;unit='m/s²';formula='acceleration = net force ÷ mass';steps=[`Net force = ${format(f.forward)} − ${format(f.backward)} = ${format(f.net)} N.`,`${format(f.net)} ÷ ${format(f.mass)} = ${format(value)} m/s²`];}else{value=f.net;unit='N';formula=f.vertical?'net force = upward force − weight':'net force = positive-direction force − opposing force';steps=[`${format(f.forward)} − ${format(f.backward)} = ${format(value)} N (${f.vertical?'up':'right'} is positive).`];}}
+ else if(kind==='momentum'){const m=collision(p);value=quantity==='momentum1'?m.m1*m.v1:quantity==='momentum2'?m.m2*m.v2:m.m1*m.v1+m.m2*m.v2;unit='kg·m/s';formula='total system momentum = m₁v₁ + m₂v₂';steps=[`(${format(m.m1)} × ${format(m.v1)}) + (${format(m.m2)} × ${format(m.v2)}) = ${format(m.m1*m.v1+m.m2*m.v2)} kg·m/s.`,p.preImpact?'The stationary pin contributes zero momentum.':'With no external horizontal force, total momentum has the same value before and after.'];}
+ else if(kind==='circular'){const c=circular(p);value=c.speed*c.speed/c.radius;unit='m/s²';formula='inward acceleration = speed² ÷ radius';}
+ return{value,unit,formula,steps};
 }
 export function evaluate(problem,p,time){
  const k=problem.simulation.kind;let t=Math.max(0,finite(time)),x=0,v=0,a=0,bodies=[],forces=[],readouts=[],axis='horizontal',extra={};
  if(k==='route'){
-  if(problem.id==='P02')p={...p,turn:p.end};const r=route(p);t=Math.min(t,r.duration);const d=Math.min(r.distance,r.speed*t);
+  const r=route(p,problem.id);t=Math.min(t,r.duration);const d=Math.min(r.distance,r.speed*t);
   if(d<r.d1){x=r.start+Math.sign(r.turn-r.start)*d;v=Math.sign(r.turn-r.start)*r.speed;}else{x=r.turn+Math.sign(r.end-r.turn)*(d-r.d1);v=Math.sign(r.end-r.turn)*r.speed;}
-  if(t>=r.duration)v=0;extra={distance:d,displacement:x-r.start};
-  readouts=[{label:'Position',value:x,unit:'m'},{label:'Distance traveled',value:d,unit:'m'},{label:'Displacement',value:x-r.start,unit:'m'}];
+  extra={distance:d,displacement:x-r.start};readouts=[{label:'Position',value:x,unit:'m'},{label:'Distance traveled',value:d,unit:'m'},{label:'Displacement',value:x-r.start,unit:'m'}];
  }else if(k==='piecewise'){
   const r=piecewise(p);t=Math.min(t,r.duration);let i=r.times.findIndex((z,j)=>j<r.times.length-1&&t+r.times[0]<r.times[j+1]);if(i<0)i=r.times.length-2;
   v=(r.positions[i+1]-r.positions[i])/(r.times[i+1]-r.times[i]);x=r.positions[i]+v*(t+r.times[0]-r.times[i]);
   let distance=0;for(let j=0;j<i;j++)distance+=Math.abs(r.positions[j+1]-r.positions[j]);distance+=Math.abs(x-r.positions[i]);
-  readouts=[{label:'Position',value:x,unit:'m'},{label:'Velocity',value:v,unit:'m/s'},{label:'Elapsed time',value:t,unit:'s'}];extra={distance};
- }else if(k==='uniform'){const u=uniform(p);t=Math.min(t,u.time);v=u.speed-finite(p.referenceSpeed);x=v*t;
-  if(p.otherSpeed!==undefined)bodies=[{x:u.speed*t,v:u.speed,a:0,mass:1,label:'Eastbound'},{x:finite(p.otherSpeed)*t,v:finite(p.otherSpeed),a:0,mass:1,label:'Westbound'}];
-  readouts=p.referenceSpeed!==undefined?[{label:'Relative velocity',value:v,unit:'m/s'},{label:'Train velocity',value:u.speed,unit:'m/s'},{label:'Frame velocity',value:finite(p.referenceSpeed),unit:'m/s'}]:[{label:'Distance',value:Math.abs(x),unit:'m'},{label:'Speed',value:Math.abs(v),unit:'m/s'},{label:'Elapsed time',value:t,unit:'s'}];
- }
- else if(k==='acceleration'){const m=motion(p);t=Math.min(t,m.time);a=m.a;v=m.vi+a*t;x=m.vi*t+.5*a*t*t;extra.distance=pathLength(m.vi,a,t);readouts=[{label:'Velocity',value:v,unit:'m/s'},{label:'Acceleration',value:a,unit:'m/s²'},{label:'Displacement',value:x,unit:'m'}];}
- else if(k==='gravity'){
-  axis='vertical';const mass=positive(p.mass),g=positive(p.g,9.8),height=positive(p.height,2);const fallTime=Math.sqrt(2*height/g);const supported=p.supported===true;
-  if(supported){x=height;forces=[{body:0,value:-mass*g,axis:'vertical',label:'Weight'},{body:0,value:mass*g,axis:'vertical',label:'Support'}];}
-  else{t=Math.min(t,fallTime);x=Math.max(0,height-.5*g*t*t);v=t>=fallTime?0:-g*t;a=t>=fallTime?0:-g;forces=[{body:0,value:-mass*g,axis:'vertical',label:'Weight'}];if(t>=fallTime)forces.push({body:0,value:mass*g,axis:'vertical',label:'Ground'});}
-  bodies=[{x,v,a,mass,label:'Object'}];readouts=p.compareG!==undefined?[{label:'Weight here',value:mass*g,unit:'N'},{label:'Weight on Earth',value:mass*finite(p.compareG),unit:'N'},{label:'Mass both places',value:mass,unit:'kg'}]:[{label:'Weight',value:mass*g,unit:'N'},{label:'Mass',value:mass,unit:'kg'},{label:'Height',value:x,unit:'m'}];extra={supported,height,distance:supported?0:height-x};
+  extra={distance,interval:i,averageSpeed:r.distance/r.duration};readouts=[{label:'Distance traveled',value:distance,unit:'m'},{label:'Speed',value:Math.abs(v),unit:'m/s'},{label:'Trip average speed',value:r.distance/r.duration,unit:'m/s'}];
+ }else if(k==='uniform'){
+  const u=uniform(p);t=Math.min(t,u.time);const ref=p.frame!==undefined?(Number(p.frame)===1?u.speed:0):finite(p.referenceSpeed);v=u.speed-ref;x=v*t;
+  if(p.otherSpeed!==undefined)bodies=[{x:u.speed*t,v:u.speed,a:0,mass:1,label:'Blue'},{x:finite(p.otherSpeed)*t,v:finite(p.otherSpeed),a:0,mass:1,label:'Orange'}];
+  const train=problem.simulation.scene==='train';extra={distance:Math.abs(v*t),referenceSpeed:ref,trainSpeed:u.speed,groundX:u.speed*t,frame:p.frame??(ref===u.speed?1:0)};
+  readouts=train?[{label:'Passenger vs. platform',value:u.speed,unit:'m/s'},{label:'Passenger vs. train',value:0,unit:'m/s'},{label:'In selected frame',value:v,unit:'m/s'}]:[{label:'Distance',value:Math.abs(x),unit:'m'},{label:'Speed',value:Math.abs(v),unit:'m/s'},{label:'Velocity',value:v,unit:'m/s'}];
+ }else if(k==='acceleration'){
+  const m=motion(p);t=Math.min(t,m.time);a=m.a;v=m.vi+a*t;x=m.vi*t+.5*a*t*t;extra={distance:pathLength(m.vi,a,t),clockTime:finite(p.startTime)+t};readouts=[{label:'Velocity',value:v,unit:'m/s'},{label:'Acceleration',value:a,unit:'m/s²'},{label:'Elapsed time',value:t,unit:'s'}];
+ }else if(k==='gravity'){
+  axis='vertical';const mass=positive(p.mass),g=positive(p.g,10),weight=mass*g,springK=positive(p.springK,500);t=Math.min(t,5);x=0;
+  forces=[{body:0,value:-weight,axis:'vertical',label:'Weight'},{body:0,value:weight,axis:'vertical',label:'Scale force'}];
+  bodies=[{x:0,v:0,a:0,mass,label:problem.simulation.scene==='astronaut'?'Astronaut':'Instrument'}];extra={supported:true,mass,weight,compareWeight:p.compareG!==undefined?mass*positive(p.compareG):undefined,springK,springExtension:weight/springK,compareSpringExtension:p.compareG!==undefined?mass*positive(p.compareG)/springK:undefined,netForce:0,distance:0};
+  readouts=p.compareG!==undefined?[{label:'Weight on other planet',value:weight,unit:'N'},{label:'Weight on Earth',value:extra.compareWeight,unit:'N'},{label:'Mass in both places',value:mass,unit:'kg'}]:[{label:'Scale reading',value:weight,unit:'N'},{label:'Mass',value:mass,unit:'kg'},{label:'Net force at rest',value:0,unit:'N'}];
  }else if(['friction','netforce','newton2'].includes(k)){
-  const f=forceMotion(p,k);t=Math.min(t,f.time);const stopped=t>=f.stop,mt=Math.min(t,f.stop);x=f.vi*mt+.5*f.a*mt*mt;v=stopped?0:f.vi+f.a*t;a=stopped?0:f.a;
-  let fwd=f.forward,bwd=f.backward;if(stopped&&k==='friction')bwd=fwd;
-  forces=[{body:0,value:fwd,axis:'horizontal',label:'Push'},{body:0,value:-bwd,axis:'horizontal',label:k==='friction'?'Friction':'Opposing force'}];
-  bodies=[{x,v,a,mass:f.mass,label:'Cart'}];
-  if(p.compareMass!==undefined){const m2=positive(p.compareMass),a2=f.net/m2;bodies.push({x:f.vi*t+.5*a2*t*t,v:f.vi+a2*t,a:a2,mass:m2,label:'Cart 2'});forces.push({body:1,value:f.net,axis:'horizontal',label:'Same net force'});}
-  readouts=[{label:'Net force',value:fwd-bwd,unit:'N'},{label:'Acceleration',value:a,unit:'m/s²'},{label:'Velocity',value:v,unit:'m/s'}];extra={stuck:f.stuck,stopped,mass:f.mass,distance:pathLength(f.vi,f.a,mt)};
- }else if(k==='thirdlaw'){
-  const pushTime=positive(p.pushDuration,p.time??.5),duration=pushTime+3;t=Math.min(t,duration);const f=finite(p.force,20),m1=positive(p.mass1,50),m2=positive(p.mass2,50),a1=-f/m1,a2=f/m2,pt=Math.min(t,pushTime),coast=Math.max(0,t-pushTime),contact=t<pushTime;
-  bodies=[{x:-.6+.5*a1*pt*pt+a1*pt*coast,v:a1*pt,a:contact?a1:0,mass:m1,label:p.fixedSecond?'Swimmer':'Skater 1'},{x:.6+(p.fixedSecond?0:.5*a2*pt*pt+a2*pt*coast),v:p.fixedSecond?0:a2*pt,a:p.fixedSecond?0:contact?a2:0,mass:m2,label:p.fixedSecond?'Wall':'Skater 2'}];
-  forces=contact?[{body:0,value:-f,axis:'horizontal',label:'Force on 1'},{body:1,value:f,axis:'horizontal',label:'Force on 2'}]:[];x=bodies[0].x;v=bodies[0].v;a=bodies[0].a;extra={contact,pushTime,distance:Math.abs(bodies[0].x+.6)};
-  readouts=[{label:'Force on 1',value:contact?-f:0,unit:'N'},{label:'Force on 2',value:contact?f:0,unit:'N'},{label:'Acceleration 1',value:a,unit:'m/s²'}];
+  const f=forceMotion(p,k);t=Math.min(t,f.time);axis=f.vertical?'vertical':'horizontal';const landing=f.vertical&&p.ground?landingTime(f.height,f.vi,f.a):Infinity,stop=Math.min(f.stop,landing),stopped=t>=stop,mt=Math.min(t,stop);
+  x=(f.vertical?f.height:0)+f.vi*mt+.5*f.a*mt*mt;v=stopped?0:f.vi+f.a*t;a=stopped?0:f.a;
+  let forward=f.forward,backward=f.backward;forces=[{body:0,value:forward,axis,label:f.vertical?(problem.simulation.scene==='balloon'?'Buoyancy':problem.simulation.scene==='bird'?'Air force':'Rotor force'):p.balancedFlight?'Thrust':problem.simulation.scene==='modelplanes'?'Net force':'Push'},{body:0,value:-backward,axis,label:f.vertical?'Weight':k==='friction'?'Friction':p.balancedFlight?'Drag':'Opposing force'}];
+  if(stopped&&f.vertical){x=0;forces.push({body:0,value:Math.max(0,backward-forward),axis,label:'Ground support'});}else if(stopped&&k==='friction'){backward=forward;forces[1].value=-backward;}
+  bodies=[{x,v,a,mass:f.mass,label:problem.simulation.scene||'Object'}];
+  if(p.compareMass!==undefined){const mass=positive(p.compareMass),a2=f.net/mass;bodies.push({x:f.vi*t+.5*a2*t*t,v:f.vi+a2*t,a:a2,mass,label:'Plane 2'});forces.push({body:1,value:f.net,axis:'horizontal',label:'Same net force'});}
+  if(p.balancedFlight){const weight=positive(p.weight,12000);forces.push({body:0,value:weight,axis:'vertical',label:'Lift'},{body:0,value:-weight,axis:'vertical',label:'Weight'});}
+  const net=stopped?0:forward-backward;extra={stuck:f.stuck,stopped,grounded:stopped&&f.vertical,mass:f.mass,netForce:net,weight:f.vertical?backward:finite(p.weight),upwardForce:f.vertical?forward:finite(p.weight),verticalNet:f.vertical?net:0,distance:pathLength(f.vi,f.a,mt)};
+  readouts=p.balancedFlight?[{label:'Horizontal net force',value:0,unit:'N'},{label:'Vertical net force',value:0,unit:'N'},{label:'Forward velocity',value:v,unit:'m/s'}]:p.compareMass!==undefined?[{label:'Same net force (each)',value:f.net,unit:'N'},{label:'Blue acceleration',value:a,unit:'m/s²'},{label:'Orange acceleration',value:bodies[1].a,unit:'m/s²'}]:[{label:'Net force',value:net,unit:'N'},{label:'Acceleration',value:a,unit:'m/s²'},{label:problem.id==='P26'?'Mass':f.vertical?'Vertical velocity':'Velocity',value:problem.id==='P26'?f.mass:v,unit:problem.id==='P26'?'kg':'m/s'}];
  }else if(k==='momentum'){
-  const m=momentum(p);t=Math.min(t,m.time);
-  if(p.single){x=m.v1*t;v=m.v1;bodies=[{x,v,a:0,mass:m.m1,label:'Bowling ball'}];extra={totalMomentum:m.m1*v};readouts=[{label:'Momentum',value:m.m1*v,unit:'kg·m/s'},{label:'Mass',value:m.m1,unit:'kg'},{label:'Velocity',value:v,unit:'m/s'}];}
-  else{const coll=m.collides&&t>=m.tc;let x1,x2,v1,v2;
-  if(coll){x1=-m.gap/2+m.v1*m.tc+m.vf*(t-m.tc);x2=m.gap/2+m.v2*m.tc+m.vf*(t-m.tc);v1=v2=m.vf;}else{x1=-m.gap/2+m.v1*t;x2=m.gap/2+m.v2*t;v1=m.v1;v2=m.v2;}
-  bodies=[{x:x1,v:v1,a:0,mass:m.m1,label:'Cart 1'},{x:x2,v:v2,a:0,mass:m.m2,label:'Cart 2'}];x=x1;v=v1;extra={collided:coll,totalMomentum:m.m1*v1+m.m2*v2,collisionTime:m.tc,distance:Math.abs(m.v1)*Math.min(t,m.tc)+(coll?Math.abs(m.vf)*(t-m.tc):0)};
-  readouts=[{label:'Momentum 1',value:m.m1*v1,unit:'kg·m/s'},{label:'Momentum 2',value:m.m2*v2,unit:'kg·m/s'},{label:'Total momentum',value:extra.totalMomentum,unit:'kg·m/s'}];}
+  const s=collisionState(p,t);t=s.t;bodies=s.bodies;x=bodies[0].x;v=bodies[0].v;a=bodies[0].a;
+  forces=s.contactForce>0?[{body:0,value:-s.contactForce,axis:'horizontal',label:'Force on 1'},{body:1,value:s.contactForce,axis:'horizontal',label:'Force on 2'}]:[];
+  extra={contact:s.contact,collided:s.collided,collisionTime:s.collisionTime,contactDuration:s.contactDuration,collisionPhase:s.collisionPhase,compression:s.compression,totalMomentum:s.totalMomentum,momentum1:s.momentum1,momentum2:s.momentum2,kineticEnergy:s.kineticEnergy,force:s.contactForce,force1:-s.contactForce,force2:s.contactForce,distance:bodies[0].distance};
+  readouts=[{label:'Momentum 1',value:s.momentum1,unit:'kg·m/s'},{label:'Momentum 2',value:s.momentum2,unit:'kg·m/s'},{label:'Total system momentum',value:s.totalMomentum,unit:'kg·m/s'}];
  }else if(k==='circular'){
-  const radius=positive(p.radius,4),speed=positive(p.speed,2),omega=speed/radius,theta=omega*t;x=radius*Math.cos(theta);v=-speed*Math.sin(theta);a=-speed*speed/radius*Math.cos(theta);extra={radius,speed,theta,distance:speed*t,y:radius*Math.sin(theta),vy:speed*Math.cos(theta),ay:-speed*speed/radius*Math.sin(theta)};
-  readouts=[{label:'Speed',value:speed,unit:'m/s'},{label:'Radius',value:radius,unit:'m'},{label:'Direction',value:((theta*180/Math.PI)%360),unit:'°'}];
+  const c=circular(p);t=Math.min(t,c.duration);const theta=c.omega*t;x=c.radius*Math.cos(theta);v=-c.speed*Math.sin(theta);a=-c.speed*c.speed/c.radius*Math.cos(theta);
+  extra={radius:c.radius,speed:c.speed,theta,distance:c.speed*t,displacement:Math.hypot(x-c.radius,c.radius*Math.sin(theta)),y:c.radius*Math.sin(theta),vy:c.speed*Math.cos(theta),ay:-c.speed*c.speed/c.radius*Math.sin(theta),inwardAcceleration:c.speed*c.speed/c.radius,orbitDays:t/86400};
+  readouts=p.orbital?[{label:'Orbital speed',value:c.speed/1000,unit:'km/s'},{label:'Elapsed time',value:t/86400,unit:'days'},{label:'Inward acceleration',value:c.speed*c.speed/c.radius,unit:'m/s²'}]:problem.id==='P03'?[{label:'Distance traveled',value:extra.distance,unit:'m'},{label:'Displacement size',value:extra.displacement,unit:'m'},{label:'Speed',value:c.speed,unit:'m/s'}]:[{label:'Speed',value:c.speed,unit:'m/s'},{label:'Radius',value:c.radius,unit:'m'},{label:'Inward net force',value:positive(p.mass,75)*c.speed*c.speed/c.radius,unit:'N'}];
  }
  if(!bodies.length)bodies=[{x,v,a,mass:finite(p.mass,1),label:'Object'}];
- bodies.forEach((b,i)=>{
-  if(k==='thirdlaw')b.distance=Math.abs(b.x-(i===0?-.6:.6));
-  else if(k==='momentum'&&!p.single){const m=momentum(p);b.distance=Math.abs(i?m.v2:m.v1)*Math.min(t,m.tc)+(t>m.tc&&m.collides?Math.abs(m.vf)*(t-m.tc):0);}
-  else if(k==='uniform')b.distance=Math.abs(b.v*t);
-  else if(i===0)b.distance=extra.distance??Math.abs(x);
-  else if(p.compareMass!==undefined)b.distance=pathLength(finite(p.vi),b.a,t);
-  else b.distance=Math.abs(b.x);
- });
- return {t,x,v,a,speed:Math.abs(v),distance:extra.distance??Math.abs(x),bodies,forces,readouts,axis,...extra};
+ bodies.forEach((b,i)=>{if(b.distance===undefined)b.distance=k==='uniform'?Math.abs(b.v*t):i===0?(extra.distance??Math.abs(x)):pathLength(finite(p.vi),b.a,t);});
+ return{t,x,v,a,speed:Math.abs(v),distance:extra.distance??Math.abs(x),bodies,forces,readouts,axis,...extra};
 }
 export function modelInfo(problem,p){
- const k=problem.simulation.kind;let duration=5,quantities=[];
- if(k==='route'){duration=route(p).duration;quantities=[q('distance','Total distance','m'),q('displacement','Displacement','m')];}
- else if(k==='piecewise'){duration=piecewise(p).duration;quantities=[q('averageSpeed','Average speed','m/s'),q('distance','Total distance','m')];}
- else if(k==='uniform'){duration=uniform(p).time;quantities=[q('speed','Speed','m/s'),q('distance','Distance','m'),q('time','Time','s')];}
- else if(k==='acceleration'){duration=motion(p).time;quantities=[q('acceleration','Acceleration','m/s²'),q('finalVelocity','Final velocity','m/s'),q('initialVelocity','Initial velocity','m/s'),q('time','Time','s')];}
- else if(k==='gravity'){duration=p.supported?5:Math.sqrt(2*positive(p.height,2)/positive(p.g,9.8));quantities=[q('weight','Weight','N')];}
- else if(['friction','netforce','newton2'].includes(k)){duration=positive(p.time,5);quantities=[q('netForce','Net force','N'),q('acceleration','Acceleration','m/s²')];if(k==='newton2')quantities.push(q('mass','Mass','kg'));if(p.steady)quantities.unshift(q('frictionForce','Sliding friction','N'));}
- else if(k==='thirdlaw'){duration=positive(p.pushDuration,p.time??.5)+3;quantities=[q('reactionForce','Reaction force magnitude','N'),q('acceleration1','Acceleration of object 1','m/s²'),q('acceleration2','Acceleration of object 2','m/s²')];}
- else if(k==='momentum'){duration=positive(p.time,5);quantities=p.single?[q('momentum1','Momentum','kg·m/s')]:[q('momentum1','Momentum of cart 1','kg·m/s'),q('finalVelocity','Combined final velocity','m/s'),q('totalMomentum','Total momentum','kg·m/s')];}
- else if(k==='circular'){duration=2*Math.PI*positive(p.radius,4)/positive(p.speed,2)*positive(p.laps,1);}
- const xs=[];for(let i=0;i<=80;i++){const s=evaluate(problem,p,duration*i/80);s.bodies.forEach(b=>xs.push(b.x));}
- let min=Math.min(0,...xs),max=Math.max(0,...xs);if(k==='route'){const r=route(p);min=Math.min(r.start,r.turn,r.end);max=Math.max(r.start,r.turn,r.end);}
- if(k==='circular'){min=-positive(p.radius,4);max=positive(p.radius,4);}
- if(Math.abs(max-min)<1){min-=1;max+=1;}const pad=(max-min)*.12;
- return {duration:Math.max(.1,duration),range:[min-pad,max+pad],quantities,notes:problem.simulation.notes||''};
+ const k=problem.simulation.kind;let duration=5,quantities=[],graphQuantities=[q('x','Position','m'),q('v','Velocity','m/s'),q('speed','Speed','m/s'),q('distance','Distance','m'),q('a','Acceleration','m/s²')],graphKey='x',isStatic=false,eventTimes=[];
+ if(k==='route'){duration=route(p,problem.id).duration;quantities=[q('distance','Total distance','m'),q('displacement','Displacement','m')];graphKey='distance';}
+ else if(k==='piecewise'){duration=piecewise(p).duration;quantities=[q('averageSpeed','Average speed','m/s'),q('distance','Total distance','m')];graphKey='distance';graphQuantities=graphQuantities.filter(q=>q.key!=='a');}
+ else if(k==='uniform'){duration=uniform(p).time;quantities=[q('speed','Speed','m/s'),q('distance','Distance','m'),q('time','Time','s')];graphKey=['P07','P16'].includes(problem.id)?'speed':'x';}
+ else if(k==='acceleration'){duration=motion(p).time;quantities=[q('acceleration','Acceleration','m/s²'),q('finalVelocity','Final velocity','m/s'),q('initialVelocity','Initial velocity','m/s'),q('time','Time','s')];graphKey=problem.id==='P14'?'speed':'v';}
+ else if(k==='gravity'){duration=5;quantities=[q('weight','Weight','N')];isStatic=true;graphKey='weight';graphQuantities=[q('weight','Weight comparison','N')];}
+ else if(['friction','netforce','newton2'].includes(k)){duration=positive(p.time,5);quantities=[q('netForce','Net force','N'),q('acceleration','Acceleration','m/s²')];if(k==='newton2')quantities.push(q('mass','Mass','kg'));if(p.steady)quantities.unshift(q('frictionForce','Sliding friction','N'));graphQuantities.unshift(q('netForce','Net force','N'));graphKey=p.axis==='vertical'?'v':k==='friction'?'netForce':'v';}
+ else if(k==='momentum'){const m=collision(p);duration=m.duration;quantities=[q('totalMomentum','Total system momentum','kg·m/s')];graphKey='totalMomentum';graphQuantities=[q('totalMomentum','System momentum','kg·m/s'),q('momentum1','Individual momenta','kg·m/s'),q('v','Velocities','m/s'),q('force','Contact force pair','N')];if(!p.preImpact&&m.collides)eventTimes=[{label:'Contact',time:m.tc+m.contactDuration/2},{label:'After',time:Math.min(duration,m.tc+m.contactDuration+.25)}];}
+ else if(k==='circular'){const c=circular(p);duration=c.duration;graphKey=problem.id==='P03'?'distance':'speed';graphQuantities=p.orbital?[q('speed','Orbital speed','km/s'),q('v','East–west velocity','km/s'),q('a','East–west acceleration','m/s²')]:graphQuantities;}
+ const xs=[];for(let i=0;i<=40;i++){const s=evaluate(problem,p,duration*i/40);s.bodies.forEach(b=>xs.push(b.x-(b.radius||0),b.x+(b.radius||0)));}
+ let min=Math.min(0,...xs),max=Math.max(0,...xs);if(k==='route'){const r=route(p,problem.id);min=Math.min(r.start,r.turn,r.end);max=Math.max(r.start,r.turn,r.end);}if(k==='circular'){const c=circular(p);min=-c.radius;max=c.radius;}
+ if(max-min<1){min-=.5;max+=.5;}const pad=(max-min)*.12;
+ return{duration:Math.max(.1,duration),range:[min-pad,max+pad],quantities,graphQuantities,graphKey,static:isStatic,eventTimes,timeScale:p.orbital?86400:1,timeUnit:p.orbital?'days':'s',playbackScale:p.orbital?duration/24:duration>30?duration/20:1,notes:problem.simulation.notes||''};
 }

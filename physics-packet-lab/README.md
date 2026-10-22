@@ -1,46 +1,48 @@
 # Motion Lab — physical science packet companion
 
-A dependency-free, static web app for the original 32-question grade 8 physical science packet. Open the deployed `index.html` through a web server. It uses browser ES modules and requires no student account or installation.
+A dependency-free web app for the revised 32-question grade 8 packet. It runs from a static web server, with no student account or installation.
 
 ## Classroom use
 
-- Choose a packet page, then its matching P01–P32 problem.
-- **Demonstrate** uses the packet's exact values and shows results.
-- **Explore & solve** makes a separate experiment. Adjust the known values; choose the unknown for supported calculations. The printed question remains the original, and the explanation identifies the custom values.
-- **Challenge** checks the original numerical answer or conceptual reasoning. Completing a question saves a checkmark only in the current browser.
-- Run, pause, restart, or scrub the simulation. Playback-speed controls are available for long trips. Fullscreen and light/dark controls support smartboards and Chromebooks.
-- Position, velocity, speed, acceleration, and total-distance plots are computed from the same state as the animation. Each plot has labeled axes. Graphs start collapsed on shorter desktop screens except when the packet question asks students to interpret a graph.
-- The Math warm-up button presents the pure arithmetic from that packet page. Help contains the printable packet and guides.
+Choose a numbered packet problem, adjust the values, and run or inspect its model in one experiment workspace. The large simulation and its graph appear side by side. The question, prediction/goal, and controls remain available without scrolling the whole page on laptop screens. The problem menu, full question, math warm-ups, and explanations open when needed.
+
+- **Packet values** restores the printed scenario.
+- Predictions use the current experiment values; changing a value changes the calculation.
+- Conceptual questions refer to the printed scenario. Restore its values before checking its reasoning.
+- Play, pause, restart, and the timeline let students inspect the same model at any instant.
+- Graphs and numerical readings come from the same physical state as the animation.
+- Fullscreen and light/dark themes support classroom displays.
+- The packet and both review guides are available under Help.
 
 ## Physics models and assumptions
 
-All model positions, velocities, forces, masses, and times use SI units. State is evaluated analytically at each chosen instant; changing frame rate does not change an answer. Drawings are schematic, and the view autoscales while displaying a position axis in meters.
+Calculations use SI units and analytic models: frame rate does not change results. Illustrations are schematic; visible labels identify enlargements and compressed timescales.
 
-- Routes use signed 1-D coordinates and add absolute leg lengths for distance. Turns between route legs are idealized as brief.
-- Uniform motion uses x = vt. Reference-frame problems use relative velocity; opposite-direction comparisons display both objects.
-- Piecewise motion uses the supplied time-position samples, with linear motion or rest in each interval. Ideal instantaneous transitions are not resolved in acceleration plots.
-- Uniform acceleration uses v = v0 + at and x = v0 t + 0.5 at². The algebra solver supports initial/final velocity, acceleration, and elapsed time. Physically inconsistent inverse inputs do not produce a displayed solution.
-- Supported objects have balanced weight and support forces. The packet uses g = 10 m/s² for Earth as a stated classroom approximation and 1.6 m/s² for the Moon.
-- Applied horizontal forces are combined as signed quantities. Static friction matches the pull up to the specified threshold; above it, kinetic friction has the given magnitude. Friction never accelerates a stopped object backward. Vertical forces are balanced in ground-motion examples and are omitted from the horizontal force diagram.
-- Newton's second law uses net force, not merely an applied force. Two-cart comparisons apply the same net force to different masses.
-- Constant-speed circular motion has tangential velocity and inward acceleration. Component graphs are explicitly labeled horizontal.
-- Momentum uses signed velocity. Coupling carts undergo an instantaneous perfectly inelastic collision and conserve total momentum; the instantaneous collision force/acceleration is not resolved. The bowling-ball case is a single steady roll.
-- Third-law pairs act on separate bodies during a finite contact interval and disappear after release. The pool wall is effectively fixed to Earth; its supporting constraint is outside the two-body diagram. Skaters coast after their push.
+- Straight routes distinguish signed displacement from total path length. Turns and the transitions in tabulated motion are idealized; they do not represent a resolved finite acceleration.
+- Constant acceleration uses v = v₀ + at and x = v₀t + ½at². Net force uses Fnet = ma.
+- A seated passenger moves with the train. A platform observer and a train observer measure different velocities; the display identifies both reference frames.
+- Weight is mg, measured in newtons. Mass remains in kilograms. The packet uses g = 10 m/s² as an Earth classroom approximation and 3.7 m/s² on Mars. Supported spring-scale models show balanced upward support and downward weight.
+- Static friction adjusts to match the applied force up to its maximum. A maximum static friction is not automatically the actual friction.
+- Airborne models combine upward and downward forces on the same object. Net force determines acceleration, which need not point in the direction of the current velocity. Constant forces model only the stated short interval; omitted air resistance is identified.
+- A level airplane with balanced forces continues at constant velocity. Two model airplanes under the same net force accelerate inversely with their masses.
+- Circular-motion models show tangential velocity and inward acceleration. The Earth orbit is an explicitly simplified circular model with a compressed timescale, not a scale drawing of the solar system.
+- Total system momentum is the signed sum m₁v₁ + m₂v₂. The bowling question concerns the instant before impact. Clay sticks in an ideal perfectly inelastic collision. Marbles and curling stones use an ideal collision to explain equal and opposite contact forces and momentum transfer. The app identifies idealizations rather than claiming to reproduce all real material behavior.
+- Contact forces act on different objects only during contact. A resolved contact interval makes the action–reaction pair visible; momentum is conserved when external horizontal forces are neglected.
 
 ## Source files
 
-- `data.js` — original packet text and model parameters, synchronized from the shared `maintainer/content/packet.json` before publication.
-- `physics.js` — deterministic model state, derived quantities, and algebra.
-- `rendering.js` — scaled schematic scenes and graphs.
-- `app.js`, `index.html`, `styles.css` — accessible responsive interface.
-- `downloads/` — three student PDF files. The teacher key is deliberately distributed separately.
+The local development project serves `dist/`. On GitHub Pages, its contents are published directly in `physics-packet-lab/`.
 
-No external CDN, analytics, login, or network service is used after the page assets load. Progress uses `localStorage` and can be reset inside the app. The app is not an assessment-security system; explanations are intentionally available on request.
+- `dist/data.js`: revised packet text, adjustable experiment values, and goals.
+- `dist/physics.js`: deterministic physical state and calculations.
+- `dist/rendering.js`: scene and graph drawing.
+- `dist/app.js`, `index.html`, `styles.css`: interface.
+- `dist/downloads/`: the three current student PDFs.
+- `maintainer/`: printable source content and PDF generator.
+- `tests/verify-models.mjs`: packet-answer checks and physical invariants.
 
-## Maintaining the materials
+Run `node tests/verify-models.mjs` in either the development project or the published source. The publication copy uses imports for its flat file layout.
 
-Run `node tests/verify-models.mjs` to check the model invariants. The original packet data is in `maintainer/content/packet.json`. To regenerate printable files, install Python reportlab and the Liberation Serif, Liberation Sans Narrow, and Liberation Mono fonts, then run `python maintainer/build_pdfs.py`; PDFs are written under `maintainer/output/pdf`. Set `PHYSICS_PACKET_FONT_DIR` if the fonts are in a custom folder. The printable pages use plain worksheet typography, blank answer space, and page-specific formulas. Keep data.js and the PDFs synchronized when editing problem content.
+Verified: all 16 packet numerical answers; 564 model snapshots; collision momentum, energy, contact and force invariants; vertical force signs; spring scales; train reference frames; orbital vectors; and browser interaction checks with a 1024 × 600 viewport.
 
-## Verification
-
-32 models and 16 numerical answers checked; 468 endpoint samples plus conservation, friction, reference-frame, braking and circular-motion invariants pass. Browser checks covered navigation, keyboard edits, inverse solving, numerical/conceptual answer checking, playback scrubbing, graphs, theme and materials links. Classroom Chromebook hardware has not been tested directly.
+No CDN, analytics, login, or network service is used after page assets load. Progress stays in the current browser and can be reset. Explanations are intentionally available for learning.

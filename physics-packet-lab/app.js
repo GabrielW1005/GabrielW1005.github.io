@@ -1,200 +1,118 @@
-import packet from './data.js';
-import {evaluate,modelInfo,solve} from './physics.js';
-import {drawScene,drawGraph} from './rendering.js';
+import packet from './data.js?v=20261022-2';
+import {evaluate,modelInfo,solve} from './physics.js?v=20261022-2';
+import {drawScene,drawGraph} from './rendering.js?v=20261022-2';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=n=>typeof n==='number'?(Math.abs(n)<1e-9?'0':Number(n.toFixed(3)).toLocaleString('en-US',{maximumFractionDigits:3})):String(n);
-const problems=packet.sections.flatMap(s=>s.problems.map(p=>({...p,section:s})));
+const fmt=n=>typeof n==='number'?(Math.abs(n)<1e-10?'0':Number(n.toFixed(Math.abs(n)<.1?4:3)).toLocaleString('en-US',{maximumFractionDigits:Math.abs(n)<.1?4:3})):String(n);
 const clone=o=>JSON.parse(JSON.stringify(o));
-const storage={get(k,def){try{return JSON.parse(localStorage.getItem(k))??def}catch{return def}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
-let solved=new Set(storage.get('motion-lab-progress-v1',[])), theme=storage.get('motion-lab-theme','light');
-let index=Math.max(0,problems.findIndex(p=>p.id===location.hash.slice(1))),mode='demo',params={},time=0,playing=false,lastFrame=0,info={},target='',lastAnswerCorrect=false;
-let p=problems[index];
+const problems=packet.sections.flatMap(s=>s.problems.map(p=>({...p,section:s})));
+const storage={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+let solved=new Set(storage.get('motion-lab-progress-v2',[]));
+let theme=storage.get('motion-lab-theme','light');
+let index=Math.max(0,problems.findIndex(p=>p.id===location.hash.slice(1))),p=problems[index],params={},time=0,playing=false,lastFrame=0,info={},targetGoal=null,revealResult=false,lastReadouts='';
+const standardGraphs=[{key:'x',label:'Position',unit:'m'},{key:'v',label:'Velocity',unit:'m/s'},{key:'speed',label:'Speed',unit:'m/s'},{key:'distance',label:'Distance traveled',unit:'m'},{key:'a',label:'Acceleration',unit:'m/s²'}];
 document.body.classList.toggle('dark',theme==='dark');
-$('sectionSelect').innerHTML=packet.sections.map(s=>`<option value="${s.number}">${s.number}. ${esc(s.title)}</option>`).join('');
-function saveProgress(){storage.set('motion-lab-progress-v1',[...solved]);renderNav()}
-function renderNav(){
- $('sectionSelect').value=p.section.number;
- $('problemList').innerHTML=p.section.problems.map(q=>`<button class="problem-button${q.id===p.id?' active':''}${solved.has(q.id)?' solved':''}" data-id="${q.id}" aria-label="${q.id}: ${esc(q.title)}${solved.has(q.id)?', completed':''}" ${q.id===p.id?'aria-current="true"':''}><span class="problem-number">${solved.has(q.id)?'✓':Number(q.id.slice(1))}</span><span>${esc(q.title)}</span></button>`).join('');
- $('progressText').textContent=`${solved.size} of ${problems.length} solved`;$('progressBar').style.width=`${solved.size/problems.length*100}%`;
- $('prevBtn').disabled=index===0;$('nextBtn').disabled=index===problems.length-1;
-}
-function defaultTarget(){return p.numericAnswer?.quantity||modelInfo(p,params).quantities?.[0]?.key||''}
+function isPacket(){return Object.entries(p.simulation.params).every(([k,v])=>['frame','referenceSpeed'].includes(k)||JSON.stringify(params[k])===JSON.stringify(v));}
+function safeSolve(quantity=p.numericAnswer?.quantity){try{return solve(p,params,quantity)}catch{return{value:NaN,unit:'',formula:'',steps:[]}}}
+function quantityLabel(key){return info.quantities?.find(q=>q.key===key)?.label||key?.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase())||'Result';}
+function noteText(){const notes=p.simulation.notes||info.notes;return Array.isArray(notes)?notes.join(' '):notes||'This is a simplified physical model. Distances and time are labeled; object drawings are schematic.';}
+function setFeedback(text,correct=false){const f=$('feedback');f.textContent=text;f.className=`feedback ${correct?'good':'try'}`;}
+function clearFeedback(){$('feedback').textContent='';$('feedback').className='feedback hide';}
+function markSolved(){solved.add(p.id);storage.set('motion-lab-progress-v2',[...solved]);}
 function selectProblem(i){
- index=Math.max(0,Math.min(problems.length-1,i));p=problems[index];params=clone(p.simulation.params);time=0;playing=false;lastAnswerCorrect=false;target=defaultTarget();if(mode==='explore')prepareSolverParams();
- $('graphSelect').value=['P14','P16'].includes(p.id)?'speed':['P13','P15'].includes(p.id)?'distance':'x';if(p.section.number===4)$('graphToggle').checked=true;
- history.replaceState(null,'',`#${p.id}`);$('stepsDetails').open=false;
- $('eyebrow').textContent=`PAGE ${p.section.number} · ${p.type==='quantitative'?'CALCULATE':'EXPLAIN'} · ${p.id}`;
- $('problemTitle').textContent=p.title;$('problemPrompt').innerHTML=String(p.prompt).split('\n').filter(Boolean).map(t=>`<p>${esc(t)}</p>`).join('');
- renderTable();$('footerTopic').textContent=p.section.title;refreshInfo();renderNav();renderMode();draw();
+ index=Math.max(0,Math.min(problems.length-1,i));p=problems[index];params=clone(p.simulation.params);time=0;playing=false;targetGoal=null;revealResult=false;lastReadouts='';
+ if(p.id==='P04'&&params.frame===undefined)params.frame=params.referenceSpeed===params.speed?1:0;
+ history.replaceState(null,'',`#${p.id}`);
+ $('eyebrow').textContent=`PAGE ${p.section.number} · ${index+1}`;$('problemTitle').textContent=p.title;$('problemPrompt').textContent=p.prompt.replace(/\n/g,' ');
+ $('questionBtn').textContent=p.table?'Question & data ↗':'Full question ↗';$('problemCount').textContent=`${index+1} / ${problems.length}`;
+ $('prevBtn').disabled=index===0;$('nextBtn').disabled=index===problems.length-1;
+ refreshInfo(true);renderParameters();renderGoal();updateBadge();clearFeedback();$('control-scroll')?.scrollTo(0,0);document.querySelector('.control-scroll').scrollTop=0;draw();
 }
-function renderTable(){
- const tab=p.table;if(!tab){$('problemTable').innerHTML='';return}
- const heads=tab.headers||tab.columns||[],rows=tab.rows||[];
- $('problemTable').innerHTML=`<table class="data-table"><thead><tr>${heads.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${(Array.isArray(r)?r:Object.values(r)).map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+function refreshInfo(resetGraph=false){
+ info=modelInfo(p,params);info.duration=Math.max(.001,Number(info.duration)||5);time=Math.min(time,info.duration);
+ const graphs=info.graphQuantities?.length?info.graphQuantities:standardGraphs;
+ const selected=resetGraph?(info.graphKey||(['P14','P16'].includes(p.id)?'speed':['P13','P15'].includes(p.id)?'distance':'x')):$('graphSelect').value;
+ $('graphSelect').innerHTML=graphs.map(g=>`<option value="${esc(g.key)}">${esc(g.label)}</option>`).join('');$('graphSelect').value=graphs.some(g=>g.key===selected)?selected:graphs[0].key;
+ const rate=Number($('rateSelect').value)||1;const rates=info.duration>30&&!info.playbackScale?[.25,.5,1,2,4,10,30]:[.25,.5,1,2,4];
+ $('rateSelect').innerHTML=rates.map(v=>`<option value="${v}">${v===.25?'¼':v===.5?'½':v}×</option>`).join('');$('rateSelect').value=rates.includes(rate)?rate:1;
+ const events=info.eventTimes||[];$('eventButtons').innerHTML=events.map((e,i)=>`<button data-event="${i}" title="Pause at ${esc(e.label.toLowerCase())}">${esc(e.label)}</button>`).join('');
+ $('playBtn').disabled=!!info.static;$('restartBtn').disabled=!!info.static;$('timeSlider').disabled=!!info.static;$('rateSelect').disabled=!!info.static;
+ $('stageLabel').textContent=info.static?'ADJUST & OBSERVE':info.playbackScale>1?`1× = ${fmt(info.playbackScale/(info.timeScale||1))} ${info.timeUnit||'s'} / SECOND`:'LIVE EXPERIMENT';
+ $('timeSlider').setAttribute('aria-valuetext',`${fmt(time/(info.timeScale||1))} ${info.timeUnit||'seconds'}`);
 }
-function refreshInfo(){
- info=modelInfo(p,params);info.duration=Math.max(.1,Number(info.duration)||10);time=Math.min(time,info.duration);
- const txt=p.simulation.notes;const notes=Array.isArray(txt)?txt.join(' '):txt;
- $('modelNotes').textContent=notes||info.notes||'Idealized model. Values use SI units; motion is shown on a scaled view.';
- const opts=[.25,.5,1,2,4,10,30,60];const old=Number($('rateSelect').value)||1;
- $('rateSelect').innerHTML=opts.filter(v=>v<=4||info.duration>30).map(v=>`<option value="${v}">${v===.25?'¼':v===.5?'½':v}×</option>`).join('');
- $('rateSelect').value=opts.includes(old)&&($('rateSelect').querySelector(`option[value="${old}"]`))?old:1;
-}
-function setMode(next){mode=next;params=clone(p.simulation.params);target=defaultTarget();if(mode==='explore')prepareSolverParams();time=0;playing=false;lastAnswerCorrect=false;$('stepsDetails').open=false;refreshInfo();renderMode();draw()}
-function renderMode(){
- document.querySelectorAll('[data-mode]').forEach(b=>{const active=b.dataset.mode===mode;b.classList.toggle('active',active);b.setAttribute('aria-selected',active)});
- $('stageLabel').textContent=mode==='explore'?'YOUR EXPERIMENT':'PACKET MODEL';
- $('parameters').innerHTML='';$('solver').innerHTML='';$('challenge').innerHTML='';
- if(mode==='demo'){
-  $('modeIntro').innerHTML='<h3>Watch it happen</h3><p>Predict the motion, then press <strong>Run</strong>. Pause or move the time slider to inspect any instant.</p>';
-  renderKnown();
-  if(p.numericAnswer){const r=safeSolve();$('solver').innerHTML=solutionMarkup(r)}
- }else if(mode==='explore'){
-  $('modeIntro').innerHTML='<h3>Change the experiment</h3><p>The question above keeps the packet values. These controls create your own version.</p>';
-  renderParameters();renderSolver();
- }else{
-  $('modeIntro').innerHTML='<h3>Your turn</h3><p>Use the simulation as evidence. Solve the packet question, then check your answer.</p>';
-  renderChallenge();
- }
- renderSteps();
-}
-function renderKnown(){
- const adjustable=p.simulation.adjustable||[];
- const rows=adjustable.filter(a=>Number.isFinite(params[a.key])).map(a=>`<div><span>${esc(a.label)}</span><strong>${fmt(params[a.key])} ${esc(a.unit||'')}</strong></div>`);
- $('parameters').innerHTML=rows.length?`<div class="known-list">${rows.join('')}</div>`:'';
-}
-function safeSolve(q=target){try{return solve(p,params,q)}catch{return {value:NaN,unit:'',formula:'',steps:[]}}}
-function validCalculation(r){return !!r&&Number.isFinite(r.value)&&(!['mass','time'].includes(target)||r.value>0)}
-function solutionMarkup(r){if(!validCalculation(r))return '<p class="notice">Choose valid measurements to calculate this quantity.</p>';return `<div class="result-box">${esc(quantityLabel(target))}<strong>${fmt(r.value)} <small>${esc(r.unit||'')}</small></strong></div>${r.formula?`<div class="formula-box">${esc(r.formula)}</div>`:''}`}
-function quantityLabel(q){return info.quantities?.find(v=>v.key===q)?.label||q.replace(/([A-Z])/g,' $1').replace(/^./,x=>x.toUpperCase())}
+function updateBadge(){const original=isPacket();$('settingsBadge').textContent=original?'Packet values':'Your values';$('settingsBadge').classList.toggle('custom',!original);if($('goalDescription')&&!targetGoal)$('goalDescription').textContent=p.numericAnswer?`Predict ${quantityLabel(p.numericAnswer.quantity).toLowerCase()} for the ${original?'packet':'current'} values.`:'Use the model to explain the packet question.';if($('reasoningBtn'))$('reasoningBtn').textContent=original?'Check reasoning':'Restore & check reasoning';}
 function renderParameters(){
  let fields=(p.simulation.adjustable||[]).map(a=>({...a}));
- if(p.simulation.kind==='piecewise'){params.distanceScale??=1;params.timeScale??=1;fields=[{key:'distanceScale',label:'All path distances ×',unit:'',min:.25,max:3,step:.25},{key:'timeScale',label:'All time intervals ×',unit:'',min:.25,max:3,step:.25}];}
- // Inverse calculations have exactly the known quantities editable.
- if(p.simulation.kind==='uniform'&&p.numericAnswer){
-  const specs={distance:{label:'Distance',unit:'m',min:0,max:1000,step:1},speed:{label:'Speed',unit:'m/s',min:0.1,max:40,step:.1},time:{label:'Elapsed time',unit:'s',min:.1,max:300,step:.1}};
-  fields=['distance','speed','time'].filter(k=>k!==target).map(key=>({key,...specs[key],...(p.simulation.adjustable||[]).find(a=>a.key===key)}));
- }else if(p.numericAnswer&&p.simulation.kind==='acceleration'&&['acceleration','finalVelocity','initialVelocity','time'].includes(target)){
-  const targetKey={acceleration:'acceleration',finalVelocity:'vf',initialVelocity:'vi',time:'time'}[target];
-  const specs={vi:{label:'Initial velocity',unit:'m/s',min:-30,max:30,step:.1},vf:{label:'Final velocity',unit:'m/s',min:-30,max:30,step:.1},acceleration:{label:'Acceleration',unit:'m/s²',min:-10,max:10,step:.1},time:{label:'Elapsed time',unit:'s',min:.1,max:30,step:.1}};
-  fields=['vi','vf','acceleration','time'].filter(k=>k!==targetKey).map(key=>({key,...specs[key],...(p.simulation.adjustable||[]).find(a=>a.key===key)}));
-  if(p.id==='P10')for(const f of fields){if(f.key==='vf'){f.min=0;f.max=10}if(f.key==='time'){f.min=1;f.max=5}}
- }
- if(p.simulation.kind==='newton2'&&p.numericAnswer){
-  const specs={mass:{label:'Mass',unit:'kg',min:.1,max:200,step:.1},force:{label:'Net force (signed)',unit:'N',min:-500,max:500,step:.1},acceleration:{label:'Acceleration (signed)',unit:'m/s²',min:-10,max:10,step:.1}};
-  const targetKey=target==='netForce'?'force':target;
-  fields=['mass','force','acceleration'].filter(k=>k!==targetKey).map(key=>({key,...specs[key]}));
- }
- $('parameters').innerHTML=fields.filter(a=>Number.isFinite(params[a.key])).map(a=>{
-  const v=params[a.key],lo=Math.min(a.min??0,v),hi=Math.max(a.max??Math.max(10,v*2),v);return `<div class="parameter"><label for="num-${a.key}"><span>${esc(a.label)}</span><span><input class="number-field" id="num-${a.key}" data-param="${a.key}" type="number" min="${lo}" max="${hi}" step="${a.step||.1}" value="${v}" aria-label="${esc(a.label)}"><span class="param-unit"> ${esc(a.unit||'')}</span></span></label><input type="range" data-range="${a.key}" min="${lo}" max="${hi}" step="${a.step||.1}" value="${v}" aria-label="Adjust ${esc(a.label)}"></div>`
- }).join('')+'<button id="packetResetBtn" class="packet-reset">↺ Restore packet values</button>';
- $('packetResetBtn').onclick=()=>{params=clone(p.simulation.params);target=defaultTarget();prepareSolverParams();time=0;playing=false;refreshInfo();renderMode();draw()};
+ if(p.simulation.kind==='piecewise'&&!fields.length){params.distanceScale??=1;params.timeScale??=1;fields=[{key:'distanceScale',label:'Path distances ×',min:.25,max:3,step:.25},{key:'timeScale',label:'Time intervals ×',min:.25,max:3,step:.25}];}
+ if(p.id==='P04')fields=fields.filter(a=>!['frame','referenceSpeed'].includes(a.key));
+ $('parameters').innerHTML=fields.filter(a=>Number.isFinite(params[a.key])).map(a=>{const v=params[a.key],lo=Math.min(a.min??0,v),hi=Math.max(a.max??Math.max(10,v*2),v);return `<div class="parameter"><label for="num-${esc(a.key)}"><span>${esc(a.label)}</span><span><input id="num-${esc(a.key)}" class="number-field" data-param="${esc(a.key)}" type="number" min="${lo}" max="${hi}" step="${a.step||.1}" value="${v}" aria-label="${esc(a.label)}"><span class="param-unit">${esc(a.unit||'')}</span></span></label><input type="range" data-range="${esc(a.key)}" min="${lo}" max="${hi}" step="${a.step||.1}" value="${v}" aria-label="Adjust ${esc(a.label)}"></div>`}).join('');
+ if(p.id==='P04')$('parameters').insertAdjacentHTML('beforeend',`<p class="goal-description">Graph reference frame</p><div class="frame-buttons"><button data-frame="0" class="${params.frame===0?'active':''}">Platform</button><button data-frame="1" class="${params.frame===1?'active':''}">Train</button></div>`);
+ if(!fields.length&&p.id!=='P04')$('parameters').innerHTML='<p class="goal-description">Run, pause, or scrub the timeline to inspect this situation.</p>';
 }
-function prepareSolverParams(){
- if(p.simulation.kind==='uniform'&&p.numericAnswer){
-  const d=params.distance??safeSolve('distance').value,v=params.speed??safeSolve('speed').value,t=params.time??safeSolve('time').value;
-  params={...params,distance:d,speed:v,time:t};delete params[target];
- }
- if(p.simulation.kind==='acceleration'&&p.numericAnswer){
-  const vi=params.vi??safeSolve('initialVelocity').value,vf=params.vf??safeSolve('finalVelocity').value,a=params.acceleration??safeSolve('acceleration').value,t=params.time??safeSolve('time').value;
-  params={...params,vi,vf,acceleration:a,time:t};delete params[{acceleration:'acceleration',finalVelocity:'vf',initialVelocity:'vi',time:'time'}[target]];delete params.startTime;delete params.endTime;
- }
- if(p.simulation.kind==='newton2'&&p.numericAnswer){
-  const mass=params.mass??safeSolve('mass').value,force=params.force??safeSolve('netForce').value,acceleration=params.acceleration??safeSolve('acceleration').value;
-  params={...params,mass,force,acceleration};delete params.forwardForce;delete params.backwardForce;delete params.netForce;delete params[target==='netForce'?'force':target];
- }
+function renderGoal(){
+ $('targetBtn').classList.toggle('hide',!p.numericAnswer);$('targetBtn').textContent=targetGoal?'Edit target':'Set a target';$('goalHeading').textContent=targetGoal?'Reach your target':'Your goal';
+ if(targetGoal){$('goalContent').innerHTML=`<p id="goalDescription" class="goal-description">Change the values to make <strong>${esc(quantityLabel(targetGoal.quantity).toLowerCase())} = ${fmt(targetGoal.value)} ${esc(targetGoal.unit)}</strong>.</p><div class="answer-row"><button id="checkTargetBtn" class="primary">Check target</button><button id="clearTargetBtn" class="text-button">Back to question</button></div><div id="goalResult" class="goal-result"></div>`;$('checkTargetBtn').onclick=checkTarget;$('clearTargetBtn').onclick=()=>{targetGoal=null;clearFeedback();renderGoal();draw()};}
+ else if(p.numericAnswer){const unit=safeSolve().unit||p.numericAnswer.unit;$('goalContent').innerHTML=`<p id="goalDescription" class="goal-description"></p><div class="answer-row"><input id="answerInput" type="number" inputmode="decimal" step="any" placeholder="Your prediction" aria-label="Your predicted ${esc(quantityLabel(p.numericAnswer.quantity).toLowerCase())}"><span>${esc(unit)}</span><button id="checkBtn" class="primary">Check</button></div><div class="goal-actions"><button id="showResultBtn" class="text-button">${revealResult?'Hide':'Show'} result</button><span class="muted" style="font-size:10px;align-self:center">Use the current values</span></div><div id="goalResult" class="goal-result${revealResult?'':' hide'}"></div>`;$('checkBtn').onclick=checkPrediction;$('answerInput').onkeydown=e=>{if(e.key==='Enter')checkPrediction()};$('showResultBtn').onclick=()=>{revealResult=!revealResult;$('showResultBtn').textContent=`${revealResult?'Hide':'Show'} result`;updateResult()};}
+ else{$('goalContent').innerHTML=`<p id="goalDescription" class="goal-description">Use the model to explain the packet question.</p><button id="reasoningBtn" class="primary" style="font-size:12px">Check reasoning</button>`;$('reasoningBtn').onclick=()=>{if(!isPacket())restorePacket();openReasoning()};}
+ updateBadge();updateResult();
 }
-function renderSolver(){
- if(!p.numericAnswer){$('solver').innerHTML='<p class="notice">Explore how the motion or force arrows change, then explain why.</p>';return}
- const qs=info.quantities||[];
- $('solver').innerHTML=`<label for="solveTarget" class="solver-label">SOLVE FOR</label><select id="solveTarget" class="solver-select">${qs.map(q=>`<option value="${q.key}" ${q.key===target?'selected':''}>${esc(q.label)} (${esc(q.unit)})</option>`).join('')}</select><div id="solverResult">${solutionMarkup(safeSolve())}</div>`;
- $('solveTarget').onchange=e=>{target=e.target.value;prepareSolverParams();time=0;playing=false;refreshInfo();renderParameters();renderSolver();renderSteps();draw()};
+function updateResult(){
+ const key=targetGoal?.quantity||p.numericAnswer?.quantity;if(!key)return;const r=safeSolve(key);const el=$('goalResult');
+ if(el){el.classList.toggle('hide',!targetGoal&&!revealResult);el.innerHTML=Number.isFinite(r.value)?`${targetGoal?'Current result':esc(quantityLabel(key))}<strong>${fmt(r.value)} ${esc(r.unit)}</strong>`:'Choose valid measurements.';}
+ const banner=$('targetBanner');banner.classList.toggle('hide',!targetGoal);if(targetGoal){const reached=closeEnough(r.value,targetGoal.value);banner.classList.toggle('reached',reached);banner.textContent=`${reached?'✓ ':''}Target: ${quantityLabel(key)} ${fmt(targetGoal.value)} ${targetGoal.unit} · Current: ${fmt(r.value)} ${r.unit}`;}
 }
-function calculationSteps(){
- const n=q=>safeSolve(q).value,f=fmt,k=p.simulation.kind;
- if(k==='uniform'){const d=n('distance'),v=n('speed'),t=n('time');return target==='speed'?[`Distance = ${f(d)} m; elapsed time = ${f(t)} s.`,`${f(d)} ÷ ${f(t)} = ${f(v)} m/s.`]:target==='distance'?[`Speed = ${f(v)} m/s; elapsed time = ${f(t)} s.`,`${f(v)} × ${f(t)} = ${f(d)} m.`]:[`Distance = ${f(d)} m; speed = ${f(v)} m/s.`,`${f(d)} ÷ ${f(v)} = ${f(t)} s.`]}
- if(k==='acceleration'){const vi=n('initialVelocity'),vf=n('finalVelocity'),a=n('acceleration'),t=n('time');return [`Initial velocity = ${f(vi)} m/s; final velocity = ${f(vf)} m/s.`,`Change in velocity = ${f(vf)} − (${f(vi)}) = ${f(vf-vi)} m/s.`,`Elapsed time = ${f(t)} s; acceleration = ${f(a)} m/s². Use the selected formula to isolate the unknown.`]}
- if(k==='route')return [`First leg: |${f(params.turn)} − (${f(params.start)})| = ${f(Math.abs(params.turn-params.start))} m.`,`Second leg: |${f(params.end)} − (${f(params.turn)})| = ${f(Math.abs(params.end-params.turn))} m.`,`Distance adds path lengths. Displacement uses final position minus starting position: ${f(params.end-params.start)} m.`];
- if(k==='gravity')return [`Mass = ${f(params.mass)} kg; gravitational field strength = ${f(params.g)} m/s².`,`${f(params.mass)} × ${f(params.g)} = ${f(n('weight'))} N.`];
- if(['newton2','netforce','friction'].includes(k)){const net=n('netForce'),a=n('acceleration'),mass=params.mass??n('mass');return params.steady?[`Steady straight-line velocity means acceleration is zero.`,`Friction balances the applied ${f(params.forwardForce)} N force in the opposite direction.`]:[`Use the signed net force: ${f(net)} N.`,`Mass = ${f(mass)} kg. From F = ma, acceleration = ${f(net)} ÷ ${f(mass)} = ${f(a)} m/s².`,`A negative result points left; the mass stays positive.`]}
- if(k==='momentum'){const m1=params.mass1,v1=params.velocity1;if(params.single)return [`Mass = ${f(m1)} kg; velocity = ${f(v1)} m/s.`,`${f(m1)} × ${f(v1)} = ${f(n('momentum1'))} kg·m/s.`];const m2=params.mass2,v2=params.velocity2??0;return [`Initial total momentum = (${f(m1)} × ${f(v1)}) + (${f(m2)} × ${f(v2)}) = ${f(n('totalMomentum'))} kg·m/s.`,`Combined mass = ${f(m1+m2)} kg.`,`Divide total momentum by combined mass: ${f(n('finalVelocity'))} m/s.`]}
- if(k==='piecewise'){const d=n('distance'),t=params.times.at(-1)-params.times[0];return [`Add all path lengths: ${f(d)} m.`,`Use the entire elapsed time, including stops: ${f(t)} s.`,`Average speed = ${f(d)} ÷ ${f(t)} = ${f(n('averageSpeed'))} m/s.`]}
- return [];
-}
-function renderSteps(){
- const modified=mode==='explore';const r=modified&&p.numericAnswer?safeSolve():null;
- const lines=modified?(r?.steps?.length?r.steps:p.numericAnswer?calculationSteps():[]):p.steps||[];
- $('stepsContent').innerHTML=modified?`<p><strong>For your current values</strong></p>${r?.formula?`<p>${esc(r.formula)}</p>`:''}${Number.isFinite(r?.value)?`<p>${esc(quantityLabel(target))} = <strong>${fmt(r.value)} ${esc(r.unit)}</strong></p>`:''}${lines.length?`<ol>${lines.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}${!p.numericAnswer?`<p><strong>Packet explanation (original values)</strong></p><p>${esc(p.answer)}</p>`:''}`:`<p><strong>${esc(p.answer)}</strong></p>${lines.length?`<ol>${lines.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}`;
-}
-function renderChallenge(){
- if(p.numericAnswer){$('challenge').innerHTML=`<label class="solver-label" for="answerInput">${esc(quantityLabel(p.numericAnswer.quantity)).toUpperCase()}</label><div class="answer-row"><input id="answerInput" type="number" inputmode="decimal" step="any" placeholder="Enter a number"><span>${esc(p.numericAnswer.unit)}</span></div><button id="checkBtn" class="primary check-button">Check answer</button><p id="feedback" class="feedback hide" role="status"></p>`;}
- else if(p.choices?.length){$('challenge').innerHTML=`<div>${p.choices.map((c,i)=>({c,i})).sort((a,b)=>((a.i+Number(p.id.slice(1)))%p.choices.length)-((b.i+Number(p.id.slice(1)))%p.choices.length)).map(({c,i})=>`<label class="choice"><input name="answerChoice" type="radio" value="${i}"><span>${esc(c.text)}</span></label>`).join('')}</div><button id="checkBtn" class="primary check-button">Check reasoning</button><p id="feedback" class="feedback hide" role="status"></p>`}
- else{$('challenge').innerHTML='<p class="notice">Explain your answer aloud or on paper. Then compare it with the explanation.</p><button id="checkBtn" class="primary check-button">I explained my reasoning</button><p id="feedback" class="feedback hide" role="status"></p>'}
- $('checkBtn').onclick=checkAnswer;
- $('answerInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer()});
-}
-function checkAnswer(){
- let correct=false,msg='';
- if(p.numericAnswer){const raw=$('answerInput').value,value=Number(raw),goal=p.numericAnswer.value;if(!raw||!Number.isFinite(value)){msg='Enter a numerical answer first.'}else{correct=Math.abs(value-goal)<=Math.max(.015,Math.abs(goal)*.005);msg=correct?'Correct. Now explain what the sign and units mean.':'Not yet. Check the formula, subtraction order, and units. You can open the steps for help.'}}
- else if(p.choices?.length){const selection=document.querySelector('input[name="answerChoice"]:checked');if(!selection)msg='Choose an explanation first.';else{correct=!!p.choices[Number(selection.value)].correct;msg=correct?'Correct. Can you point to evidence in the simulation?':'Try again. Watch the motion and identify which object each force acts on.'}}
- else{correct=true;msg='Reasoning recorded. Compare your response with the explanation below.';$('stepsDetails').open=true}
- const fb=$('feedback');fb.textContent=msg;fb.className=`feedback ${correct?'good':'try'}`;lastAnswerCorrect=correct;if(correct){solved.add(p.id);saveProgress()}draw();
-}
-function parameterChange(key,val){
- if(!Number.isFinite(val))return;params[key]=val;
- if(p.id==='P02'&&key==='end')params.turn=val;
- if(params.steady&&key==='forwardForce')params.backwardForce=val;
- if(p.simulation.kind==='piecewise'&&(key==='distanceScale'||key==='timeScale')){params.positions=p.simulation.params.positions.map(v=>v*(params.distanceScale??1));params.times=p.simulation.params.times.map(v=>v*(params.timeScale??1));}
+function closeEnough(value,goal){return Number.isFinite(value)&&Number.isFinite(goal)&&Math.abs(value-goal)<=Math.max(.005,Math.abs(goal)*.005);}
+function checkPrediction(){const raw=$('answerInput').value,r=safeSolve();if(raw.trim()===''||!Number.isFinite(Number(raw))){setFeedback('Enter your prediction first.');return;}if(!Number.isFinite(r.value)){setFeedback('These measurements do not give a valid result.');return;}const correct=closeEnough(Number(raw),r.value);setFeedback(correct?'Yes. Your prediction matches these values. Explain the sign and units.':'Not yet. Check the formula and units, or open the steps for help.',correct);if(correct){markSolved();revealResult=true;updateResult();$('showResultBtn').textContent='Hide result';}}
+function checkTarget(){const r=safeSolve(targetGoal.quantity),correct=closeEnough(r.value,targetGoal.value);setFeedback(correct?'Target reached! Explain which changes helped.':`Current result: ${fmt(r.value)} ${r.unit}. ${r.value<targetGoal.value?'Increase':'Decrease'} it to reach ${fmt(targetGoal.value)} ${targetGoal.unit}.`,correct);if(correct)markSolved();draw();}
+function restorePacket(){params=clone(p.simulation.params);if(p.id==='P04'&&params.frame===undefined)params.frame=params.referenceSpeed===params.speed?1:0;time=0;playing=false;clearFeedback();refreshInfo();renderParameters();updateBadge();updateResult();draw();}
+function parameterChange(key,value){
+ if(!Number.isFinite(value))return;params[key]=value;if(p.id==='P02'&&key==='end')params.turn=value;if(params.steady&&key==='forwardForce')params.backwardForce=value;
+ if(p.id==='P04'){if(params.frame===undefined)params.frame=0;delete params.referenceSpeed;}
  if(key==='startTime'||key==='endTime')params.time=Math.max(.1,params.endTime-params.startTime);
- time=0;playing=false;refreshInfo();
- const num=document.querySelector(`[data-param="${key}"]`),slider=document.querySelector(`[data-range="${key}"]`);if(num)num.value=val;if(slider)slider.value=val;
- if($('solverResult'))$('solverResult').innerHTML=solutionMarkup(safeSolve());renderSteps();draw();
+ if(key!=='frame')time=0;playing=false;clearFeedback();refreshInfo();updateBadge();updateResult();
+ const number=document.querySelector(`[data-param="${key}"]`),slider=document.querySelector(`[data-range="${key}"]`);if(number)number.value=value;if(slider)slider.value=value;
+ if(key==='frame')document.querySelectorAll('[data-frame]').forEach(b=>b.classList.toggle('active',Number(b.dataset.frame)===value));draw();
 }
-$('parameters').addEventListener('input',e=>{
- const key=e.target.dataset.range||e.target.dataset.param;if(!key)return;
- const raw=e.target.value;if(raw.trim()==='')return;
- const val=Number(raw),lo=Number(e.target.min),hi=Number(e.target.max);
- // Keep incomplete/temporarily out-of-range typing intact until blur.
- if(Number.isFinite(val)&&val>=lo&&val<=hi)parameterChange(key,val);
-});
-$('parameters').addEventListener('change',e=>{const key=e.target.dataset.param;if(!key)return;const val=Number(e.target.value),lo=Number(e.target.min),hi=Number(e.target.max);parameterChange(key,Number.isFinite(val)?Math.max(lo,Math.min(hi,val)):lo)});
+$('parameters').addEventListener('input',e=>{const key=e.target.dataset.range||e.target.dataset.param;if(!key||e.target.value.trim()==='')return;const v=Number(e.target.value),lo=Number(e.target.min),hi=Number(e.target.max);if(Number.isFinite(v)&&v>=lo&&v<=hi)parameterChange(key,v);});
+$('parameters').addEventListener('change',e=>{const key=e.target.dataset.param;if(!key)return;const v=Number(e.target.value),lo=Number(e.target.min),hi=Number(e.target.max);parameterChange(key,Number.isFinite(v)?Math.max(lo,Math.min(hi,v)):lo);});
+$('parameters').addEventListener('click',e=>{const button=e.target.closest('[data-frame]');if(button)parameterChange('frame',Number(button.dataset.frame));});
 function draw(){
- if(mode==='explore'&&p.numericAnswer&&!validCalculation(safeSolve())){
-  playing=false;const c=$('stage'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle=document.body.classList.contains('dark')?'#e6edf6':'#152b43';ctx.font=`${Math.max(16,c.width/40)}px system-ui`;ctx.textAlign='center';ctx.fillText('Choose physically consistent measurements.',c.width/2,c.height/2);$('readouts').innerHTML='<div class="readout"><small>Check measurements</small><strong>No valid solution</strong></div>';$('playBtn').textContent='▶ Run';$('graphWrap').classList.add('hide');return;
- }
- const opts={arrows:$('vectorsToggle').checked,hideAnswers:mode==='challenge'&&!lastAnswerCorrect,theme:document.body.classList.contains('dark')?'dark':'light'};
- try{drawScene($('stage'),p,params,time,opts);if($('graphToggle').checked)drawGraph($('graph'),p,params,time,{...opts,quantity:$('graphSelect').value});
- const state=evaluate(p,params,time);const values=state.readouts||[];
- $('readouts').innerHTML=values.map(r=>`<div class="readout"><small>${esc(r.label)}</small><strong>${opts.hideAnswers?'—':fmt(r.value)} <span>${esc(r.unit||'')}</span></strong></div>`).join('');
- }catch(error){console.error('Model error',p.id,error);$('readouts').innerHTML='<div class="readout"><small>Check measurements</small><strong>Invalid model input</strong></div>'}
- $('timeLabel').textContent=`${fmt(time)} s`;$('timeSlider').value=Math.round(time/info.duration*1000);$('playBtn').textContent=playing?'Ⅱ Pause':'▶ Run';
- $('graphWrap').classList.toggle('hide',!$('graphToggle').checked);
- $('graphTitle').textContent=({x:'POSITION vs TIME',v:'VELOCITY vs TIME',speed:'SPEED vs TIME',distance:'DISTANCE vs TIME',a:'ACCELERATION vs TIME'})[$('graphSelect').value];
+ const opts={arrows:$('vectorsToggle').checked,hideAnswers:false,theme};
+ try{drawScene($('stage'),p,params,time,opts);drawGraph($('graph'),p,params,time,{...opts,quantity:$('graphSelect').value});const state=evaluate(p,params,time);const html=(state.readouts||[]).map(r=>`<div class="readout" title="${esc(r.label)}: ${fmt(r.value)} ${esc(r.unit||'')}"><small>${esc(r.label)}</small><strong>${fmt(r.value)} <span>${esc(r.unit||'')}</span></strong></div>`).join('');if(html!==lastReadouts){$('readouts').innerHTML=html;lastReadouts=html;}}
+ catch(error){console.error('Model error',p.id,error);$('readouts').innerHTML='<div class="readout"><small>Check the measurements</small><strong>Invalid model input</strong></div>';}
+ $('timeLabel').textContent=info.static?'At rest':`${fmt(time/(info.timeScale||1))} ${info.timeUnit||'s'}`;$('timeSlider').value=Math.round(time/info.duration*1000);$('timeSlider').setAttribute('aria-valuetext',`${fmt(time/(info.timeScale||1))} ${info.timeUnit||'seconds'}`);$('playBtn').textContent=info.static?'At rest':playing?'Ⅱ Pause':'▶ Run';
+ $('targetBanner').classList.toggle('hide',!targetGoal);updateResult();
 }
-function frame(ts){if(playing){const dt=lastFrame?Math.min((ts-lastFrame)/1000,.1):0;time+=dt*Number($('rateSelect').value);if(time>=info.duration){time=info.duration;playing=false}draw()}lastFrame=ts;requestAnimationFrame(frame)}
-$('playBtn').onclick=()=>{if(time>=info.duration)time=0;playing=!playing;draw()};$('restartBtn').onclick=()=>{time=0;playing=false;draw()};
-$('timeSlider').oninput=e=>{playing=false;time=Number(e.target.value)/1000*info.duration;draw()};
-$('vectorsToggle').onchange=draw;$('graphToggle').onchange=()=>{draw();requestAnimationFrame(draw)};$('graphSelect').onchange=draw;
-$('sectionSelect').onchange=e=>selectProblem(problems.findIndex(q=>q.section.number===Number(e.target.value)));
-$('problemList').onclick=e=>{const b=e.target.closest('[data-id]');if(b)selectProblem(problems.findIndex(q=>q.id===b.dataset.id))};
-$('prevBtn').onclick=()=>selectProblem(index-1);$('nextBtn').onclick=()=>selectProblem(index+1);
-for(const b of document.querySelectorAll('[data-mode]'))b.onclick=()=>setMode(b.dataset.mode);
-$('themeBtn').onclick=()=>{document.body.classList.toggle('dark');theme=document.body.classList.contains('dark')?'dark':'light';storage.set('motion-lab-theme',theme);draw()};
-$('fullBtn').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}catch{showModal('<h2>Full screen</h2><p>Your browser controls full screen. Use its full-screen option to expand the lab.</p>')}};
-$('resetProgress').onclick=()=>showModal('<h2>Reset your progress?</h2><p>This clears completed checkmarks on this device.</p><button id="confirmReset" class="primary">Reset progress</button>');
-function showModal(html){$('modalContent').innerHTML=html;$('modal').showModal();$('confirmReset')?.addEventListener('click',()=>{solved.clear();saveProgress();$('modal').close()})}
-$('closeModal').onclick=()=>$('modal').close();$('modal').onclick=e=>{if(e.target===$('modal'))$('modal').close()};
-$('warmupBtn').onclick=()=>{
- const warm=p.section.warmups||[];
- showModal(`<div class="eyebrow">PAGE ${p.section.number} · MATH FIRST</div><h2>Warm up your math</h2><p>Practice the calculation without the physics words.</p>${warm.map((w,i)=>`<div class="warmup-row"><label for="warm${i}">${esc(w.prompt)}</label><input id="warm${i}" placeholder="Your answer" aria-label="Answer to warm-up ${i+1}"><small class="warm-answer hide">Answer: ${esc(w.answer)}</small></div>`).join('')}<button id="revealWarm" class="primary">Show answers</button>`);
- $('revealWarm').onclick=()=>document.querySelectorAll('.warm-answer').forEach(e=>e.classList.remove('hide'));
-};
-$('helpBtn').onclick=()=>showModal(`<div class="eyebrow">WELCOME TO MOTION LAB</div><h2>Make the physics visible.</h2><ol class="help-list"><li>Pick the page and problem that match your packet.</li><li><strong>Demonstrate:</strong> watch the given situation. Pause and scrub time. Arrows show direction.</li><li><strong>Explore & solve:</strong> change measurements, choose a quantity to find, and watch the model update.</li><li><strong>Challenge:</strong> solve the original packet problem and check your answer.</li></ol><p>Graphs use the same model as the animation. Distances and time are labeled; objects are schematic. Models state their simplifying assumptions below the graph.</p><p>For long trips, increase playback speed. Your progress saves only in this browser.</p><h3>Printable materials</h3><div class="download-links"><a href="downloads/Physical_Science_Packet.pdf" target="_blank">8-page packet</a><a href="downloads/Physics_Quick_Guide.pdf" target="_blank">Physics guide</a><a href="downloads/Math_Review_Guide.pdf" target="_blank">Math review</a></div>`);
-window.addEventListener('resize',()=>requestAnimationFrame(draw));
-window.addEventListener('hashchange',()=>{const next=problems.findIndex(q=>q.id===location.hash.slice(1));if(next>=0&&next!==index)selectProblem(next)});
-document.addEventListener('keydown',e=>{if(e.code==='Space'&&!['INPUT','SELECT','TEXTAREA','BUTTON','SUMMARY'].includes(document.activeElement.tagName)&&!$('modal').open){e.preventDefault();$('playBtn').click()}});
-if(window.innerHeight<800&&window.innerWidth>900)$('graphToggle').checked=false;
+function frame(ts){if(playing){const dt=lastFrame?Math.min((ts-lastFrame)/1000,.1):0;time+=dt*Number($('rateSelect').value)*(info.playbackScale||1);if(time>=info.duration){time=info.duration;playing=false;}draw();}lastFrame=ts;requestAnimationFrame(frame);}
+function tableHTML(){const tab=p.table;if(!tab)return'';const heads=tab.headers||tab.columns||[];return`<table class="data-table"><thead><tr>${heads.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${(tab.rows||[]).map(row=>`<tr>${(Array.isArray(row)?row:Object.values(row)).map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;}
+function showModal(html){playing=false;draw();$('modalContent').innerHTML=html;if(!$('modal').open)$('modal').showModal();}
+function questionHTML(){return`<div class="eyebrow">PAGE ${p.section.number} · PROBLEM ${index+1}</div><h2>${esc(p.title)}</h2><p class="modal-prompt">${esc(p.prompt)}</p>${tableHTML()}`;}
+function openQuestion(){showModal(`${questionHTML()}${!isPacket()?'<p class="notice">The question uses the original packet values. Your experiment currently uses your changed values.</p>':''}<div class="modal-actions"><button id="questionRestore" class="primary">Use packet values</button><button id="questionClose">Back to experiment</button></div>`);$('questionRestore').onclick=()=>{restorePacket();$('modal').close()};$('questionClose').onclick=()=>$('modal').close();}
+function openReasoning(){
+ const choices=p.choices||[];showModal(`${questionHTML()}<p class="notice">The model is using packet values. Choose the explanation supported by the motion and forces.</p>${choices.length?choices.map((c,i)=>({c,i})).sort((a,b)=>((a.i+index)%choices.length)-((b.i+index)%choices.length)).map(({c,i})=>`<label class="choice"><input type="radio" name="reasoning" value="${i}"><span>${esc(c.text)}</span></label>`).join(''):'<p>Explain your reasoning aloud or on paper. Then compare your explanation.</p>'}<button id="reasoningCheck" class="primary">${choices.length?'Check reasoning':'Show explanation'}</button><div id="reasoningFeedback" role="status"></div>`);
+ $('reasoningCheck').onclick=()=>{const selected=document.querySelector('input[name="reasoning"]:checked');if(choices.length&&!selected){$('reasoningFeedback').innerHTML='<p class="feedback try">Choose an explanation first.</p>';return;}const correct=!choices.length||choices[Number(selected.value)].correct;$('reasoningFeedback').innerHTML=correct?`<p class="feedback good">${choices.length?'Correct. ':''}${esc(p.answer)}</p>`:'<p class="feedback try">Try again. Look at the direction of motion and which object each force acts on.</p>';if(correct)markSolved();};
+}
+function openTarget(){
+ const qs=(info.quantities||[]).filter(q=>Number.isFinite(safeSolve(q.key).value));const current=targetGoal?.quantity||p.numericAnswer.quantity;
+ showModal(`<div class="eyebrow">YOUR EXPERIMENT</div><h2>Choose a target</h2><p>Choose a result to reach. Then change the measurements and use the model to test your idea.</p><div class="target-form"><label for="targetQuantity">Quantity</label><select id="targetQuantity">${qs.map(q=>`<option value="${q.key}" ${q.key===current?'selected':''}>${esc(q.label)} (${esc(q.unit)})</option>`).join('')}</select><label for="targetValue">Target value</label><input id="targetValue" type="number" step="any" value="${targetGoal?.value??''}" placeholder="Enter your target"><p id="targetCurrent" class="goal-description"></p><button id="startTarget" class="primary">Use this target</button><p id="targetError" class="feedback try hide" role="status"></p></div>`);
+ const describe=()=>{const r=safeSolve($('targetQuantity').value);$('targetCurrent').textContent=`Current result: ${fmt(r.value)} ${r.unit}. Pick a different value to work toward.`;};describe();$('targetQuantity').onchange=describe;
+ $('startTarget').onclick=()=>{const raw=$('targetValue').value,value=Number(raw),quantity=$('targetQuantity').value,r=safeSolve(quantity);if(!raw.trim()||!Number.isFinite(value)){const e=$('targetError');e.textContent='Enter a finite target value.';e.classList.remove('hide');return;}targetGoal={quantity,value,unit:r.unit};clearFeedback();renderGoal();draw();$('modal').close();};
+}
+function openSteps(){
+ if(!p.numericAnswer){showModal(`${questionHTML()}<div class="explanation"><h3>Packet explanation</h3><p>${esc(p.answer)}</p>${p.steps?.length?`<ol>${p.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}</div>${!isPacket()?'<p class="notice">This explanation refers to the packet values. Compare how your changed values affect the situation.</p>':''}`);return;}
+ const key=targetGoal?.quantity||p.numericAnswer.quantity,r=safeSolve(key),original=isPacket()&&key===p.numericAnswer.quantity;const steps=r.steps?.length?r.steps:original?p.steps||[]:[];
+ const givens=(p.simulation.adjustable||[]).filter(a=>Number.isFinite(params[a.key])&&!['frame','referenceSpeed'].includes(a.key));
+ showModal(`<div class="eyebrow">${original?'PACKET VALUES':'CURRENT VALUES'}</div><h2>${esc(quantityLabel(key))}</h2><div class="explanation">${r.formula?`<div class="formula-box">${esc(r.formula)}</div>`:''}${steps.length?`<ol>${steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:`<p>Substitute your measurements into the formula:</p><ul>${givens.map(a=>`<li>${esc(a.label)} = ${fmt(params[a.key])} ${esc(a.unit||'')}</li>`).join('')}</ul>`}<p>${esc(quantityLabel(key))} = <strong>${fmt(r.value)} ${esc(r.unit)}</strong></p>${['netForce','acceleration','displacement','finalVelocity','totalMomentum'].includes(key)?`<p class="muted">${evaluate(p,params,0).axis==='vertical'?'Up is positive; down is negative.':'Right/east is positive; left/west is negative, unless the question states otherwise.'}</p>`:''}</div>`);
+}
+function openNavigator(section=p.section.number){showModal(`<div class="eyebrow">YOUR PACKET</div><h2>Choose a problem</h2><label for="sectionSelect" class="sr-only">Packet page</label><select id="sectionSelect" class="topic-select">${packet.sections.map(s=>`<option value="${s.number}" ${s.number===section?'selected':''}>Page ${s.number} · ${esc(s.title)}</option>`).join('')}</select><div id="problemList" class="problem-list"></div><div class="progress-block"><span>${solved.size} of ${problems.length} solved on this device</span><button id="resetProgress" class="text-button">Reset progress</button></div>`);const list=()=>{$('problemList').innerHTML=problems.filter(q=>q.section.number===Number($('sectionSelect').value)).map(q=>`<button class="problem-button${q.id===p.id?' active':''}${solved.has(q.id)?' solved':''}" data-id="${q.id}" ${q.id===p.id?'aria-current="true"':''}><span class="problem-number">${solved.has(q.id)?'✓':Number(q.id.slice(1))}</span><span>${esc(q.title)}</span></button>`).join('');};list();$('sectionSelect').onchange=list;$('problemList').onclick=e=>{const b=e.target.closest('[data-id]');if(b){selectProblem(problems.findIndex(q=>q.id===b.dataset.id));$('modal').close();}};$('resetProgress').onclick=()=>{showModal('<h2>Reset your progress?</h2><p>This clears the completed checkmarks on this device.</p><button id="confirmReset" class="primary">Reset progress</button>');$('confirmReset').onclick=()=>{solved.clear();storage.set('motion-lab-progress-v2',[]);openNavigator();};};}
+$('playBtn').onclick=()=>{if(info.static)return;if(time>=info.duration)time=0;playing=!playing;draw();};$('restartBtn').onclick=()=>{time=0;playing=false;draw();};$('timeSlider').oninput=e=>{playing=false;time=Number(e.target.value)/1000*info.duration;draw();};
+$('eventButtons').onclick=e=>{const b=e.target.closest('[data-event]');if(b){playing=false;time=Math.max(0,Math.min(info.duration,info.eventTimes[Number(b.dataset.event)].time));draw();}};
+$('vectorsToggle').onchange=draw;$('graphSelect').onchange=draw;$('prevBtn').onclick=()=>selectProblem(index-1);$('nextBtn').onclick=()=>selectProblem(index+1);$('problemsBtn').onclick=()=>openNavigator();$('packetResetBtn').onclick=restorePacket;
+$('questionBtn').onclick=openQuestion;$('targetBtn').onclick=openTarget;$('stepsBtn').onclick=openSteps;$('notesBtn').onclick=()=>showModal(`<h2>About this model</h2><p class="explanation">${esc(noteText())}</p><p class="muted">The drawings are schematic. Use the labeled values and graph for measurements. ${info.playbackScale>1?`At 1× playback, one real second represents ${fmt(info.playbackScale/(info.timeScale||1))} ${info.timeUnit||'seconds'} in the model.`:''}</p>`);
+$('themeBtn').onclick=()=>{theme=theme==='dark'?'light':'dark';document.body.classList.toggle('dark',theme==='dark');storage.set('motion-lab-theme',theme);draw();};$('fullBtn').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{showModal('<h2>Full screen</h2><p>Use your browser’s full-screen option to expand the lab.</p>');}};
+$('closeModal').onclick=()=>$('modal').close();$('modal').onclick=e=>{if(e.target===$('modal')){const r=$('modal').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('modal').close();}};
+$('warmupBtn').onclick=()=>{const warm=p.section.warmups||[];showModal(`<div class="eyebrow">PAGE ${p.section.number} · MATH FIRST</div><h2>Warm up your math</h2>${warm.map((w,i)=>`<div class="warmup-row"><label for="warm${i}">${i+1}. ${esc(w.prompt.replace(/_+/g,'?'))}</label><input id="warm${i}" placeholder="Your answer" aria-label="Answer to warm-up ${i+1}"><small class="warm-answer hide">Answer: ${esc(w.answer)}</small></div>`).join('')}<button id="revealWarm" class="primary">Show answers</button>`);$('revealWarm').onclick=()=>document.querySelectorAll('.warm-answer').forEach(e=>e.classList.remove('hide'));};
+$('helpBtn').onclick=()=>showModal(`<div class="eyebrow">MOTION LAB</div><h2>See it. Change it. Explain it.</h2><ol class="help-list"><li>Choose the problem that matches your packet.</li><li><strong>Run</strong> the model, pause, or move the timeline. The graph follows the same physics.</li><li>Change the values and predict the result. <strong>Check</strong> uses your current values.</li><li>Use <strong>Set a target</strong> to choose a result, then tune the measurements until you reach it.</li><li>For collisions, use <strong>Contact</strong> to freeze the brief force interaction. For weight, adjust the values and watch the scale.</li></ol><p>“Reset” restores packet measurements. Conceptual checks use the original packet conditions. Open “About this model” for assumptions and time scales.</p><h3>Printable materials</h3><div class="download-links"><a href="downloads/Physical_Science_Packet.pdf?v=20261022-2" target="_blank" rel="noopener">8-page packet</a><a href="downloads/Physics_Quick_Guide.pdf?v=20261022-2" target="_blank" rel="noopener">Physics guide</a><a href="downloads/Math_Review_Guide.pdf?v=20261022-2" target="_blank" rel="noopener">Math review</a></div>`);
+window.addEventListener('resize',()=>requestAnimationFrame(draw));window.addEventListener('hashchange',()=>{const next=problems.findIndex(q=>q.id===location.hash.slice(1));if(next>=0&&next!==index)selectProblem(next);});document.addEventListener('keydown',e=>{if(e.code==='Space'&&!['INPUT','SELECT','TEXTAREA','BUTTON','SUMMARY'].includes(document.activeElement.tagName)&&!$('modal').open){e.preventDefault();$('playBtn').click();}});
 selectProblem(index);requestAnimationFrame(frame);
-// Exposed read-only snapshot for classroom diagnostics and deterministic QA.
-window.motionLab={getState:()=>({id:p.id,mode,time,params:clone(params),solved:[...solved]}),select:id=>{const i=problems.findIndex(q=>q.id===id);if(i>=0)selectProblem(i)}};
+window.motionLab={getState:()=>({id:p.id,mode:'experiment',time,params:clone(params),target:targetGoal?{...targetGoal}:null,solved:[...solved]}),select:id=>{const i=problems.findIndex(q=>q.id===id);if(i>=0)selectProblem(i);}};
