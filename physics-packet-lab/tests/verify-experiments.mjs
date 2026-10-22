@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import packet from '../data.js';
+import {generatePractice} from '../practice.js';
 import {evaluate,modelInfo,solve} from '../physics.js';
 import {createPrediction,getExploration,createExploration,closeEnough} from '../experiments.js';
 const all=packet.sections.flatMap(s=>s.problems),by=id=>all.find(p=>p.id===id),clone=o=>JSON.parse(JSON.stringify(o)),near=(a,b)=>assert.ok(Math.abs(a-b)<=1e-7*Math.max(1,Math.abs(a),Math.abs(b)),`${a} != ${b}`);
-function checkEnvelope(x){assert.equal(x.ok,true,x.error);assert.ok(x.duration>0&&Number.isFinite(x.duration));assert.ok(Number.isFinite(x.value)&&Number.isFinite(x.expected));assert.ok(x.explanation.length>25);for(const [problem,params,end] of [[x.problem,x.params,x.sampleTime??x.duration],[x.referenceProblem,x.referenceParams,x.referenceSampleTime??x.duration]])for(const t of [0,end/2,end]){const s=evaluate(problem,params,t);assert.ok([s.x,s.v,s.a,...s.bodies.flatMap(b=>[b.x,b.v,b.a]),...s.readouts.map(r=>r.value)].every(Number.isFinite));}}
+function checkEnvelope(x){assert.equal(x.ok,true,x.error);assert.ok(x.duration>0&&Number.isFinite(x.duration));assert.ok(Number.isFinite(x.value)&&Number.isFinite(x.expected));assert.ok(x.explanation.length>25);for(const [problem,params,end] of [[x.problem,x.params,x.sampleTime??x.duration],[x.referenceProblem,x.referenceParams,x.referenceSampleTime??x.duration]])for(const t of [0,end/2,end]){const s=evaluate(problem,params,t);assert.ok([s.x,s.v,s.a,...s.bodies.flatMap(b=>[b.x,b.v,b.a,...(b.y!==undefined?[b.y,b.vy,b.ay]:[])]),...s.readouts.map(r=>r.value)].every(Number.isFinite));}}
+const solutionValues=(p,params,spec,start)=>p.id==='P23'?{proposedThrust:params.backwardForce,proposedLift:params.weight}:{[spec.controls[0].key]:start.expected};
 let numericCases=0,conceptCases=0;
 for(const p of all){const base=p.simulation.params,snapshot=JSON.stringify(base);
  if(p.numericAnswer){
@@ -13,13 +15,13 @@ for(const p of all){const base=p.simulation.params,snapshot=JSON.stringify(base)
   for(const f of p.simulation.adjustable||[]){const custom={...base,[f.key]:f.max},answer=solve(p,custom).value,x=createPrediction(p,custom,answer);checkEnvelope(x);assert.equal(x.correct,true,p.id);near(x.expected,answer);near(solve(x.problem,x.params,p.numericAnswer.quantity).value,answer);numericCases++;}
   numericCases+=2;
  }else{
-  const spec=getExploration(p,base);assert.equal(spec.controls.length,1);assert.ok(spec.instruction.length>25);const start=createExploration(p,base,spec.initial);checkEnvelope(start);assert.equal(start.correct,false,`${p.id} default must not solve the goal`);
-  const key=spec.controls[0].key,answer=start.expected,done=createExploration(p,base,{[key]:answer});checkEnvelope(done);assert.equal(done.correct,true,p.id);
+  const spec=getExploration(p,base);assert.equal(spec.controls.length,p.id==='P23'?2:1);assert.ok(spec.instruction.length>25);const start=createExploration(p,base,spec.initial);checkEnvelope(start);assert.equal(start.correct,false,`${p.id} default must not solve the goal`);
+  const key=spec.controls[0].key,answer=start.expected,done=createExploration(p,base,solutionValues(p,base,spec,start));checkEnvelope(done);assert.equal(done.correct,true,p.id);
   if(start.overlay){assert.ok(['vector','interval'].includes(start.overlay.type));assert.notDeepEqual(start.overlay,done.overlay,p.id);if(start.overlay.type==='vector'){assert.ok(start.overlay.label.startsWith('Your'));assert.ok(start.overlay.expectedLabel.includes('Physical'));}}
   else assert.ok(JSON.stringify(start.params)!==JSON.stringify(done.params)||start.sampleTime!==done.sampleTime,p.id);
   // Check custom givens and both control endpoints for all conceptual tasks.
-  for(const f of p.simulation.adjustable||[]){const custom={...base,[f.key]:f.max},cs=getExploration(p,custom),first=createExploration(p,custom,cs.initial);checkEnvelope(first);assert.equal(first.correct,false,`${p.id} custom default`);const solved=createExploration(p,custom,{[cs.controls[0].key]:first.expected});checkEnvelope(solved);assert.equal(solved.correct,true,p.id);conceptCases++;}
-  for(const value of [spec.controls[0].min,spec.controls[0].max]){const x=createExploration(p,base,{[key]:value});if(x.ok)checkEnvelope(x);else assert.ok(x.error);}
+  for(const f of p.simulation.adjustable||[]){const custom={...base,[f.key]:f.max},cs=getExploration(p,custom),first=createExploration(p,custom,cs.initial);checkEnvelope(first);assert.equal(first.correct,false,`${p.id} custom default`);const solved=createExploration(p,custom,solutionValues(p,custom,cs,first));checkEnvelope(solved);assert.equal(solved.correct,true,p.id);conceptCases++;}
+  for(const field of spec.controls)for(const value of [field.min,field.max]){const x=createExploration(p,base,{...spec.initial,[field.key]:value});if(x.ok)checkEnvelope(x);else assert.ok(x.error);}
   conceptCases+=2;
  }
  assert.equal(JSON.stringify(base),snapshot,'Inputs mutated');
@@ -39,5 +41,13 @@ const clay=by('P30'),clayTrial=createPrediction(clay,clay.simulation.params,.3);
 const astronaut=by('P19'),sameMass=createExploration(astronaut,astronaut.simulation.params,{mass:150});near(evaluate(sameMass.referenceProblem,sameMass.referenceParams,0).weight,1500);near(evaluate(sameMass.problem,sameMass.params,0).weight,555);near(sameMass.referenceParams.mass,sameMass.params.mass);
 const train=by('P04'),observer=createExploration(train,{...train.simulation.params,frame:1},{referenceVelocity:10});near(evaluate(observer.referenceProblem,observer.referenceParams,3).v,10);near(evaluate(observer.problem,observer.params,3).v,0);
 const balloon=by('P22');assert.equal(createPrediction(balloon,balloon.simulation.params,-11000).ok,false);
-assert.equal(closeEnough(0,0),true);assert.equal(closeEnough(.02,0),false);
+assert.equal(closeEnough(.204,.2),false);assert.equal(closeEnough(.2005,.2),true);assert.equal(closeEnough(0,0),true);assert.equal(closeEnough(.02,0),false);
+// P23 must balance BOTH force components, preserving even a nonzero initial vertical velocity.
+const airplane=by('P23'),given={...airplane.simulation.params,backwardForce:4000,upwardForce:15000,vy:3};
+const balance=createExploration(airplane,given,{proposedThrust:4000,proposedLift:12000});checkEnvelope(balance);assert.equal(balance.correct,true);const levelAccel=evaluate(balance.problem,balance.params,2);near(levelAccel.ax,0);near(levelAccel.ay,0);near(levelAccel.vy,3);
+const unbalanced=createExploration(airplane,given,{proposedThrust:4000,proposedLift:11000});checkEnvelope(unbalanced);assert.equal(unbalanced.correct,false);assert.ok(evaluate(unbalanced.problem,unbalanced.params,2).ay<0);
+assert.equal(createExploration(airplane,given,{proposedThrust:4000}).ok,false);
+// Practice variants retain lap semantics and must not begin with the fastest window already selected.
+for(const id of ['P03','P15'])for(const draw of [.01,.4,.9]){const problem=by(id),practice=generatePractice(problem,{},()=>draw),spec=getExploration(problem,practice.params),start=createExploration(problem,practice.params,spec.initial);checkEnvelope(start);assert.equal(start.correct,false,`${practice.variantId} begins unsolved`);const complete=createExploration(problem,practice.params,{[spec.controls[0].key]:start.expected});checkEnvelope(complete);assert.equal(complete.correct,true);if(id==='P03'){near(complete.sampleTime,modelInfo(problem,practice.params).duration);if(practice.params.laps===2){const oneLap=createExploration(problem,practice.params,{finishLap:1});assert.equal(oneLap.correct,false);near(oneLap.sampleTime,modelInfo(problem,practice.params).duration/2);near(evaluate(oneLap.problem,oneLap.params,oneLap.sampleTime).distance,2*Math.PI*practice.params.radius);}}}
+const routeProblem=by('P01'),bothEast={...routeProblem.simulation.params,start:0,turn:8,end:9},eastPrediction=createPrediction(routeProblem,bothEast,9);checkEnvelope(eastPrediction);assert.equal(eastPrediction.correct,true);near(eastPrediction.params.end,9);near(evaluate(eastPrediction.problem,eastPrediction.params,eastPrediction.duration).x,9);
 console.log(`PASS: ${numericCases} numeric prediction cases, ${conceptCases} conceptual exploration cases; all 32 problems; correct/wrong/current-value trials; immutable givens; finite states; signed/zero/extreme boundaries; physical momentum; safe friction and third-law overlays.`);

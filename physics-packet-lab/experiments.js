@@ -1,8 +1,8 @@
 /* Student predictions are counterfactual physical experiments, never overwritten readouts. */
-import {evaluate,modelInfo,solve,format} from './physics.js?v=20261022-4';
+import {evaluate,modelInfo,solve,format} from './physics.js?v=20261022-5';
 const clone=o=>JSON.parse(JSON.stringify(o));
 const finite=Number.isFinite;
-export const closeEnough=(value,goal)=>finite(value)&&finite(goal)&&Math.abs(value-goal)<=Math.max(.005,Math.abs(goal)*.005);
+export const closeEnough=(value,goal)=>finite(value)&&finite(goal)&&Math.abs(value-goal)<=(goal===0?.005:Math.max(1e-6,Math.abs(goal)*.005));
 const fail=error=>({ok:false,error});
 const field=(key,label,unit,min,max,step,value)=>({key,label,unit,min,max,step,value});
 const angleError=(a,b)=>Math.abs(((a-b+540)%360+360)%360-180);
@@ -14,7 +14,7 @@ function envelope(problem,referenceParams,trialParams,value,expected,unit,explan
  let duration=options.duration??Math.max(referenceInfo.duration,trialInfo.duration);
  if(problem.simulation.kind==='gravity'&&options.duration===undefined){const k=Number(trialParams.springK||500),slowest=Math.min(Math.sqrt(k/Number(referenceParams.mass)),Math.sqrt(k/Number(trialParams.mass)));duration=Math.max(duration,9/(.45*slowest));}
  const correct=options.correct??closeEnough(value,expected);
- for(const t of [0,Math.min(duration,trialInfo.duration)/2,Math.min(duration,trialInfo.duration)]){const state=evaluate(trialProblem,trialParams,t);if(![state.x,state.v,state.a,...state.readouts.map(r=>r.value),...state.bodies.flatMap(b=>[b.x,b.v,b.a])].every(finite))return fail('That prediction exceeds the numerical range of this model. Try a closer estimate.');if(state.bodies.some(b=>Math.abs(b.v)>1e6))return fail('That prediction requires speeds beyond this Newtonian classroom model. Try a closer estimate.');}
+ for(const t of [0,Math.min(duration,trialInfo.duration)/2,Math.min(duration,trialInfo.duration)]){const state=evaluate(trialProblem,trialParams,t);if(![state.x,state.v,state.a,...state.readouts.map(r=>r.value),...state.bodies.flatMap(b=>[b.x,b.v,b.a,...(b.y!==undefined?[b.y,b.vy,b.ay]:[])])].every(finite))return fail('That prediction exceeds the numerical range of this model. Try a closer estimate.');if(state.bodies.some(b=>Math.hypot(b.v,b.vy||0)>1e6))return fail('That prediction requires speeds beyond this Newtonian classroom model. Try a closer estimate.');}
  return {ok:true,problem:trialProblem,params:clone(trialParams),referenceProblem:problem,referenceParams:clone(referenceParams),quantity:options.quantity||problem.numericAnswer?.quantity||'observation',value,expected,unit,explanation,comparisonLabel:options.comparisonLabel||'Your prediction compared with the given situation',duration,correct,...options,
   trialProblem,trialParams:clone(trialParams),predictedValue:value,referenceValue:expected,success:correct,feedback:explanation};
 }
@@ -29,8 +29,8 @@ export function createPrediction(problem,params,value){
   case 'P01':{
    if(value<0)return fail('Total distance cannot be negative. Try zero or a positive distance.');
    const start=Number(params.start),turn=Number(params.turn),first=Math.abs(turn-start),direction=Math.sign(turn-start)||1;
-   trial.turn=value<=first?start+direction*value:turn;trial.end=value<=first?trial.turn:turn-direction*(value-first);
-   explanation=`Your ${format(value)} m prediction traces that much of the route. The stated outward and return legs total ${format(expected)} m. A shorter prediction stops early; a longer one continues beyond the stated finish.`;break;
+   const secondDirection=Math.sign(Number(params.end)-turn)||-direction;trial.turn=value<=first?start+direction*value:turn;trial.end=value<=first?trial.turn:turn+secondDirection*(value-first);
+   explanation=`Your ${format(value)} m prediction traces that much of the route. The two stated path segments total ${format(expected)} m. A shorter prediction stops early; a longer one continues beyond the stated finish.`;break;
   }
   case 'P02':trial.end=Number(params.start)+value;trial.turn=trial.end;explanation=`A displacement of ${format(value)} m places the finish at ${format(trial.end)} m. Compare that point with the given finish at ${format(params.end)} m.`;break;
   case 'P05':
@@ -85,7 +85,7 @@ function contactInfo(problem,p){const event=modelInfo(problem,p).eventTimes.find
 export function getExploration(problem,params){
  const p=params;let instruction='',controls=[],goal='Compare your proposed result with the physical reference.';
  switch(problem.id){
-  case 'P03':instruction='Choose where the runner should finish so displacement is zero after traveling one full lap. The traveled distance must not be zero.';controls=[field('finishLap','Finish after this fraction of a lap','lap',0,1,.05,.25)];break;
+  case 'P03':{const laps=Number(p.laps||1);instruction=`Choose where the runner should finish after the stated ${format(laps)} full ${laps===1?'lap':'laps'}. Displacement should be zero, while traveled distance is not zero.`;controls=[field('finishLap','Finish after this many laps','lap',0,laps,.05,Math.min(.25,laps/4))];break;}
   case 'P04':instruction='Set the observer’s eastward velocity so the seated passenger appears stationary. Compare this with the stationary platform view.';controls=[field('referenceVelocity','Observer velocity','m/s',0,Math.max(20,p.speed*2),.5,0)];break;
   case 'P07':instruction=`Make the orange jogger move in the opposite direction at the blue jogger’s speed of ${format(Math.abs(p.speed))} m/s. Use the sign to choose direction.`;controls=[field('velocity','Orange jogger velocity','m/s',-Math.max(6,p.speed*2),Math.max(6,p.speed*2),.1,Math.abs(p.speed))];break;
   case 'P08':{
@@ -95,9 +95,9 @@ export function getExploration(problem,params){
   case 'P11':{
    const a=solve(problem,p,'acceleration').value;instruction=`Set acceleration so the westbound car changes from ${format(p.vi)} to ${format(p.vf)} m/s in ${format(p.time)} s. Notice whether a negative acceleration can increase speed.`;controls=[field('acceleration','Proposed acceleration','m/s²',-5,5,.1,Math.abs(a)||1)];break;
   }
-  case 'P12':instruction='Earth is shown to the right of the Sun. Aim the Sun’s gravitational force to keep Earth’s path curved. Angle: 0° right, 90° up, 180° left, 270° down.';controls=[field('angle','Gravity arrow direction','°',0,360,5,0)];break;
+  case 'P12':instruction='The model planet is shown to the right of the Sun. Aim the Sun’s gravitational force to keep its path curved. Angle: 0° right, 90° up, 180° left, 270° down.';controls=[field('angle','Gravity arrow direction','°',0,360,5,0)];break;
   case 'P15':{
-   const list=intervals(p),width=list[0].end-list[0].start,total=p.times.at(-1)*Number(p.timeScale??1);instruction=`Slide a ${format(width)} s window to the interval with the greatest average speed. Compare distance covered in equal times and graph steepness.`;controls=[field('windowStart','Start of your time window','s',list[0].start,total-width,Number(p.timeScale??1),list[0].start)];break;
+   const list=intervals(p),width=list[0].end-list[0].start,total=p.times.at(-1)*Number(p.timeScale??1),best=list.reduce((a,b)=>b.speed>a.speed?b:a),initial=(list.find(interval=>interval.speed<best.speed-1e-9)||list.at(-1)).start;instruction=`Slide a ${format(width)} s window to the interval with the greatest average speed. Compare distance covered in equal times and graph steepness.`;controls=[field('windowStart','Start of your time window','s',list[0].start,total-width,Number(p.timeScale??1),initial)];break;
   }
   case 'P16':instruction='Make the cyclists’ speed graphs overlap while they ride in opposite directions. Adjust the orange cyclist’s signed velocity; speed is never negative.';controls=[field('velocity','Orange cyclist velocity','m/s',-Math.max(6,p.speed*2),Math.max(6,p.speed*2),.1,Math.abs(p.speed))];break;
   case 'P19':instruction=`The same astronaut and suit have mass ${format(p.mass)} kg before the trip. Set their mass on the other planet, then compare the scale readings. Gravity changes weight, not the amount of matter.`;controls=[field('mass','Mass on the other planet','kg',Math.max(1,p.mass*.25),p.mass*2,5,p.mass*.5)];break;
@@ -105,10 +105,13 @@ export function getExploration(problem,params){
    const f=actualFriction(problem,p),max=Math.max(p.staticLimit||18,Math.abs(f))*1.5;
    instruction=`Draw the friction force for the current ${format(p.forwardForce)} N rightward pull. Right is positive; left is negative. The ${format(p.staticLimit)} N static-friction value is a limit, not an automatic force.`;controls=[field('frictionForce','Your friction arrow','N',-max,max,1,Math.abs(f)<.01?-Number(p.staticLimit):0)];break;
   }
-  case 'P23':instruction=`Choose the horizontal net force needed for the airplane to keep its existing ${format(p.vi)} m/s velocity. Balanced forces can act on an airplane that is moving.`;controls=[field('netForce','Proposed horizontal net force','N',-Number(p.forwardForce),Number(p.forwardForce),100,Number(p.forwardForce)/2)];break;
+  case 'P23':{
+   const drag=Number(p.backwardForce),weight=Number(p.weight);instruction=`Set thrust and lift so the airplane keeps its velocity unchanged: horizontal ${format(p.vi)} m/s and vertical ${format(p.vy||0)} m/s. Balance each force component. ${Number(p.vy||0)===0?'With zero initial vertical velocity, this gives level flight.':'Zero vertical net force preserves the existing climb or descent; it does not instantly stop it.'}`;
+   controls=[field('proposedThrust','Your thrust','N',0,Math.max(6000,drag*2),100,drag+1000),field('proposedLift','Your lift','N',0,Math.max(24000,weight*2),500,weight*.75)];break;
+  }
   case 'P24':instruction='After the stick releases the puck, choose the ongoing horizontal force needed to keep its velocity unchanged. Friction and air resistance are neglected.';controls=[field('netForce','Proposed ongoing force','N',-.5,.5,.01,.17)];break;
   case 'P27':{
-   const expected=Number(p.netForce)/Number(p.compareMass);instruction=`Set the orange plane’s acceleration under the same ${format(p.netForce)} N net force. Compare the acceleration of the ${format(p.mass)} kg blue plane with the ${format(p.compareMass)} kg orange plane.`;controls=[field('acceleration','Orange acceleration','m/s²',.1,Math.max(6,expected*3),.1,expected*2)];break;
+   const expected=Number(p.netForce)/Number(p.compareMass);instruction=`Set the orange plane’s horizontal acceleration under the same ${format(p.netForce)} N net force. Compare the acceleration of the ${format(p.mass)} kg blue plane with the ${format(p.compareMass)} kg orange plane.`;controls=[field('acceleration','Orange acceleration','m/s²',.1,Math.max(6,expected*3),.1,expected*2)];break;
   }
   case 'P28':instruction='The cyclist is at the right side of the turn. Aim the horizontal force from the road to keep the path curved at constant speed. This force is static friction at the tires.';controls=[field('angle','Road-force direction','°',0,360,5,0)];break;
   case 'P31':{
@@ -124,12 +127,11 @@ export function getExploration(problem,params){
 export function createExploration(problem,params,values){
  const spec=getExploration(problem,params);if(!spec)return fail('This question uses a numerical prediction.');
  const control=spec.controls[0],input=Number(values?.[control.key]);
- if(!validNumber(input))return fail('Enter a finite number for the exploration control.');
- if(input<control.min-1e-9||input>control.max+1e-9)return fail(`Choose a value from ${format(control.min)} to ${format(control.max)} ${control.unit}.`);
+ for(const c of spec.controls){const entered=Number(values?.[c.key]);if(!validNumber(entered))return fail(`Enter a finite number for ${c.label.toLowerCase()}.`);if(entered<c.min-1e-9||entered>c.max+1e-9)return fail(`Choose ${c.label.toLowerCase()} from ${format(c.min)} to ${format(c.max)} ${c.unit}.`);}
  const reference=clone(params),trial=clone(params);let trialProblem=problem,value=input,expected=0,unit=control.unit,explanation='',options={quantity:control.key};
  switch(problem.id){
   case 'P03':{
-   const duration=modelInfo(problem,params).duration;expected=1;options={...options,sampleTime:input*duration,referenceSampleTime:duration,duration};explanation=input===0?'At the start, both distance and displacement are zero. A complete lap must include nonzero distance.':`At ${format(input)} lap, compare the finish with the start. One complete lap has nonzero traveled distance and zero displacement.`;break;
+   const duration=modelInfo(problem,params).duration,laps=Number(params.laps||1);expected=laps;options={...options,correct:Math.abs(input-laps)<1e-6,sampleTime:input/laps*duration,referenceSampleTime:duration,duration};explanation=input===0?'At the start, both distance and displacement are zero. The stated journey must include nonzero distance.':`After ${format(input)} ${input===1?'lap':'laps'}, compare the finish with the start. Completing ${format(laps)} full ${laps===1?'lap':'laps'} returns to the start with nonzero traveled distance and zero displacement.`;break;
   }
   case 'P04':expected=Number(params.speed);reference.frame=0;delete reference.referenceSpeed;delete trial.frame;trial.referenceSpeed=input;explanation=`In your observer’s frame, the passenger’s velocity is ${format(params.speed-input)} m/s. It becomes zero when the observer moves with the train. Relative to the platform, the passenger still moves at ${format(params.speed)} m/s.`;break;
   case 'P07':case 'P16':options.observedBody=1;expected=-Math.abs(Number(params.speed));trial.otherSpeed=input;reference.otherSpeed=expected;explanation=`Blue speed: ${format(Math.abs(params.speed))} m/s. Orange speed: ${format(Math.abs(input))} m/s. ${input<0?'Their velocities point in opposite directions.':'Your orange velocity currently points in the same direction as blue.'} Equal speeds can still mean different velocities.`;break;
@@ -154,13 +156,15 @@ export function createExploration(problem,params,values){
    explanation=Math.abs(params.forwardForce)<=params.staticLimit?`Static friction adjusts to ${format(Math.abs(expected))} N left, balancing the pull. Your arrow is a prediction, not an extra force on the crate. Friction does not pull a resting crate backward by exceeding the pull.`:`This pull exceeds the ${format(params.staticLimit)} N static limit, so the model uses ${format(Math.abs(expected))} N of sliding friction left. Your arrow is compared with that force.`;break;
   }
   case 'P23':{
-   expected=0;trial.balancedFlight=false;trial.mass=Number(params.weight)/10;trial.backwardForce=Number(params.forwardForce);trial.forwardForce=trial.backwardForce+input;
-   explanation=`Your ${format(input)} N net force gives ${format(input/trial.mass)} m/s² of horizontal acceleration. Zero net force preserves the airplane’s existing velocity; it does not make the airplane stop. Vertical forces remain balanced in this horizontal-motion comparison.`;break;
+   expected=0;unit='N';trial.flight2D=true;delete trial.balancedFlight;trial.forwardForce=input;trial.upwardForce=Number(values.proposedLift);
+   reference.forwardForce=Number(params.backwardForce);reference.upwardForce=Number(params.weight);reference.flight2D=true;delete reference.balancedFlight;
+   const fx=input-Number(params.backwardForce),fy=Number(values.proposedLift)-Number(params.weight);value=Math.hypot(fx,fy);options.quantity='netForceMagnitude';options.correct=closeEnough(fx,0)&&closeEnough(fy,0);
+   explanation=`Your horizontal net force is ${format(fx)} N; your vertical net force is ${format(fy)} N. Thrust must equal the ${format(params.backwardForce)} N drag, and lift must equal the ${format(params.weight)} N weight, to keep both velocity components unchanged. ${Number(params.vy||0)===0?'Balanced vertical forces preserve level flight here.':`The existing ${format(params.vy)} m/s vertical velocity continues even when vertical forces balance.`}`;break;
   }
   case 'P24':expected=0;trial.forwardForce=input;trial.backwardForce=0;explanation=`Your ongoing force gives ${format(input/params.mass)} m/s² of acceleration. With no ongoing horizontal force, the released puck keeps its velocity in this friction-free model.`;break;
   case 'P27':{
    options.observedBody=1;const error=positive(input,'Acceleration');if(error)return fail(error);expected=Number(params.netForce)/Number(params.compareMass);trial.compareMass=Number(params.netForce)/input;
-   explanation=`At the same ${format(params.netForce)} N force, your acceleration would imply an orange mass of ${format(trial.compareMass)} kg. The given orange mass is ${format(params.compareMass)} kg. At equal net force, doubling mass halves acceleration.`;break;
+   explanation=`At the same ${format(params.netForce)} N force, your acceleration would imply an orange mass of ${format(trial.compareMass)} kg. The given orange mass is ${format(params.compareMass)} kg. At equal horizontal net force, doubling mass halves horizontal acceleration. Lift is held at ${format(params.compareLift??params.compareMass*(params.g||10))} N, so changing the proposed mass also changes weight and can make this trial climb or descend.`;break;
   }
   case 'P31':{
    const c=contactInfo(problem,params);value=input;expected=c.force;unit='N';options={...options,correct:closeEnough(input,c.force),duration:Math.max(2,c.time+.5),sampleTime:c.time,referenceSampleTime:c.time,overlay:{type:'vector',angle:value<0?180:0,magnitude:Math.abs(value),expectedAngle:0,expectedMagnitude:c.force,body:1,label:'Your force on orange',expectedLabel:'Physical force on orange',origin:'body',axis:'horizontal'}};

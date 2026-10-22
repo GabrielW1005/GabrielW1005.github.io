@@ -55,4 +55,26 @@ const runner=by('P10'),run=evaluate(runner,runner.simulation.params,4);near(run.
 for(const id of ['P03','P12','P28']){const p=by(id),info=modelInfo(p,p.simulation.params),s=evaluate(p,p.simulation.params,info.duration*.21);near(Math.hypot(s.v,s.vy),s.speed);near(s.v*s.a+s.vy*s.ay,0,1e-6);near(Math.hypot(s.a,s.ay),s.speed*s.speed/s.radius);if(id==='P12'){assert.ok(info.duration/86400>365&&info.duration/86400<366);near(s.inwardAcceleration,1.3271244e20/s.radius**2);}}
 const lap=by('P03'),finish=evaluate(lap,lap.simulation.params,modelInfo(lap,lap.simulation.params).duration);near(finish.displacement,0);near(finish.distance,40*Math.PI);
 const graph=by('P13');near(solve(graph,{...graph.simulation.params,distanceScale:1.2,timeScale:2}).value,.6);
-console.log(`PASS: all 32 current packet models; 16 numeric answers; ${samples} state snapshots; source prompt sync; collision contact, force, energy and momentum; vertical forces and landing; spring-scale comparison; reference frames; circular vectors; edited graph scales.`);
+// Aircraft obey independent component equations, including simultaneous climb and acceleration.
+for(const id of ['P23','P27']){
+ const problem=by(id),base=problem.simulation.params;
+ const cases=[base,{...base,upwardForce:base.upwardForce*1.3,forwardForce:4500}, {...base,upwardForce:base.upwardForce*.6,vy:3}, {...base,upwardForce:0,compareLift:0,vy:-2}, {...base,upwardForce:base.upwardForce*1.1,compareLift:(base.compareLift||0)*.7,vy:-1}];
+ for(const p of cases){const initial=evaluate(problem,p,0),info=modelInfo(problem,p);assert.equal(info.flight2D,true);assert.ok(info.graphQuantities.some(q=>q.key==='vy'));
+  for(const t of [0,.4,1.5,p.time]){const state=evaluate(problem,p,t);assert.equal(state.axis,'2d');
+   state.bodies.forEach((b,i)=>{const b0=initial.bodies[i],fx=state.forces.filter(f=>f.body===i&&f.axis==='horizontal').reduce((sum,f)=>sum+f.value,0),fy=state.forces.filter(f=>f.body===i&&f.axis==='vertical').reduce((sum,f)=>sum+f.value,0);
+    near(fx,b.mass*b.ax);near(fy,b.mass*b.ay);near(b.weight,b.mass*10);near(b.x,b0.x+b0.vx*t+.5*b.ax*t*t);near(b.y,b0.y+b0.vy*t+.5*b.ay*t*t);near(b.vx,b0.vx+b.ax*t);near(b.vy,b0.vy+b.ay*t);near(b.speed,Math.hypot(b.vx,b.vy));
+    const work=fx*(b.x-b0.x)+fy*(b.y-b0.y);near(b.kineticEnergy-b0.kineticEnergy,work);
+    assert.ok(b.y>=info.rangeY[0]-1e-8&&b.y<=info.rangeY[1]+1e-8);assert.ok(b.x>=info.range[0]-1e-8&&b.x<=info.range[1]+1e-8);assert.ok(b.distance+1e-7>=Math.hypot(b.x-b0.x,b.y-b0.y));
+   });
+  }
+ }
+}
+const aircraft=by('P23'),limits=Object.fromEntries(aircraft.simulation.adjustable.map(f=>[f.key,f]));const slowestFlight=evaluate(aircraft,{...aircraft.simulation.params,vi:limits.vi.min,weight:limits.weight.min,forwardForce:limits.forwardForce.min,backwardForce:limits.backwardForce.max},aircraft.simulation.params.time);assert.ok(slowestFlight.vx>0,'Allowed fixed leftward drag must not accelerate a reversed plane.');
+const plane=by('P23'),upButSlowing=evaluate(plane,{...plane.simulation.params,upwardForce:10800,vy:3},1);assert.ok(upButSlowing.vy>0&&upButSlowing.ay<0,'An upward-moving plane can accelerate downward.');
+const blueOrange=by('P27'),separate=evaluate(blueOrange,{...blueOrange.simulation.params,upwardForce:6,compareLift:6},1);assert.ok(separate.bodies[0].vy>0&&separate.bodies[1].vy<0,'Independent lift controls produce a blue climb and orange descent.');
+// Exact path length agrees with independent quadrature for a curved accelerated flight.
+const flightP={...plane.simulation.params,forwardForce:4200,backwardForce:3000,upwardForce:14400,vy:-1},flightState=evaluate(plane,flightP,5),n=400,dt=5/n;let integral=0;
+for(let i=0;i<=n;i++){const state=evaluate(plane,flightP,i*dt);integral+=(i===0||i===n?1:i%2?4:2)*Math.hypot(state.vx,state.vy);}near(flightState.distance,integral*dt/3);
+// An inelastic ground touch cannot hold an object down when the remaining net force is upward.
+const liftAfterImpact=evaluate(bird,{...bird.simulation.params,vi:-2,upwardForce:6},1);assert.equal(liftAfterImpact.grounded,false);assert.ok(liftAfterImpact.x>0&&liftAfterImpact.v>0);near(liftAfterImpact.forces.reduce((sum,f)=>sum+f.value,0),liftAfterImpact.mass*liftAfterImpact.a);
+console.log(`PASS: all 32 current packet models; 16 numeric answers; ${samples} state snapshots; source prompt sync; collision contact, force, energy and momentum; vertical forces and landing; 2D flight components and work–energy; spring-scale comparison; reference frames; circular vectors; edited graph scales.`);

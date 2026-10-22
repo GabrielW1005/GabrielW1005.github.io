@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#142c48">
 <title>Motion Lab · Packet companion</title><meta name="description" content="A full-screen grade 8 science lab. Experiment with every packet problem, watch motion and forces, and use the graph to explain what happens.">
-<link rel="stylesheet" href="styles.css?v=20261022-4">
+<link rel="stylesheet" href="styles.css?v=20261022-5">
 </head>
 <body>
 <header class="topbar">
@@ -12,7 +12,7 @@
  <div class="top-actions"><button id="helpBtn" class="quiet">Help & PDFs</button><button id="themeBtn" class="quiet icon-button" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="fullBtn" class="quiet icon-button" aria-label="Enter fullscreen" title="Full screen">⛶</button></div>
 </header>
 <main class="workspace">
- <section class="problem-strip" aria-label="Current packet problem"><div class="problem-heading"><span class="eyebrow" id="eyebrow"></span><h1 id="problemTitle">Loading your lab…</h1><span id="settingsBadge" class="settings-badge">Packet values</span></div><div class="prompt-row"><p id="problemPrompt" class="problem-prompt"></p><button id="questionBtn" class="text-button">Full question ↗</button></div></section>
+ <section class="problem-strip" aria-label="Current packet problem"><div class="problem-heading"><span class="eyebrow" id="eyebrow"></span><h1 id="problemTitle">Loading your lab…</h1><span id="settingsBadge" class="settings-badge">Packet values</span><div class="question-actions"><button id="practiceBtn" class="small-button">More practice</button><button id="originalBtn" class="small-button">Packet original</button><button id="valuesBtn" class="small-button">Edit values</button><button id="questionBtn" class="text-button">Printed question</button></div></div><div class="prompt-row"><p id="problemPrompt" class="problem-prompt"></p><div id="questionData" class="question-data hide"></div></div></section>
  <div class="lab-grid">
   <section class="stage-card" aria-label="Experiment">
    <div class="stage-toolbar"><span id="stageLabel">LIVE EXPERIMENT</span><div id="eventButtons" class="event-buttons"></div><label class="switch-label"><input id="vectorsToggle" type="checkbox" checked> Arrows</label><button id="notesBtn" class="text-button" title="Model assumptions">About this model</button></div>
@@ -23,13 +23,13 @@
   <aside class="analysis-rail" aria-label="Graph and experiment controls">
    <section class="graph-wrap" id="graphWrap"><div class="graph-label"><span>GRAPH</span><select id="graphSelect" aria-label="Graph quantity"></select></div><canvas id="graph" role="img" aria-label="Graph of the experiment"></canvas></section>
    <div class="control-scroll">
-    <section class="goal-card" aria-label="Interactive experiment"><div class="control-heading"><h2 id="goalHeading">Test your idea</h2><button id="clearTrialBtn" class="text-button hide">Back to model</button></div><div id="goalContent"></div><p id="trialDescription" class="experiment-context hide"></p><p id="feedback" class="feedback hide" role="status"></p></section>
-    <section class="parameters-card" aria-label="Adjust experiment values"><div class="control-heading"><h2>Change the values</h2><button id="packetResetBtn" class="text-button" title="Restore the measurements in the packet">↺ Reset</button></div><div id="parameters"></div></section>
-    <div class="rail-footer"><button id="stepsBtn" class="text-button">Explanation & steps ↗</button><button id="warmupBtn" class="text-button">Math warm-up ↗</button></div>
+    <section class="goal-card" aria-label="Interactive experiment"><div class="control-heading"><h2 id="goalHeading">Test your idea</h2><button id="clearTrialBtn" class="text-button hide">Back to model</button></div><div id="goalContent"></div><p id="trialDescription" class="experiment-context hide"></p></section>
+    <section class="inline-help" aria-label="Explanation and steps"><div class="control-heading"><h2>Explanation & steps</h2><button id="stepsBtn" class="text-button">Reveal</button></div><div class="help-scroll"><div id="resultBadge" class="result-badge hide" role="status"></div><p id="feedback" class="feedback hide"></p><div id="inlineSteps"></div></div><div class="rail-footer"><button id="warmupBtn" class="text-button">Math warm-up</button><button id="helpPracticeBtn" class="text-button">New practice ↗</button></div></section>
    </div>
   </aside>
  </div>
 </main>
+<dialog id="valuesDialog"><button id="closeValues" class="close-modal" aria-label="Close values">×</button><h2>Edit the experiment values</h2><p class="muted">The question updates to match your measurements.</p><div id="parameters"></div><button id="packetResetBtn" class="primary">Restore packet values</button></dialog>
 <dialog id="modal"><button id="closeModal" class="close-modal" aria-label="Close dialog">×</button><div id="modalContent"></div></dialog>
-<script type="module" src="app.js?v=20261022-4"></script>
+<script type="module" src="app.js?v=20261022-5"></script>
 </body></html>

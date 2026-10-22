@@ -1,6 +1,6 @@
 {
   "title": "Motion & Forces Lab",
-  "version": "2.1-predict-and-test",
+  "version": "2.2-clear-practice-flight",
   "grade": 8,
   "conventions": [
     "Use right/east as positive for horizontal motion and upward as positive for vertical motion, unless stated otherwise.",
@@ -1331,42 +1331,69 @@
             "kind": "netforce",
             "scene": "airplane",
             "params": {
-              "balancedFlight": true,
               "mass": 1200,
               "forwardForce": 3000,
               "backwardForce": 3000,
               "weight": 12000,
               "upwardForce": 12000,
               "vi": 60,
-              "time": 5
+              "time": 5,
+              "flight2D": true,
+              "g": 10,
+              "vy": 0,
+              "height": 250
             },
             "adjustable": [
               {
                 "key": "vi",
-                "label": "Flight speed",
+                "label": "Starting forward velocity",
                 "unit": "m/s",
                 "min": 30,
                 "max": 90,
                 "step": 5
               },
               {
+                "key": "vy",
+                "label": "Starting upward velocity",
+                "unit": "m/s",
+                "min": -5,
+                "max": 5,
+                "step": 1
+              },
+              {
                 "key": "forwardForce",
-                "label": "Thrust and drag (each)",
+                "label": "Thrust (right)",
                 "unit": "N",
-                "min": 1000,
-                "max": 5000,
+                "min": 0,
+                "max": 6000,
+                "step": 500
+              },
+              {
+                "key": "backwardForce",
+                "label": "Drag (left)",
+                "unit": "N",
+                "min": 0,
+                "max": 4500,
+                "step": 500
+              },
+              {
+                "key": "upwardForce",
+                "label": "Lift (up)",
+                "unit": "N",
+                "min": 6000,
+                "max": 18000,
                 "step": 500
               },
               {
                 "key": "weight",
-                "label": "Lift and weight (each)",
+                "label": "Weight (down)",
                 "unit": "N",
                 "min": 8000,
                 "max": 16000,
                 "step": 1000
               }
             ],
-            "notes": "Straight, level flight at constant velocity. Each control keeps its opposing force pair equal. Horizontal net force and vertical net force are both zero. The airplane can move without accelerating."
+            "notes": "A short, simplified flight with constant lift, weight, thrust, and drag. The two force components give horizontal and vertical acceleration through Fnet = ma. Packet values describe level flight at constant velocity. Changed values can produce a climb or descent. Lift is modeled upward and drag leftward over this brief forward-moving flight; changing airspeed does not recalculate aerodynamics, stall, or aircraft rotation. Mass is weight divided by g = 10 N/kg. Starting altitude is 250 m."
           },
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
@@ -1555,7 +1582,15 @@
               "compareMass": 0.8,
               "netForce": 0.8,
               "vi": 5,
-              "time": 3
+              "time": 3,
+              "flight2D": true,
+              "g": 10,
+              "backwardForce": 0.4,
+              "upwardForce": 4,
+              "compareLift": 8,
+              "vy": 0,
+              "height": 100,
+              "compareHeight": 120
             },
             "adjustable": [
               {
@@ -1581,9 +1616,33 @@
                 "min": 0.4,
                 "max": 1.6,
                 "step": 0.2
+              },
+              {
+                "key": "upwardForce",
+                "label": "Blue plane lift (up)",
+                "unit": "N",
+                "min": 0,
+                "max": 12,
+                "step": 0.5
+              },
+              {
+                "key": "compareLift",
+                "label": "Orange plane lift (up)",
+                "unit": "N",
+                "min": 0,
+                "max": 20,
+                "step": 0.5
+              },
+              {
+                "key": "vy",
+                "label": "Starting upward velocity",
+                "unit": "m/s",
+                "min": -2,
+                "max": 2,
+                "step": 0.5
               }
             ],
-            "notes": "The same horizontal NET force acts on each airplane. The planes are already flying at 5 m/s initially. Constant masses and forces; vertical forces are assumed to balance during this short interval. Compare accelerations using a = Fnet/m."
+            "notes": "Two model airplanes experience the same horizontal net force, with drag 0.4 N and thrust equal to net force plus drag. Each plane has its own lift and weight. Default lift balances weight; changing lift or mass allows vertical motion. For each plane, ax = (thrust − drag)/mass and ay = (lift − weight)/mass. Forces are held constant over this short forward-moving flight; stall and detailed aerodynamics are not modeled. Starting altitudes are 100 m for blue and 120 m for orange."
           },
           "goal": {
             "prompt": "Use the scene and graph as evidence. The reasoning check uses the original packet situation."
