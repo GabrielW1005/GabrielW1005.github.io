@@ -204,7 +204,7 @@ function experimentMotion(pal,e,arrows){
   const y=laneY[run],color=run?pal.orange:pal.blue;
   line(c,L,y+5,R,y+5,pal.line,2);text(c,run?'YOUR TEST':'GIVEN',20,y-(small?72:91),color,11,'left',true);if(interval){const from=run?interval.start:interval.expectedStart,to=run?interval.end:interval.expectedEnd,avg=(evaluate(problem,p,to).distance-evaluate(problem,p,from).distance)/(to-from);text(c,`window average ${format(avg)} m/s`,w-23,y-(small?72:91),color,12,'right',true);}else experimentReadout(pal,e,state,p,w-23,y-(small?72:91),color);
   state.bodies.forEach((b,i)=>{const multiple=state.bodies.length>1,bodyScale=multiple?scale*.72:scale,yy=y+(multiple?14:0)-i*(small?43:60),xx=X(b.x);c.save();c.translate(xx,yy);c.scale(bodyScale,bodyScale);object(c,0,0,multiple?(i?pal.orange:pal.blue):color,problem,t,b.v);c.restore();if(i>0)text(c,b.label||'object 2',xx,yy+13,pal.orange,10,'center');
-   if(arrows&&!multiple&&Math.abs(b.v)>.001){const len=clamp(Math.abs(b.v)*7,24,64);arrow(c,xx,yy-72*scale,Math.sign(b.v)*len,0,color,`${format(b.v)} m/s`,10);}
+   if(arrows&&!multiple&&!interval&&Math.abs(b.v)>.001){const len=clamp(Math.abs(b.v)*7,24,64);arrow(c,xx,yy-72*scale,Math.sign(b.v)*len,0,color,`${format(b.v)} m/s`,10);}
   });
   if(e.clock>end+.001)text(c,`paused at ${format(end)} s`,w-23,y+26,color,10,'right');
   if(state.bodies.length>1)text(c,`blue v ${format(state.bodies[0].v)} · orange v ${format(state.bodies[1].v)} m/s`,20,y+27,color,10);
