@@ -1,4 +1,4 @@
-import {evaluate as rawEvaluate,modelInfo as rawModelInfo,format as baseFormat} from './physics.js?v=20261022-5';
+import {evaluate as rawEvaluate,modelInfo as rawModelInfo,format as baseFormat} from './physics.js?v=20261023-1';
 const format=(value,digits)=>baseFormat(value,digits??(Math.abs(value)>0&&Math.abs(value)<.1?Math.min(7,Math.ceil(-Math.log10(Math.abs(value)))+2):2));
 
 
@@ -86,7 +86,7 @@ function scaleScene(pal,problem,p,s,arrows){
 function orbitScene(pal,problem,p,s,arrows){
  const {c,w,h}=pal,orbital=!!p.orbital,cx=w*.49,cy=h*.50,r=Math.max(45,Math.min(h*.32,w*.32)),theta=num(s.theta),xx=cx+r*Math.cos(theta),yy=cy-r*Math.sin(theta);
  c.strokeStyle=pal.line;c.lineWidth=orbital?2:10;c.setLineDash(orbital?[6,6]:[]);c.beginPath();c.arc(cx,cy,r,0,TAU);c.stroke();c.setLineDash([]);
- if(orbital){ellipse(c,cx,cy,25,25,pal.orange);text(c,'Sun',cx,cy+42,pal.muted,12,'center');ellipse(c,xx,yy,15,15,pal.blue);ellipse(c,xx-3,yy-3,7,5,pal.green);ellipse(c,xx+4,yy+5,4,7,pal.green);text(c,'Earth',xx,yy+28,pal.blue,12,'center',true);}
+ if(orbital){ellipse(c,cx,cy,25,25,pal.orange);text(c,'Sun',cx,cy+42,pal.muted,12,'center');ellipse(c,xx,yy,15,15,pal.blue);ellipse(c,xx-3,yy-3,7,5,pal.green);ellipse(c,xx+4,yy+5,4,7,pal.green);text(c,Math.abs(num(p.orbitAU,1)-1)<1e-6?'Earth':'Model planet',xx,yy+28,pal.blue,12,'center',true);}
  else if(problem.id==='P28'){topBike(c,xx,yy,pal.blue,Math.atan2(-Math.cos(theta),-Math.sin(theta)));ellipse(c,cx,cy,3,3,pal.muted);}
  else{person(c,xx,yy+25,pal.blue,s.t*5,-Math.sin(theta)>=0?1:-1);ellipse(c,cx+r,cy,4,4,pal.orange);text(c,'start / finish',cx+r+12,cy+39,pal.muted,11,'center');}
  if(problem.id==='P03'){c.strokeStyle=pal.blue;c.lineWidth=4;c.beginPath();c.arc(cx,cy,r,0,-Math.min(TAU,theta),true);c.stroke();if(Math.abs(num(s.displacement))>.001)arrow(c,cx+r,cy,xx-(cx+r),yy-cy,pal.orange);text(c,'blue arc: distance · orange arrow: displacement',w/2,25,pal.muted,12,'center');}
@@ -188,7 +188,7 @@ function paintGraph(pal,data,clock,{reveal=false,interval=null,guide=[],title,un
  for(let i=0;i<=3;i++){const value=lo+(hi-lo)*i/3;line(c,L,Y(value),R,Y(value),pal.line);text(c,format(value,hi-lo<.1?4:1),L-6,Y(value),pal.muted,10,'right');}for(let i=0;i<=4;i++){const t=duration*i/4;line(c,X(t),T,X(t),B,pal.line,.7);text(c,format(t/timeScale,1),X(t),B+14,pal.muted,10,'center');}line(c,L,B,R,B,pal.muted);if(lo<0&&hi>0)line(c,L,Y(0),R,Y(0),pal.muted,.7);
  text(c,`${title} (${unit})`,L,13,pal.muted,11,'left',false,w-L-10);text(c,`elapsed ${timeUnit==='days'?'days':'seconds'}`,R,h-7,pal.muted,9,'right');
  if(guide.length){c.strokeStyle=pal.muted;c.globalAlpha=.35;c.lineWidth=2;c.beginPath();for(let i=0;i<guide.length;i++){if(i===0)c.moveTo(X(times[i]),Y(guide[i]));else c.lineTo(X(times[i]),Y(guide[i]));}c.stroke();c.globalAlpha=1;}
- traces.forEach((trace,index)=>{const color=pal[trace.color]||trace.color;if(traces.length>1){const lx=L+index*(R-L)/traces.length;line(c,lx,32,lx+16,32,color,2.5,trace.dash);text(c,trace.label,lx+21,32,color,9);}
+ traces.forEach((trace,index)=>{const color=pal[trace.color]||trace.color;if(traces.length>1){const lx=L+(trace.legendIndex??index)*(R-L)/traces.length;line(c,lx,32,lx+16,32,color,2.5,trace.dash);text(c,trace.label,lx+21,32,color,9);}
   c.strokeStyle=color;c.lineWidth=index?2.4:3.2;c.setLineDash(trace.dash);c.beginPath();let started=false;for(let i=0;i<times.length;i++){if(reveal&&times[i]>clock+.00001)break;const value=trace.values[i];if(!Number.isFinite(value)){started=false;continue;}if(!started){c.moveTo(X(times[i]),Y(value));started=true;}else c.lineTo(X(times[i]),Y(value));}c.stroke();c.setLineDash([]);
   if(Number.isFinite(trace.current))ellipse(c,X(trace.currentTime??clock),Y(trace.current),4,4,color);
  });line(c,X(clock),T,X(clock),B,pal.muted,1,[3,4]);
@@ -199,6 +199,9 @@ export function drawGraph(canvas,problem,params,time,{quantity='x',theme='light'
  paintGraph(pal,data,Math.min(time,data.duration),{title:graphTitle(quantity,state),unit:data.unit,timeScale:data.info.timeScale||1,timeUnit:data.info.timeUnit});canvas.setAttribute('aria-label',`${graphTitle(quantity,state)} against time, using the physical model.`);
 }
 
+/* Physics arrays stay [reference, test]; this one mapping puts the test on the left. */
+const comparisonSlot=run=>1-run;
+const comparisonX=(pal,run,slots=[.25,.75])=>pal.w*slots[comparisonSlot(run)];
 /* Prediction playback: both experiments use one clock and one spatial scale. */
 function experimentState(problem,params,time,opts){
  const trial=opts.trial,signature=JSON.stringify([trial.params||trial.trialParams,trial.referenceParams,trial.duration,trial.sampleTime,trial.referenceSampleTime,trial.overlay,trial.value,trial.expected,trial.referenceProblem?.simulation.kind,trial.problem?.simulation.kind]);
@@ -211,11 +214,12 @@ function experimentState(problem,params,time,opts){
  return e;
 }
 function experimentLegend(pal,e){
- const {c,w}=pal;line(c,20,23,42,23,pal.blue,4,[5,4]);text(c,e.trial.referenceLabel||'Reference',51,23,pal.blue,15,'left',true,w*.43-40);line(c,w*.53,23,w*.53+22,23,pal.orange,4);text(c,e.trial.proposalLabel||(e.trial.overlay?.type==='vector'?'Your prediction':'Your test'),w*.53+31,23,pal.orange,15,'left',true,w*.44-32);
+ const {c,w}=pal,labels=[e.trial.referenceLabel||'Reference',e.trial.proposalLabel||(e.trial.overlay?.type==='vector'?'Your prediction':'Your test')];
+ labels.forEach((label,run)=>{const x=comparisonSlot(run)*w*.5+20,color=run?pal.orange:pal.blue;line(c,x,23,x+22,23,color,4,run?[]:[5,4]);text(c,label,x+31,23,color,15,'left',true,w*.5-64);});
 }
 function experimentResult(pal,e){
  const {c,w,h}=pal,t=e.trial,hasNumbers=Number.isFinite(t.value)&&Number.isFinite(t.expected),difference=t.value-t.expected;
- const result=hasNumbers?`${e.referenceProblem.numericAnswer?'Given':'Goal'}: ${format(t.expected)} ${t.unit||''}    Your test: ${format(t.value)} ${t.unit||''}    Difference: ${difference>0?'+':''}${format(difference)} ${t.unit||''}`:(t.comparisonLabel||'Compare the physical situation with your test.');
+ const result=hasNumbers?`Your test: ${format(t.value)} ${t.unit||''}    ${e.referenceProblem.numericAnswer?'Given':'Goal'}: ${format(t.expected)} ${t.unit||''}    Difference: ${difference>0?'+':''}${format(difference)} ${t.unit||''}`:(t.comparisonLabel||'Compare the physical situation with your test.');
  if(e.progress>=.995){round(c,13,h-42,w-26,32,7,pal.fill);text(c,result,w/2,h-26,t.correct?pal.green:pal.ink,13,'center',true,w-44);}
  else text(c,`Testing both situations · elapsed ${format(e.clock/(e.ri.timeScale||1))} ${e.ri.timeUnit||'s'}`,w/2,h-22,pal.muted,12,'center');
 }
@@ -241,7 +245,7 @@ function comparisonValue(state,quantity,params,problem){
  return experimentValue(state,quantity,params);
 }
 function comparisonRange(e){let [min,max]=e.range;if(!Number.isFinite(min)||!Number.isFinite(max)||max-min<1e-9){min=-1;max=1;}return[min,max];}
-function comparisonPanel(pal,index,draw){const {c,w,h}=pal,gap=16,pw=(w-gap)/2,x=index*(pw+gap);c.save();c.beginPath();c.rect(x+5,43,pw-10,h-90);c.clip();c.translate(x,0);draw({...pal,w:pw},x);c.restore();}
+function comparisonPanel(pal,index,draw){const {c,w,h}=pal,gap=16,pw=(w-gap)/2,x=comparisonSlot(index)*(pw+gap);c.save();c.beginPath();c.rect(x+5,43,pw-10,h-90);c.clip();c.translate(x,0);draw({...pal,w:pw},x);c.restore();}
 function panelAxis(pal,min,max,y,label='position (m)'){const{c,w}=pal,L=49,R=w-42;line(c,L,y,R,y,pal.line,2);for(let i=0;i<=3;i++){const xx=L+(R-L)*i/3;line(c,xx,y-3,xx,y+4,pal.muted);text(c,format(min+(max-min)*i/3,1),xx,y+17,pal.muted,10,'center');}text(c,label,w/2,y+36,pal.muted,11,'center');}
 function experimentMotion(pal,e,arrows){
  const[min,max]=comparisonRange(e);
@@ -270,7 +274,7 @@ function experimentVertical(pal,e,arrows){
  const {c,w,h}=pal,[min,max]=comparisonRange(e),top=h<420?111:135,bottom=h-72,Y=value=>bottom-(value-min)/(max-min)*(bottom-top),xs=[w*.31,w*.73],maxForce=Math.max(1,...e.reference.forces.concat(e.proposal.forces).map(f=>Math.abs(f.value))),spriteScale=h<420?.65:.9;
  for(let i=0;i<=4;i++){const value=min+(max-min)*i/4,yy=Y(value);line(c,60,yy,w-25,yy,pal.line,.8,[4,6]);text(c,format(value,1),49,yy,pal.muted,11,'right');}text(c,'height (m) · up +',20,50,pal.muted,11);
  [[e.reference,e.referenceProblem,e.referenceParams,e.rt],[e.proposal,e.proposalProblem,e.proposalParams,e.pt]].forEach(([state,problem,p,t],run)=>{
-  const color=run?pal.orange:pal.blue,x=xs[run],y=Y(state.x);c.save();c.translate(x,y);c.scale(spriteScale,spriteScale);flightObject(c,0,0,color,problem.simulation.scene||'drone',t,pal);c.restore();
+  const color=run?pal.orange:pal.blue,x=xs[comparisonSlot(run)],y=Y(state.x);c.save();c.translate(x,y);c.scale(spriteScale,spriteScale);flightObject(c,0,0,color,problem.simulation.scene||'drone',t,pal);c.restore();
   if(arrows){state.forces.filter(f=>f.axis==='vertical').forEach(f=>{const len=Math.abs(f.value)/maxForce*(h<420?52:82),xx=x+(f.value>0?-62:62)*spriteScale;arrow(c,xx,y,0,-Math.sign(f.value)*len,f.value>0?pal.green:color);});if(Math.abs(state.v)>.001)arrow(c,x+105*spriteScale,y,0,-Math.sign(state.v)*35,color);}
   text(c,`height ${format(state.x)} m`,x,71,color,12,'center',true);text(c,`net ${format(state.netForce)} N · v ${format(state.v)} m/s`,x,92,color,11,'center');
  });
@@ -304,7 +308,7 @@ function experimentCollision(pal,e,arrows){
 function loadedScale(params,t){const mass=Math.max(.000001,num(params.mass,1)),g=Math.max(0,num(params.g,10)),k=Math.max(.000001,num(params.springK,500)),zeta=.45,omega=Math.sqrt(k/mass),d=Math.sqrt(1-zeta*zeta),wd=omega*d,tt=Math.max(0,t),decay=Math.exp(-zeta*omega*tt),eq=mass*g/k,x=eq*(1-decay*(Math.cos(wd*tt)+zeta/d*Math.sin(wd*tt))),v=eq*omega/d*decay*Math.sin(wd*tt);return {mass,g,k,weight:mass*g,x,v,force:k*x,equilibrium:eq};}
 function experimentScale(pal,e,arrows){
  const {c,w,h}=pal,rs=loadedScale(e.referenceParams,e.clock),ps=loadedScale(e.proposalParams,e.clock),maxExtension=Math.max(.001,rs.equilibrium,ps.equilibrium)*1.24,span=Math.max(55,h-220),ppm=span/maxExtension,beam=75,rest=32,xs=[w*.28,w*.72],astronaut=e.referenceProblem.simulation.scene==='astronaut';
- [[rs,e.referenceParams],[ps,e.proposalParams]].forEach(([s,p],i)=>{const x=xs[i],color=i?pal.orange:pal.blue;
+ [[rs,e.referenceParams],[ps,e.proposalParams]].forEach(([s,p],i)=>{const x=xs[comparisonSlot(i)],color=i?pal.orange:pal.blue;
   if(astronaut){const floor=h-82,neutral=floor-Math.max(80,h*.30),compression=s.x/maxExtension*Math.max(55,h*.17),plate=neutral+compression;round(c,x-53,floor,106,10,3,pal.line);spring(c,x,plate+5,floor,color,18);line(c,x-57,plate,x+57,plate,color,4);c.save();c.translate(x,plate);c.scale(h<420?.85:1.3,h<420?.85:1.3);person(c,0,0,color,0,1);ellipse(c,0,-53,10,10,null,color);c.restore();text(c,`${format(s.mass)} kg`,x,58,color,13,'center',true);}
   else{const end=beam+rest+s.x*ppm;line(c,x-65,beam-6,x+65,beam-6,pal.line,5);spring(c,x,beam,end,color,14);line(c,x,end,x,end+8,color,2);round(c,x-29,end+8,58,37,5,color);text(c,`${format(s.mass)} kg`,x,end+27,pal.white,12,'center',true);const eqY=beam+rest+s.equilibrium*ppm;line(c,x-72,eqY,x+72,eqY,color,1,[4,4]);}
   text(c,`spring reading ${format(s.force)} N`,x,h-63,color,13,'center',true);text(c,`weight ${format(s.weight)} N`,x,astronaut?78:49,color,12,'center');
@@ -317,20 +321,35 @@ function originalCollisionOrigin(pal,problem,s,info,index){
 }
 function vectorReveal(e){const start=e.trial.overlay.origin==='body'&&e.referenceProblem.simulation.kind==='momentum'?e.refEnd:0;return clamp((e.clock-start)/Math.max(.01,e.duration-start),0,1);}
 function experimentVector(canvas,pal,e,opts){
- const o=e.trial.overlay;drawScene(canvas,e.referenceProblem,e.referenceParams,e.rt,{...opts,arrows:false});const {c,w,h}=pal;let origin;
- if(o.origin==='orbit'||o.origin==='turn'){const r=Math.min(h*.32,w*.32);origin={x:w*.49+r,y:h*.50};}
- else if(e.referenceProblem.simulation.kind==='momentum')origin=originalCollisionOrigin(pal,e.referenceProblem,e.reference,e.ri,o.body??1);
- else{const[min,max]=e.ri.range;origin={x:58+(e.reference.x-min)/(max-min)*(w-116),y:h-123};}
- const contactOrigin=e.referenceProblem.simulation.kind==='momentum'?{...origin}:null;if(contactOrigin)origin={...origin,y:origin.y-origin.radius-17};
- const reveal=vectorReveal(e),max=Math.max(.000001,Math.abs(o.magnitude),Math.abs(o.expectedMagnitude)),extent=Math.min(w*.20,h*.25,140),vector=(angle,mag,color,growth,dashed)=>{const rad=angle*Math.PI/180,length=mag/max*extent*growth,dx=Math.cos(rad)*length,dy=-Math.sin(rad)*length;c.globalAlpha=dashed?.45:1;if(dashed)line(c,origin.x,origin.y,origin.x+dx,origin.y+dy,color,7,[5,5]);arrow(c,origin.x,origin.y,dx,dy,color);c.globalAlpha=1;};
- const ready=e.referenceProblem.simulation.kind!=='momentum'||e.clock>=e.refEnd;
- if(ready){if(contactOrigin){line(c,contactOrigin.x,contactOrigin.y-contactOrigin.radius,origin.x,origin.y,pal.muted,1.5);ellipse(c,origin.x,origin.y,2.5,2.5,pal.muted);}if(Math.abs(o.expectedMagnitude)<.000001){ellipse(c,origin.x,origin.y,9,9,null,pal.blue);text(c,'physical force: 0 N',origin.x,origin.y+32,pal.blue,12,'center');}if(Math.abs(o.magnitude)<.000001){ellipse(c,origin.x,origin.y,5,5,pal.orange);text(c,'your force: 0 N',origin.x,origin.y-25,pal.orange,12,'center');}vector(o.expectedAngle,o.expectedMagnitude,pal.blue,1,true);vector(o.angle,o.magnitude,pal.orange,reveal,false);if(e.referenceProblem.simulation.kind==='momentum'){const partner=originalCollisionOrigin(pal,e.referenceProblem,e.reference,e.ri,0),length=Math.abs(o.expectedMagnitude)/max*extent,forceY=partner.y-partner.radius-17;line(c,partner.x,partner.y-partner.radius,partner.x,forceY,pal.muted,1.5);ellipse(c,partner.x,forceY,2.5,2.5,pal.muted);arrow(c,partner.x,forceY,-length,0,pal.blue);}}
- round(c,9,6,w-18,38,7,pal.panel);experimentLegend(pal,e);text(c,`${o.expectedLabel||'Physical force'} (blue) · ${o.label||'Your proposed force'} (orange)`,w/2,61,pal.muted,11,'center',false,w-28);
+ const o=e.trial.overlay,max=Math.max(.000001,Math.abs(o.magnitude),Math.abs(o.expectedMagnitude)),reveal=vectorReveal(e),ready=e.referenceProblem.simulation.kind!=='momentum'||e.clock>=e.refEnd;
+ experimentLegend(pal,e);line(pal.c,pal.w/2,43,pal.w/2,pal.h-48,pal.line,1);
+ [0,1].forEach(run=>comparisonPanel(pal,run,panel=>{
+  const {c,w,h}=panel,color=run?pal.orange:pal.blue,state=run?e.proposal:e.reference,problem=run?e.proposalProblem:e.referenceProblem,params=run?e.proposalParams:e.referenceParams,angle=run?o.angle:o.expectedAngle,magnitude=run?o.magnitude:o.expectedMagnitude,extent=Math.min(w*.23,h*.22,105);let origin,contactOrigin=null;
+  text(c,run?o.label:o.expectedLabel,w/2,63,color,11,'center',true,w-22);
+  if(o.origin==='orbit'||o.origin==='turn'){
+   const cx=w*.43,cy=h*.56,r=Math.max(35,Math.min(w*.24,(h-138)*.35)),theta=num(state.theta),x=cx+r*Math.cos(theta),y=cy-r*Math.sin(theta);c.strokeStyle=pal.line;c.lineWidth=o.origin==='orbit'?2:7;c.beginPath();c.arc(cx,cy,r,0,TAU);c.stroke();
+   if(o.origin==='orbit'){ellipse(c,cx,cy,14,14,pal.orange);text(c,'Sun',cx,cy+26,pal.muted,10,'center');ellipse(c,x,y,11,11,pal.blue);ellipse(c,x-3,y-2,5,4,pal.green);text(c,Math.abs(num(params.orbitAU,1)-1)<1e-6?'Earth':'Model planet',x,y+24,pal.muted,10,'center');}else{ellipse(c,cx,cy,3,3,pal.muted);topBike(c,x,y,pal.blue,Math.atan2(-Math.cos(theta),-Math.sin(theta)));}
+   origin={x,y};arrow(c,x,y,-Math.sin(theta)*35,-Math.cos(theta)*35,pal.green);text(c,'green: tangent velocity',w/2,h-62,pal.green,10,'center');
+  }else if(problem.simulation.kind==='momentum'){
+   const b=state.bodies,R=b.map(body=>num(body.radius,.03)),factor=clamp(1-num(state.compression)/(R[0]+R[1]),.3,1),base=22,rx=base*factor,ry=base/Math.sqrt(factor),ppm=(w-124)/(e.range[1]-e.range[0]),gap=Math.max(0,b[1].x-b[0].x-R[0]-R[1])*ppm,sep=2*rx+gap,m=b[0].mass+b[1].mass,cm=(b[0].x*b[0].mass+b[1].x*b[1].mass)/m,raw=62+(cm-e.range[0])*ppm,mid=clamp(raw,32+sep*b[1].mass/m,w-32-sep*b[0].mass/m),xs=[mid-sep*b[1].mass/m,mid+sep*b[0].mass/m],y=h*.58;
+   line(c,18,y+ry,w-18,y+ry,pal.line,2);b.forEach((body,i)=>{const col=i?pal.orange:pal.blue;collisionObject(c,xs[i],y,rx,ry,col,'marbles',i,panel);text(c,`${format(body.mass)} kg`,w*(i?.74:.26),y+ry+22,col,10,'center');line(c,xs[i],y+ry+2,w*(i?.74:.26),y+ry+11,col,1);});
+   contactOrigin={x:xs[o.body??1],y:y-ry};origin={x:contactOrigin.x,y:contactOrigin.y-17};
+   if(ready&&!run){const partner={x:xs[0],y:y-ry-17};line(c,partner.x,y-ry,partner.x,partner.y,pal.muted,1.5);arrow(c,partner.x,partner.y,-Math.abs(o.expectedMagnitude)/max*extent,0,pal.blue);}
+   text(c,ready?'Objects touching':'Approaching contact',w/2,h-62,pal.muted,10,'center');
+  }else{
+   const x=w*.5,y=h*.62;object(c,x,y,pal.blue,problem,0,0);line(c,23,y,w-23,y,pal.line,2);origin={x,y:y-80};line(c,x,y-52,x,origin.y+5,pal.muted,1.5);
+   text(c,state.stuck?'Crate remains at rest':'Frozen at start; unbalanced pull begins motion',w/2,h-62,pal.muted,10,'center',false,w-20);
+   if(!run){const applied=state.forces.find(force=>!/friction/i.test(force.label)&&force.axis==='horizontal');if(applied)arrow(c,x,y-25,Math.sign(applied.value)*Math.abs(applied.value)/max*extent,0,pal.green);}
+  }
+  if(ready){if(contactOrigin)line(c,contactOrigin.x,contactOrigin.y,origin.x,origin.y,pal.muted,1.5);const growth=run?reveal:1,rad=angle*Math.PI/180,length=magnitude/max*extent*growth;if(magnitude<.000001){ellipse(c,origin.x,origin.y,6,6,null,color);text(c,'0 N',origin.x,origin.y-16,color,11,'center',true);}else arrow(c,origin.x,origin.y,Math.cos(rad)*length,-Math.sin(rad)*length,color);}
+  text(c,o.origin==='orbit'||o.origin==='turn'?`${format(angle)}° from right`:`${format(magnitude)} N ${Math.cos(angle*Math.PI/180)<0?'left':'right'}`,w/2,84,color,11,'center');
+ }));
  experimentResult(pal,e);
 }
 export function drawExperiment(canvas,problem,params,time,opts={}){
  if(!opts.trial||opts.trial.ok===false){drawScene(canvas,problem,params,time,opts);return;}
  const e=experimentState(problem,params,time,opts),pal=setup(canvas,opts.theme),kind=e.referenceProblem.simulation.kind;
+ canvas.setAttribute('aria-label',`Comparison: your test on the left, reference on the right. Both use the same physical scales. ${e.trial.comparisonLabel||''} ${e.progress>=.995?`Your test ${e.trial.value} ${e.trial.unit}; reference result ${e.trial.expected} ${e.trial.unit}.`:''}`);
  if(e.trial.overlay?.type==='vector'){experimentVector(canvas,pal,e,opts);return;}
  experimentLegend(pal,e);line(pal.c,pal.w/2,43,pal.w/2,pal.h-48,pal.line,1);
  if(kind==='gravity')experimentScale(pal,e,opts.arrows!==false);
@@ -341,25 +360,23 @@ export function drawExperiment(canvas,problem,params,time,opts={}){
  else if(e.reference.axis==='vertical'||e.proposal.axis==='vertical')experimentVertical(pal,e,opts.arrows!==false);
  else experimentMotion(pal,e,opts.arrows!==false);
  experimentResult(pal,e);
- canvas.setAttribute('aria-label',`Comparison. Given situation and your test use the same position and time scales. ${e.trial.comparisonLabel||''} ${e.progress>=.995?`Given result ${e.trial.expected} ${e.trial.unit}; your test ${e.trial.value} ${e.trial.unit}.`:''}`);
+
 }
 function vectorGraph(pal,e){
- const {c,w,h}=pal,o=e.trial.overlay,cx=w*.5,cy=h*.59,extent=Math.max(25,Math.min(w*.32,h*.31)),max=Math.max(.000001,Math.abs(o.magnitude),Math.abs(o.expectedMagnitude)),reveal=vectorReveal(e);
- line(c,cx-extent-10,cy,cx+extent+10,cy,pal.line);line(c,cx,cy-extent-10,cx,cy+extent+10,pal.line);text(c,'right +',w-12,cy+15,pal.muted,10,'right');text(c,'up +',cx+7,cy-extent-13,pal.muted,10);
- if(e.referenceProblem.simulation.kind==='momentum'&&e.clock<e.refEnd){text(c,'Approaching contact…',w/2,h*.55,pal.muted,12,'center');return;}
- const draw=(angle,magnitude,col,growth)=>{const rad=angle*Math.PI/180,len=magnitude/max*extent*growth;arrow(c,cx,cy,Math.cos(rad)*len,-Math.sin(rad)*len,col);};draw(o.expectedAngle,o.expectedMagnitude,pal.blue,1);draw(o.angle,o.magnitude,pal.orange,reveal);
- text(c,'Force vectors: same scale',12,13,pal.muted,11);line(c,13,33,29,33,pal.blue,3);text(c,'given',35,33,pal.blue,10);line(c,100,33,116,33,pal.orange,3);text(c,'your test',122,33,pal.orange,10);
+ const {c,w,h}=pal,o=e.trial.overlay,cy=h*.62,extent=Math.max(20,Math.min(w*.13,h*.25)),max=Math.max(.000001,Math.abs(o.magnitude),Math.abs(o.expectedMagnitude)),reveal=vectorReveal(e),ready=e.referenceProblem.simulation.kind!=='momentum'||e.clock>=e.refEnd;
+ text(c,'Force vectors: same scale',12,13,pal.muted,11);
+ [0,1].forEach(run=>{const cx=comparisonX(pal,run),color=run?pal.orange:pal.blue;line(c,cx-extent-7,cy,cx+extent+7,cy,pal.line);line(c,cx,cy-extent-7,cx,cy+extent+7,pal.line);text(c,run?'your test':'reference',cx,34,color,10,'center',true);text(c,'right +',cx+extent+7,cy+14,pal.muted,9,'right');if(!ready){text(c,'approaching',cx,cy,pal.muted,10,'center');return;}const angle=run?o.angle:o.expectedAngle,magnitude=run?o.magnitude:o.expectedMagnitude,rad=angle*Math.PI/180,len=magnitude/max*extent*(run?reveal:1);if(magnitude<.000001)ellipse(c,cx,cy,5,5,null,color);else arrow(c,cx,cy,Math.cos(rad)*len,-Math.sin(rad)*len,color);});
 }
 function comparisonGraphData(e,quantity){
  if(!e.samples){const times=sampleTimes(e.duration,[e.reference,e.proposal]),gravity=e.referenceProblem.simulation.kind==='gravity';e.samples={times,gravity,states:gravity?null:[Array.from(times,t=>t<=e.refEnd+1e-9?evaluate(e.referenceProblem,e.referenceParams,t):null),Array.from(times,t=>t<=e.proposalEnd+1e-9?evaluate(e.proposalProblem,e.proposalParams,t):null)]};}
  if(!e.graph||e.graph.quantity!==quantity){const {times,gravity,states}=e.samples,convert=e.referenceParams.orbital?(['x','y','distance'].includes(quantity)?1e9:['v','vy','speed'].includes(quantity)?1e3:1):1,params=[e.referenceParams,e.proposalParams],problems=[e.referenceProblem,e.proposalProblem],labels=[e.trial.referenceLabel?.startsWith('Earth')?'Earth':'reference',e.trial.proposalLabel?.startsWith('Other')?'other planet':'your test'];
-  const traces=[0,1].map(index=>({color:index?'orange':'blue',dash:index?[]:[5,4],label:labels[index],values:Float64Array.from(times,(t,i)=>gravity?loadedScale(params[index],t).force:states[index][i]?comparisonValue(states[index][i],quantity,params[index],problems[index])/convert:NaN)})),guide=e.trial.overlay?.type==='interval'?Float64Array.from(times,t=>comparisonValue(evaluate(e.referenceProblem,e.referenceParams,t),quantity,e.referenceParams,e.referenceProblem)/convert):[];
+  const traces=[0,1].map(index=>({color:index?'orange':'blue',dash:index?[]:[5,4],label:labels[index],legendIndex:comparisonSlot(index),values:Float64Array.from(times,(t,i)=>gravity?loadedScale(params[index],t).force:states[index][i]?comparisonValue(states[index][i],quantity,params[index],problems[index])/convert:NaN)})),guide=e.trial.overlay?.type==='interval'?Float64Array.from(times,t=>comparisonValue(evaluate(e.referenceProblem,e.referenceParams,t),quantity,e.referenceParams,e.referenceProblem)/convert):[];
   const[lo,hi]=boundsFor(traces,guide);e.graph={quantity,convert,times,traces,guide,lo,hi,duration:e.duration,unit:convert===1e9?'million km':convert===1e3?'km/s':graphUnits[quantity]||e.trial.unit||''};renderingStats.comparisonGraphBuilds++;}
  return e.graph;
 }
 export function drawExperimentGraph(canvas,problem,params,time,opts={}){
- if(!opts.trial||opts.trial.ok===false){drawGraph(canvas,problem,params,time,opts);return;}const e=experimentState(problem,params,time,opts),pal=setup(canvas,opts.theme);if(e.trial.overlay?.type==='vector'){vectorGraph(pal,e);return;}
+ if(!opts.trial||opts.trial.ok===false){drawGraph(canvas,problem,params,time,opts);return;}const e=experimentState(problem,params,time,opts),pal=setup(canvas,opts.theme);if(e.trial.overlay?.type==='vector'){vectorGraph(pal,e);canvas.setAttribute('aria-label','Force comparison: your proposed force on the left in orange; physical reference on the right in blue. Both use the same force scale.');return;}
  const gravity=e.referenceProblem.simulation.kind==='gravity',quantity=gravity?'weight':opts.quantity||e.ri.graphKey||'x',data=comparisonGraphData(e,quantity),states=[e.reference,e.proposal],parameters=[e.referenceParams,e.proposalParams],problems=[e.referenceProblem,e.proposalProblem];data.traces.forEach((trace,index)=>{trace.currentTime=gravity?e.clock:index?e.pt:e.rt;trace.current=gravity?loadedScale(parameters[index],e.clock).force:comparisonValue(states[index],quantity,parameters[index],problems[index])/data.convert;});
- paintGraph(pal,data,e.clock,{reveal:true,interval:e.trial.overlay?.type==='interval'?e.trial.overlay:null,guide:data.guide,title:graphTitle(quantity,e.reference),unit:data.unit,timeScale:e.ri.timeScale||1,timeUnit:e.ri.timeUnit});canvas.setAttribute('aria-label',`Comparison graph: ${graphTitle(quantity,e.reference)}. Dashed blue is the reference; orange is your test. Both use the same axes.`);
+ paintGraph(pal,data,e.clock,{reveal:true,interval:e.trial.overlay?.type==='interval'?e.trial.overlay:null,guide:data.guide,title:graphTitle(quantity,e.reference),unit:data.unit,timeScale:e.ri.timeScale||1,timeUnit:e.ri.timeUnit});canvas.setAttribute('aria-label',`Comparison graph: ${graphTitle(quantity,e.reference)}. Orange is your test, listed first; dashed blue is the reference. Both use the same axes.`);
 }
 

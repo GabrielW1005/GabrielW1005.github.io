@@ -4,7 +4,7 @@ A dependency-free web app for the revised 32-question grade 8 packet. It runs fr
 
 ## Classroom use
 
-Choose a numbered packet problem, adjust the values, and test an idea in one experiment workspace. The given situation and student test use left and right comparison panels. Complete, larger questions and current graph data stay above the workspace. The graph, test controls, and Explanation & steps panel remain on screen on laptop displays. Editable givens open in a drawer; math warm-ups and printable materials remain available.
+Choose a numbered packet problem, adjust the values, and test an idea in one experiment workspace. The student test is on the left and the reference is on the right; both use the same physical scales. Complete, larger questions and current graph data stay above the workspace. The graph, test controls, and Explanation & steps panel remain on screen on laptop displays. Editable givens open in a drawer; math warm-ups and printable materials remain available.
 
 - **Packet values** restores the printed scenario.
 - **Test prediction** runs a physical trial implied by the entered answer beside the given situation. Both runs use the same time and coordinate scales. Feedback explains the difference and confirms a matching prediction.
@@ -17,6 +17,14 @@ Choose a numbered packet problem, adjust the values, and test an idea in one exp
 - Graphs and numerical readings come from the same physical state as the animation.
 - Fullscreen and light/dark themes support classroom displays.
 - The packet and both review guides are available under Help.
+
+## Saved packet workspace
+
+`packet.html#P01` opens the original printed question; `packet.html#all` displays all 32 questions grouped into the eight packet pages. Every simulation has a **Packet & answers** link that opens its matching question in a new tab. Each packet question links back to its simulation.
+
+Students can enter answers directly, open an optional hint, or reveal step-by-step explanations and the physical reasoning. Numerical questions check all requested parts, including direction and both before/after momentum in question 30. Written conceptual answers are saved for self-review against a model answer and a short checklist; the application does not claim to automatically grade free-form reasoning. Merely opening a solution does not complete a question. All 24 math warm-ups are available in their page groups.
+
+Progress is stored in this browser on this device. It includes drafts, submissions, numerical checks, and conceptual self-review. It is not sent to a teacher or synchronized to an account. Download and load progress provide a portable local backup. Per-question storage keys avoid overwriting unrelated work when multiple packet tabs are open. Editing an answer clears its previous checked/reviewed status.
 
 ## Physics models and assumptions
 
@@ -49,15 +57,19 @@ The local development project serves `dist/`. On GitHub Pages, its contents are 
 - `dist/rendering.js`: scene, shared-scale prediction comparison, and graph drawing.
 - `dist/experiments.js`: physical prediction trials and conceptual exploration tasks.
 - `dist/practice.js`: value-aware question wording, hints, tables, and additional practice variants.
-- `dist/app.js`, `index.html`, `styles.css`: interface.
+- `dist/app.js`, `index.html`, `styles.css`: simulation interface.
+- `dist/packet.html`, `packet.css`, `packet-app.js`: original packet questions, answers, and saved progress.
+- `dist/packet-lessons.js`: worked solutions, reasoning, and answer requirements.
+- `dist/packet-core.js`: answer checking and bounded per-question progress storage.
 - `dist/downloads/`: the three current student PDFs.
 - `maintainer/`: printable source content and PDF generator.
 - `tests/verify-models.mjs`: packet-answer checks and physical invariants.
 - `tests/verify-experiments.mjs`: entered-answer trials and conceptual goal checks.
 - `tests/verify-practice.mjs`: generated practice consistency and model validity.
-- `tests/verify-rendering.mjs`: finite drawing coordinates, compact/large scenes, control endpoints, and bounded caches.
+- `tests/verify-rendering.mjs`: finite drawing coordinates, compact/large scenes, control endpoints, bounded caches, and test/reference placement.
+- `tests/verify-packet.mjs`: numerical answer checks, multipart answers, and progress persistence/validation.
 
-Run `node tests/verify-models.mjs`, `node tests/verify-experiments.mjs`, `node tests/verify-practice.mjs`, and `node tests/verify-rendering.mjs` in either the development project or the published source. The publication copy uses imports for its flat file layout.
+Run `node tests/verify-models.mjs`, `node tests/verify-experiments.mjs`, `node tests/verify-practice.mjs`, `node tests/verify-rendering.mjs`, and `node tests/verify-packet.mjs` in either the development project or the published source. The publication copy uses imports for its flat file layout.
 
 The model checks cover all 16 packet numerical answers, collision momentum and contact forces, vertical force signs, spring scales, train reference frames, orbital vectors, and edited measurements. Experiment checks cover correct and incorrect proposed values and the conceptual goals. Browser QA covers the prediction interaction and the side-by-side stage/graph layout.
 
