@@ -1,9 +1,9 @@
-import packet from './data.js?v=20261025-1';
-import {lessons,warmupLessons} from './packet-lessons.js?v=20261025-1';
-import {checkAnswers,LIMITS} from './packet-core.js?v=20261025-1';
-import {generatePractice} from './practice.js?v=20261025-1';
-import {getActiveProblem,getPracticeLesson} from './practice-lessons.js?v=20261025-1';
-import {createWorkspaceStore,createWorkspaceProgressStore,parseWorkspaceRoute,workspaceHash,workspaceLink,WORKSPACE_IMPORT_BYTES,WORKSPACE_SELECTION_PREFIX,WORKSPACE_PROGRESS_PREFIX} from './workspace-state.js?v=20261025-1';
+import packet from './data.js?v=20261025-2';
+import {lessons,warmupLessons} from './packet-lessons.js?v=20261025-2';
+import {checkAnswers,LIMITS} from './packet-core.js?v=20261025-2';
+import {generatePractice} from './practice.js?v=20261025-2';
+import {getActiveProblem,getPracticeLesson} from './practice-lessons.js?v=20261025-2';
+import {createWorkspaceStore,createWorkspaceProgressStore,parseWorkspaceRoute,workspaceHash,workspaceLink,WORKSPACE_IMPORT_BYTES,WORKSPACE_SELECTION_PREFIX,WORKSPACE_PROGRESS_PREFIX} from './workspace-state.js?v=20261025-2';
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

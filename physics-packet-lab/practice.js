@@ -145,7 +145,7 @@ export function getQuestion(problem,params=problem.simulation?.params||{},option
   const target=units[UNIT_KINDS[source]]||source,value=Number(raw.replaceAll(',',''));
   return`${raw.startsWith('+')?'+':''}${displayFmt(displayValue(value*unitFactor(source),target))} ${target}`;
  });
- if(problem.id==='P17'&&params.planet)view.prompt=view.prompt.replace(/on Mars|at this location/,`on ${params.planet}`);
+ if(problem.id==='P17'&&params.planet)view.prompt=view.prompt.replace(/on Mars|at this location/,`on ${params.planet==='Moon'?'the Moon':params.planet}`);
  if(problem.numericAnswer){const answer=getAnswerUnit(problem,params).unit;view.prompt=view.prompt.replace(/, in m\/s\?|, in newtons\?/, '?');view.prompt+=` Give your answer in ${answer}${['displacement','finalVelocity','acceleration','netForce','frictionForce','totalMomentum'].includes(problem.numericAnswer.quantity)?', including direction':''}.`;}
  if(view.table){
   const t=units.time||'s',d=units.distance||'m';

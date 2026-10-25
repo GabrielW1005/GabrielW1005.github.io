@@ -1,4 +1,4 @@
-import {evaluate as rawEvaluate,modelInfo as rawModelInfo,format as baseFormat} from './physics.js?v=20261025-1';
+import {evaluate as rawEvaluate,modelInfo as rawModelInfo,format as baseFormat} from './physics.js?v=20261025-2';
 const format=(value,digits)=>baseFormat(value,digits??(Math.abs(value)>0&&Math.abs(value)<.1?Math.min(7,Math.ceil(-Math.log10(Math.abs(value)))+2):2));
 
 
