@@ -2,7 +2,7 @@
 export const PROBLEM_IDS=Object.freeze(Array.from({length:32},(_,i)=>`P${String(i+1).padStart(2,'0')}`));
 export const WARMUP_IDS=Object.freeze(Array.from({length:8},(_,i)=>['a','b','c'].map(letter=>`W${i+1}${letter}`)).flat());
 export const PACKET_IDS=Object.freeze([...PROBLEM_IDS,...WARMUP_IDS]);
-const IDS=new Set(PACKET_IDS),PREFIX='motion-lab-packet-v1:',FORMAT='motion-lab-packet-progress',VERSION=1;
+const PREFIX='motion-lab-packet-v1:',FORMAT='motion-lab-packet-progress',VERSION=1;
 const own=(o,k)=>Object.prototype.hasOwnProperty.call(o||{},k);
 const plain=o=>o!==null&&typeof o==='object'&&!Array.isArray(o)&&(Object.getPrototypeOf(o)===Object.prototype||Object.getPrototypeOf(o)===null);
 const safeKey=k=>typeof k==='string'&&/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(k)&&!['__proto__','constructor','prototype'].includes(k);
@@ -95,28 +95,33 @@ function validateRecord(record){
  if(record.reviewed!==(record.status==='reviewed'))return fail('The review flag and progress status do not agree.');
  return{ok:true,record:{answers,explanation:record.explanation,status:record.status,reviewed:record.reviewed,attempts:record.attempts,updatedAt:new Date(record.updatedAt).toISOString()}};
 }
-function validateImport(input){
+function validateImport(input,ids,importBytes){
  let data,text;
  try{text=typeof input==='string'?input:JSON.stringify(input);}catch{return fail('This progress file is not valid JSON.');}
  if(typeof text!=='string')return fail('This is not a supported packet progress file.');
- if(text.length>LIMITS.importBytes||new TextEncoder().encode(text).length>LIMITS.importBytes)return fail('This progress file is too large.');
+ if(text.length>importBytes||new TextEncoder().encode(text).length>importBytes)return fail('This progress file is too large.');
  try{data=JSON.parse(text);}catch{return fail('This file is not valid JSON.');}
  if(!plain(data)||Object.keys(data).some(k=>!['format','version','exportedAt','records'].includes(k)))return fail('This is not a supported packet progress file.');
  if(data.format!==FORMAT||data.version!==VERSION)return fail('This progress file uses an unsupported format or version.');
  if(typeof data.exportedAt!=='string'||data.exportedAt.length>40||!Number.isFinite(Date.parse(data.exportedAt)))return fail('This progress file has an invalid export date.');
- if(!plain(data.records)||Object.keys(data.records).length>PACKET_IDS.length)return fail('This progress file has an invalid record list.');
+ if(!plain(data.records)||Object.keys(data.records).length>ids.size)return fail('This progress file has an invalid record list.');
  const records={};
- for(const [id,record] of Object.entries(data.records)){if(!IDS.has(id))return fail('This progress file contains an unknown problem or warm-up.');const checked=validateRecord(record);if(!checked.ok)return fail(`${id}: ${checked.error}`);records[id]=checked.record;}
+ for(const [id,record] of Object.entries(data.records)){if(!ids.has(id))return fail('This progress file contains an unknown problem or warm-up.');const checked=validateRecord(record);if(!checked.ok)return fail(`${id}: ${checked.error}`);records[id]=checked.record;}
  return{ok:true,records};
 }
-export function createProgressStore(storage){
+export function createProgressStore(storage,options={}){
+ const configuredIds=options.ids??PACKET_IDS;
+ if(!Array.isArray(configuredIds)||!configuredIds.length||configuredIds.length>1000||configuredIds.some(id=>!safeKey(id))||new Set(configuredIds).size!==configuredIds.length)throw new TypeError('Use a bounded list of unique progress IDs.');
+ const ids=Object.freeze([...configuredIds]),IDS=new Set(ids),prefix=options.prefix??PREFIX,importBytes=options.importBytes??LIMITS.importBytes;
+ if(typeof prefix!=='string'||!/^[-a-zA-Z0-9_:]{1,100}$/.test(prefix))throw new TypeError('Invalid progress storage prefix.');
+ if(!Number.isInteger(importBytes)||importBytes<1000||importBytes>100000000)throw new TypeError('Invalid progress import limit.');
  let backend=storage,unavailable='';
  if(backend===undefined){try{backend=globalThis.localStorage;}catch{unavailable='Browser storage is blocked.';}}
  if(!backend||!['getItem','setItem','removeItem'].every(k=>typeof backend[k]==='function'))unavailable||='Browser storage is unavailable.';
  const storageError=()=>fail(unavailable||'Could not access browser storage. Your latest work may not have been saved.');
  function load(id){
   if(!IDS.has(id))return fail('Unknown problem or warm-up.',{record:null});if(unavailable)return{...storageError(),record:null};
-  try{const raw=backend.getItem(PREFIX+id);if(raw===null)return{ok:true,record:null};if(typeof raw!=='string'||raw.length>LIMITS.recordBytes||new TextEncoder().encode(raw).length>LIMITS.recordBytes)return fail('Saved progress is too large or invalid.',{record:null});let parsed;try{parsed=JSON.parse(raw);}catch{return fail('Saved progress is damaged and could not be read.',{record:null});}const checked=validateRecord(parsed);return checked.ok?{ok:true,record:copy(checked.record)}:{...checked,record:null};}catch{return{...storageError(),record:null};}
+  try{const raw=backend.getItem(prefix+id);if(raw===null)return{ok:true,record:null};if(typeof raw!=='string'||raw.length>LIMITS.recordBytes||new TextEncoder().encode(raw).length>LIMITS.recordBytes)return fail('Saved progress is too large or invalid.',{record:null});let parsed;try{parsed=JSON.parse(raw);}catch{return fail('Saved progress is damaged and could not be read.',{record:null});}const checked=validateRecord(parsed);return checked.ok?{ok:true,record:copy(checked.record)}:{...checked,record:null};}catch{return{...storageError(),record:null};}
  }
  function save(id,patch){
   if(!IDS.has(id))return fail('Unknown problem or warm-up.',{record:null});if(!plain(patch)||Object.keys(patch).some(k=>!['answers','explanation','status','reviewed','attempts','updatedAt'].includes(k)))return fail('The progress update is invalid.',{record:null});
@@ -129,22 +134,22 @@ export function createProgressStore(storage){
   if(merged.status!=='reviewed')merged.reviewed=false;
   if(merged.status==='reviewed')merged.reviewed=true;
   const checked=validateRecord(merged);if(!checked.ok)return{...checked,record:null};
-  try{const json=JSON.stringify(checked.record);backend.setItem(PREFIX+id,json);if(backend.getItem(PREFIX+id)!==json)return fail('Could not confirm that this answer was saved.',{record:null});return{ok:true,record:copy(checked.record)};}catch{return{...storageError(),record:null};}
+  try{const json=JSON.stringify(checked.record);backend.setItem(prefix+id,json);if(backend.getItem(prefix+id)!==json)return fail('Could not confirm that this answer was saved.',{record:null});return{ok:true,record:copy(checked.record)};}catch{return{...storageError(),record:null};}
  }
- function all(){const records={},errors={};for(const id of PACKET_IDS){const result=load(id);if(!result.ok)errors[id]=result.error;else if(result.record)records[id]=result.record;}return Object.keys(errors).length?fail('Some saved work could not be read.',{records,errors}):{ok:true,records};}
+ function all(){const records={},errors={};for(const id of ids){const result=load(id);if(!result.ok)errors[id]=result.error;else if(result.record)records[id]=result.record;}return Object.keys(errors).length?fail('Some saved work could not be read.',{records,errors}):{ok:true,records};}
  function clear(){
   if(unavailable)return storageError();let cleared=0;
-  try{for(const id of PACKET_IDS){backend.removeItem(PREFIX+id);if(backend.getItem(PREFIX+id)!==null)return fail('Could not confirm that saved work was cleared.',{cleared});cleared++;}return{ok:true,cleared};}catch{return{...storageError(),cleared};}
+  try{for(const id of ids){backend.removeItem(prefix+id);if(backend.getItem(prefix+id)!==null)return fail('Could not confirm that saved work was cleared.',{cleared});cleared++;}return{ok:true,cleared};}catch{return{...storageError(),cleared};}
  }
- function exportProgress(){const result=all();if(!result.ok)return result;const data={format:FORMAT,version:VERSION,exportedAt:new Date().toISOString(),records:result.records};return{ok:true,data,json:JSON.stringify(data,null,2)};}
+ function exportProgress(){const result=all();if(!result.ok)return result;const data={format:FORMAT,version:VERSION,exportedAt:new Date().toISOString(),records:result.records};const json=JSON.stringify(data,null,2);if(new TextEncoder().encode(json).length>importBytes)return fail('Saved work is too large for one progress backup.',{data});return{ok:true,data,json};}
  function importProgress(input,{overwrite=false}={}){
-  const checked=validateImport(input);if(!checked.ok)return checked;if(unavailable)return storageError();
+  const checked=validateImport(input,IDS,importBytes);if(!checked.ok)return checked;if(unavailable)return storageError();
   const changes=[],previous=new Map();let skipped=0;
   for(const [id,incoming] of Object.entries(checked.records)){const result=load(id);if(!result.ok)return result;if(!overwrite&&result.record&&Date.parse(result.record.updatedAt)>Date.parse(incoming.updatedAt)){skipped++;continue;}changes.push([id,incoming]);}
-  try{for(const [id] of changes)previous.set(id,backend.getItem(PREFIX+id));}catch{return storageError();}
+  try{for(const [id] of changes)previous.set(id,backend.getItem(prefix+id));}catch{return storageError();}
   const attempted=[];let imported=0;
-  try{for(const [id,record] of changes){attempted.push(id);const json=JSON.stringify(record);backend.setItem(PREFIX+id,json);if(backend.getItem(PREFIX+id)!==json)throw new Error('verification');imported++;}return{ok:true,imported,skipped};}
-  catch{let rollbackFailed=false;for(const id of attempted){try{const old=previous.get(id);if(old===null)backend.removeItem(PREFIX+id);else backend.setItem(PREFIX+id,old);if(backend.getItem(PREFIX+id)!==old)rollbackFailed=true;}catch{rollbackFailed=true;}}return fail(rollbackFailed?'Import stopped because browser storage failed. Some imported answers may remain.':'Import could not be saved. Earlier answers were restored.',{imported:rollbackFailed?imported:0,skipped,partial:rollbackFailed});}
+  try{for(const [id,record] of changes){attempted.push(id);const json=JSON.stringify(record);backend.setItem(prefix+id,json);if(backend.getItem(prefix+id)!==json)throw new Error('verification');imported++;}return{ok:true,imported,skipped};}
+  catch{let rollbackFailed=false;for(const id of attempted){try{const old=previous.get(id);if(old===null)backend.removeItem(prefix+id);else backend.setItem(prefix+id,old);if(backend.getItem(prefix+id)!==old)rollbackFailed=true;}catch{rollbackFailed=true;}}return fail(rollbackFailed?'Import stopped because browser storage failed. Some imported answers may remain.':'Import could not be saved. Earlier answers were restored.',{imported:rollbackFailed?imported:0,skipped,partial:rollbackFailed});}
  }
  return Object.freeze({load,save,all,clear,export:exportProgress,import:importProgress});
 }

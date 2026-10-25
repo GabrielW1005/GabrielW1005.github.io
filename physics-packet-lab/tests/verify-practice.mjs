@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import packet from '../data.js';
-import {getQuestion,generatePractice} from '../practice.js';
+import {getQuestion,generatePractice,getPractice,listPracticeIds,unitFactor,displayValue,getAnswerUnit} from '../practice.js';
 import {solve,evaluate,modelInfo} from '../physics.js';
 const problems=packet.sections.flatMap(s=>s.problems),byId=Object.fromEntries(problems.map(p=>[p.id,p]));
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -34,12 +34,15 @@ for(const problem of problems){
  const before=JSON.stringify(problem),frozen=freeze(clone(problem));
  let previous=freeze(clone(problem.simulation.params));
  const visited=new Set();
- for(const draw of [0,.5,.999]){
+ const physicalAnswers=new Set(),displayAnswers=new Set(),answerUnits=new Set();
+ const ids=listPracticeIds(problem);assert.equal(ids.length,24);assert.equal(new Set(ids).size,24);
+ for(const variantId of ids){
   const previousBefore=JSON.stringify(previous);
-  const result=generatePractice(frozen,previous,()=>draw);
+  const result=getPractice(frozen,variantId);
+  assert.deepEqual(result,getPractice(frozen,variantId),'deterministic shared problem');
   assert.notEqual(result.variantId,previous._practiceVariant,`${problem.id}: must change practice variant`);
   assert.equal(JSON.stringify(previous),previousBefore,`${problem.id}: previous parameters mutated`);
-  assert.ok(result.prompt.length>30&&result.prompt.length<450,`${problem.id}: readable complete prompt (${result.prompt.length} chars)`);
+  assert.ok(result.prompt.length>30&&result.prompt.length<650,`${problem.id}: readable complete prompt (${result.prompt.length} chars)`);
   assert.ok(result.hint.length>12,`${problem.id}: useful hint missing`);
   assert.deepEqual(getQuestion(frozen,result.params,{practice:true}).prompt,result.prompt);
   finiteTree(result.params,`${problem.id}.params`);
@@ -50,10 +53,16 @@ for(const problem of problems){
    assert.equal(result.params.times.length,result.params.positions.length);
    for(let i=1;i<result.params.positions.length;i++)assert.ok(result.params.positions[i]>=result.params.positions[i-1]);
   }
-  if(problem.type==='quantitative')close(solve(problem,result.params).value,numericExpected(problem.id,result.params),`${result.variantId} independently calculated answer`);
+  if(problem.type==='quantitative'){
+   const expected=numericExpected(problem.id,result.params),actual=solve(problem,result.params).value,target=getAnswerUnit(problem,result.params);
+   close(actual,expected,`${result.variantId} independently calculated answer`);
+   close(displayValue(actual,target.unit)*target.factor,expected,`${result.variantId} unit round trip`);
+   assert.ok(result.prompt.includes(`Give your answer in ${target.unit}`));
+   physicalAnswers.add(Number(expected.toPrecision(10)));displayAnswers.add(Number(displayValue(expected,target.unit).toPrecision(10)));answerUnits.add(target.unit);
+  }
   if(['P13','P15'].includes(problem.id)){
    assert.ok(result.table,`${problem.id}: current onscreen table required`);
-   assert.deepEqual(result.table.rows,result.params.times.map((t,i)=>[t*result.params.timeScale,result.params.positions[i]*result.params.distanceScale]));
+   assert.deepEqual(result.table.rows,result.params.times.map((t,i)=>[displayValue(t*result.params.timeScale,result.params._displayUnits.time),displayValue(result.params.positions[i]*result.params.distanceScale,result.params._displayUnits.distance)]));
   }
   if(problem.id==='P05')assert.ok(result.params.distance/result.params.time>=.6&&result.params.distance/result.params.time<=2,'realistic walking speed');
   if(problem.id==='P09')assert.ok(numericExpected('P09',result.params)>0&&numericExpected('P09',result.params)<=2.5,'realistic bus acceleration');
@@ -81,7 +90,8 @@ for(const problem of problems){
   }
   visited.add(result.variantId);previous=freeze(result.params);variantsChecked++;
  }
- assert.equal(visited.size,3,`${problem.id}: three distinct reviewed variants reachable`);
+ assert.equal(visited.size,24,`${problem.id}: 24 distinct variants reachable`);
+ if(problem.type==='quantitative'){assert.ok(physicalAnswers.size>=18,`${problem.id}: only ${physicalAnswers.size} distinct physical answers`);assert.ok(displayAnswers.size>=18,`${problem.id}: only ${displayAnswers.size} distinct displayed answers`);if(!['P17','P29'].includes(problem.id))assert.ok(answerUnits.size>=2,`${problem.id}: answer-unit variety`);}
  assert.equal(JSON.stringify(problem),before,`${problem.id}: printed problem mutated`);
 }
 // Current-value regressions: change values after selecting a question. The text must
@@ -130,5 +140,37 @@ for(const id of ['P13','P15']){
 }
 // Repeated button presses do not repeat the immediate previous variant, even with
 // the same random draw, and always return fresh objects.
-for(const problem of problems){let last=clone(problem.simulation.params);for(let i=0;i<5;i++){const next=generatePractice(problem,last,()=>0);assert.notEqual(next.params,last);assert.notEqual(next.variantId,last._practiceVariant);last=next.params;}}
+for(const problem of problems){let last=clone(problem.simulation.params);const seen=new Set();for(let i=0;i<24;i++){const next=generatePractice(problem,last,()=>0);assert.notEqual(next.params,last);assert.notEqual(next.variantId,last._practiceVariant);last=next.params;seen.add(next.variantId);}assert.equal(seen.size,24,'fixed random draw must traverse the whole bank');}
+assert.equal(unitFactor('km/h'),1/3.6);close(displayValue(2500,'km'),2.5,'distance conversion');close(displayValue(1.2,'g'),1200,'mass conversion');close(displayValue(180,'min'),3,'time conversion');close(displayValue(4800,'kN'),4.8,'force conversion');assert.throws(()=>unitFactor('bogus'));
+const unitTypes=new Set(problems.flatMap(p=>listPracticeIds(p).flatMap(id=>Object.values(getPractice(p,id).params._displayUnits))));
+for(const unit of ['m','cm','km','s','min','h','m/s','km/h','cm/s','kg','g','N','kN','m/s²','cm/s²','kg·m/s','g·m/s'])assert.ok(unitTypes.has(unit),`unit ${unit} is represented`);
+assert.throws(()=>getPractice(byId.P05,'P06-v2-01'),'cross-problem variant rejected');
+assert.throws(()=>getPractice(byId.P05,'P05-v2-99'),'out-of-range variant rejected');
 console.log(`Practice checks passed: ${variantsChecked} reviewed variants across 32 problems; 32 current-value regressions; no mutation; all 16 numeric types independently verified.`);
+
+// Independently solve what a student actually reads, including the displayed
+// unit conversion. This catches rounding before conversion and stale SI labels.
+const literalFactors={'m':1,'cm':.01,'km':1000,'s':1,'min':60,'h':3600,'m/s':1,'km/h':1000/3600,'cm/s':.01,'m/s²':1,'cm/s²':.01,'kg':1,'g':.001,'N':1,'kN':1000};
+function numbersFromPrompt(text){return [...text.matchAll(/([+-]?(?:\d[\d,]*(?:\.\d+)?|\.\d+)) (cm\/s²|m\/s²|cm\/s|km\/h|m\/s|min|kg|kN|cm|km|N|g|m|s|h)(?![A-Za-z/²])/g)].map(m=>Number(m[1].replaceAll(',',''))*literalFactors[m[2]]);}
+for(const problem of problems.filter(p=>p.numericAnswer))for(const id of listPracticeIds(problem)){
+ const view=getPractice(problem,id),n=numbersFromPrompt(view.prompt);let answer;
+ switch(problem.id){
+ case'P01':answer=n[0]+n[1];break;
+ case'P02':answer=n[1]-n[0];break;
+ case'P05':answer=n[0]/n[1];break;
+ case'P06':answer=n[0]*n[1];break;
+ case'P09':answer=(n[2]-n[0])/(n[3]-n[1]);break;
+ case'P10':answer=n[0]+n[1]*n[2];break;
+ case'P13':{const tUnit=view.table.headers[0].match(/\((.*)\)/)[1],dUnit=view.table.headers[1].match(/\((.*)\)/)[1];answer=(view.table.rows.at(-1)[1]-view.table.rows[0][1])*literalFactors[dUnit]/((view.table.rows.at(-1)[0]-view.table.rows[0][0])*literalFactors[tUnit]);break;}
+ case'P14':answer=(n[2]-n[0])/(n[3]-n[1]);break;
+ case'P17':answer=n[0]*n[1];break;
+ case'P18':answer=n[0];break;
+ case'P21':case'P22':answer=n[0]-n[1];break;
+ case'P25':answer=(n[1]-n[2])/n[0];break;
+ case'P26':answer=n[0]/n[1];break;
+ case'P29':case'P30':answer=n[0]*n[1];break;
+ }
+ close(answer,solve(problem,view.params).value,`${id}: answer from literal question measurements matches simulated physics`);
+}
+const tinyMassView=getPractice(byId.P27,'P27-v2-04');assert.ok(tinyMassView.prompt.includes('0.4425 kg'),'model mass must not round from 0.4425 kg to 0.443 kg');
+console.log('Literal question audit passed: all 384 quantitative prompts solve to their exact physical answer after displayed-unit conversion.');

@@ -1,4 +1,4 @@
-import {evaluate as rawEvaluate,modelInfo as rawModelInfo,format as baseFormat} from './physics.js?v=20261023-1';
+import {evaluate as rawEvaluate,modelInfo as rawModelInfo,format as baseFormat} from './physics.js?v=20261025-1';
 const format=(value,digits)=>baseFormat(value,digits??(Math.abs(value)>0&&Math.abs(value)<.1?Math.min(7,Math.ceil(-Math.log10(Math.abs(value)))+2):2));
 
 
@@ -67,8 +67,9 @@ function trainScene(pal,problem,p,t,s,arrows){
  const cy1=h*.29,cy2=h*.70;drawView(cy1,true);drawView(cy2,false);line(c,22,h*.49,w-22,h*.49,pal.line,1,[5,5]);
  const ref=num(s.referenceSpeed,num(p.referenceSpeed));caption(pal,`Same passenger, two viewpoints. Graph: ${Math.abs(ref-speed)<.001?'train frame':Math.abs(ref)<.001?'platform frame':`frame moving at ${format(ref)} m/s`}.`);
 }
+function gravityName(g){const value=num(g);return Math.abs(value-1.6)<.01?'Moon':Math.abs(value-3.7)<.01?'Mars':Math.abs(value-8.9)<.01?'Venus':Math.abs(value-9.8)<.01||Math.abs(value-10)<.01?'Earth':'Custom gravity';}
 function scaleScene(pal,problem,p,s,arrows){
- const {c,w,h}=pal,compare=p.compareG!==undefined,mass=num(p.mass,1),gs=compare?[num(p.compareG),num(p.g)]:[num(p.g)],planetLabel=Math.abs(num(p.g)-3.7)<.01?'Mars':'Custom gravity',labels=compare?['Earth',planetLabel]:[planetLabel];
+ const {c,w,h}=pal,compare=p.compareG!==undefined,mass=num(p.mass,1),gs=compare?[num(p.compareG),num(p.g)]:[num(p.g)],planetLabel=gravityName(p.g),labels=compare?[gravityName(p.compareG),planetLabel]:[planetLabel];
  const adjustable=problem.simulation.adjustable||[],maxMass=num(adjustable.find(a=>a.key==='mass')?.max,mass),maxG=Math.max(10,num(adjustable.find(a=>a.key==='g')?.max,10));const maxWeight=Math.max(1,maxMass*maxG),top=70,space=Math.max(95,h-180),plateBase=h-112;
  const cols=compare?[w*.28,w*.72]:[w*.45];
  cols.forEach((x,i)=>{const col=i?pal.orange:pal.blue,weight=mass*gs[i],compression=weight/maxWeight*Math.min(space*.35,95);text(c,labels[i],x,24,pal.ink,17,'center',true);text(c,`g = ${format(gs[i])} m/s²`,x,48,pal.muted,12,'center');
@@ -161,7 +162,7 @@ export function drawScene(canvas,problem,p,t,{arrows=true,hideAnswers=false,them
  canvas.setAttribute('aria-label',`${problem.title}. ${s.readouts.map(r=>`${r.label}: ${format(r.value)} ${r.unit}`).join('. ')}. ${s.contact?`Objects are touching. Force on object 1: ${format(num(s.force1))} N; force on object 2: ${format(num(s.force2))} N.`:''}`);
 }
 function forceBars(pal,problem,p,s,quantity){
- const {c,w,h}=pal,gravity=problem.simulation.kind==='gravity',items=gravity?(p.compareG!==undefined?[{label:'Earth',value:num(s.compareWeight,num(p.mass)*num(p.compareG)),color:pal.blue},{label:Math.abs(num(p.g)-3.7)<.01?'Mars':'Other planet',value:num(s.weight,num(p.mass)*num(p.g)),color:pal.orange}]:[{label:'Weight',value:num(s.weight,num(p.mass)*num(p.g)),color:pal.blue}]):s.forces.map((f,i)=>({label:f.label,value:f.value,color:i?pal.orange:pal.blue}));
+ const {c,w,h}=pal,gravity=problem.simulation.kind==='gravity',items=gravity?(p.compareG!==undefined?[{label:gravityName(p.compareG),value:num(s.compareWeight,num(p.mass)*num(p.compareG)),color:pal.blue},{label:gravityName(p.g),value:num(s.weight,num(p.mass)*num(p.g)),color:pal.orange}]:[{label:'Weight',value:num(s.weight,num(p.mass)*num(p.g)),color:pal.blue}]):s.forces.map((f,i)=>({label:f.label,value:f.value,color:i?pal.orange:pal.blue}));
  const L=45,R=w-15,T=46,B=h-34,lo=gravity?0:Math.min(0,...items.map(x=>x.value)),hi=Math.max(1,...items.map(x=>x.value)),span=hi-lo,Y=v=>B-(v-lo)/span*(B-T);for(let i=0;i<=3;i++){const val=lo+span*i/3;line(c,L,Y(val),R,Y(val),pal.line);text(c,format(val,1),L-7,Y(val),pal.muted,10,'right');}line(c,L,Y(0),R,Y(0),pal.muted);items.forEach((item,i)=>{const xx=L+(R-L)*(i+.5)/items.length,bw=Math.min(60,(R-L)/items.length*.5),yy=Y(item.value),zero=Y(0);round(c,xx-bw/2,Math.min(yy,zero),bw,Math.max(2,Math.abs(zero-yy)),3,item.color);text(c,`${format(item.value)} N`,xx,yy+(item.value<0?15:-12),item.color,12,'center',true);text(c,item.label,xx,B+19,pal.muted,11,'center',false,(R-L)/items.length-8);});text(c,gravity?'Scale reading (N)':'Signed force (N)',L,13,pal.muted,11);
 }
 const graphUnits={x:'m',y:'m',distance:'m',v:'m/s',vy:'m/s',speed:'m/s',a:'m/s²',ay:'m/s²',netForce:'N',netForceX:'N',netForceY:'N',force:'N',force1:'N',force2:'N',weight:'N',totalMomentum:'kg·m/s',momentum1:'kg·m/s',momentum2:'kg·m/s'};

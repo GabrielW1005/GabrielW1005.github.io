@@ -1,8 +1,9 @@
-/* Additional practice is generated from three reviewed variants per problem.
+/* Additional practice has 24 deterministic, unit-varied parameter sets per problem.
    These pure helpers never modify the printed packet or its saved answers. */
 const copy=v=>Array.isArray(v)?v.map(copy):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).map(([k,x])=>[k,copy(x)])):v;
 const num=(v,fallback=0)=>Number.isFinite(Number(v))?Number(v):fallback;
 const fmt=v=>{const n=num(v);return Number(n.toFixed(Math.abs(n)>0&&Math.abs(n)<.1?4:3)).toLocaleString('en-US',{maximumFractionDigits:Math.abs(n)>0&&Math.abs(n)<.1?4:3});};
+const baseFmt=fmt;
 const signed=v=>num(v)>0?`+${fmt(v)}`:fmt(v);
 const velocity=(v,positive='east',negative='west')=>num(v)===0?'at rest':`${fmt(Math.abs(num(v)))} m/s ${num(v)>0?positive:negative}`;
 const dir=v=>num(v)<0?'west':'east';
@@ -11,46 +12,66 @@ const path=p=>({times:(p.times||[0,10,20,30]).map(t=>num(t)*num(p.timeScale,1)),
 const tableFor=p=>{const r=path(p);return{headers:['Time (s)','Total distance (m)'],rows:r.times.map((t,i)=>[t,r.positions[i]])};};
 const duration=p=>p.startTime!==undefined&&p.endTime!==undefined?num(p.endTime)-num(p.startTime):num(p.time,1);
 const weight=p=>p.weight!==undefined?num(p.weight):num(p.mass)*num(p.g,10);
-const variants={
- P01:[{start:0,turn:15,end:9,speed:1.2},{start:0,turn:18,end:7,speed:1.4},{start:0,turn:10,end:4,speed:1}],
- P02:[{start:-4,turn:8,end:8,speed:1.4},{start:-9,turn:6,end:6,speed:1.2},{start:3,turn:11,end:11,speed:1.5}],
- P03:[{radius:12,speed:2,laps:1},{radius:25,speed:2.5,laps:2},{radius:30,speed:4,laps:1}],
- P04:[{speed:8,time:6,frame:0},{speed:12,time:10,frame:0},{speed:15,time:8,frame:0}],
- P05:[{distance:120,time:100},{distance:210,time:150},{distance:240,time:150}],
- P06:[{speed:3,time:30},{speed:5,time:20},{speed:4.5,time:40}],
- P07:[{speed:1.5,otherSpeed:-1.5,time:10},{speed:3,otherSpeed:-3,time:6},{speed:2.5,otherSpeed:-2.5,time:8}],
- P08:[{times:[0,8,16,24],positions:[0,12,12,24],distanceScale:1,timeScale:1},{times:[0,10,15,25],positions:[0,15,15,30],distanceScale:1,timeScale:1},{times:[0,12,18,30],positions:[0,24,24,48],distanceScale:1,timeScale:1}],
- P09:[{vi:3,vf:9,startTime:2,endTime:8,time:6},{vi:5,vf:11,startTime:4,endTime:8,time:4},{vi:2,vf:10,startTime:1,endTime:5,time:4}],
- P10:[{vi:1.5,acceleration:.5,time:3},{vi:2,acceleration:.25,time:4},{vi:3,acceleration:.5,time:2}],
- P11:[{vi:-.5,vf:-2,time:3},{vi:-1,vf:-2.5,time:3},{vi:-1.5,vf:-3,time:2}],
- P12:[{orbital:true,orbitAU:.8,laps:1},{orbital:true,orbitAU:1.2,laps:1},{orbital:true,orbitAU:1.5,laps:1}],
- P13:[{times:[0,8,16,24],positions:[0,8,8,24],distanceScale:1,timeScale:1},{times:[0,10,20,30],positions:[0,10,10,36],distanceScale:1,timeScale:1},{times:[0,12,18,30],positions:[0,18,18,36],distanceScale:1,timeScale:1}],
- P14:[{vi:1,vf:5,time:4},{vi:2,vf:5,time:6},{vi:3,vf:7,time:8}],
- P15:[{times:[0,10,20,30],positions:[0,16,24,28],distanceScale:1,timeScale:1},{times:[0,8,16,24],positions:[0,4,12,24],distanceScale:1,timeScale:1},{times:[0,6,12,18],positions:[0,3,15,21],distanceScale:1,timeScale:1}],
- P16:[{speed:2,otherSpeed:-2,time:8},{speed:4,otherSpeed:-4,time:5},{speed:5,otherSpeed:-5,time:6}],
- P17:[{mass:8,g:3.7,planet:'Mars'},{mass:12,g:3.7,planet:'Mars'},{mass:25,g:3.7,planet:'Mars'}],
- P18:[{mass:20,forwardForce:24,backwardForce:24,vi:.8,time:4,steady:true},{mass:20,forwardForce:40,backwardForce:40,vi:1.2,time:3,steady:true},{mass:20,forwardForce:30,backwardForce:30,vi:1.5,time:3,steady:true}],
- P19:[{mass:140,g:3.7,compareG:10,planet:'Mars'},{mass:180,g:3.7,compareG:10,planet:'Mars'},{mass:200,g:3.7,compareG:10,planet:'Mars'}],
- P20:[{mass:20,forwardForce:12,staticLimit:20,kineticFriction:15,vi:0,time:3},{mass:20,forwardForce:8,staticLimit:16,kineticFriction:12,vi:0,time:3},{mass:20,forwardForce:28,staticLimit:24,kineticFriction:18,vi:0,time:3}],
- P21:[{upwardForce:9200,weight:8000,g:10,vi:0,height:30,time:4},{upwardForce:13000,weight:14000,g:10,vi:0,height:30,time:4},{upwardForce:18000,weight:16000,g:10,vi:0,height:30,time:4}],
- P22:[{upwardForce:8800,weight:9000,g:10,vi:0,height:50,time:6},{upwardForce:12500,weight:12000,g:10,vi:0,height:50,time:6},{upwardForce:9900,weight:10000,g:10,vi:0,height:50,time:6}],
- P23:[{flight2D:true,balancedFlight:false,mass:1000,weight:10000,g:10,upwardForce:10000,forwardForce:2500,backwardForce:2500,vi:55,vy:0,height:250,time:5},{flight2D:true,balancedFlight:false,mass:1600,weight:16000,g:10,upwardForce:16000,forwardForce:4000,backwardForce:4000,vi:65,vy:0,height:250,time:5},{flight2D:true,balancedFlight:false,mass:800,weight:8000,g:10,upwardForce:8000,forwardForce:2000,backwardForce:2000,vi:45,vy:0,height:250,time:5}],
- P24:[{mass:.17,forwardForce:0,backwardForce:0,vi:2,time:5},{mass:.17,forwardForce:0,backwardForce:0,vi:4,time:3},{mass:.17,forwardForce:0,backwardForce:0,vi:5,time:4}],
- P25:[{axis:'vertical',mass:.3,g:10,upwardForce:3.6,vi:0,height:.2,time:2,ground:true},{axis:'vertical',mass:.8,g:10,upwardForce:10,vi:0,height:.2,time:2,ground:true},{axis:'vertical',mass:.2,g:10,upwardForce:2.3,vi:0,height:.2,time:2,ground:true}],
- P26:[{axis:'vertical',netForce:2,acceleration:1,g:10,vi:0,height:1,time:3,ground:true},{axis:'vertical',netForce:1.5,acceleration:1,g:10,vi:0,height:1,time:3,ground:true},{axis:'vertical',netForce:4,acceleration:2.5,g:10,vi:0,height:1,time:3,ground:true}],
- P27:[{flight2D:true,mass:.3,compareMass:.6,g:10,netForce:.6,backwardForce:.3,upwardForce:3,compareLift:6,vi:6,vy:0,height:100,time:3},{flight2D:true,mass:.5,compareMass:1,g:10,netForce:1,backwardForce:.5,upwardForce:5,compareLift:10,vi:7,vy:0,height:100,time:3},{flight2D:true,mass:.6,compareMass:1.2,g:10,netForce:.9,backwardForce:.3,upwardForce:6,compareLift:12,vi:8,vy:0,height:100,time:3}],
- P28:[{radius:8,speed:3,laps:1,mass:65},{radius:12,speed:4,laps:1,mass:70},{radius:15,speed:5,laps:1,mass:80}],
- P29:[{mass1:4,mass2:1.5,velocity1:4,velocity2:0,preImpact:true,collisionTime:1.2,time:1.2},{mass1:5,mass2:1.5,velocity1:2.5,velocity2:0,preImpact:true,collisionTime:1.2,time:1.2},{mass1:7,mass2:1.5,velocity1:5,velocity2:0,preImpact:true,collisionTime:1.2,time:1.2}],
- P30:[{mass1:.05,mass2:.1,velocity1:1,velocity2:0,radius1:.018,radius2:.023,restitution:0,collisionTime:1,contactDuration:.008,time:2},{mass1:.1,mass2:.2,velocity1:1.5,velocity2:0,radius1:.023,radius2:.029,restitution:0,collisionTime:1,contactDuration:.008,time:2},{mass1:.2,mass2:.1,velocity1:2,velocity2:0,radius1:.029,radius2:.023,restitution:0,collisionTime:1,contactDuration:.008,time:2}],
- P31:[{mass1:.01,mass2:.02,velocity1:.4,velocity2:0,radius1:.01,radius2:.012,restitution:1,collisionTime:1,contactDuration:.001,time:2.5},{mass1:.02,mass2:.03,velocity1:.6,velocity2:0,radius1:.012,radius2:.014,restitution:1,collisionTime:1,contactDuration:.001,time:2.5},{mass1:.03,mass2:.02,velocity1:.8,velocity2:0,radius1:.014,radius2:.012,restitution:1,collisionTime:1,contactDuration:.001,time:2.5}],
- P32:[{mass1:18,mass2:18,velocity1:.6,velocity2:0,restitution:1,collisionTime:1,contactDuration:.01,time:3},{mass1:19,mass2:19,velocity1:.8,velocity2:0,restitution:1,collisionTime:1,contactDuration:.01,time:3},{mass1:20,mass2:20,velocity1:1.2,velocity2:0,restitution:1,collisionTime:1,contactDuration:.01,time:3}]
-};
+// Unit factors are SI units per displayed unit; all model parameters stay in SI.
+const UNIT_FACTORS=Object.freeze({'m':1,'cm':.01,'km':1000,'s':1,'min':60,'h':3600,'m/s':1,'cm/s':.01,'km/h':1/3.6,'m/s²':1,'cm/s²':.01,'kg':1,'g':.001,'N':1,'kN':1000,'kg·m/s':1,'g·m/s':.001});
+export function unitFactor(unit){if(!Object.hasOwn(UNIT_FACTORS,unit))throw new Error(`Unsupported unit: ${unit}`);return UNIT_FACTORS[unit];}
+export function displayValue(si,unit){return Number((Number(si)/unitFactor(unit)).toPrecision(13));}
+const SI_RESULT_UNITS={distance:'m',displacement:'m',speed:'m/s',averageSpeed:'m/s',finalVelocity:'m/s',acceleration:'m/s²',weight:'N',frictionForce:'N',netForce:'N',mass:'kg',totalMomentum:'kg·m/s'};
+export function getAnswerUnit(problem,params=problem.simulation?.params||{}){const unit=params._displayUnits?.answer||SI_RESULT_UNITS[problem.numericAnswer?.quantity]||'m';return{unit,factor:unitFactor(unit)};}
+const round=v=>Number(v.toFixed(9));
+const pick=(array,i)=>array[i%array.length];
+const unitSet=(extra={})=>({distance:'m',time:'s',speed:'m/s',acceleration:'m/s²',mass:'kg',force:'N',momentum:'kg·m/s',...extra});
+/** Twenty-four fixed parameter sets per type. Stable IDs let both pages share
+ * exactly the same problem without putting generated values in a URL. */
+function variantParams(id,i){
+ const k=i+1,odd=i%2===1;
+ let q={},u=unitSet();
+ switch(id){
+ case'P01':{const a=round(11.5+1.1*i),b=round(2.8+.2*i);q={start:0,turn:a,end:round(a-b),speed:pick([1.1,1.3,1.5],i)};u=unitSet({distance:pick(['m','cm','m'],i),answer:pick(['m','cm','m'],i)});break;}
+ case'P02':{const sign=i%4===3?-1:1;q={start:round(sign*(-5-1.5*i)),end:round(sign*(8+.7*i)),speed:pick([1.2,1.4,1.6],i)};q.turn=q.end;u=unitSet({distance:pick(['m','m','km'],i),answer:pick(['m','cm','m','km'],i)});break;}
+ case'P03':q={radius:round(15+.8*i),speed:round(2+.05*i),laps:1+i%3};u=unitSet({speed:odd?'km/h':'m/s'});break;
+ case'P04':q={speed:round(7.5+.7*i),time:6+i%5,frame:0};u=unitSet({speed:odd?'km/h':'m/s'});break;
+ case'P05':{const v=round(.65+.05*i),t=pick([80,120,150,180,200,240],i);q={distance:round(v*t),time:t};u=unitSet({distance:pick(['m','km','m'],i),time:odd?'min':'s',answer:pick(['m/s','km/h','cm/s'],i)});break;}
+ case'P06':q={speed:round(2.8+.15*i),time:pick([60,90,120,180],i)};u=unitSet({speed:odd?'km/h':'m/s',time:pick(['s','min','min','h'],i),answer:odd?'km':'m'});break;
+ case'P07':{const a=round(1.4+.055*i);q={speed:a,otherSpeed:round(-(i%3===2?a+.35:a)),time:7+i%6};u=unitSet({speed:pick(['m/s','km/h','cm/s'],i)});break;}
+ case'P08':{const a=12+6*(i%3),b=6+6*(i%2),c=18+6*(i%4),v=round(1.1+.04*i);q={times:[0,a,a+b,a+b+c],positions:[0,round(a*v),round(a*v),round((a+c)*v)],distanceScale:1,timeScale:1};u=unitSet({time:odd?'min':'s',speed:odd?'km/h':'m/s'});break;}
+ case'P09':{const a=round(.24+.07*i),t=5+i%4,vi=round(1.8+.2*(i%8)),start=2+i%6;q={vi,vf:round(vi+a*t),startTime:start,endTime:start+t,time:t};u=unitSet({speed:odd?'km/h':'m/s',answer:odd?'cm/s²':'m/s²'});break;}
+ case'P10':q={vi:round(1+.1*(i%5)),acceleration:round(.2+.03*i),time:3+i%4};u=unitSet({speed:odd?'km/h':'m/s',acceleration:i%3===2?'cm/s²':'m/s²',answer:pick(['m/s','cm/s','km/h'],i)});break;
+ case'P11':{const slow=round(.4+.045*i),fast=round(slow+.55+.04*i);q={vi:odd?-fast:-slow,vf:odd?-slow:-fast,time:2+i%4};u=unitSet({speed:odd?'cm/s':'m/s'});break;}
+ case'P12':q={orbital:true,orbitAU:round(.4+.1*i),laps:1};q.radius=q.orbitAU*149600000000;break;
+ case'P13':{const t=60+60*(i%3),total=round((.55+.04*i)*t);q={times:[0,t*.4,t*.6,t],positions:[0,round(total*.5),round(total*.5),total],distanceScale:1,timeScale:1};u=unitSet({distance:i%3===2?'km':'m',time:odd?'min':'s',answer:pick(['m/s','km/h','cm/s'],i)});break;}
+ case'P14':{const vi=round(1.2+.1*(i%6)),t=4+i%4,a=round(.15+.035*i);q={vi,vf:round(vi+a*t),time:t};u=unitSet({speed:odd?'km/h':'m/s',answer:odd?'cm/s²':'m/s²'});break;}
+ case'P15':{const dt=12+6*(i%5),speeds=[round(.55+.01*i),round(1.3+.025*i),round(.8+.015*i)];for(let r=0;r<i%3;r++)speeds.unshift(speeds.pop());q={times:[0,dt,2*dt,3*dt],positions:[0,round(dt*speeds[0]),round(dt*(speeds[0]+speeds[1])),round(dt*speeds.reduce((a,b)=>a+b))],distanceScale:1,timeScale:1};u=unitSet({time:odd?'min':'s',distance:i%3===2?'km':'m'});break;}
+ case'P16':{const a=round(2.6+.13*i);q={speed:a,otherSpeed:round(-(i%3===2?a+.6:a)),time:12+6*(i%5)};u=unitSet({speed:odd?'km/h':'m/s',time:i%3===2?'min':'s'});break;}
+ case'P17':{const planet=pick([{planet:'Moon',g:1.6},{planet:'Mars',g:3.7},{planet:'Venus',g:8.9},{planet:'Earth',g:9.8}],i);q={mass:round(.3+.17*i),...planet};u=unitSet({mass:odd?'g':'kg',answer:'N'});break;}
+ case'P18':{const f=round(12.5+1.7*i);q={mass:18,forwardForce:f,backwardForce:f,vi:round(.6+.025*i),time:4,steady:true};u=unitSet({force:i%3===2?'kN':'N',answer:odd?'N':'kN'});break;}
+ case'P19':{const planet=pick([{planet:'Mars',g:3.7},{planet:'Moon',g:1.6}],i);q={mass:round(112+2.5*i),...planet,compareG:9.8};u=unitSet();break;}
+ case'P20':{const limit=round(16+1.1*i);q={mass:20,forwardForce:round(limit+(i%3===2?3.5:-5.5)),staticLimit:limit,kineticFriction:round(limit*.75),vi:0,time:3};u=unitSet({force:odd?'kN':'N'});break;}
+ case'P21':{const w=9000+750*(i%8),net=(odd?-1:1)*(650+125*i);q={upwardForce:w+net,weight:w,g:10,vi:0,height:40,time:4};u=unitSet({force:odd?'kN':'N',answer:i%3===2?'kN':'N'});break;}
+ case'P22':{const w=8500+400*(i%7),net=(odd?1:-1)*(80+35*i);q={upwardForce:w+net,weight:w,g:10,vi:0,height:60,time:6};u=unitSet({force:odd?'N':'kN',answer:odd?'kN':'N'});break;}
+ case'P23':{const mass=800+35*i,thrust=round(1700+90*i);q={flight2D:true,balancedFlight:false,mass,weight:mass*10,g:10,upwardForce:mass*10,forwardForce:thrust,backwardForce:thrust,vi:round(40+1.2*i),vy:0,height:250,time:5};u=unitSet({speed:odd?'km/h':'m/s',force:odd?'kN':'N'});break;}
+ case'P24':q={mass:.17,forwardForce:0,backwardForce:0,vi:round((i%4===3?-1:1)*(1.8+.19*i)),time:3+i%3};u=unitSet({speed:pick(['m/s','km/h','cm/s'],i)});break;
+ case'P25':{const mass=pick([.2,.4,.6,.8],i),a=round(.4+.15*i);q={axis:'vertical',mass,g:10,upwardForce:round(mass*(10+a)),vi:0,height:.2,time:2,ground:true};u=unitSet({mass:odd?'kg':'g',answer:odd?'cm/s²':'m/s²'});break;}
+ case'P26':{const mass=round(.4+.08*i),a=.5+.25*(i%5);q={axis:'vertical',netForce:round(mass*a),acceleration:a,g:10,vi:0,height:1,time:3,ground:true};u=unitSet({acceleration:odd?'cm/s²':'m/s²',answer:odd?'g':'kg'});break;}
+ case'P27':{const small=round(.25+.015*i),large=round(small*pick([1.5,2,2.5],i)),reverse=i%4===3,mass=reverse?large:small,compareMass=reverse?small:large,netForce=round(.42+.035*i),drag=round(.22+.01*i);q={flight2D:true,mass,compareMass,g:10,netForce,backwardForce:drag,forwardForce:round(netForce+drag),upwardForce:round(mass*10),compareLift:round(compareMass*10),vi:6,vy:0,height:100,time:3};u=unitSet({mass:odd?'kg':'g'});break;}
+ case'P28':q={radius:round(9+.55*i),speed:round(2.8+.08*i),laps:1,mass:60+i};u=unitSet({speed:odd?'km/h':'m/s'});break;
+ case'P29':q={mass1:round(3+.15*i),mass2:round(1.45+.01*(i%8)),velocity1:round(1.8+.1*i),velocity2:0,preImpact:true,collisionTime:1.2,time:1.2};u=unitSet({speed:odd?'km/h':'m/s',answer:'kg·m/s'});break;
+ case'P30':{const mass1=round(.04+.005*i),mass2=round(.06+.005*(i%9));q={mass1,mass2,velocity1:round(.6+.05*i),velocity2:0,radius1:round(.023*Math.cbrt(mass1/.1)),radius2:round(.023*Math.cbrt(mass2/.1)),restitution:0,collisionTime:1,contactDuration:.008,time:2};u=unitSet({mass:odd?'kg':'g',speed:odd?'cm/s':'m/s',answer:odd?'g·m/s':'kg·m/s',momentum:odd?'g·m/s':'kg·m/s'});break;}
+ case'P31':q={mass1:round(.008+.001*i),mass2:round(.012+.001*(i%13)),velocity1:round(.25+.025*i),velocity2:0,radius1:round(.012*Math.cbrt((.008+.001*i)/.02)),radius2:round(.012*Math.cbrt((.012+.001*(i%13))/.02)),restitution:1,collisionTime:1,contactDuration:.001,time:2.5};u=unitSet({mass:odd?'kg':'g',speed:odd?'cm/s':'m/s'});break;
+ case'P32':q={mass1:round(17.5+.09*i),mass2:round(18+.08*(i%12)),velocity1:round(.35+.045*i),velocity2:0,restitution:1,collisionTime:1,contactDuration:.01,time:3};u=unitSet({speed:odd?'cm/s':'m/s'});break;
+ default:throw new Error(`No practice variants for ${id}`);
+ }
+ return{...q,_displayUnits:u};
+}
 
 /** Complete, current-value question. `table` is required onscreen for P13/P15.
  * `givens` is optional supporting metadata, not additional hidden information.
  */
-export function getQuestion(problem,params=problem.simulation?.params||{},{practice=false}={}){
+function legacyQuestion(problem,params=problem.simulation?.params||{},{practice=false}={}){
  const p={...copy(problem.simulation?.params||{}),...copy(params)},id=problem.id;
+ const fmt=params._displayUnits?displayFmt:baseFmt;
+ const signed=v=>num(v)>0?`+${fmt(v)}`:fmt(v);
+ const velocity=(v,positive='east',negative='west')=>num(v)===0?'at rest':`${fmt(Math.abs(num(v)))} m/s ${num(v)>0?positive:negative}`;
  let prompt='',hint='',givens=[],table;
  switch(id){
  case'P01':{
@@ -111,22 +132,41 @@ export function getQuestion(problem,params=problem.simulation?.params||{},{pract
  return{prompt,givens,hint,...(table?{table}:{}),practice:!!practice||!!p._practiceVariant};
 }
 
-/** Choose a reviewed variant other than the immediately preceding variant. */
-export function generatePractice(problem,previousParams={},rng=Math.random){
- const choices=variants[problem.id];
- if(!choices)throw new Error(`No practice variants for ${problem.id}`);
- const prior=previousParams?._practiceVariant;
- const available=choices.map((_,i)=>i).filter(i=>`${problem.id}-${i+1}`!==prior);
- const draw=Math.max(0,Math.min(.999999999999,num(rng(),0)));
- const index=available[Math.floor(draw*available.length)];
- const variantId=`${problem.id}-${index+1}`;
- const params={...copy(problem.simulation.params),...copy(choices[index]),_practiceVariant:variantId};
- if(problem.id==='P02')params.turn=params.end;
- if(problem.id==='P09')params.time=params.endTime-params.startTime;
- if(problem.id==='P12')params.radius=params.orbitAU*149600000000;
- if(problem.id==='P18')params.backwardForce=params.forwardForce;
- if(problem.id==='P23'){params.flight2D=true;params.balancedFlight=false;params.upwardForce=params.weight;params.backwardForce=params.forwardForce;params.vy=0;params.mass=params.weight/num(params.g,10);}
- if(problem.id==='P27'){params.flight2D=true;params.upwardForce=params.mass*num(params.g,10);params.compareLift=params.compareMass*num(params.g,10);params.forwardForce=num(params.netForce)+num(params.backwardForce);params.vy=0;}
+const UNIT_KINDS={'m/s²':'acceleration','m/s':'speed','kg':'mass','N':'force','m':'distance','s':'time'};
+const displayFmt=value=>Number(Number(value).toFixed(6)).toLocaleString('en-US',{maximumFractionDigits:6});
+/** Build the same current-value question in its chosen display units. The
+ * original packet and ordinary edited SI questions keep their exact wording. */
+export function getQuestion(problem,params=problem.simulation?.params||{},options={}){
+ const view=legacyQuestion(problem,params,options),units=params._displayUnits;
+ if(units||params._practiceVariant)view.title=({P03:'Running laps around the track',P11:'Backing up: changing speed',P12:'A planet in orbit',P17:'A science instrument on another world',P19:'An astronaut on another world',P20:'Testing static friction'})[problem.id]||problem.title;
+ if(!units)return view;
+ const quantityPattern=/([+-]?(?:\d[\d,]*(?:\.\d+)?|\.\d+)) (m\/s²|m\/s|kg|N|m|s)(?![A-Za-z/²])/g;
+ view.prompt=view.prompt.replace(quantityPattern,(whole,raw,source)=>{
+  const target=units[UNIT_KINDS[source]]||source,value=Number(raw.replaceAll(',',''));
+  return`${raw.startsWith('+')?'+':''}${displayFmt(displayValue(value*unitFactor(source),target))} ${target}`;
+ });
+ if(problem.id==='P17'&&params.planet)view.prompt=view.prompt.replace(/on Mars|at this location/,`on ${params.planet}`);
+ if(problem.numericAnswer){const answer=getAnswerUnit(problem,params).unit;view.prompt=view.prompt.replace(/, in m\/s\?|, in newtons\?/, '?');view.prompt+=` Give your answer in ${answer}${['displacement','finalVelocity','acceleration','netForce','frictionForce','totalMomentum'].includes(problem.numericAnswer.quantity)?', including direction':''}.`;}
+ if(view.table){
+  const t=units.time||'s',d=units.distance||'m';
+  view.table={headers:[`Time (${t})`,`Total distance (${d})`],rows:view.table.rows.map(([time,distance])=>[displayValue(time,t),displayValue(distance,d)])};
+  view.givens=view.table.headers.map((h,j)=>`${h}: ${view.table.rows.map(row=>displayFmt(row[j])).join(', ')}`);
+ }
+ view.unitNote='Convert units when needed. The simulation uses meters, seconds, kilograms, and newtons for its graph and measurement labels.';
+ return view;
+}
+export function listPracticeIds(problem){const id=typeof problem==='string'?problem:problem?.id;if(!/^P(?:0[1-9]|[12]\d|3[0-2])$/.test(id||''))return[];return Array.from({length:24},(_,i)=>`${id}-v2-${String(i+1).padStart(2,'0')}`);}
+export function getPractice(problem,variantId){
+ const index=listPracticeIds(problem).indexOf(variantId);if(index<0)throw new Error(`Unknown practice variant: ${variantId}`);
+ const params={...copy(problem.simulation.params),...variantParams(problem.id,index),_practiceVariant:variantId};
  const question=getQuestion(problem,params,{practice:true});
- return{params,...question,variantId,title:problem.title};
+ return{params,...question,variantId,title:question.title||problem.title};
+}
+/** A repeated random draw still walks through the bank instead of toggling
+ * between just two variants. Immediate repetition is always excluded. */
+export function generatePractice(problem,previousParams={},rng=Math.random){
+ const ids=listPracticeIds(problem);if(!ids.length)throw new Error(`No practice variants for ${problem.id}`);
+ const previous=ids.indexOf(previousParams?._practiceVariant),draw=Math.max(0,Math.min(.999999999999,num(rng(),0)));
+ const index=previous<0?Math.floor(draw*ids.length):(previous+1+Math.floor(draw*(ids.length-1)))%ids.length;
+ return getPractice(problem,ids[index]);
 }

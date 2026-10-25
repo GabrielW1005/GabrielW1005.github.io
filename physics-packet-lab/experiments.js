@@ -1,5 +1,5 @@
 /* Student predictions are counterfactual physical experiments, never overwritten readouts. */
-import {evaluate,modelInfo,solve,format} from './physics.js?v=20261023-1';
+import {evaluate,modelInfo,solve,format} from './physics.js?v=20261025-1';
 const clone=o=>JSON.parse(JSON.stringify(o));
 const finite=Number.isFinite;
 export const closeEnough=(value,goal)=>finite(value)&&finite(goal)&&Math.abs(value-goal)<=(goal===0?.005:Math.max(1e-6,Math.abs(goal)*.005));

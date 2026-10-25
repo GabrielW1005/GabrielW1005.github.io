@@ -6,3 +6,16 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 
 .entry-note{font-size:11px;color:var(--muted);margin:0 0 10px}.save-note{font-size:11px;color:var(--muted);margin:8px 0 0}.save-note:empty{display:none}.save-note.error{color:var(--danger)}
+
+/* Navigation between the packet and its synchronized simulation is a primary action. */
+.action-row .experiment-link{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:48px;padding:10px 19px;border:2px solid var(--accent);border-radius:9px;background:var(--soft);color:var(--accent);font-size:16px;font-weight:750;line-height:1.2;text-decoration:none;margin-left:auto;white-space:nowrap}
+.action-row .experiment-link:hover{background:var(--accent);color:#fff}
+body.dark .action-row .experiment-link:hover{color:#102137}
+.practice-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0 15px}
+.practice-tools button{min-height:38px;font-size:12px;padding:7px 12px}
+.selection-badge{font-size:11px;font-weight:750;border-radius:20px;background:var(--bg);border:1px solid var(--line);padding:5px 10px;color:var(--muted);margin-right:3px}
+.selection-badge.practice{color:var(--accent);background:var(--soft);border-color:var(--accent)}
+.progress-subtitle{font-size:10px;font-weight:750;line-height:1.4;color:var(--muted);margin:10px 0 7px}
+.practice-count-title{border-top:1px solid var(--line);padding-top:10px}
+@media(max-width:1100px){.action-row .experiment-link{font-size:15px;min-height:46px;padding:9px 14px}.practice-tools{margin-bottom:12px}}
+@media(max-width:600px){.action-row .experiment-link{width:100%;margin:7px 0 0;min-height:48px}.practice-tools{gap:6px}.practice-tools button{font-size:11px;padding:7px 9px}.selection-badge{font-size:10px}}

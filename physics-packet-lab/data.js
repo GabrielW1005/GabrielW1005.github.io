@@ -1,6 +1,6 @@
 export default {
   "title": "Motion & Forces Lab",
-  "version": "2.3-packet-workspace",
+  "version": "2.4-synced-practice",
   "grade": 8,
   "conventions": [
     "Use right/east as positive for horizontal motion and upward as positive for vertical motion, unless stated otherwise.",

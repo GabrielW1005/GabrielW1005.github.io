@@ -9,7 +9,7 @@ Choose a numbered packet problem, adjust the values, and test an idea in one exp
 - **Packet values** restores the printed scenario.
 - **Test prediction** runs a physical trial implied by the entered answer beside the given situation. Both runs use the same time and coordinate scales. Feedback explains the difference and confirms a matching prediction.
 - Conceptual questions use continuous controls and observable experiment goals. There are no multiple-choice answers.
-- **More practice** makes a new version of the same problem type with realistic, coordinated values. Its question, tables, goal, and explanation use those values. **Packet original** restores the printed scenario.
+- **More practice** chooses from 24 deterministic versions of each problem type (768 total) with varied realistic values and appropriate units. Every numeric type has at least 18 distinct answers in both SI and displayed units. The problem URL identifies the selected variant, so packet and simulation stay synchronized. Its question, tables, goal, and explanation use those values. **Packet original** restores the printed scenario.
 - Results explicitly say **Correct** or **Try again**, with a specific explanation and an available hint.
 - Trial explanations identify which assumption changes when testing an answer, so a proposed value is never substituted into an inconsistent physical model.
 - Changing the scenario measurements clears the previous trial. Packet values restores the printed conditions.
@@ -20,7 +20,7 @@ Choose a numbered packet problem, adjust the values, and test an idea in one exp
 
 ## Saved packet workspace
 
-`packet.html#P01` opens the original printed question; `packet.html#all` displays all 32 questions grouped into the eight packet pages. Every simulation has a **Packet & answers** link that opens its matching question in a new tab. Each packet question links back to its simulation.
+`packet.html#P01/original` opens the original printed question; `packet.html#all` displays all 32 problem types grouped into the eight packet pages, using each problem’s current selection. Large **Go To Packet** and **Go To Simulation** buttons navigate in the same tab. Both views share the current practice variant, measurements, answer units, and primary numeric answer. Each original and each practice variant keeps its own responses. Browser Back/Forward also reloads the latest saved work.
 
 Students can enter answers directly, open an optional hint, or reveal step-by-step explanations and the physical reasoning. Numerical questions check all requested parts, including direction and both before/after momentum in question 30. Written conceptual answers are saved for self-review against a model answer and a short checklist; the application does not claim to automatically grade free-form reasoning. Merely opening a solution does not complete a question. All 24 math warm-ups are available in their page groups.
 
@@ -28,7 +28,7 @@ Progress is stored in this browser on this device. It includes drafts, submissio
 
 ## Physics models and assumptions
 
-Calculations use SI units and analytic models: frame rate does not change results. Illustrations are schematic; visible labels identify enlargements and compressed timescales.
+Practice questions use an appropriate mix of m/cm/km, s/min/h, m/s/km/h/cm/s, m/s²/cm/s², kg/g, N/kN, and momentum units. Worked solutions show conversions, while graphs identify their SI measurement units. Calculations use SI units and analytic models: frame rate does not change results. Illustrations are schematic; visible labels identify enlargements and compressed timescales.
 
 - Straight routes distinguish signed displacement from total path length. Turns and the transitions in tabulated motion are idealized; they do not represent a resolved finite acceleration.
 - Constant acceleration uses v = v₀ + at and x = v₀t + ½at². Net force uses Fnet = ma.
@@ -61,6 +61,9 @@ The local development project serves `dist/`. On GitHub Pages, its contents are 
 - `dist/packet.html`, `packet.css`, `packet-app.js`: original packet questions, answers, and saved progress.
 - `dist/packet-lessons.js`: worked solutions, reasoning, and answer requirements.
 - `dist/packet-core.js`: answer checking and bounded per-question progress storage.
+- `dist/workspace-state.js`: validated shared selections, explicit practice routes, separate response keys, and saved simulation controls.
+- `dist/practice-lessons.js`: current-value worked solutions, conceptual explanations, and displayed-unit answer keys.
+- `maintainer/TEACHING_PREFERENCES.md`: the teacher’s persistent preference for varied values, answers, and realistic units.
 - `dist/downloads/`: the three current student PDFs.
 - `maintainer/`: printable source content and PDF generator.
 - `tests/verify-models.mjs`: packet-answer checks and physical invariants.
@@ -68,6 +71,8 @@ The local development project serves `dist/`. On GitHub Pages, its contents are 
 - `tests/verify-practice.mjs`: generated practice consistency and model validity.
 - `tests/verify-rendering.mjs`: finite drawing coordinates, compact/large scenes, control endpoints, bounded caches, and test/reference placement.
 - `tests/verify-packet.mjs`: numerical answer checks, multipart answers, and progress persistence/validation.
+
+Additional synchronization checks: `node tests/verify-workspace.mjs` and `node tests/verify-practice-lessons.mjs`.
 
 Run `node tests/verify-models.mjs`, `node tests/verify-experiments.mjs`, `node tests/verify-practice.mjs`, `node tests/verify-rendering.mjs`, and `node tests/verify-packet.mjs` in either the development project or the published source. The publication copy uses imports for its flat file layout.
 

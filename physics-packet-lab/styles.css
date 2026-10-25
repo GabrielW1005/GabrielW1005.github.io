@@ -27,3 +27,9 @@ dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);c
 
 /* The matching printed question opens its saved-answer workspace in a new tab. */
 .question-actions a.text-button{display:inline-flex;align-items:center;font-weight:650;text-decoration:none;border-radius:6px}.question-actions a.text-button:hover{text-decoration:underline}.question-actions a.text-button:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
+
+/* Large, same-tab handoff between the matched question and simulation. */
+.workspace-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 16px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);color:white;font:700 15px/1.2 system-ui,sans-serif;text-decoration:none;white-space:nowrap;box-sizing:border-box}.workspace-link:hover{filter:brightness(.94)}.workspace-link:focus-visible{outline:3px solid var(--warm);outline-offset:3px}body.dark .workspace-link{color:#102137}.question-actions .workspace-link{margin-left:5px;flex-shrink:0}.unit-note{font-size:10px;line-height:1.3;color:var(--muted);margin:3px 0}
+@media(max-width:1200px){.question-actions .workspace-link{font-size:14px;padding:8px 12px}.question-actions{flex-wrap:wrap;max-width:400px}.problem-heading h1{white-space:normal;flex:1;min-width:100px}}
+@media(max-width:950px){.question-actions{max-width:330px}.question-actions .workspace-link{min-width:140px}}
+@media(max-width:600px){.question-actions{max-width:none}.question-actions .workspace-link{margin-left:auto}}
