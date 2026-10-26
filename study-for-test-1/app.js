@@ -1,3 +1,5 @@
+import {createProgressState,recordCheck,recordSelfReview,summarizeProgress,makeReportText,makeReportCSV,makeBackup,validateBackup} from './progress.js?v=6';
+import {createAutoAdvance} from './advance.js?v=6';
 const STORAGE_KEY = 'study-for-test-1-v2';
 const LEGACY_STORAGE_KEY = 'study-for-test-1-v1';
 const REVISED_PROBLEM_IDS = new Set([2,3,4,14,15,16,26,27,29,30,31,32,33,67,68,69,70]);
@@ -10,7 +12,9 @@ let hintOpen = false;
 let saveTimer, toastTimer;
 let presentationMode = null, presentationReturnFocus = null;
 let migratedProgress = false;
-const initial = {view:'lesson',question:1,page:0,variants:{},answers:{},plots:{},lines:{},checked:{},plotChecked:{},theme:'light'};
+let dialogState = null, pendingImport = null, reportName = '';
+let downloadURLs = [];
+const initial = {view:'lesson',question:1,page:0,variants:{},answers:{},plots:{},lines:{},checked:{},plotChecked:{},theme:'light',autoNext:true,progress:createProgressState()};
 let state = {...initial};
 function migrateProgress(previous) {
   const migrated = {...previous};
@@ -28,7 +32,14 @@ try {
 for (const key of ['variants','answers','plots','lines','checked','plotChecked']) if (!state[key] || typeof state[key] !== 'object') state[key] = {};
 if (!['lesson','packet','practice'].includes(state.view)) state.view = 'lesson';
 if (!['light','dark'].includes(state.theme)) state.theme = 'light';
+if (!state.progress || state.progress.version !== 1 || !state.progress.records || typeof state.progress.records !== 'object') state.progress = createProgressState();
+if (typeof state.autoNext !== 'boolean') state.autoNext = true;
 document.body.classList.toggle('dark',state.theme === 'dark');
+const autoAdvance = createAutoAdvance({onAdvance:pending=> {
+  if (Number(state.question) !== Number(pending.id) || variantIndex() !== pending.variant || document.querySelector('#study-dialog').open || document.hidden) return cancelAdvance();
+  if (state.view === 'practice' && !variantIndex(pending.target) && original(pending.target).variants?.length) state.variants[pending.target] = 1;
+  selectProblem(pending.target,state.view,state.view === 'packet');
+}});
 
 function notify(message) {
   const toast = document.querySelector('#toast');
@@ -67,10 +78,12 @@ function closePresentation() {
 }
 function persist() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=> {
-    try { localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); updateSavedStatus(); }
-    catch { document.querySelector('#save-status').textContent = 'This browser cannot save answers. Keep this tab open.'; }
-  },150);
+  saveTimer = setTimeout(flushSave,150);
+}
+function flushSave() {
+  clearTimeout(saveTimer);
+  try { localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); updateSavedStatus(); refreshDownloadLinks(); }
+  catch { document.querySelector('#save-status').textContent = 'Saving is unavailable. Download a backup from Progress before closing this tab.'; }
 }
 function updateSavedStatus() {
   const count = Object.values(state.answers).filter(value=>String(value).trim()).length;
@@ -99,6 +112,7 @@ function saveURL() {
 function selectProblem(id,view = state.view,scroll = false) {
   if (!data) return;
   if (!original(id)) return;
+  cancelAdvance();
   state.question = Number(id); state.page = Math.max(0,pageFor(id)); state.view = view;
   hintOpen = false;
   render(); persist(); saveURL();
@@ -106,12 +120,14 @@ function selectProblem(id,view = state.view,scroll = false) {
 }
 function setView(view) {
   if (!data) return;
+  cancelAdvance();
   state.view = view;
   if (view === 'practice' && variantIndex() === 0 && (original().variants || []).length) state.variants[state.question] = 1;
   hintOpen = false;
   render(); persist(); saveURL();
 }
 function nextExample(id) {
+  cancelAdvance();
   const count = (original(id).variants || []).length;
   if (!count) { notify('This concept uses the packet example. Try the lesson controls to explore it.'); return; }
   const v = variantIndex(id); state.variants[id] = v >= count ? 1 : v+1;
@@ -128,7 +144,7 @@ function parseNumber(value) {
   if (match && Number(match[3]) !== 0) return Number(match[1]) + (Number(match[1]) < 0 ? -1 : 1)*Number(match[2])/Number(match[3]);
   return NaN;
 }
-function normalize(value) { return String(value).toLowerCase().replace(/[∠\s.!?;:°]/g,'').trim(); }
+function normalize(value) { return String(value).toLowerCase().trim().replace(/[.!?]+$/,'').replace(/π/g,'pi').replace(/²/g,'^2').replace(/squared/g,'^2').replace(/[∠\s*×;:°]/g,''); }
 function evaluate(field,value) {
   if (!String(value ?? '').trim()) return {status:'blank',message:'Add an answer first.'};
   if (field.value !== null && field.value !== undefined && Number.isFinite(Number(field.value))) {
@@ -138,8 +154,16 @@ function evaluate(field,value) {
     return Math.abs(parsed-Number(field.value)) <= tolerance + 1e-10 ? {status:'correct',message:'Correct.'} : {status:'incorrect',message:'Take another look. Use the hint if you need it.'};
   }
   if (Array.isArray(field.accepted) && field.accepted.length) {
+    const lists = field.accepted.filter(answer=>String(answer).includes(',')).map(answer=>String(answer).split(',').map(parseNumber)).filter(values=>values.every(Number.isFinite));
+    if (lists.length) {
+      const cells = String(value).split(',');
+      if (cells.some(cell=>!cell.trim())) return {status:'blank',message:'Complete every table value first.'};
+      const parsed = cells.map(parseNumber);
+      const ok = lists.some(expected=>expected.length === parsed.length && parsed.every((n,i)=>Number.isFinite(n)&&Math.abs(n-expected[i])<1e-7));
+      return ok ? {status:'correct',message:'Correct.'} : {status:'incorrect',message:'Check each table value against the constant ratio.'};
+    }
     const ok = field.accepted.some(answer=>normalize(answer) === normalize(value));
-    return ok ? {status:'correct',message:'Correct.'} : {status:'review',message:'Compare your reasoning with the sample answer.'};
+    return ok ? {status:'correct',message:'Correct.'} : {status:'incorrect',message:'Take another look. Use the hint if you need it.'};
   }
   return {status:'review',message:'Your explanation is saved. Compare it with the sample answer.'};
 }
@@ -147,14 +171,15 @@ function answerFields(p,compact = false) {
   return `<div class="answer-fields">${(p.fields || []).map((field,index)=> {
     const key = keyFor(p.id,field.key);
     const value = state.answers[key] || '';
-    const result = state.checked[key] ? evaluate(field,value) : null;
+    const result = state.checked[key] ? state.progress.records[keyFor(p.id)]?.fields?.[field.key] === 'self-reviewed' ? {status:'self-reviewed',message:'Self-reviewed.'} : evaluate(field,value) : null;
     const textField = (field.value === null || field.value === undefined) && !(field.accepted || []).length;
     const prefix = (p.fields || []).length > 1 ? `${String.fromCharCode(97+index)}. ` : '';
     const inputID = `answer-${p.id}-${variantIndex(p.id)}-${field.key}`;
-    if (isPlotField(p,field)) return `<div class="answer-field"><label>${prefix}${prose(field.label)}</label><div class="plot-field-note">${(state.plots[keyFor(p.id)] || []).length ? `${(state.plots[keyFor(p.id)] || []).length} points saved on your graph.` : 'Add your points directly on the graph.'}</div>${state.plotChecked[keyFor(p.id)] ? `<span class="field-feedback">${escapeHTML(graphFeedback(p))}</span>` : ''}</div>`;
+    if (isPlotField(p,field)) return compact ? `<div class="answer-field"><label>${prefix}${prose(field.label)}</label><div class="plot-field-note">${(state.plots[keyFor(p.id)] || []).length ? `${(state.plots[keyFor(p.id)] || []).length} points saved on your graph.` : 'Add your points directly on the graph.'}</div>${state.plotChecked[keyFor(p.id)] ? `<span class="field-feedback">${escapeHTML(graphFeedback(p))}</span>` : ''}</div>` : '';
     if (p.diagram?.type === 'graph' && p.diagram.table && index === 0) {
       const values = String(value).split(',');
       const t = p.diagram.table;
+      if (!compact) return `<div class="answer-field table-answer-field ${result?.status || ''}" data-field-key="${escapeHTML(key)}"><label>${prefix}${prose(field.label)}</label><table class="answer-table horizontal-answer-table"><tbody><tr><th scope="row">${escapeHTML(t.headers[0])}</th>${t.rows.map(row=>`<th scope="col">${escapeHTML(row[0])}</th>`).join('')}</tr><tr><th scope="row">${escapeHTML(t.headers[1])}</th>${t.rows.map((row,i)=>`<td><input data-table-key="${escapeHTML(key)}" data-table-index="${i}" data-problem-id="${p.id}" inputmode="decimal" value="${escapeHTML((values[i] || '').trim())}" aria-label="${escapeHTML(t.headers[1])} when ${escapeHTML(t.headers[0])} is ${escapeHTML(row[0])}" autocomplete="off"></td>`).join('')}</tr></tbody></table>${result ? `<span class="field-feedback">${escapeHTML(result.message)}</span>` : ''}</div>`;
       return `<div class="answer-field ${result?.status || ''}" data-field-key="${escapeHTML(key)}"><label>${prefix}${prose(field.label)}</label><table class="answer-table"><thead><tr>${t.headers.map(h=>`<th scope="col">${escapeHTML(h)}</th>`).join('')}</tr></thead><tbody>${t.rows.map((row,i)=>`<tr><th scope="row">${escapeHTML(row[0])}</th><td><input data-table-key="${escapeHTML(key)}" data-table-index="${i}" data-problem-id="${p.id}" inputmode="decimal" value="${escapeHTML((values[i] || '').trim())}" aria-label="${escapeHTML(t.headers[1])} when ${escapeHTML(t.headers[0])} is ${escapeHTML(row[0])}" autocomplete="off"></td></tr>`).join('')}</tbody></table>${result ? `<span class="field-feedback">${escapeHTML(result.message)}</span>` : ''}</div>`;
     }
     return `<div class="answer-field answer-line-field ${result?.status || ''}" data-field-key="${escapeHTML(key)}">
@@ -171,11 +196,67 @@ function solutionsMarkup(p,force = false) {
 }
 function checkAnswers(id) {
   const p = current(id);
+  cancelAdvance();
   for (const field of p.fields || []) {
     if (isPlotField(p,field)) state.plotChecked[keyFor(id)] = true;
     else state.checked[keyFor(id,field.key)] = true;
   }
+  const record = recordCheck(state.progress,{id:p.id,variant:variantIndex(id),fields:fieldStatuses(p)});
   render(); persist();
+  if (record.complete) scheduleAdvance(p);
+  else if (Object.values(record.fields).includes('review')) notify('Compare your explanation with the sample, then mark it self-reviewed.');
+}
+function fieldStatuses(p) {
+  const previous = state.progress.records[keyFor(p.id)];
+  return (p.fields || []).map(field=> {
+    let status = isPlotField(p,field) ? graphStatus(p) : evaluate(field,state.answers[keyFor(p.id,field.key)] || '').status;
+    if (status === 'review' && previous?.fields?.[field.key] === 'self-reviewed') status = 'self-reviewed';
+    return {key:field.key,status};
+  });
+}
+function graphStatus(p) {
+  const expected = expectedPoints(p), points = state.plots[keyFor(p.id)] || [];
+  if (!points.length) return 'blank';
+  const matching = points.length === expected.length && expected.every(pt=>points.some(a=>Math.abs(a[0]-pt[0])<1e-7&&Math.abs(a[1]-pt[1])<1e-7));
+  return matching && state.lines[keyFor(p.id)] ? 'correct' : 'incorrect';
+}
+function invalidateProgress(id,fieldKey) {
+  cancelAdvance();
+  const record = state.progress.records[keyFor(id)];
+  if (!record) return;
+  if (fieldKey) record.fields[fieldKey] = 'blank';
+  else for (const field of current(id).fields || []) if (isPlotField(current(id),field)) record.fields[field.key] = 'blank';
+  record.complete = false;
+}
+function cancelAdvance() {
+  autoAdvance.cancel();
+  const banner = document.querySelector('#advance-banner'); if (banner) banner.hidden = true;
+}
+function scheduleAdvance(p) {
+  const index = problems.findIndex(item=>Number(item.id) === Number(p.id));
+  const target = problems[index+1];
+  if (!target || !state.autoNext) { notify('All answers checked. Your progress is saved.'); return; }
+  if (Number(state.question) !== Number(p.id)) { state.question = Number(p.id); state.page = pageFor(p.id); }
+  const pending = {id:p.id,variant:variantIndex(p.id),target:target.id};
+  autoAdvance.start(pending,3000);
+  const banner = document.querySelector('#advance-banner');
+  banner.innerHTML = `<span>Problem ${p.id} complete. Next problem in 3 seconds.</span><div><button type="button" data-advance="stay">Stay here</button><button type="button" data-advance="review">Review</button><button type="button" data-advance="next">Next now →</button></div>`;
+  banner.hidden = false;
+}
+function progressStatus(id,variant = 0) {
+  const record = state.progress.records[`${id}:${variant}`];
+  if (!record) return {text:'Not checked',className:'status-unstarted',symbol:'○'};
+  if (record.complete) return {text:Object.values(record.fields || {}).includes('self-reviewed') ? 'Complete · self-reviewed' : 'Correct',className:'status-complete',symbol:'✓'};
+  if (Object.values(record.fields || {}).includes('incorrect')) return {text:'Needs another try',className:'status-missed',symbol:'!'};
+  if (Object.values(record.fields || {}).includes('review')) return {text:'Self-review needed',className:'status-review',symbol:'↺'};
+  return {text:'In progress',className:'status-started',symbol:'•'};
+}
+function checkSummary(p) {
+  const record = state.progress.records[keyFor(p.id)];
+  if (!record) return '';
+  const status = progressStatus(p.id,variantIndex(p.id));
+  const needsReview = Object.values(record.fields || {}).includes('review');
+  return `<div class="check-summary ${status.className}" role="status"><span>${status.symbol} ${status.text} · ${record.attempts} ${record.attempts === 1 ? 'check' : 'checks'}</span>${needsReview ? `<button class="soft-button small-button" data-action="review" data-id="${p.id}">Review explanation</button>` : ''}</div>`;
 }
 function sourceFor(p) { const v = variantIndex(p.id); return `./diagrams/q${String(p.id).padStart(2,'0')}${v ? '-v'+v : ''}.svg`; }
 function problemTags(p) { return `${variantIndex(p.id) ? `<span class="variant-tag">Extra example ${variantIndex(p.id)}</span>` : (p.concept ? '<span class="concept-tag">Concept check</span>' : '')}`; }
@@ -185,22 +266,14 @@ function toolbar(packet = false) {
 }
 function hasAnswers(id) { const prefix = keyFor(id)+':'; return Object.entries(state.answers).some(([key,value])=>key.startsWith(prefix)&&String(value).trim()); }
 function renderLesson() {
-  const p = current();
-  const count = (original().variants || []).length;
+  const p = current(), count = (original().variants || []).length;
   const isGraph = p.diagram?.type === 'graph';
-  const conceptDescription = p.concept ? 'Look closely at what each unit measures.' : 'The picture and question use the same measurements.';
-  app.innerHTML = toolbar()+`${state.view === 'practice' ? `<div class="practice-banner"><div><strong>${variantIndex() ? 'A new example. The same idea.' : 'Start with the packet example.'}</strong><br><span>${variantIndex() ? 'Your extra-practice answers stay separate from your packet answers.' : 'Extra examples are available for calculation problems. Lesson controls let you explore the concepts.'}</span></div><button class="outline-button small-button" data-action="original" data-id="${p.id}">Packet original</button></div>` : ''}
-    <div class="lesson-layout"><section class="visual-panel" aria-label="Problem visualization"><div class="visual-topbar"><span class="eyebrow">${isGraph ? p.diagram.student_plot ? 'Your graph' : 'Read the graph' : p.diagram ? 'See the mathematics' : 'Think it through'}</span><div class="visual-tools"><button type="button" data-action="zoom-out" title="Zoom out" aria-label="Zoom out">−</button><button type="button" data-action="zoom-reset" title="Reset zoom" aria-label="Reset zoom">↺</button><button type="button" data-action="zoom-in" title="Zoom in" aria-label="Zoom in">+</button><button type="button" data-action="visual-fullscreen" title="Enlarge visualization" aria-label="Enlarge visualization">⛶</button></div></div><div id="visual-stage" class="visual-stage">${p.diagram ? isGraph ? graphMarkup(p) : `<img class="diagram-image" src="${sourceFor(p)}" alt="Diagram for problem ${p.id}: ${escapeHTML(p.topic || p.prompt)}">` : `<div class="text-visual"><div class="text-visual-symbol" aria-hidden="true">${(p.topic || '').toLowerCase().includes('ratio') ? 'a : b' : 'x'}</div><p>${prose(p.prompt)}</p><small>Use the answer space to work through the relationship.</small></div>`}</div><div class="visual-note" id="visual-note">${isGraph && p.diagram.student_plot ? 'Tap a grid intersection to add a point. Tap it again to remove it.' : conceptDescription}</div></section>
-    <section class="problem-panel" aria-label="Problem ${p.id}"><div class="problem-topline"><span class="problem-number">PROBLEM ${p.id}</span>${problemTags(p)}</div><h1 class="problem-prompt">${prose(p.prompt)}</h1>${answerFields(p)}<div class="problem-actions"><button class="primary-button" data-action="check" data-id="${p.id}">Check answers</button><button class="outline-button" data-action="hint" data-id="${p.id}" aria-expanded="${hintOpen}">${hintOpen ? 'Hide hint' : 'Hint'}</button></div>${hintOpen ? `<div class="hint-box"><strong>A place to start</strong>${prose(p.hint || 'Look at the units and the measurements given. Break the problem into one small step at a time.')}</div>` : ''}${solutionsMarkup(p)}${reviewAnswers(p)}<div class="problem-nav-link"><button class="soft-button" data-action="packet" data-id="${p.id}">Go to Packet →</button></div></section></div>
-    <div class="lesson-bottom"><div class="example-controls"><button class="outline-button" data-action="example" data-id="${p.id}" ${count ? '' : 'disabled'}>Another example ↻</button>${variantIndex() ? `<button class="quiet-button" data-action="original" data-id="${p.id}">Packet original</button>` : ''}<span>${count ? variantIndex() ? `Extra example ${variantIndex()} of ${count}` : `${count} extra examples available` : 'Use the lesson controls to explore this idea.'}</span></div><div class="step-nav"><button class="outline-button" data-action="previous" ${Number(p.id) === Number(problems[0].id) ? 'disabled' : ''}>← Previous</button><button class="primary-button" data-action="next" ${Number(p.id) === Number(problems.at(-1).id) ? 'disabled' : ''}>Next problem →</button></div></div>`;
+  const visual = p.diagram ? isGraph ? graphMarkup(p) : `<img class="diagram-image" src="${sourceFor(p)}" alt="Diagram for problem ${p.id}: ${escapeHTML(p.topic || p.prompt)}">` : `<div class="text-visual"><div class="text-visual-symbol" aria-hidden="true">${(p.topic || '').toLowerCase().includes('ratio') ? 'a : b' : 'x'}</div><p>${prose(p.prompt)}</p></div>`;
+  app.innerHTML = toolbar()+`<div class="lesson-layout"><section class="visual-panel" aria-label="Problem visualization"><div class="visual-topbar"><span class="eyebrow">${isGraph ? p.diagram.student_plot ? 'Your graph' : 'Read the graph' : p.diagram ? 'See the mathematics' : 'Think it through'}</span><div class="visual-tools"><button type="button" data-action="zoom-out" title="Zoom out" aria-label="Zoom out">−</button><button type="button" data-action="zoom-reset" title="Reset zoom" aria-label="Reset zoom">↺</button><button type="button" data-action="zoom-in" title="Zoom in" aria-label="Zoom in">+</button><button type="button" data-action="visual-fullscreen" title="Enlarge visualization" aria-label="Enlarge visualization">⛶</button></div></div><div id="visual-stage" class="visual-stage">${visual}</div><div class="visual-note" id="visual-note">${isGraph && p.diagram.student_plot ? 'Tap the grid or enter coordinates below it.' : 'The picture and question use the same measurements.'}</div></section>
+    <section class="problem-panel ${isGraph ? 'graph-problem-panel' : ''}" aria-label="Problem ${p.id}"><div class="problem-content"><div class="problem-topline"><span class="problem-number">PROBLEM ${p.id}</span>${problemTags(p)}</div><h1 class="problem-prompt">${prose(p.prompt)}</h1>${answerFields(p)}${checkSummary(p)}</div><div class="problem-footer"><div class="problem-actions"><button class="primary-button" data-action="check" data-id="${p.id}">Check answers</button><button class="outline-button" data-action="hint" data-id="${p.id}">Hint</button><button class="soft-button" data-action="packet" data-id="${p.id}">Packet ↗</button></div><div class="example-controls"><button class="outline-button small-button" data-action="example" data-id="${p.id}" ${count ? '' : 'disabled'}>Another example ↻</button>${variantIndex() ? `<button class="quiet-button" data-action="original" data-id="${p.id}">Packet original</button>` : ''}<span>${count ? variantIndex() ? `Extra ${variantIndex()} of ${count}` : `${count} extra examples` : 'Packet concept'}</span></div><div class="compact-nav"><button class="outline-button" data-action="previous" ${Number(p.id) === Number(problems[0].id) ? 'disabled' : ''} aria-label="Previous problem">← Previous</button><label class="auto-next-label"><input type="checkbox" data-auto-next ${state.autoNext ? 'checked' : ''}> Auto-next</label><button class="outline-button" data-action="next" ${Number(p.id) === Number(problems.at(-1).id) ? 'disabled' : ''}>Next →</button></div></div></section></div>`;
   mountLessonInteractive(p);
 }
-function reviewAnswers(p) {
-  if (solutions) return '';
-  const review = (p.fields || []).filter(field=>!isPlotField(p,field) && state.checked[keyFor(p.id,field.key)] && evaluate(field,state.answers[keyFor(p.id,field.key)] || '').status === 'review');
-  if (!review.length) return '';
-  return `<details class="solution-box"><summary>Compare with a sample answer</summary>${review.map(field=>`<p>${prose(field.answer)}</p>`).join('')}<p>Different wording can still be correct. Check whether your explanation shows the same mathematical idea.</p></details>`;
-}
+function reviewAnswers(p) { return checkSummary(p); }
 function mountLessonInteractive(p) {
   const container = document.querySelector('#visual-stage');
   if (p.diagram?.type === 'graph' || !interactiveModule?.mountInteractive) return;
@@ -243,7 +316,7 @@ function graphMarkup(p) {
   const joined = state.lines[key] && points.length > 1 ? `<polyline class="graph-line" points="${[...points].sort((a,b)=>a[0]-b[0]).map(pt=>pos(...pt).join(',')).join(' ')}"/>` : '';
   const expected = expectedPoints(p);
   const overlay = solutions && d.student_plot && expected.length ? `<polyline fill="none" stroke="#b16f32" stroke-width="2.2" stroke-dasharray="6 5" points="${expected.map(pt=>pos(...pt).join(',')).join(' ')}"/>${expected.map(pt=>`<circle cx="${pos(...pt)[0]}" cy="${pos(...pt)[1]}" r="7" fill="none" stroke="#b16f32" stroke-width="2"/>`).join('')}` : '';
-  return `<div class="graph-plot-wrap"><div class="graph-shell"><svg viewBox="0 0 560 440" role="img" aria-label="${escapeHTML(d.student_plot ? 'Interactive graph. Tap grid intersections to place points.' : 'Graph for this problem.')}" data-graph-id="${p.id}" data-graph-origin-x="${x0}" data-graph-origin-y="${y0}" data-graph-cell="${cell}" data-graph-xstep="${xstep}" data-graph-ystep="${ystep}" data-graph-xmax="${xmax}" data-graph-ymax="${ymax}" data-graph-editable="${Boolean(d.student_plot)}">${grid}<line x1="${x0}" y1="${y0}" x2="${x0+gw+10}" y2="${y0}" class="graph-axis"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y0-gh-10}" class="graph-axis"/><path d="M${x0+gw+5},${y0-4} L${x0+gw+10},${y0} L${x0+gw+5},${y0+4} M${x0-4},${y0-gh-5} L${x0},${y0-gh-10} L${x0+4},${y0-gh-5}" fill="none" class="graph-axis"/><text x="${x0+gw/2}" y="${y0+50}" text-anchor="middle" class="graph-label">${escapeHTML(d.xlabel || 'x')}</text><text x="${x0-50}" y="${y0-gh/2}" text-anchor="middle" class="graph-label" transform="rotate(-90 ${x0-50} ${y0-gh/2})">${escapeHTML(d.ylabel || 'y')}</text>${givenLine}${overlay}${joined}${points.map(pt=>`<circle class="graph-point" cx="${pos(...pt)[0]}" cy="${pos(...pt)[1]}" r="6"/>`).join('')}</svg></div>${d.student_plot ? `<div class="graph-controls"><label><input type="checkbox" data-join-id="${p.id}" ${state.lines[key] ? 'checked' : ''}> Join my points</label><button class="soft-button small-button" data-action="check-graph" data-id="${p.id}">Check graph</button><button class="outline-button small-button" data-action="clear-graph" data-id="${p.id}">Clear points</button></div><div class="point-chips">${points.map((pt,index)=>`<button type="button" data-action="remove-point" data-id="${p.id}" data-index="${index}" aria-label="Remove point ${pt.join(', ')}">(${pt.map(formatNumber).join(', ')}) ×</button>`).join('')}</div><p class="graph-tip">Tap a grid intersection to place or remove a point.</p>${state.plotChecked[key] ? `<p class="graph-feedback">${escapeHTML(graphFeedback(p))}</p>` : ''}` : ''}</div>`;
+  return `<div class="graph-plot-wrap"><div class="graph-shell"><svg viewBox="0 0 560 440" role="img" aria-label="${escapeHTML(d.student_plot ? 'Interactive graph. Tap grid intersections to place points.' : 'Graph for this problem.')}" data-graph-id="${p.id}" data-graph-origin-x="${x0}" data-graph-origin-y="${y0}" data-graph-cell="${cell}" data-graph-xstep="${xstep}" data-graph-ystep="${ystep}" data-graph-xmax="${xmax}" data-graph-ymax="${ymax}" data-graph-editable="${Boolean(d.student_plot)}">${grid}<line x1="${x0}" y1="${y0}" x2="${x0+gw+10}" y2="${y0}" class="graph-axis"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y0-gh-10}" class="graph-axis"/><path d="M${x0+gw+5},${y0-4} L${x0+gw+10},${y0} L${x0+gw+5},${y0+4} M${x0-4},${y0-gh-5} L${x0},${y0-gh-10} L${x0+4},${y0-gh-5}" fill="none" class="graph-axis"/><text x="${x0+gw/2}" y="${y0+50}" text-anchor="middle" class="graph-label">${escapeHTML(d.xlabel || 'x')}</text><text x="${x0-50}" y="${y0-gh/2}" text-anchor="middle" class="graph-label" transform="rotate(-90 ${x0-50} ${y0-gh/2})">${escapeHTML(d.ylabel || 'y')}</text>${givenLine}${overlay}${joined}${points.map(pt=>`<circle class="graph-point" cx="${pos(...pt)[0]}" cy="${pos(...pt)[1]}" r="6"/>`).join('')}</svg></div>${d.student_plot ? `<div class="graph-controls"><label><input type="checkbox" data-join-id="${p.id}" ${state.lines[key] ? 'checked' : ''}> Join my points</label><button class="soft-button small-button" data-action="check-graph" data-id="${p.id}">Check graph</button><button class="outline-button small-button" data-action="clear-graph" data-id="${p.id}">Clear points</button></div><div class="graph-coordinate-entry" data-problem-id="${p.id}"><label>x <input class="coordinate-input" data-coordinate="x" type="number" inputmode="decimal" min="0" max="${xmax}" step="${xstep}" aria-label="Point x coordinate"></label><label>y <input class="coordinate-input" data-coordinate="y" type="number" inputmode="decimal" min="0" max="${ymax}" step="${ystep}" aria-label="Point y coordinate"></label><button class="outline-button small-button" type="button" data-action="add-coordinate" data-id="${p.id}">Add point</button></div><div class="point-chips">${points.map((pt,index)=>`<button type="button" data-action="remove-point" data-id="${p.id}" data-index="${index}" aria-label="Remove point ${pt.join(', ')}">(${pt.map(formatNumber).join(', ')}) ×</button>`).join('')}</div><p class="graph-tip">Tap a grid intersection to place or remove a point.</p>${state.plotChecked[key] ? `<p class="graph-feedback">${escapeHTML(graphFeedback(p))}</p>` : ''}` : ''}</div>`;
 }
 function expectedPoints(p) {
   if (Array.isArray(p.diagram?.expected_points)) return p.diagram.expected_points;
@@ -261,6 +334,7 @@ function graphFeedback(p) {
 function render() {
   if (typeof cleanupInteractive === 'function') { cleanupInteractive(); cleanupInteractive = null; }
   state.page = Math.max(0,Math.min(data.pages.length-1,pageFor(state.question)));
+  document.body.dataset.view = state.view;
   document.querySelectorAll('[data-view]').forEach(button=> {
     const active = button.dataset.view === state.view; button.classList.toggle('active',active); button.setAttribute('aria-current',active ? 'page' : 'false');
   });
@@ -272,9 +346,78 @@ function render() {
   app.setAttribute('aria-busy','false'); updateSavedStatus();
 }
 
+function dialogFrame(title,body,footer = '') {
+  return `<div class="dialog-header"><h2 id="dialog-title">${escapeHTML(title)}</h2><button class="icon-button" type="button" data-dialog-action="close" aria-label="Close dialog">×</button></div><div class="dialog-body">${body}</div>${footer ? `<div class="dialog-footer">${footer}</div>` : ''}`;
+}
+function openDialog(kind,options = {}) {
+  if (!data) return;
+  cancelAdvance();
+  dialogState = {kind,...options};
+  const nextSolutions = kind === 'help' && options.tab === 'solution';
+  if (solutions !== nextSolutions) { solutions = nextSolutions; render(); }
+  renderDialog();
+  const dialog = document.querySelector('#study-dialog');
+  if (!dialog.open) dialog.showModal();
+}
+function closeDialog() {
+  const dialog = document.querySelector('#study-dialog');
+  if (dialog.open) dialog.close();
+  dialogState = null; pendingImport = null;
+  releaseDownloadURLs();
+  if (solutions) { solutions = false; render(); }
+}
+function renderDialog() {
+  if (!dialogState) return;
+  const summary = summarizeProgress(state.progress,problems,state.variants);
+  let markup = '';
+  if (dialogState.kind === 'contents') {
+    markup = dialogFrame('Table of contents',`<p class="dialog-intro">Choose a packet problem. Your original and extra-example answers are saved separately.</p><div class="toc-list">${data.pages.map((page,index)=> {
+      const complete = page.problems.filter(p=>state.progress.records[`${p.id}:0`]?.complete).length;
+      return `<details class="toc-section" ${index === state.page ? 'open' : ''}><summary><span>${escapeHTML(page.title)}<small>Problems ${page.problems[0].id}–${page.problems.at(-1).id}</small></span><span class="toc-count">${complete}/${page.problems.length} complete</span></summary><div class="toc-problem-list">${page.problems.map(p=> {
+        const status = progressStatus(p.id), extras = (p.variants || []).filter((_,i)=>state.progress.records[`${p.id}:${i+1}`]?.complete).length;
+        return `<button type="button" class="toc-problem ${status.className}" data-dialog-action="jump" data-id="${p.id}" data-variant="0"><strong>${p.id}. ${escapeHTML(p.topic || '')}</strong><span>${status.symbol} ${status.text}${extras ? ` · ${extras} extras complete` : ''}</span></button>`;
+      }).join('')}</div></details>`;
+    }).join('')}</div>`,`<span>${summary.overall.mainComplete} of ${summary.overall.mainTotal} packet problems complete</span><button class="soft-button" data-dialog-action="progress">View progress</button>`);
+  } else if (dialogState.kind === 'progress') {
+    const total = summary.overall;
+    markup = dialogFrame('Your progress',`<p class="dialog-intro">Saved on this browser. Correct answers and self-reviewed explanations count as complete; untouched answers are never graded.</p><div class="progress-overview"><div><strong>${total.mainComplete} / ${total.mainTotal}</strong><span>Packet complete</span></div><div><strong>${total.extraComplete} / ${total.extraTotal}</strong><span>Extra examples complete</span></div><div><strong>${total.totalAttempts}</strong><span>Answer checks</span></div></div>${summary.recommendedId ? `<button class="primary-button recommended-button" data-dialog-action="jump" data-id="${summary.recommendedId}" data-variant="${summary.recommendedVariant}">Recommended: problem ${summary.recommendedId}${summary.recommendedVariant ? `, extra ${summary.recommendedVariant}` : ''} →</button>` : '<p>Every packet problem and extra example is complete.</p>'}<h3>What to review</h3>${summary.targetedReview.length ? `<div class="review-list">${summary.targetedReview.map(item=>`<button class="review-item" data-dialog-action="jump" data-id="${item.id}" data-variant="${item.variant}"><strong>Problem ${item.id}${item.variant ? ` · Extra ${item.variant}` : ''}: ${escapeHTML(item.topic)}</strong><span>${escapeHTML(item.reason)} ${escapeHTML(item.hint)}</span></button>`).join('')}</div>` : '<p>No checked answers currently need another try. Keep going with the recommended problem.</p>'}<details class="skill-details"><summary>Skill summary</summary><div class="skill-list">${summary.topics.map(skill=>`<div class="skill-card"><strong>${escapeHTML(skill.topic)}</strong><span>${skill.mainComplete}/${skill.mainTotal} packet · ${skill.extraComplete}/${skill.extraTotal} extra</span>${skill.missedIds.length ? `<small>Review: ${skill.missedIds.join(', ')}</small>` : ''}</div>`).join('')}</div></details><section class="report-section"><h3>Save or share your work</h3><p>Reports include your answers and checks. A JSON backup moves your saved work to another device. Nothing is sent automatically.</p><label class="report-name-label" for="report-name">Student name (optional)</label><input id="report-name" maxlength="100" value="${escapeHTML(reportName)}" autocomplete="off"><div class="report-actions"><a class="outline-button" data-report-link="text" href="#" download="Study_for_Test_1_Progress.txt">Download report</a><a class="outline-button" data-report-link="csv" href="#" download="Study_for_Test_1_Progress.csv">Download CSV</a><a class="outline-button" data-report-link="backup" href="#" download="Study_for_Test_1_Backup.json">Download backup</a><button class="outline-button" data-dialog-action="restore">Restore backup</button></div></section>`,`<label class="auto-next-label"><input type="checkbox" data-dialog-auto-next ${state.autoNext ? 'checked' : ''}> Automatically move on after a fully correct check</label>`);
+  } else if (dialogState.kind === 'help') {
+    const p = current(dialogState.id), tab = dialogState.tab || 'hint';
+    const record = state.progress.records[keyFor(p.id)];
+    const review = (p.fields || []).filter(field=>record?.fields?.[field.key] === 'review');
+    const body = tab === 'hint' ? `<div class="hint-box"><strong>A place to start</strong><p>${prose(p.hint || 'Look at the units and measurements, then take one step at a time.')}</p></div>` : tab === 'solution' ? solutionsMarkup(p,true) : review.length ? review.map(field=>`<section class="reflection-card"><h3>${escapeHTML(field.label)}</h3><p><strong>Your answer:</strong> ${prose(state.answers[keyFor(p.id,field.key)] || '')}</p><p><strong>Sample answer:</strong> ${prose(field.answer)}</p><p>Different wording can be correct. Does your answer explain the same mathematical idea?</p><button class="primary-button" data-dialog-action="self-review" data-key="${escapeHTML(field.key)}">Yes, my explanation matches</button></section>`).join('') : '<p>No open explanation is waiting for self-review. Check your answers first.</p>';
+    markup = dialogFrame(`Problem ${p.id} · ${variantIndex(p.id) ? 'Extra example '+variantIndex(p.id) : 'Packet original'}`,`<div class="help-tabs"><button class="${tab === 'hint' ? 'primary-button' : 'outline-button'}" data-dialog-action="help-tab" data-tab="hint">Hint</button><button class="${tab === 'solution' ? 'primary-button' : 'outline-button'}" data-dialog-action="help-tab" data-tab="solution">Solution</button>${review.length ? `<button class="${tab === 'review' ? 'primary-button' : 'outline-button'}" data-dialog-action="help-tab" data-tab="review">Review explanation</button>` : ''}</div>${body}`);
+  } else if (dialogState.kind === 'restore' && pendingImport) {
+    const imported = summarizeProgress(pendingImport.progress || createProgressState(),problems,pendingImport.variants);
+    const answers = Object.values(pendingImport.answers || {}).filter(value=>String(value).trim()).length;
+    markup = dialogFrame('Restore this backup?',`<p>This backup contains <strong>${answers} saved ${answers === 1 ? 'answer' : 'answers'}</strong> and <strong>${imported.overall.mainComplete} completed packet ${imported.overall.mainComplete === 1 ? 'problem' : 'problems'}</strong>.</p><p>Restoring replaces the answers, graphs, and progress currently saved in this browser. Download your current backup first if you want to keep both.</p><p>You will resume at problem ${pendingImport.question || imported.recommendedId || problems[0].id}.</p>`,`<a class="outline-button" data-report-link="backup" href="#" download="Study_for_Test_1_Backup.json">Download current backup</a><button class="outline-button" data-dialog-action="close">Cancel</button><button class="primary-button" data-dialog-action="confirm-restore">Replace progress</button>`);
+  }
+  document.querySelector('#dialog-content').innerHTML = markup;
+  refreshDownloadLinks();
+}
+function releaseDownloadURLs() {
+  const previous = downloadURLs; downloadURLs = [];
+  if (previous.length) setTimeout(()=>previous.forEach(url=>URL.revokeObjectURL(url)),30000);
+}
+function refreshDownloadLinks() {
+  if (!data || !dialogState || !['progress','restore'].includes(dialogState.kind)) return;
+  const links = document.querySelectorAll('#study-dialog [data-report-link]');
+  if (!links.length) return;
+  releaseDownloadURLs();
+  for (const link of links) {
+    const kind = link.dataset.reportLink;
+    const contents = kind === 'text' ? makeReportText({data,state,studentName:reportName}) : kind === 'csv' ? makeReportCSV({data,state,studentName:reportName}) : JSON.stringify(makeBackup({state}),null,2);
+    const type = kind === 'text' ? 'text/plain;charset=utf-8' : kind === 'csv' ? 'text/csv;charset=utf-8' : 'application/json';
+    const url = URL.createObjectURL(new Blob([contents],{type}));
+    downloadURLs.push(url); link.href = url;
+  }
+}
+
 document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>setView(button.dataset.view)));
 document.querySelector('.brand').addEventListener('click',event=> { event.preventDefault(); selectProblem(problems[0]?.id || 1,'lesson'); });
-document.querySelector('#solutions-toggle').addEventListener('click',()=> { if (!data) return; solutions = !solutions; render(); });
+document.querySelector('#contents-toggle').addEventListener('click',()=>openDialog('contents'));
+document.querySelector('#progress-toggle').addEventListener('click',()=>openDialog('progress'));
+document.querySelector('#solutions-toggle').addEventListener('click',()=>openDialog('help',{id:state.question,tab:'solution'}));
 document.querySelector('#theme-toggle').addEventListener('click',()=> {
   state.theme = state.theme === 'dark' ? 'light' : 'dark'; document.body.classList.toggle('dark',state.theme === 'dark'); persist(); if (data) render();
 });
@@ -288,16 +431,20 @@ document.addEventListener('click',event=> { if (!event.target.closest('#download
 document.querySelector('#reset-progress').addEventListener('click',()=> {
   if (!data) return;
   if (!confirm('Clear all saved answers and plotted points for this study packet on this browser?')) return;
+  cancelAdvance();
   for (const key of ['answers','plots','lines','checked','plotChecked']) state[key] = {};
+  state.progress = createProgressState();
   render(); persist(); notify('Saved answers cleared.');
 });
 app.addEventListener('input',event=> {
+  cancelAdvance();
   if (event.target.matches('[data-table-key]')) {
     const input = event.target;
     const key = input.dataset.tableKey;
     const values = [...input.closest('tbody').querySelectorAll('input')].map(el=>el.value.trim());
     state.answers[key] = values.some(Boolean) ? values.join(', ') : '';
     state.checked[key] = false;
+    invalidateProgress(input.dataset.problemId,key.split(':').at(-1)); updateInlineSummary(input.dataset.problemId);
     const field = input.closest('.answer-field'); field.classList.remove('correct','incorrect','review'); field.querySelector('.field-feedback')?.remove();
     persist(); return;
   }
@@ -305,13 +452,19 @@ app.addEventListener('input',event=> {
   if (!input) return;
   if (input.tagName === 'TEXTAREA') sizeAnswer(input);
   state.answers[input.dataset.answerKey] = input.value; state.checked[input.dataset.answerKey] = false;
+  invalidateProgress(input.dataset.problemId,input.dataset.answerKey.split(':').at(-1)); updateInlineSummary(input.dataset.problemId);
   const field = input.closest('.answer-field'); field.classList.remove('correct','incorrect','review'); field.querySelector('.field-feedback')?.remove();
   persist();
 });
 function sizeAnswer(input) { input.style.height = 'auto'; input.style.height = `${Math.max(38,input.scrollHeight)}px`; }
+function updateInlineSummary(id) {
+  const summary = app.querySelector(`[data-card-id="${id}"] .check-summary`) || (Number(state.question) === Number(id) ? app.querySelector('.problem-panel .check-summary') : null);
+  if (summary) summary.outerHTML = checkSummary(current(id));
+}
 app.addEventListener('change',event=> {
   if (event.target.id === 'section-select') { const page = data.pages[Number(event.target.value)]; selectProblem(page.problems[0].id,state.view); }
-  if (event.target.matches('[data-join-id]')) { state.lines[keyFor(event.target.dataset.joinId)] = event.target.checked; render(); persist(); }
+  if (event.target.matches('[data-auto-next]')) { state.autoNext = event.target.checked; cancelAdvance(); persist(); }
+  if (event.target.matches('[data-join-id]')) { invalidateProgress(event.target.dataset.joinId); state.lines[keyFor(event.target.dataset.joinId)] = event.target.checked; state.plotChecked[keyFor(event.target.dataset.joinId)] = false; render(); persist(); }
 });
 app.addEventListener('pointerdown',event=> {
   const svg = event.target.closest('svg[data-graph-editable="true"]');
@@ -326,7 +479,7 @@ app.addEventListener('pointerdown',event=> {
   const key = keyFor(svg.dataset.graphId); const points = state.plots[key] || [];
   const existing = points.findIndex(pt=>Math.abs(pt[0]-x)<1e-7&&Math.abs(pt[1]-y)<1e-7);
   if (existing >= 0) points.splice(existing,1); else points.push([Number(x.toFixed(7)),Number(y.toFixed(7))]);
-  state.plots[key] = points; state.plotChecked[key] = false; render(); persist();
+  invalidateProgress(svg.dataset.graphId); state.plots[key] = points; state.plotChecked[key] = false; render(); persist();
 });
 app.addEventListener('click',async event=> {
   const button = event.target.closest('[data-action]'); if (!button || button.disabled) return;
@@ -335,10 +488,11 @@ app.addEventListener('click',async event=> {
   else if (action === 'lesson') selectProblem(id,'lesson');
   else if (action === 'packet') selectProblem(id,'packet',true);
   else if (action === 'check') checkAnswers(id);
-  else if (action === 'hint') { hintOpen = !hintOpen; render(); }
+  else if (action === 'hint') openDialog('help',{id,tab:'hint'});
+  else if (action === 'review') openDialog('help',{id,tab:'review'});
   else if (action === 'example') nextExample(id);
   else if (action === 'original') { state.variants[id] = 0; selectProblem(id); }
-  else if (action === 'original-page') { data.pages[state.page].problems.forEach(p=>state.variants[p.id]=0); render(); persist(); }
+  else if (action === 'original-page') { cancelAdvance(); data.pages[state.page].problems.forEach(p=>state.variants[p.id]=0); render(); persist(); }
   else if (action === 'previous' || action === 'next') { const index = problems.findIndex(p=>Number(p.id) === Number(state.question)); const p = problems[index+(action === 'next' ? 1 : -1)]; if (p) selectProblem(p.id); }
   else if (action === 'page-previous' || action === 'page-next') { const page = data.pages[state.page+(action === 'page-next' ? 1 : -1)]; if (page) { selectProblem(page.problems[0].id,'packet'); window.scrollTo({top:0,behavior:'smooth'}); } }
   else if (action === 'download') document.querySelector('#download-menu').hidden = false;
@@ -348,12 +502,21 @@ app.addEventListener('click',async event=> {
     else notify('Use the controls in this visualization, or enlarge it.');
   } else if (action === 'visual-fullscreen') {
     try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.querySelector('#visual-stage').requestFullscreen(); } catch { openPresentation('visual'); }
-  } else if (action === 'check-graph') { state.plotChecked[keyFor(id)] = true; render(); persist(); }
-  else if (action === 'clear-graph') { state.plots[keyFor(id)] = []; state.plotChecked[keyFor(id)] = false; render(); persist(); }
-  else if (action === 'remove-point') { (state.plots[keyFor(id)] || []).splice(Number(button.dataset.index),1); state.plotChecked[keyFor(id)] = false; render(); persist(); }
+  } else if (action === 'check-graph') checkAnswers(id);
+  else if (action === 'clear-graph') { invalidateProgress(id); state.plots[keyFor(id)] = []; state.plotChecked[keyFor(id)] = false; render(); persist(); }
+  else if (action === 'remove-point') { invalidateProgress(id); (state.plots[keyFor(id)] || []).splice(Number(button.dataset.index),1); state.plotChecked[keyFor(id)] = false; render(); persist(); }
+  else if (action === 'add-coordinate') {
+    const group = button.closest('.graph-coordinate-entry'), p = current(id), d = p.diagram;
+    const x = parseNumber(group.querySelector('[data-coordinate="x"]').value), y = parseNumber(group.querySelector('[data-coordinate="y"]').value);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || x<0 || y<0 || x>d.xmax || y>d.ymax || Math.abs(x/d.xstep-Math.round(x/d.xstep))>1e-7 || Math.abs(y/d.ystep-Math.round(y/d.ystep))>1e-7) { notify('Enter coordinates at a labeled grid intersection.'); return; }
+    const points = state.plots[keyFor(id)] || [];
+    if (points.some(pt=>Math.abs(pt[0]-x)<1e-7&&Math.abs(pt[1]-y)<1e-7)) { notify('That point is already on your graph.'); return; }
+    invalidateProgress(id); state.plots[keyFor(id)] = [...points,[x,y]]; state.plotChecked[keyFor(id)] = false; render(); persist();
+    app.querySelector(`.graph-coordinate-entry[data-problem-id="${id}"] [data-coordinate="x"]`)?.focus();
+  }
 });
 document.addEventListener('keydown',event=> {
-  if (event.key === 'Escape') { document.querySelector('#download-menu').hidden = true; if (presentationMode) { event.preventDefault(); closePresentation(); } }
+  if (event.key === 'Escape') { document.querySelector('#download-menu').hidden = true; if (document.querySelector('#study-dialog').open) return; cancelAdvance(); if (presentationMode) { event.preventDefault(); closePresentation(); } }
   if (event.key === 'Tab' && presentationMode === 'visual') {
     const focusable = [...document.querySelectorAll('#visual-stage button:not([disabled]),#visual-stage input:not([disabled]),#visual-stage select:not([disabled]),#visual-stage textarea:not([disabled]),#visual-stage [tabindex="0"],#focus-close')];
     const currentIndex = focusable.indexOf(document.activeElement);
@@ -361,18 +524,68 @@ document.addEventListener('keydown',event=> {
       event.preventDefault(); focusable[event.shiftKey ? focusable.length-1 : 0].focus();
     }
   }
-  if (event.altKey && ['ArrowLeft','ArrowRight'].includes(event.key) && data) {
+  if (event.altKey && ['ArrowLeft','ArrowRight'].includes(event.key) && data && !document.querySelector('#study-dialog').open) {
     event.preventDefault(); const i = problems.findIndex(p=>Number(p.id) === Number(state.question));
     const p = problems[i+(event.key === 'ArrowRight' ? 1 : -1)]; if (p) selectProblem(p.id);
   }
 });
+document.querySelector('#advance-banner').addEventListener('click',event=> {
+  const action = event.target.closest('[data-advance]')?.dataset.advance;
+  if (!action) return;
+  if (action === 'next') autoAdvance.nextNow();
+  else if (action === 'review') { const id = autoAdvance.pending?.id || state.question; cancelAdvance(); openDialog('help',{id,tab:'solution'}); }
+  else { cancelAdvance(); notify('Staying here. Your checked answers are saved.'); }
+});
+document.querySelector('#study-dialog').addEventListener('cancel',event=> { event.preventDefault(); closeDialog(); });
+document.querySelector('#study-dialog').addEventListener('click',event=> {
+  const button = event.target.closest('[data-dialog-action]'); if (!button) return;
+  const action = button.dataset.dialogAction;
+  if (action === 'close') closeDialog();
+  else if (action === 'progress') openDialog('progress');
+  else if (action === 'jump') { const id = Number(button.dataset.id), variant = Number(button.dataset.variant || 0); closeDialog(); state.variants[id] = variant; selectProblem(id,variant ? 'practice' : 'lesson'); }
+  else if (action === 'help-tab') openDialog('help',{id:dialogState.id,tab:button.dataset.tab});
+  else if (action === 'self-review') {
+    const p = current(dialogState.id), field = p.fields.find(f=>f.key === button.dataset.key);
+    if (!field || field.value !== null || field.accepted?.length || evaluate(field,state.answers[keyFor(p.id,field.key)] || '').status !== 'review') return;
+    const record = recordSelfReview(state.progress,{id:p.id,variant:variantIndex(p.id),fieldKeys:[field.key]});
+    persist(); render();
+    if (record?.complete) { closeDialog(); scheduleAdvance(p); } else renderDialog();
+  } else if (action === 'restore') document.querySelector('#restore-input').click();
+  else if (action === 'confirm-restore' && pendingImport) {
+    const restored = pendingImport, imported = summarizeProgress(restored.progress || createProgressState(),problems,restored.variants);
+    state = {...state,...restored,question:restored.question || imported.recommendedId || problems[0].id,view:restored.view || 'lesson',progress:restored.progress || createProgressState()};
+    for (const key of ['answers','plots','lines','checked','plotChecked','variants']) state[key] = restored[key] || {};
+    if (typeof state.autoNext !== 'boolean') state.autoNext = true;
+    reportName = state.studentName || ''; state.page = pageFor(state.question);
+    closeDialog(); document.body.classList.toggle('dark',state.theme === 'dark'); render(); saveURL(); flushSave(); notify('Backup restored. Your progress is saved on this browser.');
+  }
+});
+document.querySelector('#study-dialog').addEventListener('input',event=> {
+  if (event.target.id === 'report-name') { reportName = event.target.value.slice(0,100); state.studentName = reportName; refreshDownloadLinks(); persist(); }
+});
+document.querySelector('#study-dialog').addEventListener('change',event=> {
+  if (event.target.matches('[data-dialog-auto-next]')) { state.autoNext = event.target.checked; cancelAdvance(); refreshDownloadLinks(); persist(); render(); }
+});
+document.querySelector('#restore-input').addEventListener('change',async event=> {
+  const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
+  cancelAdvance();
+  try {
+    if (file.size > 4000000) throw Error('This backup is too large. Choose a Study for Test 1 JSON backup under 4 MB.');
+    pendingImport = validateBackup(await file.text(),problems);
+    openDialog('restore');
+  } catch (error) { pendingImport = null; notify(`Backup not restored: ${error.message}`); }
+});
+window.addEventListener('pagehide',flushSave);
+window.addEventListener('beforeunload',flushSave);
+document.addEventListener('visibilitychange',()=> { if (document.hidden) { cancelAdvance(); flushSave(); } });
 
 async function start() {
   try {
-    const results = await Promise.allSettled([fetch('./content.json').then(response=>{if(!response.ok) throw Error(`Content ${response.status}`);return response.json();}),import('./interactives.js')]);
+    const results = await Promise.allSettled([fetch('./content.json').then(response=>{if(!response.ok) throw Error(`Content ${response.status}`);return response.json();}),import('./interactives.js?v=6')]);
     if (results[0].status !== 'fulfilled') throw results[0].reason;
     data = results[0].value; if (!Array.isArray(data.pages) || !data.pages.length) throw Error('The packet has no pages.');
     problems = data.pages.flatMap(page=>page.problems);
+    reportName = typeof state.studentName === 'string' ? state.studentName.slice(0,100) : '';
     if (results[1].status === 'fulfilled') interactiveModule = results[1].value;
     const url = new URL(window.location.href); const problem = Number(url.searchParams.get('problem')); const view = url.searchParams.get('view');
     if (problem && problems.some(p=>Number(p.id) === problem)) state.question = problem;
@@ -382,7 +595,7 @@ async function start() {
     if (migratedProgress) notify('Packet updated. Saved answers for unchanged problems are still here.');
   } catch (error) {
     app.setAttribute('aria-busy','false');
-    app.innerHTML = `<section class="error-state"><h1>The packet could not open.</h1><p>Your saved answers are safe on this browser. Reload to try again.</p><button class="primary-button" onclick="location.reload()">Reload</button></section>`;
+    app.innerHTML = `<section class="error-state"><h1>The packet could not open.</h1><p>Your saved answers are safe on this browser. Reload to try again.</p><button class="primary-button" onclick="location.reload()">Reload</button> </section>`;
     console.error(error);
   }
 }

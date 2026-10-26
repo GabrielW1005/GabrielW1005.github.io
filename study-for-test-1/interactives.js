@@ -19,7 +19,30 @@ function styles(root) {
   style.textContent = `
   .lessonviz{--lv-ink:var(--ink,#172b43);--lv-muted:var(--muted,#617084);--lv-accent:var(--accent,#315eaa);--lv-line:var(--border,#cbd4de);--lv-soft:var(--surface-soft,#edf2f8);color:var(--lv-ink);width:100%;font-family:inherit}
   .lessonviz *{box-sizing:border-box}.lessonviz .lv-toolbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:0 0 10px}.lessonviz button,.lessonviz select{font:inherit;font-size:13px;border:1px solid var(--lv-line);border-radius:8px;background:var(--surface,#fff);color:var(--lv-ink);min-height:44px;padding:7px 12px;cursor:pointer}.lessonviz button:hover{border-color:var(--lv-accent)}.lessonviz button[aria-pressed=true]{background:var(--lv-accent);border-color:var(--lv-accent);color:white}.lessonviz button:focus-visible,.lessonviz input:focus-visible{outline:3px solid #88a9df;outline-offset:2px}.lessonviz button:disabled{opacity:.45;cursor:default}.lessonviz .lv-push{margin-left:auto}.lessonviz .lv-small{font-size:12px;color:var(--lv-muted)}.lessonviz .lv-status{min-height:20px;font-size:12px;color:var(--lv-muted);margin-bottom:5px}.lessonviz .lv-visual{width:100%;aspect-ratio:800/430;min-height:210px;overflow:hidden}.lessonviz svg{display:block;width:100%;height:100%;overflow:visible}.lessonviz svg text{font-family:inherit;font-size:19px;fill:var(--lv-ink)}.lessonviz svg .small{font-size:15px;fill:var(--lv-muted)}.lessonviz svg .tiny{font-size:13px;fill:var(--lv-muted)}.lessonviz svg .large{font-size:31px;font-weight:600}.lessonviz svg .number{font-size:39px;font-weight:550}.lessonviz svg .formula{font-size:26px;font-weight:500}.lessonviz svg .accenttext{fill:var(--lv-accent);font-weight:600}.lessonviz svg .edge{stroke:var(--lv-ink);stroke-width:1.8;fill:none;vector-effect:non-scaling-stroke}.lessonviz svg .minor{stroke:var(--lv-muted);stroke-width:1;fill:none;vector-effect:non-scaling-stroke}.lessonviz svg .guide{stroke:var(--lv-muted);stroke-width:1.4;stroke-dasharray:6 5;fill:none;vector-effect:non-scaling-stroke}.lessonviz svg .ghost{stroke:var(--lv-line);stroke-width:1.2;fill:none;stroke-dasharray:4 4;vector-effect:non-scaling-stroke}.lessonviz svg .piece{fill:#aac1e1;stroke:var(--lv-ink);stroke-width:1;vector-effect:non-scaling-stroke}.lessonviz svg .alternate{fill:#dee7f2;stroke:var(--lv-ink);stroke-width:1;vector-effect:non-scaling-stroke}.lessonviz svg .highlight{fill:#d4a85b;stroke:var(--lv-ink);stroke-width:1.4;vector-effect:non-scaling-stroke}.lessonviz svg .accentline{stroke:var(--lv-accent);stroke-width:3;fill:none;vector-effect:non-scaling-stroke}.lessonviz svg .softfill{fill:var(--lv-soft);stroke:var(--lv-line);stroke-width:1}.lessonviz svg .mutedfill{fill:var(--lv-line)}.lessonviz .lv-playbar{display:flex;align-items:center;gap:9px;margin-top:5px}.lessonviz .lv-playbar input{flex:1;min-width:60px;accent-color:var(--lv-accent);height:32px;touch-action:pan-x}.lessonviz .lv-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:14px}.lessonviz .lv-metric{padding:10px 12px;border:1px solid var(--lv-line);border-radius:9px;background:var(--surface,#fff);line-height:1.4}.lessonviz .lv-metric span{display:block;font-size:11px;color:var(--lv-muted);margin-bottom:2px}.lessonviz .lv-metric strong{font-size:15px;font-weight:600}.lessonviz .lv-caption{font-size:13px;line-height:1.5;margin:10px 0 0;color:var(--lv-muted)}.lessonviz .lv-radius{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--lv-muted)}.lessonviz .lv-radius input{width:90px;accent-color:var(--lv-accent)}.lessonviz .lv-check{margin-top:10px;font-size:12px;color:var(--lv-muted)}
-  @media(max-width:600px){.lessonviz .lv-toolbar{gap:5px}.lessonviz button{padding:7px 9px;min-height:44px}.lessonviz .lv-visual{min-height:190px}.lessonviz .lv-push{margin-left:0}.lessonviz .lv-metric{padding:8px}.lessonviz .lv-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.lessonviz .lv-radius{width:100%}.lessonviz .lv-radius input{flex:1}}
+  .lessonviz{position:relative;display:flex;flex-direction:column;flex:1;height:100%;min-height:0;min-width:0}
+  .lessonviz .lv-status{flex:none;line-height:1.4;margin:0 0 5px;font-size:12px}
+  .lessonviz .lv-visual{flex:1;width:100%;height:0;min-height:190px;aspect-ratio:auto;overflow:hidden}
+  .lessonviz .lv-visual svg{width:100%;height:100%;min-height:0;overflow:hidden}
+  .lessonviz .lv-footer{display:flex;align-items:center;gap:8px;flex:none;min-height:48px;padding-top:4px}
+  .lessonviz .lv-playbar{flex:1;min-width:0;margin:0;gap:8px;order:1}.lessonviz .lv-footer>button{order:0}
+  .lessonviz .lv-playbar input{height:44px;min-width:55px;touch-action:pan-x}
+  .lessonviz input[type=range]{cursor:pointer;accent-color:var(--lv-accent)}
+  .lessonviz input[type=range]::-webkit-slider-thumb{min-width:22px;min-height:22px}
+  .lessonviz input[type=range]::-moz-range-thumb{width:22px;height:22px;border:2px solid white;border-radius:50%;background:var(--lv-accent)}
+  .lessonviz .lv-options{flex:none;margin-left:auto;order:2}
+  .lessonviz .lv-options>summary{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;min-width:88px;padding:8px 12px;border:1px solid var(--lv-line);border-radius:8px;background:var(--surface,#fff);color:var(--lv-ink);font-size:13px;cursor:pointer;list-style:none;touch-action:manipulation}
+  .lessonviz .lv-options>summary::-webkit-details-marker{display:none}
+  .lessonviz .lv-options>summary::after{content:'⌃';font-size:16px}
+  .lessonviz .lv-options[open]>summary{background:var(--lv-accent);border-color:var(--lv-accent);color:white}
+  .lessonviz .lv-options[open]>summary::after{content:'⌄'}
+  .lessonviz .lv-options>summary:focus-visible{outline:3px solid #88a9df;outline-offset:2px}
+  .lessonviz .lv-options-panel{position:absolute;z-index:5;bottom:54px;left:0;right:0;max-height:calc(100% - 60px);overflow:auto;overscroll-behavior:contain;border:1px solid var(--lv-line);border-radius:12px;background:var(--surface,#fff);box-shadow:0 8px 30px #172b4330;padding:14px}
+  .lessonviz .lv-options-panel .lv-toolbar{margin-bottom:0}
+  .lessonviz .lv-options-panel .lv-metrics{margin-top:12px}
+  .lessonviz .lv-options-panel .lv-caption{font-size:14px}
+  .lessonviz .lv-options-panel .lv-radius input{height:44px;min-width:100px}
+  @media(min-width:1600px) and (min-height:900px){.lessonviz .lv-status{font-size:16px}.lessonviz button,.lessonviz .lv-options>summary{font-size:16px;min-height:48px}.lessonviz .lv-footer{min-height:52px}.lessonviz .lv-options-panel{bottom:58px}.lessonviz .lv-metric strong{font-size:18px}.lessonviz .lv-metric span,.lessonviz .lv-radius{font-size:14px}.lessonviz .lv-options-panel .lv-caption{font-size:16px}}
+  @media(max-width:600px){.lessonviz .lv-footer{flex-wrap:wrap}.lessonviz .lv-playbar{flex-basis:100%}.lessonviz .lv-toolbar{gap:5px}.lessonviz button{padding:7px 9px;min-height:44px}.lessonviz .lv-visual{min-height:0}.lessonviz .lv-push{margin-left:0}.lessonviz .lv-metric{padding:8px}.lessonviz .lv-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.lessonviz .lv-radius{width:100%}.lessonviz .lv-radius input{flex:1}}
   `;
   root.append(style);
 }
@@ -34,7 +57,13 @@ function frame(container, options={}) {
   const playbar=document.createElement('div');playbar.className='lv-playbar';
   const metrics=document.createElement('div');metrics.className='lv-metrics';
   const caption=document.createElement('p');caption.className='lv-caption';
-  root.append(toolbar,status,visual,playbar,metrics,caption);container.replaceChildren(root);
+  const footer=document.createElement('div');footer.className='lv-footer';
+  const optionsDrawer=document.createElement('details');optionsDrawer.className='lv-options';
+  const optionsSummary=document.createElement('summary');optionsSummary.textContent='Explore';optionsSummary.setAttribute('aria-label','Explore: open controls, measurements, and explanation');
+  const optionsPanel=document.createElement('div');optionsPanel.className='lv-options-panel';optionsPanel.append(toolbar,metrics,caption);
+  optionsDrawer.append(optionsSummary,optionsPanel);footer.append(playbar,optionsDrawer);
+  root.append(status,visual,footer);container.replaceChildren(root);
+  root.onkeydown=event=>{if(event.key==='Escape'&&optionsDrawer.open){optionsDrawer.open=false;optionsSummary.focus();event.stopPropagation();}};
   let disposed=false, raf=0;
   const reduced=options.reducedMotion ?? (typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches);
   function animate(from,to,duration,render,done) {
@@ -46,7 +75,7 @@ function frame(container, options={}) {
   }
   function stop(){cancelAnimationFrame(raf);raf=0;}
   function clean(){disposed=true;stop();root.remove();}
-  const button=(label,callback,parent=toolbar)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=callback;parent.append(b);return b;};
+  const button=(label,callback,parent=toolbar)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=callback;if(parent===toolbar&&(label==='Next step'||label==='Place next piece'))parent=playbar;if(parent===toolbar&&label==='Show area calculation')parent=footer;parent.append(b);return b;};
   const setMetrics=entries=>metrics.innerHTML=entries.map(([label,value])=>`<div class="lv-metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
   return{root,toolbar,status,svg,playbar,metrics,caption,animate,stop,clean,button,setMetrics,reduced};
 }

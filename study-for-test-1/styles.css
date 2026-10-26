@@ -42,3 +42,241 @@ body.dark{color-scheme:dark}
 @media(max-width:540px){.app-header{padding:12px 16px}.brand{font-size:14px;gap:8px}.brand-mark{width:34px;height:34px}.brand small{font-size:9px}.header-actions{gap:0}.header-actions .quiet-button{font-size:10px;padding:0 5px}.icon-button{min-width:32px;height:34px;font-size:18px}.view-tabs button{font-size:11px;padding:9px 13px;flex:1}.workspace-toolbar{flex-wrap:wrap;gap:10px}.section-select-wrap{flex:1 1 100%}.toolbar-right{width:100%;justify-content:space-between}.toolbar-right .page-count{display:block}.packet-grid{grid-template-columns:1fr}.packet-card{padding-top:15px}.packet-card .problem-prompt{font-size:18px;min-height:0}.packet-card .diagram-wrap{height:165px}.packet-heading{margin-bottom:8px}.packet-heading h1{font-size:18px}.packet-heading .outline-button{font-size:9px;min-height:34px;padding:8px}.question-jump{gap:6px}.question-jump button{min-width:31px;height:31px;font-size:11px}.lesson-bottom{align-items:stretch;flex-direction:column}.example-controls{max-width:none}.step-nav{justify-content:space-between}.step-nav button{flex:1}.practice-banner{flex-direction:column;gap:10px}.app-footer{font-size:9px}.download-menu{right:12px;top:62px}.visual-topbar{padding:12px 16px}.problem-actions button{flex:1}.section-select{width:100%}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media print{body{background:#fff!important;color:#000!important}.app-header,.app-footer,.workspace-toolbar,.question-jump,.lesson-bottom,.packet-bottom,.problem-actions,.variant-tag,#toast,.download-menu{display:none!important}main{padding:0;max-width:none}.packet-sheet{border:0;padding:0;box-shadow:none}.packet-card{break-inside:avoid}.packet-heading{border:0}.packet-grid{grid-template-columns:1fr 1fr}.packet-card input,.packet-card textarea{background:white;border:0}.packet-card.is-selected{border-left:0}.visual-stage{background:white}.packet-card .diagram-wrap{break-inside:avoid}}
+
+/* Screen-sized lessons. The packet remains a naturally scrolling document. */
+button,input,select,textarea,summary{touch-action:manipulation}
+.view-tabs button,.icon-button,.quiet-button,.outline-button,.soft-button,.primary-button,.small-button,.visual-tools button,.question-jump button,.point-chips button,#focus-close{min-height:44px;min-width:44px}
+.answer-line .input-row input,.answer-line textarea,.packet-card .answer-line input,.packet-card .answer-line textarea,.answer-table input{min-height:44px}
+.graph-controls label{min-height:44px;padding:5px 8px;border-radius:8px}
+.graph-controls input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--accent)}
+.graph-shell svg[data-graph-editable=true]{cursor:crosshair;touch-action:none}
+.visual-tools button{height:44px}
+.point-chips button{padding:6px 12px;font-size:12px}
+.problem-content{min-width:0;min-height:0}
+.problem-footer{flex:none;display:grid;gap:8px;margin-top:14px}
+.problem-footer .problem-actions{margin:0}
+.problem-footer .example-controls,.problem-footer .step-nav{min-width:0;gap:8px}
+.problem-footer .step-nav{justify-content:space-between}
+.problem-footer .step-nav>button{flex:1;min-width:0}
+.problem-footer .auto-next-control,.problem-footer .auto-next{display:flex;align-items:center;gap:8px;min-height:44px;font-size:12px;color:var(--muted)}
+.problem-footer input[type=checkbox]{width:21px;height:21px;margin:0;accent-color:var(--accent)}
+.problem-footer .example-controls span{font-size:11px}
+
+@media screen and (min-width:960px){
+  body:is([data-view=lesson],[data-view=practice]){height:100vh;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  body:is([data-view=lesson],[data-view=practice]) .app-header{flex:none;min-height:64px;height:64px;flex-wrap:nowrap;padding:8px 18px;gap:16px}
+  body:is([data-view=lesson],[data-view=practice]) .brand{font-size:15px;gap:9px;letter-spacing:-.25px}
+  body:is([data-view=lesson],[data-view=practice]) .brand small{font-size:9px;margin-top:2px}
+  body:is([data-view=lesson],[data-view=practice]) .brand-mark{width:38px;height:38px}
+  body:is([data-view=lesson],[data-view=practice]) .view-tabs{order:0;flex:0 1 auto;min-width:0;padding:2px;gap:2px}
+  body:is([data-view=lesson],[data-view=practice]) .view-tabs button{font-size:12px;padding:6px 12px}
+  body:is([data-view=lesson],[data-view=practice]) .header-actions{gap:3px;flex:none;margin-left:0}
+  body:is([data-view=lesson],[data-view=practice]) main{flex:1;min-height:0;max-width:none;width:100%;padding:10px 18px;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:8px;margin:0;overflow:hidden}
+  body:is([data-view=lesson],[data-view=practice]) .workspace-toolbar{min-height:44px;margin:0;gap:12px}
+  body:is([data-view=lesson],[data-view=practice]) .workspace-toolbar .eyebrow{font-size:9px;margin-bottom:1px}
+  body:is([data-view=lesson],[data-view=practice]) .section-select{font-size:20px;min-height:32px}
+  body:is([data-view=lesson],[data-view=practice]) .question-jump{min-height:44px;flex-wrap:nowrap;gap:7px;overflow-x:auto;scrollbar-width:thin}
+  body:is([data-view=lesson],[data-view=practice]) .question-jump button{flex:none;height:44px;min-width:44px}
+  body:is([data-view=lesson],[data-view=practice]) main>.practice-banner{display:none}
+  body:is([data-view=lesson],[data-view=practice]) .lesson-layout{grid-template-columns:minmax(0,1.6fr) minmax(345px,1fr);align-items:stretch;min-height:0;min-width:0;gap:14px;margin:0;overflow:hidden}
+  body:is([data-view=lesson],[data-view=practice]) .visual-panel{min-height:0;min-width:0;height:100%;display:flex;flex-direction:column}
+  body:is([data-view=lesson],[data-view=practice]) .visual-topbar{flex:none;height:48px;min-height:48px;padding:2px 12px}
+  body:is([data-view=lesson],[data-view=practice]) .visual-topbar .eyebrow{font-size:10px}
+  body:is([data-view=lesson],[data-view=practice]) .visual-stage{min-height:0;height:auto;flex:1;max-height:none;padding:10px;overflow:hidden;align-items:stretch}
+  body:is([data-view=lesson],[data-view=practice]) .visual-stage .diagram-image{height:100%;max-height:100%;min-height:0;max-width:100%;width:100%;object-fit:contain}
+  body:is([data-view=lesson],[data-view=practice]) .visual-stage.interactive{display:flex;flex-direction:column}
+  body:is([data-view=lesson],[data-view=practice]) .visual-note{display:none}
+  body:is([data-view=lesson],[data-view=practice]) .problem-panel{padding:16px;min-height:0;min-width:0;height:100%;overflow:hidden}
+  body:is([data-view=lesson],[data-view=practice]) .problem-content{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:5px;scroll-padding:12px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-topline{margin-bottom:10px;min-height:18px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-prompt{font-size:20px;line-height:1.4;margin-bottom:16px}
+  body:is([data-view=lesson],[data-view=practice]) .answer-fields{gap:10px}
+  body:is([data-view=lesson],[data-view=practice]) .answer-line>label{font-size:13px;max-width:47%}
+  body:is([data-view=lesson],[data-view=practice]) .input-row input,body:is([data-view=lesson],[data-view=practice]) .answer-field textarea{font-size:16px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-footer{border-top:1px solid var(--line);padding-top:10px;gap:7px;margin-top:10px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-footer .problem-actions{gap:6px;flex-wrap:nowrap}
+  body:is([data-view=lesson],[data-view=practice]) .problem-footer .problem-actions button{flex:1;padding:7px 9px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-footer .example-controls{flex-wrap:nowrap;gap:7px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-footer .example-controls>button{padding:7px 10px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-nav-link{margin:0;padding:0}
+  body:is([data-view=lesson],[data-view=practice]) .app-footer{flex:none;width:100%;max-width:none;margin:0;padding:0 18px;height:44px;min-height:44px;font-size:11px}
+  body:is([data-view=lesson],[data-view=practice]) .app-footer button{min-height:44px;font-size:11px;padding:5px 8px}
+  body:is([data-view=lesson],[data-view=practice]) .graph-plot-wrap{height:100%;min-height:0;display:flex;flex-direction:column;margin:auto}
+  body:is([data-view=lesson],[data-view=practice]) .graph-shell{flex:1;min-height:0;height:0;max-width:none;overflow:hidden}
+  body:is([data-view=lesson],[data-view=practice]) .graph-shell svg{width:100%;height:100%;max-height:100%;min-height:0}
+  body:is([data-view=lesson],[data-view=practice]) .graph-controls{flex:none;margin:0;padding:4px 0;gap:5px;font-size:12px}
+  body:is([data-view=lesson],[data-view=practice]) .point-chips{flex:none;flex-wrap:nowrap;overflow-x:auto;max-width:100%;margin:0;scrollbar-width:thin}
+  body:is([data-view=lesson],[data-view=practice]) .point-chips button{flex:none;white-space:nowrap}
+  body:is([data-view=lesson],[data-view=practice]) .point-chips:empty{display:none}
+  body:is([data-view=lesson],[data-view=practice]) .graph-tip{margin:3px 0 0;font-size:12px}
+  body:is([data-view=lesson],[data-view=practice]) .graph-feedback{flex:none;margin:4px 0;font-size:12px}
+  body:is([data-view=lesson],[data-view=practice]).presentation-mode main{padding-top:56px}
+  body:is([data-view=lesson],[data-view=practice]).presentation-mode .app-header,body:is([data-view=lesson],[data-view=practice]).presentation-mode .app-footer{display:none}
+}
+@media screen and (min-width:960px) and (max-width:1160px){
+  body:is([data-view=lesson],[data-view=practice]) .app-header{padding:8px 12px;gap:8px}
+  body:is([data-view=lesson],[data-view=practice]) .brand{font-size:13px;gap:6px}
+  body:is([data-view=lesson],[data-view=practice]) .brand small{display:none}
+  body:is([data-view=lesson],[data-view=practice]) .brand-mark{width:30px;height:34px;font-size:22px}
+  body:is([data-view=lesson],[data-view=practice]) .view-tabs button{padding:6px 8px;font-size:11px}
+  body:is([data-view=lesson],[data-view=practice]) .header-actions .quiet-button{padding:0 7px;font-size:11px}
+  body:is([data-view=lesson],[data-view=practice]) main{padding:8px 12px}
+  body:is([data-view=lesson],[data-view=practice]) .lesson-layout{grid-template-columns:minmax(0,1.35fr) minmax(320px,1fr);gap:10px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-panel{padding:12px}
+}
+@media screen and (min-width:1600px) and (min-height:900px){
+  body:is([data-view=lesson],[data-view=practice]) .app-header{height:76px;min-height:76px;padding:12px 28px}
+  body:is([data-view=lesson],[data-view=practice]) main{padding:14px 28px;gap:12px}
+  body:is([data-view=lesson],[data-view=practice]) .brand{font-size:19px}
+  body:is([data-view=lesson],[data-view=practice]) .view-tabs button,body:is([data-view=lesson],[data-view=practice]) .header-actions button{font-size:15px}
+  body:is([data-view=lesson],[data-view=practice]) .section-select{font-size:24px}
+  body:is([data-view=lesson],[data-view=practice]) .lesson-layout{grid-template-columns:minmax(0,1.65fr) minmax(440px,1fr);gap:20px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-panel{padding:23px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-prompt{font-size:25px;line-height:1.5}
+  body:is([data-view=lesson],[data-view=practice]) .answer-line>label{font-size:16px}
+  body:is([data-view=lesson],[data-view=practice]) .input-row input,body:is([data-view=lesson],[data-view=practice]) .answer-field textarea{font-size:19px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-footer button{font-size:15px;min-height:48px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-footer{gap:10px}
+  body:is([data-view=lesson],[data-view=practice]) .visual-topbar{height:54px;min-height:54px}
+}
+
+/* Dialogs keep navigation, progress, hints and worked solutions off the work surface. */
+.study-dialog{width:min(900px,calc(100vw - 32px));max-width:900px;max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 24px 90px #10203540;overflow:hidden}
+.study-dialog[open]{display:flex;flex-direction:column}
+.study-dialog::backdrop{background:#1523377a;backdrop-filter:blur(3px)}
+.dialog-header{display:flex;justify-content:space-between;gap:16px;align-items:center;flex:none;padding:18px 22px;border-bottom:1px solid var(--line)}
+.dialog-header h2,.dialog-header h1{margin:0;font-size:22px;line-height:1.3}
+.dialog-header p{font-size:13px;color:var(--muted);margin:5px 0 0}
+.dialog-header button{min-width:44px;min-height:44px;flex:none}
+.dialog-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:20px 22px;font-size:15px;line-height:1.6}
+.dialog-body .hint-box,.dialog-body .solution-box{margin:0;font-size:16px;background:transparent;border:0;padding:0}
+.dialog-footer{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;flex:none;padding:14px 22px;border-top:1px solid var(--line)}
+.toc-list{display:grid;gap:16px}.toc-section{border:1px solid var(--line);border-radius:12px;padding:15px}
+.toc-section h3{font-size:16px;margin:0 0 10px}.toc-section p{margin:0 0 10px;color:var(--muted);font-size:13px}
+.toc-problem-list{display:flex;gap:8px;flex-wrap:wrap;list-style:none;padding:0;margin:0}
+.toc-problem-list button,.toc-problem-list a{display:inline-flex;justify-content:center;align-items:center;min-width:44px;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font-size:14px}
+.toc-problem-list [aria-current=true],.toc-problem-list [aria-current=page],.toc-problem-list .active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.progress-overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.progress-overview>div{padding:15px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.progress-overview strong{font-size:24px;display:block;color:var(--ink)}
+.progress-overview span,.progress-overview p{font-size:13px;color:var(--muted);margin:3px 0 0}
+.skill-list{display:grid;gap:10px}.skill-card{padding:15px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.skill-card h3{font-size:16px;margin:0 0 5px}.skill-card p{font-size:13px;margin:4px 0;color:var(--muted)}
+.skill-card button{margin-top:8px}.status-complete{color:var(--success)}.status-review{color:var(--muted)}.status-missed{color:var(--wrong)}
+.report-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.report-actions button{min-height:44px}
+.advance-banner{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:75;display:flex;gap:12px;align-items:center;max-width:calc(100vw - 24px);padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);box-shadow:0 5px 28px #17233230;font-size:14px}
+.advance-banner button{min-width:44px;min-height:44px;white-space:nowrap}
+
+/* Full-screen visualizations use the viewport rather than a fixed diagram height. */
+.visual-stage:is(:fullscreen,.is-enlarged){min-height:0;max-height:none;display:flex!important;flex-direction:column;align-items:stretch;justify-content:stretch;overflow:hidden;padding:16px;background:#fff}
+.visual-stage:is(:fullscreen,.is-enlarged).interactive .lessonviz{width:100%;height:100%;max-width:none;min-height:0;margin:0}
+.visual-stage:is(:fullscreen,.is-enlarged) .diagram-image{width:100%;height:100%;max-height:100%;object-fit:contain}
+.visual-stage:is(:fullscreen,.is-enlarged) .graph-plot-wrap{height:100%;min-height:0;max-width:none;display:flex;flex-direction:column}
+.visual-stage:is(:fullscreen,.is-enlarged) .graph-shell{flex:1;min-height:0;max-width:none;height:0}
+.visual-stage:is(:fullscreen,.is-enlarged) .graph-shell svg{width:100%;height:100%;max-height:100%}
+#focus-close{min-height:44px}
+@media screen and (max-width:959px){
+  .problem-content{overflow:visible}.problem-footer{border-top:1px solid var(--line);padding-top:12px}
+  .problem-footer .example-controls{max-width:none}.problem-footer .step-nav{margin-top:2px}
+  .visual-stage.interactive{min-height:420px;display:flex;flex-direction:column}
+  .visual-stage.interactive .lessonviz{min-height:400px}
+  .app-header .header-actions{flex-wrap:wrap;justify-content:flex-end}
+  .study-dialog{width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}
+  .dialog-header,.dialog-body,.dialog-footer{padding:14px 16px}
+  .advance-banner{flex-wrap:wrap;justify-content:center;gap:7px}
+}
+@media print{.study-dialog,.advance-banner,#focus-close,#focus-backdrop{display:none!important}}
+.graph-shell .graph-tick{font-size:16px}.graph-shell .graph-label{font-size:17px}
+.graph-coordinate-entry{display:flex;align-items:center;gap:7px;flex:none;min-height:48px;flex-wrap:wrap;padding:3px 0;color:#24354b;font-size:13px}
+.graph-coordinate-entry label{display:flex;align-items:center;gap:5px;min-height:44px}
+.graph-coordinate-entry .coordinate-input{width:64px;min-width:54px;min-height:44px;padding:7px 8px;font-size:16px;border:1px solid #bac7d5;border-radius:8px;background:white;color:#18263a}
+.graph-coordinate-entry button{min-height:44px;white-space:nowrap}
+.problem-footer .compact-nav{display:flex;align-items:center;gap:7px;justify-content:space-between}
+.problem-footer .compact-nav button{min-width:44px;min-height:44px;flex:1;padding:7px 9px}
+.problem-footer .auto-next-label{display:flex;gap:8px;align-items:center;min-height:44px;font-size:12px;line-height:1.4;color:var(--muted)}
+.problem-footer .auto-next-label input{width:21px;height:21px;flex:none;margin:0;accent-color:var(--accent)}
+.problem-footer .check-summary{font-size:12px;line-height:1.45;margin:0}
+.problem-footer .check-summary:empty{display:none}
+@media screen and (min-width:1280px){
+  body:is([data-view=lesson],[data-view=practice]) .graph-plot-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr) auto auto auto auto;grid-template-areas:'plot plot' 'controls entry' 'chips chips' 'tip tip' 'feedback feedback';column-gap:8px}
+  body:is([data-view=lesson],[data-view=practice]) .graph-shell{grid-area:plot;height:100%;width:100%}
+  body:is([data-view=lesson],[data-view=practice]) .graph-controls{grid-area:controls;flex-wrap:nowrap;font-size:11px;gap:4px}
+  body:is([data-view=lesson],[data-view=practice]) .graph-controls button{padding:7px 9px;font-size:11px}
+  body:is([data-view=lesson],[data-view=practice]) .graph-coordinate-entry{grid-area:entry;flex-wrap:nowrap;font-size:12px;gap:6px}
+  body:is([data-view=lesson],[data-view=practice]) .graph-coordinate-entry button{padding:7px 9px;font-size:11px}
+  body:is([data-view=lesson],[data-view=practice]) .point-chips{grid-area:chips}
+  body:is([data-view=lesson],[data-view=practice]) .graph-tip{grid-area:tip}
+  body:is([data-view=lesson],[data-view=practice]) .graph-feedback{grid-area:feedback}
+}
+@media screen and (min-width:960px) and (max-height:599px){
+  body:is([data-view=lesson],[data-view=practice]){height:auto;min-height:100dvh;overflow:auto}
+  body:is([data-view=lesson],[data-view=practice]) main{flex:none;overflow:visible;grid-template-rows:auto auto minmax(460px,1fr)}
+}
+.brand{min-height:44px}
+body:is([data-view=lesson],[data-view=practice]) .section-select{min-height:44px}
+#dialog-content{display:flex;flex-direction:column;min-height:0;max-height:inherit;overflow:hidden}
+.study-dialog summary{min-height:44px;cursor:pointer;line-height:1.5;padding:10px 0}
+.check-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px;font-size:13px;line-height:1.5}
+.check-summary button{min-height:44px}
+.status-started{color:var(--accent)}
+.dialog-intro{margin:0 0 18px;color:var(--muted);font-size:14px}
+.toc-section>summary{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0;list-style:none;font-size:16px;font-weight:600}
+.toc-section>summary::-webkit-details-marker{display:none}
+.toc-section>summary>span:first-child{min-width:0}
+.toc-section summary small{display:block;font-size:12px;line-height:1.5;font-weight:400;color:var(--muted);margin-top:3px}
+.toc-count{flex:none;font-size:12px;font-weight:400;color:var(--muted);text-align:right}
+.toc-section[open]>.toc-problem-list{margin-top:14px}
+.toc-problem-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.toc-problem-list .toc-problem{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;text-align:left;min-height:68px;width:100%;padding:12px;font-size:13px;line-height:1.4}
+.toc-problem strong{font-weight:600}.toc-problem>span{font-size:12px;color:var(--muted)}
+.toc-problem.status-complete>span{color:var(--success)}.toc-problem.status-missed>span{color:var(--wrong)}
+.skill-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;align-items:center}
+.skill-card>strong{font-size:15px}.skill-card>span,.skill-card>small{font-size:12px;color:var(--muted)}.skill-card>small{grid-column:1/-1}
+.skill-details{margin:20px 0}.skill-details>summary{font-weight:600;font-size:16px}
+.review-list{display:grid;gap:10px}.review-item{display:flex;flex-direction:column;gap:5px;align-items:flex-start;text-align:left;width:100%;min-height:66px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+.review-item>span{font-size:13px;color:var(--muted)}
+.report-section{margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+.report-section h3{margin-top:0}.report-section p{font-size:14px;color:var(--muted)}
+.report-name-label{display:block;margin:12px 0 6px;font-size:14px}
+#report-name{width:100%;max-width:440px;min-height:44px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:16px}
+.auto-next-label{display:flex;align-items:center;gap:9px;min-height:44px;font-size:13px;line-height:1.5;cursor:pointer}
+.auto-next-label input{flex:none;width:22px;height:22px;margin:0;accent-color:var(--accent)}
+.help-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.reflection-card{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin-bottom:14px}
+.reflection-card h3{font-size:16px;margin:0 0 12px}.reflection-card p{font-size:15px}
+@media(max-width:540px){.toc-problem-list{grid-template-columns:1fr}.toc-section{padding:12px}.toc-section>summary{font-size:14px}.toc-count{font-size:11px}.skill-card{grid-template-columns:1fr}.dialog-header h2{font-size:20px}}
+/* Keep feedback useful without repeating a full extra line for every correct field. */
+.problem-content .answer-field.correct{position:relative}
+.problem-content .answer-field.correct .answer-line>label::after,.problem-content .answer-field.correct>label::after{content:' ✓';color:var(--success);font-family:system-ui,sans-serif;font-weight:700}
+.problem-content .answer-field.correct .field-feedback{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0}
+@media screen and (min-width:960px) and (max-height:800px){
+  body:is([data-view=lesson],[data-view=practice]) .problem-panel{padding:14px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-topline{margin-bottom:6px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-prompt{font-size:18px;line-height:1.4;margin-bottom:10px}
+  body:is([data-view=lesson],[data-view=practice]) .answer-fields{gap:6px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-footer{gap:6px;padding-top:8px;margin-top:8px}
+  body:is([data-view=lesson],[data-view=practice]) .problem-content .check-summary{margin-top:8px}
+}
+.horizontal-answer-table{table-layout:fixed}
+.horizontal-answer-table th,.horizontal-answer-table td{padding:5px 6px}
+.horizontal-answer-table tbody th{width:auto}
+.horizontal-answer-table input{min-width:0;min-height:44px;font-size:16px;padding:5px 2px}
+.graph-problem-panel .plot-field-note{margin:0}
+.section-select{min-height:44px}
+.packet-card .problem-actions button,.packet-heading .outline-button,.download-menu a{min-height:44px}
+@media(max-width:780px){.packet-card .input-row input,.packet-card .answer-field textarea,.answer-table input{font-size:16px}}
+/* Share one navigation row so the problem keeps the available screen height. */
+@media screen and (min-width:960px){
+  body:is([data-view=lesson],[data-view=practice]) main{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr);column-gap:18px}
+  body:is([data-view=lesson],[data-view=practice]) main>.workspace-toolbar{grid-column:1;grid-row:1;min-width:0}
+  body:is([data-view=lesson],[data-view=practice]) main>.question-jump{grid-column:2;grid-row:1;justify-content:flex-end;align-self:center}
+  body:is([data-view=lesson],[data-view=practice]) main>.lesson-layout{grid-column:1/-1;grid-row:2}
+}
+@media screen and (min-width:960px) and (max-width:1160px){
+  body:is([data-view=lesson],[data-view=practice]) main{column-gap:12px}
+  body:is([data-view=lesson],[data-view=practice]) .toolbar-right .page-count{display:none}
+  body:is([data-view=lesson],[data-view=practice]) .question-jump{gap:5px}
+}
+@media screen and (min-width:960px) and (max-height:599px){
+  body:is([data-view=lesson],[data-view=practice]) main{grid-template-rows:auto minmax(460px,1fr)}
+}
