@@ -15,5 +15,9 @@ export function mathHTML(value){
   source=source.replace(/\^\(([^()]*)\)/g,(_,x)=>token(`<sup>${escapeHTML(x)}</sup>`));
   source=source.replace(/\^\{([^{}]+)\}|\^([−-]?\d+|[a-z])/gi,(_,a,b)=>token(`<sup>${escapeHTML(a??b)}</sup>`));
   source=source.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]+/g,s=>token(`<sup>${[...s].map(c=>SUPER[c]).join('')}</sup>`));
+  // Keep products and quotients on the same baseline as ordinary numbers.
+  // Spacing belongs to the operator, so generated problems and worked steps
+  // look the same whether their source includes spaces around × or ÷.
+  source=source.replace(/[ \t]*([×÷⋅·])[ \t]*/g,(_,op)=>token(`<span class="math-op">${op}</span>`));
   return escapeHTML(source).replace(/\uE000(\d+)\uE001/g,(_,i)=>saved[+i]).replace(/\n/g,'<br>');
 }

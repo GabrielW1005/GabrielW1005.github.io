@@ -1,5 +1,5 @@
 import { renderDiagram } from './diagrams.js';
-import {mathHTML} from './math-format.js';
+import {mathHTML} from './math-format.js?v=compact-1';
 
 // All lab state is local to the selected problem. No canonical problem is mutated.
 const NS='http://www.w3.org/2000/svg';

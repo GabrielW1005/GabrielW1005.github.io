@@ -1,6 +1,6 @@
 # 8th Grade - Math Review 1
 
-A 73-page teaching and review packet with 410 exercises, matching interactive practice, and a red-answer key with complete worked solutions.
+A 52-page teaching and review packet with 410 exercises, matching interactive practice, and a red-answer key with complete worked solutions.
 
 ## Use
 

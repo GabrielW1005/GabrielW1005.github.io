@@ -1,29 +1,29 @@
 {
   "packet": {
     "filename": "8th_Grade_Math_Review_1_Packet.pdf",
-    "bytes": 4518259,
-    "sha256": "b3927658c2ce9e8c4b1107d0101a7266eda1f90e23286ffea92d729a65bfb68e",
+    "bytes": 4503720,
+    "sha256": "9ad949cb3c3cb55884f8a51e9ab23f2dfd2249a94269b95e1961175b0e4de6b9",
     "parts": [
-      "downloads/parts/packet-00.bin",
-      "downloads/parts/packet-01.bin",
-      "downloads/parts/packet-02.bin",
-      "downloads/parts/packet-03.bin",
-      "downloads/parts/packet-04.bin",
-      "downloads/parts/packet-05.bin"
+      "downloads/parts/packet-compact-00.bin",
+      "downloads/parts/packet-compact-01.bin",
+      "downloads/parts/packet-compact-02.bin",
+      "downloads/parts/packet-compact-03.bin",
+      "downloads/parts/packet-compact-04.bin",
+      "downloads/parts/packet-compact-05.bin"
     ]
   },
   "key": {
     "filename": "8th_Grade_Math_Review_1_Answer_Key.pdf",
-    "bytes": 5029014,
-    "sha256": "0b26dbe9095c2d12cdfa1a67d266f7532a2f43b1c7776c5a06c568213bef5d0a",
+    "bytes": 5012798,
+    "sha256": "0b004e04def5c898a3918eb44b5d7764c3fac05feaf5ad045867b2692045f498",
     "parts": [
-      "downloads/parts/key-00.bin",
-      "downloads/parts/key-01.bin",
-      "downloads/parts/key-02.bin",
-      "downloads/parts/key-03.bin",
-      "downloads/parts/key-04.bin",
-      "downloads/parts/key-05.bin",
-      "downloads/parts/key-06.bin"
+      "downloads/parts/key-compact-00.bin",
+      "downloads/parts/key-compact-01.bin",
+      "downloads/parts/key-compact-02.bin",
+      "downloads/parts/key-compact-03.bin",
+      "downloads/parts/key-compact-04.bin",
+      "downloads/parts/key-compact-05.bin",
+      "downloads/parts/key-compact-06.bin"
     ]
   }
 }

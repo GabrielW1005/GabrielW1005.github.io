@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Download PDF · 8th Grade - Math Review 1</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=compact-1">
 <style>main.download-page{max-width:620px;margin:10vh auto;padding:32px;background:var(--paper);border:1px solid var(--line);border-radius:14px}h1{font-family:var(--serif);font-weight:400;font-size:30px}#download-status{min-height:3em;color:var(--muted);font-size:14px;line-height:1.6}.back-link{display:inline-block;margin-top:20px;color:var(--accent);font-size:14px}@media(max-width:650px){main.download-page{margin:30px 18px}}</style>
 </head>
-<body><main class="download-page"><p class="eyebrow">8TH GRADE · MATH REVIEW 1</p><h1 id="download-title">Review packet</h1><p id="download-description">73 pages with worked examples and space to practice.</p><button id="download-pdf" class="primary" data-pdf="packet" aria-describedby="download-status">Download PDF</button><p id="download-status" role="status" aria-live="polite">Select Download PDF to save your copy.</p><a class="back-link" href="index.html">← Go To Packet</a><noscript><p>Enable JavaScript to download the PDF.</p></noscript></main>
+<body><main class="download-page"><p class="eyebrow">8TH GRADE · MATH REVIEW 1</p><h1 id="download-title">Review packet</h1><p id="download-description">52 pages with worked examples and space to practice.</p><button id="download-pdf" class="primary" data-pdf="packet" aria-describedby="download-status">Download PDF</button><p id="download-status" role="status" aria-live="polite">Select Download PDF to save your copy.</p><a class="back-link" href="index.html">← Go To Packet</a><noscript><p>Enable JavaScript to download the PDF.</p></noscript></main>
 <script type="module">
 const key = new URLSearchParams(location.search).get('file') === 'key' ? 'key' : 'packet';
 document.getElementById('download-pdf').dataset.pdf = key;
 if (key === 'key') {
   document.getElementById('download-title').textContent = 'Answer key';
-  document.getElementById('download-description').textContent = '106 pages: matching red answers and complete worked solutions.';
+  document.getElementById('download-description').textContent = '84 pages: matching red answers and complete worked solutions.';
 }
-await import('./pdf-download.js');
+await import('./pdf-download.js?v=compact-1');
 </script></body></html>

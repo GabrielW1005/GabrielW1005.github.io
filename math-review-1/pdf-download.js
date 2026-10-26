@@ -4,7 +4,7 @@ let manifestPromise;
 
 async function getManifest() {
   if (!manifestPromise) {
-    manifestPromise = fetch(new URL('downloads/manifest.json', import.meta.url))
+    manifestPromise = fetch(new URL('downloads/manifest.json', import.meta.url), { cache: 'no-store' })
       .then(response => {
         if (!response.ok) throw new Error('The PDF list could not be loaded.');
         return response.json();
