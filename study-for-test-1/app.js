@@ -1,7 +1,8 @@
-import {createProgressState,recordCheck,recordSelfReview,summarizeProgress,makeReportText,makeReportCSV,makeBackup,validateBackup} from './progress.js?v=7';
-import {createAutoAdvance} from './advance.js?v=7';
-import {getExample,MAX_EXAMPLE_INDEX} from './generators.js?v=7';
-import {diagramMarkup} from './generated-diagrams.js?v=7';
+import {createProgressState,recordCheck,recordSelfReview,summarizeProgress,makeReportText,makeReportCSV,makeBackup,validateBackup} from './progress.js?v=8';
+import {createAutoAdvance} from './advance.js?v=8';
+import {getExample,MAX_EXAMPLE_INDEX} from './generators.js?v=8';
+import {diagramMarkup} from './generated-diagrams.js?v=8';
+import {packetData} from './packet-data.js?v=8';
 const STORAGE_KEY = 'study-for-test-1-v2';
 const LEGACY_STORAGE_KEY = 'study-for-test-1-v1';
 const REVISED_PROBLEM_IDS = new Set([2,3,4,14,15,16,26,27,29,30,31,32,33,67,68,69,70]);
@@ -641,12 +642,10 @@ document.addEventListener('visibilitychange',()=> { if (document.hidden) { cance
 
 async function start() {
   try {
-    const results = await Promise.allSettled([fetch('./content.json').then(response=>{if(!response.ok) throw Error(`Content ${response.status}`);return response.json();}),import('./interactives.js?v=7')]);
-    if (results[0].status !== 'fulfilled') throw results[0].reason;
-    data = results[0].value; if (!Array.isArray(data.pages) || !data.pages.length) throw Error('The packet has no pages.');
+    data = packetData;
+    if (!data || !Array.isArray(data.pages) || !data.pages.length) throw Error('The packet has no pages.');
     problems = data.pages.flatMap(page=>page.problems);
     reportName = typeof state.studentName === 'string' ? state.studentName.slice(0,100) : '';
-    if (results[1].status === 'fulfilled') interactiveModule = results[1].value;
     const url = new URL(window.location.href); const problem = Number(url.searchParams.get('problem')); const view = url.searchParams.get('view'); const example = Number(url.searchParams.get('example'));
     if (problem && problems.some(p=>Number(p.id) === problem)) state.question = problem;
     if (['lesson','packet','practice'].includes(view)) state.view = view;
@@ -654,11 +653,18 @@ async function start() {
     if (url.searchParams.has('example') && Number.isInteger(example) && example >= 0 && example <= MAX_EXAMPLE_INDEX) chooseExample(state.question,example);
     if (state.view === 'practice' && variantIndex() === 0) chooseExample(state.question,Math.min(MAX_EXAMPLE_INDEX,highestExample(state.question)+1));
     state.page = Math.max(0,pageFor()); render(); saveURL();
+    window.studyPacketBoot?.ready();
     if (migratedProgress) notify('Packet updated. Saved answers for unchanged problems are still here.');
   } catch (error) {
     app.setAttribute('aria-busy','false');
     app.innerHTML = `<section class="error-state"><h1>The packet could not open.</h1><p>Your saved answers are safe on this browser. Reload to try again.</p><button class="primary-button" onclick="location.reload()">Reload</button></section>`;
     console.error(error);
+    window.studyPacketBoot?.fail(error);
+    return;
   }
+  import('./interactives.js?v=8').then(module=> {
+    interactiveModule = module;
+    if (state.view !== 'packet' && document.querySelector('#visual-stage')) mountLessonInteractive(current());
+  }).catch(error=>console.warn('Interactive lessons are unavailable; the packet diagrams remain usable.',error));
 }
 start();

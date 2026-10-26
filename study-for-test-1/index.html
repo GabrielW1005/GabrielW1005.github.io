@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f5f3ee">
   <meta name="description" content="A Grade 7 study packet with geometry visualizations, saved practice, and lessons on circles, area, volume, and proportions.">
   <title>Study for Test 1</title>
-  <link rel="stylesheet" href="./styles.css?v=7">
+  <link rel="stylesheet" href="./styles.css?v=8">
 </head>
 <body>
   <header class="app-header">
@@ -33,6 +33,40 @@
   <div id="toast" role="status" aria-live="polite"></div>
   <div id="advance-banner" class="advance-banner" role="status" aria-live="polite" hidden></div>
   <dialog id="study-dialog" class="study-dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div><input id="restore-input" type="file" accept=".json,application/json" hidden></dialog>
-  <script type="module" src="./app.js?v=7"></script>
+  <noscript><p>Enable JavaScript to open the interactive study packet.</p></noscript>
+  <script id="study-startup" data-bundle="./app.bundle-5d27abc15146.js">
+    (function () {
+      var startup = document.currentScript;
+      var app = document.getElementById('app');
+      var opened = false;
+      var watchdog;
+      function retry() {
+        var url = new URL(window.location.href);
+        url.searchParams.set('reload', Date.now().toString(36));
+        window.location.replace(url.href);
+      }
+      function fail() {
+        if (opened) return;
+        clearTimeout(watchdog);
+        app.setAttribute('aria-busy', 'false');
+        app.innerHTML = '<section class="error-state"><h1>The packet did not finish opening.</h1><p>Try loading it again. Your saved answers will stay on this browser.</p><button type="button" class="primary-button" id="retry-packet">Try again</button></section>';
+        document.getElementById('retry-packet').addEventListener('click', retry);
+      }
+      window.studyPacketBoot = {
+        ready: function () { opened = true; clearTimeout(watchdog); },
+        fail: fail
+      };
+      window.addEventListener('error', fail);
+      watchdog = setTimeout(fail, 15000);
+      var script = document.createElement('script');
+      var url = new URL(startup.getAttribute('data-bundle'), window.location.href);
+      var fresh = new URL(window.location.href).searchParams.get('reload');
+      if (fresh) url.searchParams.set('retry', fresh);
+      script.src = url.href;
+      script.async = true;
+      script.onerror = fail;
+      document.body.appendChild(script);
+    }());
+  </script>
 </body>
 </html>
