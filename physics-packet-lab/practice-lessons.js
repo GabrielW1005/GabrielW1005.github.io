@@ -1,7 +1,9 @@
+import {isExtension,getExtensionLesson,extensionAnswer} from './extensions.js?v=20261026-2';
+export {getEquationWarmup,getEquationWarmups} from './extensions.js?v=20261026-2';
 /* Worked explanations follow the current SI model and the question's display units.
    Printed-packet lessons remain in packet-lessons.js. Written responses are self-reviewed. */
-import {solve} from './physics.js?v=20261025-2';
-import {getQuestion,getAnswerUnit,unitFactor,displayValue} from './practice.js?v=20261025-2';
+import {solve} from './physics.js?v=20261026-2';
+import {getQuestion,getAnswerUnit,unitFactor,displayValue} from './practice.js?v=20261026-2';
 
 const clone=value=>JSON.parse(JSON.stringify(value));
 const n=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
@@ -62,6 +64,7 @@ function conversions(id,p){
 
 /** Optional worked help and answer fields for one current practice/custom situation. */
 export function getPracticeLesson(original,params=original.simulation.params){
+ if(isExtension(original))return getExtensionLesson(original,params);
  const p={...clone(original.simulation.params),...clone(params)},id=original.id,question=getQuestion(original,p,{practice:!!p._practiceVariant});
  const lesson={hint:question.hint,steps:[],why:'',criteria:[],fields:[],answer:''};
  const put=(steps,why,criteria,answer)=>Object.assign(lesson,{steps,why,criteria,answer});
@@ -124,6 +127,6 @@ export function getActiveProblem(original,params=original.simulation.params){
  const current={...clone(original.simulation.params),...clone(params)},view=getQuestion(original,current,{practice:!!current._practiceVariant}),lesson=getPracticeLesson(original,current);
  const active={...original,title:view.title||original.title,prompt:view.prompt,answer:lesson.answer,steps:lesson.steps,hint:lesson.hint,simulation:{...original.simulation,params:current}};
  delete active.table;if(view.table)active.table=view.table;
- if(original.numericAnswer){const solved=solve(original,current),target=getAnswerUnit(original,current);active.numericAnswer={...original.numericAnswer,value:solved.value/target.factor,unit:target.unit};}
+ if(original.numericAnswer){const solved=isExtension(original)?{value:extensionAnswer(original,current)}:solve(original,current),target=getAnswerUnit(original,current);active.numericAnswer={...original.numericAnswer,quantity:current._quantity||original.numericAnswer.quantity,value:solved.value/target.factor,unit:target.unit};}
  return active;
 }

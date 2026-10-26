@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import packet from '../data.js';
 import {getQuestion,generatePractice,getPractice,listPracticeIds,unitFactor,displayValue,getAnswerUnit} from '../practice.js';
 import {solve,evaluate,modelInfo} from '../physics.js';
-const problems=packet.sections.flatMap(s=>s.problems),byId=Object.fromEntries(problems.map(p=>[p.id,p]));
+const problems=packet.sections.flatMap(s=>s.problems).filter(p=>!p.extension),byId=Object.fromEntries(problems.map(p=>[p.id,p]));
 const clone=o=>JSON.parse(JSON.stringify(o));
 const close=(a,b,msg)=>assert.ok(Math.abs(a-b)<=1e-8*Math.max(1,Math.abs(b)),`${msg}: ${a} versus ${b}`);
 const fmt=x=>Number(x.toFixed(Math.abs(x)>0&&Math.abs(x)<.1?4:3)).toLocaleString('en-US',{maximumFractionDigits:Math.abs(x)>0&&Math.abs(x)<.1?4:3});

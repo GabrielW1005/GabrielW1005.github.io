@@ -5,7 +5,7 @@ import {getActiveProblem,getPracticeLesson} from '../practice-lessons.js';
 import {checkAnswers} from '../packet-core.js';
 import {lessons} from '../packet-lessons.js';
 
-const problems=packet.sections.flatMap(s=>s.problems),byId=Object.fromEntries(problems.map(p=>[p.id,p]));
+const problems=packet.sections.flatMap(s=>s.problems).filter(p=>!p.extension),byId=Object.fromEntries(problems.map(p=>[p.id,p]));
 const copy=x=>JSON.parse(JSON.stringify(x));
 const close=(a,b,message)=>assert.ok(Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${message}: ${a} versus ${b}`);
 function independent(id,p){

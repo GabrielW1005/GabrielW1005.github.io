@@ -51,7 +51,7 @@ for(const p of problems){
  if(p.simulation.kind==='gravity'){
   const readings=stage.labels.filter(label=>label.text.startsWith('spring reading'));
   assert.ok(readings.find(label=>label.color==='#ad6905').x<345&&readings.find(label=>label.color==='#2475cf').x>345,`${p.id}: springs swapped, not just headers`);
- }else if(p.simulation.params.axis==='vertical'){
+ }else if(!p.extension&&p.simulation.params.axis==='vertical'){
   const heights=stage.labels.filter(label=>label.text.startsWith('height '));
   assert.ok(heights.find(label=>label.color==='#ad6905').x<345&&heights.find(label=>label.color==='#2475cf').x>345,`${p.id}: vertical actors swapped, not just headers`);
  }else{
@@ -61,4 +61,4 @@ for(const p of problems){
  }
 }
 invalidateRenderingCache();const empty=getRenderingDiagnostics();assert.equal(empty.cachedSampleCount,0);assert.equal(empty.infoEntries,0);
-console.log(`PASS: ${renders} scene/graph render pairs across all 32 packet and practice problems, correct/wrong trials, compact and large stages, all airplane control endpoints; finite drawing coordinates, bounded caches, and all32 focused test-left/reference-right placement assertions.`);
+console.log(`PASS: ${renders} scene/graph render pairs across all 50 packet and extension problems with practice, correct/wrong trials, compact and large stages, all airplane control endpoints; finite drawing coordinates, bounded caches, and all50 focused test-left/reference-right placement assertions.`);

@@ -1,5 +1,6 @@
 /* Student predictions are counterfactual physical experiments, never overwritten readouts. */
-import {evaluate,modelInfo,solve,format} from './physics.js?v=20261025-2';
+import {isExtension,extensionTrial} from './extension-physics.js?v=20261026-2';
+import {evaluate,modelInfo,solve,format} from './physics.js?v=20261026-2';
 const clone=o=>JSON.parse(JSON.stringify(o));
 const finite=Number.isFinite;
 export const closeEnough=(value,goal)=>finite(value)&&finite(goal)&&Math.abs(value-goal)<=(goal===0?.005:Math.max(1e-6,Math.abs(goal)*.005));
@@ -18,13 +19,49 @@ function envelope(problem,referenceParams,trialParams,value,expected,unit,explan
  return {ok:true,problem:trialProblem,params:clone(trialParams),referenceProblem:problem,referenceParams:clone(referenceParams),quantity:options.quantity||problem.numericAnswer?.quantity||'observation',value,expected,unit,explanation,comparisonLabel:options.comparisonLabel||'Your prediction compared with the given situation',duration,correct,...options,
   trialProblem,trialParams:clone(trialParams),predictedValue:value,referenceValue:expected,success:correct,feedback:explanation};
 }
-function validNumber(value){return finite(value)&&Math.abs(value)<=1e9;}
+function validNumber(value){return finite(value);}
+/** Prediction limits are SI quantities. They are problem-scaled physical guards, not answer limits. */
+export function getPredictionBounds(problem,params){
+ const result=solve(problem,params),quantity=params._quantity||problem.numericAnswer?.quantity,expected=result.value,scale=expected===0?1:Math.max(Math.abs(expected)||0,1e-4),kind=problem.simulation.kind;
+ let min=-4*scale,max=4*scale;
+ if(['distance','speed','averageSpeed','frictionForce','reactionForce','buoyancy'].includes(quantity))min=0;
+ if(['mass','weight'].includes(quantity)){min=scale*.1;max=scale*4;}
+ if(kind==='extension-interaction'){min=quantity==='mass'?scale*.15:Math.max(1e-5,scale*.02);max=scale*3;}
+ if(kind==='extension-momentum'&&quantity==='mass'){min=scale*.15;max=scale*4;}
+ if(problem.id==='P21'||problem.id==='P22'){min=-Number(params.weight);max=Math.max(scale*4,Number(params.weight)*2);}
+ if(problem.id==='P25'){min=-Number(params.g||10);max=Math.max(scale*4,Number(params.g||10)*2);}
+ if(kind==='extension-buoyancy'){
+  const weight=Number(params.mass)*Number(params.g||10);
+  if(quantity==='netForce'){min=-weight;max=Math.max(weight*2,scale*4);}
+  else if(quantity==='acceleration'){min=-Number(params.g||10);max=Math.max(Number(params.g||10)*2,scale*4);}
+ }
+ if(kind==='extension-force'&&params.axis==='vertical'){
+  if(quantity==='netForce'){min=-Number(params.mass)*Number(params.g||10);max=Math.max(scale*4,Number(params.mass)*Number(params.g||10)*2);}
+  if(quantity==='acceleration'){min=-Number(params.g||10);max=Math.max(scale*4,Number(params.g||10)*2);}
+ }
+ if(!finite(min)||!finite(max)||max<=min){min=0;max=10;}
+ const magnitude=Math.max(Math.abs(min),Math.abs(max)),step=10**(Math.floor(Math.log10(magnitude||1))-3);
+ return{min,max,step,unit:result.unit||problem.numericAnswer?.unit||''};
+}
+export function clampNumericPrediction(problem,params,input){
+ const bounds=getPredictionBounds(problem,params),number=Number(input),value=Number.isNaN(number)?getInitialPrediction(problem,params):Math.max(bounds.min,Math.min(bounds.max,number));
+ return{...bounds,value,clamped:!Object.is(value,number)};
+}
+export function getInitialPrediction(problem,params){
+ const answer=solve(problem,params).value,bounds=getPredictionBounds(problem,params),id=Number(problem.id.replace(/\D/g,''))||1,factor=.38+(id%5)*.07;
+ let value=finite(answer)&&Math.abs(answer)>1e-10?answer*factor:(bounds.max-bounds.min)*.18;
+ value=Math.max(bounds.min,Math.min(bounds.max,value));
+ if(closeEnough(value,answer))value=Math.abs(bounds.min-answer)>Math.abs(bounds.max-answer)?bounds.min:bounds.max;
+ return Number(value.toPrecision(8));
+}
 export function createPrediction(problem,params,value){
- value=Number(value);if(!validNumber(value))return fail('Enter a finite number between −1 billion and 1 billion.');
+ value=Number(value);if(Number.isNaN(value))return fail('Enter a number for your prediction.');
+ const bounded=clampNumericPrediction(problem,params,value);value=bounded.value;
  if(!problem.numericAnswer)return fail('Use this problem’s exploration controls.');
- const reference=clone(params),trial=clone(params),quantity=problem.numericAnswer.quantity,result=solve(problem,params,quantity),expected=result.value,unit=result.unit||problem.numericAnswer.unit;
+ const reference=clone(params),trial=clone(params),quantity=params._quantity||problem.numericAnswer.quantity,result=solve(problem,params,quantity),expected=result.value,unit=result.unit||problem.numericAnswer.unit;
  let explanation='',trialProblem=problem;
  if(!finite(expected))return fail('The given measurements do not define a valid experiment.');
+ if(isExtension(problem)){const extension=extensionTrial(problem,params,value);return envelope(problem,reference,extension.trial,value,expected,unit,extension.explanation,{quantity,adjustedInput:value,inputClamped:bounded.clamped,inputBounds:bounded});}
  switch(problem.id){
   case 'P01':{
    if(value<0)return fail('Total distance cannot be negative. Try zero or a positive distance.');
@@ -70,14 +107,14 @@ export function createPrediction(problem,params,value){
   }
   case 'P26':{
    const error=positive(value,'Mass');if(error)return fail(error);if(value<1e-6)return fail('Use a mass of at least 0.000001 kg in this numerical model.');
-   trial.mass=value;delete trial.acceleration;explanation=`With the given ${format(params.netForce)} N net force, your ${format(value)} kg drone accelerates at ${format(params.netForce/value)} m/s². Compare with the stated ${format(params.acceleration)} m/s².`;break;
+   const original=evaluate(problem,params,0);trial.mass=value;trial.upwardForce=original.upwardForce;delete trial.acceleration;explanation=`The reference drone has ${format(original.upwardForce)} N of rotor lift. That lift stays fixed in your test. Your ${format(value)} kg mass weighs ${format(value*Number(params.g||10))} N, so its net force is ${format(original.upwardForce-value*Number(params.g||10))} N. A heavier load can descend. Compare with the given ${format(params.acceleration)} m/s² upward acceleration.`;break;
   }
   case 'P29':case 'P30':
    trial.velocity1=(value-Number(params.mass2)*Number(params.velocity2))/Number(params.mass1);
    explanation=`Your total momentum implies a blue-object velocity of ${format(trial.velocity1)} m/s; the given velocity is ${format(params.velocity1)} m/s. ${problem.id==='P30'?'For a collision, the total remains the same before and after the balls stick. A backward-moving prediction will not collide with the object ahead.':'The stationary pin contributes zero momentum. This model ends before impact.'}`;break;
   default:return fail('This question does not yet have a prediction experiment.');
  }
- return envelope(problem,reference,trial,value,expected,unit,explanation,{problem:trialProblem,quantity});
+ return envelope(problem,reference,trial,value,expected,unit,explanation,{problem:trialProblem,quantity,adjustedInput:value,inputClamped:bounded.clamped,inputBounds:bounded});
 }
 function actualFriction(problem,p){return evaluate(problem,p,0).forces.find(f=>f.label==='Friction')?.value??0;}
 function intervals(p){const ts=Number(p.timeScale??1),ds=Number(p.distanceScale??1);return p.times.slice(0,-1).map((start,i)=>({start:start*ts,end:p.times[i+1]*ts,speed:Math.abs(p.positions[i+1]-p.positions[i])*ds/((p.times[i+1]-start)*ts)}));}
@@ -86,14 +123,14 @@ export function getExploration(problem,params){
  const p=params;let instruction='',controls=[],goal='Compare your proposed result with the physical reference.';
  switch(problem.id){
   case 'P03':{const laps=Number(p.laps||1);instruction=`Choose where the runner should finish after the stated ${format(laps)} full ${laps===1?'lap':'laps'}. Displacement should be zero, while traveled distance is not zero.`;controls=[field('finishLap','Finish after this many laps','lap',0,laps,.05,Math.min(.25,laps/4))];break;}
-  case 'P04':instruction='Set the observer’s eastward velocity so the seated passenger appears stationary. Compare this with the stationary platform view.';controls=[field('referenceVelocity','Observer velocity','m/s',0,Math.max(20,p.speed*2),.5,0)];break;
+  case 'P04':instruction='Set the observer’s eastward velocity so the seated passenger appears stationary. Compare this with the stationary platform view.';controls=[field('referenceVelocity','Observer velocity','m/s',0,Math.max(20,p.speed*2),.5,Number(p.speed)===0?1:0)];break;
   case 'P07':instruction=`Make the orange jogger move in the opposite direction at the blue jogger’s speed of ${format(Math.abs(p.speed))} m/s. Use the sign to choose direction.`;controls=[field('velocity','Orange jogger velocity','m/s',-Math.max(6,p.speed*2),Math.max(6,p.speed*2),.1,Math.abs(p.speed))];break;
   case 'P08':{
    const ts=Number(p.timeScale??1),pause=(p.times[2]-p.times[1])*ts;
    instruction=`Set the dog’s stop so the journey takes the full ${format((p.times.at(-1)-p.times[0])*ts)} s, while both moving portions keep their given speeds. Watch how waiting changes average speed.`;controls=[field('pauseTime','Time stopped','s',0,Math.max(30,pause*2),1,0)];break;
   }
   case 'P11':{
-   const a=solve(problem,p,'acceleration').value;instruction=`Set acceleration so the westbound car changes from ${format(p.vi)} to ${format(p.vf)} m/s in ${format(p.time)} s. Notice whether a negative acceleration can increase speed.`;controls=[field('acceleration','Proposed acceleration','m/s²',-5,5,.1,Math.abs(a)||1)];break;
+   const a=solve(problem,p,'acceleration').value;instruction=`Set acceleration so the westbound car changes from ${format(p.vi)} to ${format(p.vf)} m/s in ${format(p.time)} s. Notice whether a negative acceleration can increase speed.`;controls=[field('acceleration','Proposed acceleration','m/s²',-Math.max(5,Math.abs(a)*2),Math.max(5,Math.abs(a)*2),.1,a===0?1:-a*.6)];break;
   }
   case 'P12':instruction='The model planet is shown to the right of the Sun. Aim the Sun’s gravitational force to keep its path curved. Angle: 0° right, 90° up, 180° left, 270° down.';controls=[field('angle','Gravity arrow direction','°',0,360,5,0)];break;
   case 'P15':{
@@ -115,10 +152,10 @@ export function getExploration(problem,params){
   }
   case 'P28':instruction='The cyclist is at the right side of the turn. Aim the horizontal force from the road to keep the path curved at constant speed. This force is static friction at the tires.';controls=[field('angle','Road-force direction','°',0,360,5,0)];break;
   case 'P31':{
-   const c=contactInfo(problem,p);instruction=`At contact, the orange marble pushes the blue marble left with ${format(c.force)} N. Set the force on the orange marble. Positive points right; negative points left.`;controls=[field('forceN','Your force on orange','N',-Math.ceil(c.force*2),Math.ceil(c.force*2),.01,Number((c.force*.5).toFixed(2)))];break;
+   const c=contactInfo(problem,p);instruction=`At contact, the orange marble pushes the blue marble left with ${format(c.force)} N. Set the force on the orange marble. Positive points right; negative points left.`;controls=[field('forceN','Your force on orange','N',-Math.max(1,Math.ceil(c.force*2)),Math.max(1,Math.ceil(c.force*2)),.01,c.force===0?.35:c.force*.5)];break;
   }
   case 'P32':{
-   const momentum=Number(p.mass1)*Number(p.velocity1)+Number(p.mass2)*Number(p.velocity2);instruction=`The system has ${format(momentum)} kg·m/s of momentum before impact. Set the total that should remain after the collision, then watch how momentum is shared between the stones.`;controls=[field('totalMomentum','Total momentum after collision','kg·m/s',-Math.max(40,momentum*2),Math.max(40,momentum*2),1,momentum/2)];break;
+   const momentum=Number(p.mass1)*Number(p.velocity1)+Number(p.mass2)*Number(p.velocity2);instruction=`The system has ${format(momentum)} kg·m/s of momentum before impact. Set the total that should remain after the collision, then watch how momentum is shared between the stones.`;controls=[field('totalMomentum','Total momentum after collision','kg·m/s',-Math.max(40,momentum*2),Math.max(40,momentum*2),1,momentum===0?.5:momentum/2)];break;
   }
   default:return null;
  }
@@ -126,8 +163,9 @@ export function getExploration(problem,params){
 }
 export function createExploration(problem,params,values){
  const spec=getExploration(problem,params);if(!spec)return fail('This question uses a numerical prediction.');
- const control=spec.controls[0],input=Number(values?.[control.key]);
- for(const c of spec.controls){const entered=Number(values?.[c.key]);if(!validNumber(entered))return fail(`Enter a finite number for ${c.label.toLowerCase()}.`);if(entered<c.min-1e-9||entered>c.max+1e-9)return fail(`Choose ${c.label.toLowerCase()} from ${format(c.min)} to ${format(c.max)} ${c.unit}.`);}
+ values={...values};let inputsClamped=false;
+ for(const c of spec.controls){const entered=Number(values?.[c.key]);if(Number.isNaN(entered))return fail(`Enter a number for ${c.label.toLowerCase()}.`);const safe=Math.max(c.min,Math.min(c.max,entered));inputsClamped ||= safe!==entered;values[c.key]=safe;}
+ const control=spec.controls[0],input=Number(values[control.key]);
  const reference=clone(params),trial=clone(params);let trialProblem=problem,value=input,expected=0,unit=control.unit,explanation='',options={quantity:control.key};
  switch(problem.id){
   case 'P03':{
@@ -173,5 +211,5 @@ export function createExploration(problem,params,values){
   case 'P32':expected=Number(params.mass1)*Number(params.velocity1)+Number(params.mass2)*Number(params.velocity2);trial.velocity1=(input-params.mass2*params.velocity2)/params.mass1;explanation=`A system with your predicted total would need an initial blue-stone velocity of ${format(trial.velocity1)} m/s. For the given initial velocities, the total remains ${format(expected)} kg·m/s while momentum transfers between the stones.`;break;
   default:return fail('This exploration is unavailable.');
  }
- return envelope(problem,reference,trial,value,expected,unit,explanation,{...options,problem:trialProblem,comparisonLabel:problem.id==='P20'||problem.id==='P31'?'Your force arrow compared with the physical force':'Your experiment compared with the goal'});
+ return envelope(problem,reference,trial,value,expected,unit,explanation,{...options,problem:trialProblem,adjustedValues:values,inputsClamped,comparisonLabel:problem.id==='P20'||problem.id==='P31'?'Your force arrow compared with the physical force':'Your experiment compared with the goal'});
 }

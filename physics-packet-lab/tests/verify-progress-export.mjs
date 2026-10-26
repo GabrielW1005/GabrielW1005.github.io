@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {buildProgressReport,buildTextProgressReport} from '../progress-export.js';
+const records={P05:{answers:{speed:'1.5'},explanation:'',status:'correct',attempts:2,updatedAt:'2026-10-26T00:00:00Z'},P05__v2_02:{answers:{speed:'2.52'},explanation:'',status:'draft',attempts:0,updatedAt:'2026-10-26T00:01:00Z'},P33:{answers:{value:'35'},explanation:'',status:'needs-work',attempts:1,updatedAt:'2026-10-26T00:02:00Z'},P34:{answers:{value:''},explanation:'',status:'draft'},P06__custom:{answers:{answer:'<img src=x onerror=alert(1)>'},explanation:'<script>throw 1</script> & "text"',status:'saved'}};
+const resolveRecord=id=>id==='P06__custom'?null:{p:{title:id==='P33'?'Two skaters':'Walking to school',prompt:id==='P05'?'Walk 180 m in 120 s.':id==='P33'?'Skaters push with 50 N.':'Walk 0.084 km in 2 min.',extension:id==='P33'},lesson:{fields:[{key:id==='P33'?'value':'speed',label:'Your answer',unit:id==='P05'?'m/s':id==='P33'?'N':'km/h'}]},selection:{mode:id.includes('__')?'practice':'original',variantId:id.includes('__')?'P05-v2-02':'original'}};
+const html=buildProgressReport({records,resolveRecord,studentName:'<script>alert("student")</script>',exportedAt:'2026-10-26T00:03:00Z'});
+assert.match(html,/4 saved responses/);
+assert.match(html,/1 checked correct · 0 self-reviewed · 3 submitted/);
+assert.match(html,/Practice 2/);
+assert.match(html,/0.084 km in 2 min/);
+assert.match(html,/2.52 <span>km\/h<\/span>/);
+assert.match(html,/Online extension/);
+assert.match(html,/saved question measurements are unavailable/);
+assert(!html.includes('<script>'));
+assert(!html.includes('<img '));
+assert.match(html,/&lt;img src=x onerror=alert\(1\)&gt;/);
+assert.match(html,/&lt;script&gt;alert\(&quot;student&quot;\)&lt;\/script&gt;/);
+assert.match(html,/&lt;script&gt;throw 1&lt;\/script&gt; &amp; &quot;text&quot;/);
+assert(!html.includes('P34'));
+assert.match(buildProgressReport(),/No responses have been entered yet/);
+console.log('Progress reports: variants, units, extension labels, empty defaults, missing custom measurements, and HTML escaping verified.');
+
+const text=buildTextProgressReport({records,resolveRecord,studentName:'Alex Reader',exportedAt:'2026-10-26T00:03:00Z'});
+assert.match(text,/Student: Alex Reader/);assert.match(text,/4 saved responses/);assert.match(text,/1 checked correct · 0 self-reviewed · 3 submitted/);assert.match(text,/Version: Practice 2/);assert.match(text,/Version: Online extension/);assert.match(text,/Walk 0.084 km in 2 min/);assert.match(text,/Your answer: 2.52 km\/h/);assert.match(text,/Status: Checked correct · Attempts: 2/);assert.match(text,/saved question measurements are unavailable/);assert.match(text,/  <script>throw 1<\/script> & "text"/);assert(!text.includes('P34'));
+const withTable=buildTextProgressReport({records:{P01:{answers:{value:'7'},status:'draft'}},resolveRecord:()=>({p:{title:'Data',prompt:'Use the table.',table:{headers:['Time (s)','Distance (m)'],rows:[[0,0],[2,7]]}},lesson:{fields:[{key:'value',label:'Distance',unit:'m'}]}})});assert.match(withTable,/Time \(s\): 2; Distance \(m\): 7/);assert.match(withTable,/Distance: 7 m/);
+assert.match(buildTextProgressReport(),/No responses have been entered yet/);
+console.log('Plain-text report: student name, quantities, units, variants, status, table givens, and multiline student responses verified.');

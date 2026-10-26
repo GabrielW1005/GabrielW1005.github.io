@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import packet from '../data.js';
 import {evaluate,modelInfo,solve} from '../physics.js';
-const all=packet.sections.flatMap(s=>s.problems),by=id=>all.find(p=>p.id===id),near=(a,b,tol=1e-8)=>assert.ok(Math.abs(a-b)<=tol*Math.max(1,Math.abs(a),Math.abs(b)),`${a} != ${b}`);
+const all=packet.sections.flatMap(s=>s.problems).filter(p=>!p.extension),by=id=>all.find(p=>p.id===id),near=(a,b,tol=1e-8)=>assert.ok(Math.abs(a-b)<=tol*Math.max(1,Math.abs(a),Math.abs(b)),`${a} != ${b}`);
 assert.equal(all.length,32);assert.equal(all.filter(p=>p.numericAnswer).length,16);
 let samples=0;
 for(const p of all){
@@ -43,8 +43,8 @@ for(const id of ['P21','P22','P25','P26']){const p=by(id),s=evaluate(p,p.simulat
 const balloon=by('P22'),rising=evaluate(balloon,{...balloon.simulation.params,vi:2},1);assert.ok(rising.v>0&&rising.a<0,'Downward acceleration does not imply downward velocity');
 const bird=by('P25'),landed=evaluate(bird,{...bird.simulation.params,upwardForce:3},2);assert.equal(landed.grounded,true);near(landed.x,0);near(landed.v,0);near(landed.forces.reduce((sum,f)=>sum+f.value,0),0);
 const drone=by('P26'),dr=evaluate(drone,drone.simulation.params,0);near(dr.mass,2);near(dr.upwardForce,23);near(dr.netForce,3);
-for(const id of ['P17','P19']){const p=by(id),s=evaluate(p,p.simulation.params,0);near(s.weight,p.simulation.params.mass*p.simulation.params.g);near(s.springExtension,s.weight/p.simulation.params.springK);near(s.forces.reduce((sum,f)=>sum+f.value,0),0);near(s.a,0);}
-const astronaut=by('P19'),as=evaluate(astronaut,astronaut.simulation.params,0);near(as.compareWeight,1500);near(as.weight,555);near(as.compareSpringExtension/as.springExtension,10/3.7);
+for(const id of ['P17','P19']){const p=by(id),s=evaluate(p,p.simulation.params,0),info=modelInfo(p,p.simulation.params),end=evaluate(p,p.simulation.params,info.duration);near(s.weight,p.simulation.params.mass*p.simulation.params.g);near(s.springExtension,0);near(s.forces.reduce((sum,f)=>sum+f.value,0),s.mass*s.a);near(s.a,-p.simulation.params.g);assert.equal(info.static,false);near(end.currentScaleForce,end.weight,1e-4);near(end.springExtension,end.weight/p.simulation.params.springK,1e-4);}
+const astronaut=by('P19'),as=evaluate(astronaut,astronaut.simulation.params,0);near(as.compareWeight,1500);near(as.weight,555);near(as.compareSpringExtension,0);near(as.springExtension,0);
 // Reference-frame changes preserve the physical trip and change only relative velocity.
 const train=by('P04');for(const speed of [2,10,20]){const ground=evaluate(train,{...train.simulation.params,speed,frame:0},3),moving=evaluate(train,{...train.simulation.params,speed,frame:1},3);near(ground.v,speed);near(moving.v,0);near(ground.groundX,moving.groundX);}
 const crate=by('P20');for(const force of [0,10,18]){const s=evaluate(crate,{...crate.simulation.params,forwardForce:force},2);near(s.a,0);near(s.x,0);near(s.forces.reduce((n,f)=>n+f.value,0),0);}near(evaluate(crate,{...crate.simulation.params,forwardForce:20},1).a,.3);

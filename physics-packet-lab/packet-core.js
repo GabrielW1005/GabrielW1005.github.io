@@ -111,7 +111,7 @@ function validateImport(input,ids,importBytes){
 }
 export function createProgressStore(storage,options={}){
  const configuredIds=options.ids??PACKET_IDS;
- if(!Array.isArray(configuredIds)||!configuredIds.length||configuredIds.length>1000||configuredIds.some(id=>!safeKey(id))||new Set(configuredIds).size!==configuredIds.length)throw new TypeError('Use a bounded list of unique progress IDs.');
+ if(!Array.isArray(configuredIds)||!configuredIds.length||configuredIds.length>2000||configuredIds.some(id=>!safeKey(id))||new Set(configuredIds).size!==configuredIds.length)throw new TypeError('Use a bounded list of unique progress IDs.');
  const ids=Object.freeze([...configuredIds]),IDS=new Set(ids),prefix=options.prefix??PREFIX,importBytes=options.importBytes??LIMITS.importBytes;
  if(typeof prefix!=='string'||!/^[-a-zA-Z0-9_:]{1,100}$/.test(prefix))throw new TypeError('Invalid progress storage prefix.');
  if(!Number.isInteger(importBytes)||importBytes<1000||importBytes>100000000)throw new TypeError('Invalid progress import limit.');

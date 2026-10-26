@@ -1,6 +1,7 @@
-export default {
+import {extensionSections} from './extensions.js?v=20261026-2';
+const packet = {
   "title": "Motion & Forces Lab",
-  "version": "2.4-synced-practice",
+  "version": "2.5-extended-experiments",
   "grade": 8,
   "conventions": [
     "Use right/east as positive for horizontal motion and upward as positive for vertical motion, unless stated otherwise.",
@@ -1976,3 +1977,6 @@ export default {
     "momentumRevision": "Questions 29 and 30 ask total system momentum; no final shared velocity is required."
   }
 };
+
+packet.sections.push(...extensionSections);
+export default packet;

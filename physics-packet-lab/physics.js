@@ -1,3 +1,4 @@
+import {isExtension,solveExtension,evaluateExtension,extensionModelInfo} from './extension-physics.js?v=20261026-2';
 /* SI-unit analytic models. Rendering and playback never change the calculations. */
 const finite=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
 const positive=(v,d=1)=>Math.max(1e-9,finite(v,d));
@@ -91,7 +92,13 @@ function collisionState(p,t){
  bodies.forEach((b,i)=>{const v0=i?m.v2:m.v1,initial=i?m.initial2:m.initial1;b.distance=Math.abs(b.x-initial);if(tt>m.tc&&v0*b.v<0){const omega=Math.PI/m.contactDuration,cross=Math.acos(clamp((i?1:-1)*m.vcm*m.M/((i?m.m1:m.m2)*m.rel),-1,1))/omega;if(cross>=0&&cross<=m.contactDuration&&tt>m.tc+cross){const turn=collisionState(p,m.tc+cross).bodies[i].x;b.distance=Math.abs(turn-initial)+Math.abs(b.x-turn);}}});
  return{...m,t:tt,bodies,contact,collisionPhase:phase,compression,contactForce:F,collided:!p.preImpact&&tt>=m.tc,collisionTime:m.tc,contactDuration:m.contactDuration,totalMomentum:m.m1*v1+m.m2*v2,momentum1:m.m1*v1,momentum2:m.m2*v2,kineticEnergy:.5*m.m1*v1*v1+.5*m.m2*v2*v2};
 }
-export function solve(problem,p,quantity=problem.numericAnswer?.quantity){
+/* Released from the unstretched position. x and v are positive downward here. */
+export function springScaleState(params,time){
+ const mass=positive(params.mass),g=positive(params.g,10),k=positive(params.springK,500),zeta=.45,omega=Math.sqrt(k/mass),d=Math.sqrt(1-zeta*zeta),wd=omega*d,t=Math.max(0,finite(time)),decay=Math.exp(-zeta*omega*t),equilibrium=mass*g/k,x=equilibrium*(1-decay*(Math.cos(wd*t)+zeta/d*Math.sin(wd*t))),v=equilibrium*omega/d*decay*Math.sin(wd*t),force=k*x,dampingForce=2*zeta*Math.sqrt(k*mass)*v,supportForce=force+dampingForce,a=g-supportForce/mass;
+ return{mass,g,k,weight:mass*g,x,v,a,force,dampingForce,supportForce,equilibrium};
+}
+export function solve(problem,p,quantity=p._quantity||problem.numericAnswer?.quantity){
+ if(isExtension(problem))return solveExtension(problem,p,quantity);
  let value=NaN,unit='',formula='',steps=[];const kind=problem.simulation.kind;
  if(kind==='route'){const r=route(p,problem.id);if(/displacement/i.test(quantity)){value=r.end-r.start;unit='m';formula='displacement = final position − starting position';steps=[`${format(r.end)} − (${format(r.start)}) = ${format(value)} m`];}else{value=r.distance;unit='m';formula='distance = first path length + second path length';steps=[`${format(r.d1)} + ${format(r.d2)} = ${format(value)} m`];}}
  else if(kind==='piecewise'){const r=piecewise(p);value=quantity==='distance'?r.distance:r.distance/r.duration;unit=quantity==='distance'?'m':'m/s';formula=quantity==='distance'?'distance = sum of path lengths':'average speed = total distance ÷ total elapsed time';steps=quantity==='distance'?[`Add the path lengths: ${r.positions.slice(1).map((x,i)=>format(Math.abs(x-r.positions[i]))).join(' + ')} = ${format(r.distance)} m.`]:[`${format(r.distance)} m ÷ ${format(r.duration)} s = ${format(r.distance/r.duration)} m/s`];}
@@ -118,6 +125,7 @@ export function solve(problem,p,quantity=problem.numericAnswer?.quantity){
  return{value,unit,formula,steps};
 }
 export function evaluate(problem,p,time){
+ if(isExtension(problem))return evaluateExtension(problem,p,time);
  const k=problem.simulation.kind;let t=Math.max(0,finite(time)),x=0,v=0,a=0,bodies=[],forces=[],readouts=[],axis='horizontal',extra={};
  if(k==='route'){
   const r=route(p,problem.id);t=Math.min(t,r.duration);const d=Math.min(r.distance,r.speed*t);
@@ -136,10 +144,12 @@ export function evaluate(problem,p,time){
  }else if(k==='acceleration'){
   const m=motion(p);t=Math.min(t,m.time);a=m.a;v=m.vi+a*t;x=m.vi*t+.5*a*t*t;extra={distance:pathLength(m.vi,a,t),clockTime:finite(p.startTime)+t};readouts=[{label:'Velocity',value:v,unit:'m/s'},{label:'Acceleration',value:a,unit:'m/s²'},{label:'Elapsed time',value:t,unit:'s'}];
  }else if(k==='gravity'){
-  axis='vertical';const mass=positive(p.mass),g=positive(p.g,10),weight=mass*g,springK=positive(p.springK,500);t=Math.min(t,5);x=0;
-  forces=[{body:0,value:-weight,axis:'vertical',label:'Weight'},{body:0,value:weight,axis:'vertical',label:'Scale force'}];
-  bodies=[{x:0,v:0,a:0,mass,label:problem.simulation.scene==='astronaut'?'Astronaut':'Instrument'}];extra={supported:true,mass,weight,compareWeight:p.compareG!==undefined?mass*positive(p.compareG):undefined,springK,springExtension:weight/springK,compareSpringExtension:p.compareG!==undefined?mass*positive(p.compareG)/springK:undefined,netForce:0,distance:0};
-  readouts=p.compareG!==undefined?[{label:'Weight on other planet',value:weight,unit:'N'},{label:'Weight on Earth',value:extra.compareWeight,unit:'N'},{label:'Mass in both places',value:mass,unit:'kg'}]:[{label:'Scale reading',value:weight,unit:'N'},{label:'Mass',value:mass,unit:'kg'},{label:'Net force at rest',value:0,unit:'N'}];
+  const ss=springScaleState(p,t);axis='vertical';x=-ss.x;v=-ss.v;a=-ss.a;
+  const comparison=p.compareG!==undefined?springScaleState({...p,g:p.compareG},t):null;
+  forces=[{body:0,value:-ss.weight,axis:'vertical',label:'Weight'},{body:0,value:ss.supportForce,axis:'vertical',label:'Scale support'}];
+  bodies=[{x,v,a,mass:ss.mass,label:problem.simulation.scene==='astronaut'?'Astronaut':'Instrument'}];
+  extra={supported:true,mass:ss.mass,weight:ss.weight,compareWeight:comparison?.weight,springK:ss.k,springExtension:ss.x,equilibriumExtension:ss.equilibrium,compareSpringExtension:comparison?.x,currentScaleForce:ss.force,compareScaleForce:comparison?.force,supportForce:ss.supportForce,netForce:ss.supportForce-ss.weight,distance:Math.abs(ss.x)};
+  readouts=[{label:'Spring reading',value:ss.force,unit:'N'},{label:'Weight',value:ss.weight,unit:'N'},{label:'Net force while settling',value:extra.netForce,unit:'N'}];
  }else if(isFlight(problem,p)){
   t=Math.min(t,positive(p.time,5));axis='2d';bodies=[planeBody(problem,p,0,t)];if(p.compareMass!==undefined)bodies.push(planeBody(problem,p,1,t));
   bodies.forEach((b,i)=>forces.push({body:i,value:b.thrust,axis:'horizontal',label:'Thrust'},{body:i,value:-b.drag,axis:'horizontal',label:'Drag'},{body:i,value:b.lift,axis:'vertical',label:'Lift'},{body:i,value:-b.weight,axis:'vertical',label:'Weight'}));
@@ -171,12 +181,13 @@ export function evaluate(problem,p,time){
  return{t,x,v,a,speed:Math.abs(v),distance:extra.distance??Math.abs(x),bodies,forces,readouts,axis,...extra};
 }
 export function modelInfo(problem,p){
+ if(isExtension(problem))return extensionModelInfo(problem,p);
  const k=problem.simulation.kind;let duration=5,quantities=[],graphQuantities=[q('x','Position','m'),q('v','Velocity','m/s'),q('speed','Speed','m/s'),q('distance','Distance','m'),q('a','Acceleration','m/s²')],graphKey='x',isStatic=false,eventTimes=[];
  if(k==='route'){duration=route(p,problem.id).duration;quantities=[q('distance','Total distance','m'),q('displacement','Displacement','m')];graphKey='distance';}
  else if(k==='piecewise'){duration=piecewise(p).duration;quantities=[q('averageSpeed','Average speed','m/s'),q('distance','Total distance','m')];graphKey='distance';graphQuantities=graphQuantities.filter(q=>q.key!=='a');}
  else if(k==='uniform'){duration=uniform(p).time;quantities=[q('speed','Speed','m/s'),q('distance','Distance','m'),q('time','Time','s')];graphKey=['P07','P16'].includes(problem.id)?'speed':'x';}
  else if(k==='acceleration'){duration=motion(p).time;quantities=[q('acceleration','Acceleration','m/s²'),q('finalVelocity','Final velocity','m/s'),q('initialVelocity','Initial velocity','m/s'),q('time','Time','s')];graphKey=problem.id==='P14'?'speed':'v';}
- else if(k==='gravity'){duration=5;quantities=[q('weight','Weight','N')];isStatic=true;graphKey='weight';graphQuantities=[q('weight','Weight comparison','N')];}
+ else if(k==='gravity'){duration=Math.max(5,11/(.45*Math.sqrt(positive(p.springK,500)/positive(p.mass))));quantities=[q('weight','Weight','N')];graphKey='currentScaleForce';graphQuantities=[q('currentScaleForce','Spring reading','N'),q('netForce','Net force while settling','N'),q('v','Vertical velocity','m/s')];}
  else if(['friction','netforce','newton2'].includes(k)){duration=positive(p.time,5);quantities=[q('netForce','Net force','N'),q('acceleration','Acceleration','m/s²')];if(k==='newton2')quantities.push(q('mass','Mass','kg'));if(p.steady)quantities.unshift(q('frictionForce','Sliding friction','N'));graphQuantities.unshift(q('netForce','Net force','N'));graphKey=p.axis==='vertical'?'v':k==='friction'?'netForce':'v';}
  else if(k==='momentum'){const m=collision(p);duration=m.duration;quantities=[q('totalMomentum','Total system momentum','kg·m/s')];graphKey='totalMomentum';graphQuantities=[q('totalMomentum','System momentum','kg·m/s'),q('momentum1','Individual momenta','kg·m/s'),q('v','Velocities','m/s'),q('force','Contact force pair','N')];if(!p.preImpact&&m.collides)eventTimes=[{label:'Contact',time:m.tc+m.contactDuration/2},{label:'After',time:Math.min(duration,m.tc+m.contactDuration+.25)}];}
  else if(k==='circular'){const c=circular(p);duration=c.duration;graphKey=problem.id==='P03'?'distance':'speed';graphQuantities=p.orbital?[q('speed','Orbital speed','km/s'),q('v','East–west velocity','km/s'),q('a','East–west acceleration','m/s²')]:graphQuantities;}

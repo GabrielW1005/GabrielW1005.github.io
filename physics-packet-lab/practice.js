@@ -1,3 +1,4 @@
+import {isExtension,getExtensionQuestion,getExtensionPractice,getExtensionAnswerUnit,listExtensionPracticeIds} from './extensions.js?v=20261026-2';
 /* Additional practice has 24 deterministic, unit-varied parameter sets per problem.
    These pure helpers never modify the printed packet or its saved answers. */
 const copy=v=>Array.isArray(v)?v.map(copy):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).map(([k,x])=>[k,copy(x)])):v;
@@ -13,11 +14,11 @@ const tableFor=p=>{const r=path(p);return{headers:['Time (s)','Total distance (m
 const duration=p=>p.startTime!==undefined&&p.endTime!==undefined?num(p.endTime)-num(p.startTime):num(p.time,1);
 const weight=p=>p.weight!==undefined?num(p.weight):num(p.mass)*num(p.g,10);
 // Unit factors are SI units per displayed unit; all model parameters stay in SI.
-const UNIT_FACTORS=Object.freeze({'m':1,'cm':.01,'km':1000,'s':1,'min':60,'h':3600,'m/s':1,'cm/s':.01,'km/h':1/3.6,'m/s²':1,'cm/s²':.01,'kg':1,'g':.001,'N':1,'kN':1000,'kg·m/s':1,'g·m/s':.001});
+const UNIT_FACTORS=Object.freeze({'m':1,'cm':.01,'km':1000,'s':1,'min':60,'h':3600,'m/s':1,'cm/s':.01,'km/h':1/3.6,'km/s':1000,'m/s²':1,'cm/s²':.01,'kg':1,'g':.001,'N':1,'kN':1000,'kg·m/s':1,'g·m/s':.001});
 export function unitFactor(unit){if(!Object.hasOwn(UNIT_FACTORS,unit))throw new Error(`Unsupported unit: ${unit}`);return UNIT_FACTORS[unit];}
 export function displayValue(si,unit){return Number((Number(si)/unitFactor(unit)).toPrecision(13));}
 const SI_RESULT_UNITS={distance:'m',displacement:'m',speed:'m/s',averageSpeed:'m/s',finalVelocity:'m/s',acceleration:'m/s²',weight:'N',frictionForce:'N',netForce:'N',mass:'kg',totalMomentum:'kg·m/s'};
-export function getAnswerUnit(problem,params=problem.simulation?.params||{}){const unit=params._displayUnits?.answer||SI_RESULT_UNITS[problem.numericAnswer?.quantity]||'m';return{unit,factor:unitFactor(unit)};}
+export function getAnswerUnit(problem,params=problem.simulation?.params||{}){if(isExtension(problem))return getExtensionAnswerUnit(problem,params);const unit=params._displayUnits?.answer||SI_RESULT_UNITS[problem.numericAnswer?.quantity]||'m';return{unit,factor:unitFactor(unit)};}
 const round=v=>Number(v.toFixed(9));
 const pick=(array,i)=>array[i%array.length];
 const unitSet=(extra={})=>({distance:'m',time:'s',speed:'m/s',acceleration:'m/s²',mass:'kg',force:'N',momentum:'kg·m/s',...extra});
@@ -137,6 +138,7 @@ const displayFmt=value=>Number(Number(value).toFixed(6)).toLocaleString('en-US',
 /** Build the same current-value question in its chosen display units. The
  * original packet and ordinary edited SI questions keep their exact wording. */
 export function getQuestion(problem,params=problem.simulation?.params||{},options={}){
+ if(isExtension(problem))return getExtensionQuestion(problem,params);
  const view=legacyQuestion(problem,params,options),units=params._displayUnits;
  if(units||params._practiceVariant)view.title=({P03:'Running laps around the track',P11:'Backing up: changing speed',P12:'A planet in orbit',P17:'A science instrument on another world',P19:'An astronaut on another world',P20:'Testing static friction'})[problem.id]||problem.title;
  if(!units)return view;
@@ -155,8 +157,9 @@ export function getQuestion(problem,params=problem.simulation?.params||{},option
  view.unitNote='Convert units when needed. The simulation uses meters, seconds, kilograms, and newtons for its graph and measurement labels.';
  return view;
 }
-export function listPracticeIds(problem){const id=typeof problem==='string'?problem:problem?.id;if(!/^P(?:0[1-9]|[12]\d|3[0-2])$/.test(id||''))return[];return Array.from({length:24},(_,i)=>`${id}-v2-${String(i+1).padStart(2,'0')}`);}
+export function listPracticeIds(problem){if(isExtension(problem))return listExtensionPracticeIds(problem);const id=typeof problem==='string'?problem:problem?.id;if(!/^P(?:0[1-9]|[12]\d|3[0-2])$/.test(id||''))return[];return Array.from({length:24},(_,i)=>`${id}-v2-${String(i+1).padStart(2,'0')}`);}
 export function getPractice(problem,variantId){
+ if(isExtension(problem))return getExtensionPractice(problem,variantId);
  const index=listPracticeIds(problem).indexOf(variantId);if(index<0)throw new Error(`Unknown practice variant: ${variantId}`);
  const params={...copy(problem.simulation.params),...variantParams(problem.id,index),_practiceVariant:variantId};
  const question=getQuestion(problem,params,{practice:true});

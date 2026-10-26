@@ -10,3 +10,12 @@ Gabriel requests varied values and realistic units in generated math and science
 - Preserve published packet originals unless an edit to those originals is explicitly requested.
 
 These preferences were explicitly requested on October 25, 2026 and apply to future updates to this project.
+
+October 25, 2026 extension requirements:
+- Keep the handed-out 32-problem paper packet unchanged; add new numerical problems after it in both online views.
+- New extension questions should require numerical answers. Rotate unknowns within appropriate practice families: F = ma, m = F/a, a = F/m; p = mv, m = p/v, v = p/m.
+- Include equation warm-ups that explicitly show applying division to both sides.
+- Keep large Go To Simulation / Go To Packet links at the top of both views, in the same tab.
+- Start new experiments with a sensible incorrect guess, preserve student edits, and clamp physical inputs to appropriate finite ranges. Negative values remain allowed when they represent direction.
+- Provide autosaving, portable downloadable backups, and a readable progress report students can send to their teacher.
+- Use clear third-law contact and buoyancy visuals, without introducing advanced deformation or astrophysics prerequisites.

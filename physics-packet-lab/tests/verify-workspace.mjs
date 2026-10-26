@@ -6,7 +6,7 @@ import {createWorkspaceStore,createWorkspaceProgressStore,parseWorkspaceRoute,wo
 const problems=packet.sections.flatMap(s=>s.problems),problem=id=>problems.find(p=>p.id===id);
 function memory(){const map=new Map();return{map,getItem:key=>map.get(key)??null,setItem:(key,value)=>map.set(key,String(value)),removeItem:key=>map.delete(key)};}
 const backend=memory(),workspace=createWorkspaceStore(backend),progress=createWorkspaceProgressStore(backend);
-assert.equal(WORKSPACE_IDS.length,856);assert.equal(new Set(WORKSPACE_IDS).size,856);assert.equal(WORKSPACE_IMPORT_BYTES,12000000);
+assert.equal(WORKSPACE_IDS.length,problems.length*26+24);assert.equal(new Set(WORKSPACE_IDS).size,problems.length*26+24);assert.equal(WORKSPACE_IMPORT_BYTES,12000000);
 let variants=0;
 for(const p of problems){
  assert.equal(workspace.selection(p,'original').recordId,p.id);
@@ -22,7 +22,7 @@ for(const p of problems){
   variants++;
  }
 }
-assert.equal(variants,768);
+assert.equal(variants,problems.length*24);
 const p=problem('P05'),first=getPractice(p,'P05-v2-01'),second=getPractice(p,'P05-v2-02');
 workspace.select(p,first.params);const firstSelection=workspace.selection(p),firstId=firstSelection.recordId;
 assert.equal(progress.save(firstId,{answers:{speed:'2.4'},status:'needs-work'}).ok,true);
