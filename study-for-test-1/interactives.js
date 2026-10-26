@@ -181,13 +181,17 @@ function mountPerimeter(container,problem,options) {
 function mountRearrange(container,problem,options) {
   const f=frame(container,options),d=problem.diagram;let n=Number(d.n)||12,r=Number(d.radius)||6;let tr;
   polygonSettings(f,d,(nn,rr)=>{n=nn;r=rr;draw(tr.t);});
+  f.root.classList.add('lv-rearrange');
+  const dimensions=document.createElement('div');dimensions.className='lv-dimension-readout';dimensions.setAttribute('role','group');dimensions.setAttribute('aria-label','Current radius and perpendicular height');f.liveControls.append(dimensions);
   f.caption.textContent=f.allowSolutions?'Each triangle keeps its size. Together they form a parallelogram: base = half the polygon perimeter, height = the polygon’s center-to-side distance. As the number of sides increases, the base approaches πr and the height approaches r.':'Each triangle keeps its size. Compare the bottom edge with the polygon boundary. Compare the rearranged height with the original radius, and describe what changes as the number of sides grows.';
   function draw(t){
     const s=2*r*Math.sin(Math.PI/n),h=r*Math.cos(Math.PI/n),b=n*s/2,scale=138/r,originalValues=n===Number(d.n)&&r===Number(d.radius);
+    const unit=d.unit||'cm',heightDisplay=originalValues&&d.height_display?d.height_display:fixed(h),readout=`<span class="lv-radius-value">Radius <b>r = ${esc(fmt(r,6))} ${esc(unit)}</b></span><span class="lv-height-value">Height <b>h ≈ ${esc(heightDisplay)} ${esc(unit)}</b></span>`;
+    if(dimensions.innerHTML!==readout)dimensions.innerHTML=readout;
     const center=[400,228],left=400-(b+s/2)*scale/2,bottom=312;
     const phase=0,rad=r*scale;
     let g=`<circle cx="${center[0]}" cy="${center[1]}" r="${rad}" fill="none" class="ghost" opacity="${1-t*.75}"/>`;
-    if(t<.02)g+=ln(center[0],center[1],center[0]+rad,center[1],'accentline')+svgText(center[0]+rad/2,center[1]-12,`r = ${fmt(r)}`,'small');
+    let radiusTriangle,heightTriangle;const heightIndex=Math.round(n/4-.5);
     for(let i=0;i<n;i++){
       const a=phase+i*TAU/n,j=Math.floor(i/2),up=i%2===0;
       const targetApex=up?[(j+.5)*s,h]:[(j+1)*s,0];
@@ -197,18 +201,28 @@ function mountRearrange(container,problem,options) {
       const angleA=a+rotation,angleB=a+TAU/n+rotation;
       const triangle=[apex,[apex[0]+rad*Math.cos(angleA),apex[1]-rad*Math.sin(angleA)],[apex[0]+rad*Math.cos(angleB),apex[1]-rad*Math.sin(angleB)]];
       g+=poly(triangle,up?'piece':'alternate',`style="stroke:#8ca3b9;stroke-width:${Math.min(.8,4.8/n)}"`);
+      if(i===0)radiusTriangle=triangle;if(i===heightIndex)heightTriangle=triangle;
     }
+    // Overlay dimensions after every piece: they remain visible while the
+    // selected triangles translate and rotate, and never change their length.
+    const [ra,rv]=radiusTriangle,[ha,hv,hw]=heightTriangle,hf=[(hv[0]+hw[0])/2,(hv[1]+hw[1])/2];
+    const rn=[-(rv[1]-ra[1])/rad,(rv[0]-ra[0])/rad],hu=[(ha[0]-hf[0])/(h*scale),(ha[1]-hf[1])/(h*scale)],halfSide=s*scale/2,hvUnit=[(hv[0]-hf[0])/halfSide,(hv[1]-hf[1])/halfSide],mark=Math.min(9,halfSide*.8);
+    g+=`<g class="lv-shape-dimensions">`+ln(...ra,...rv,'lv-radius-line')+svgText((ra[0]+rv[0])/2-rn[0]*17,(ra[1]+rv[1])/2-rn[1]*17+6,'r','lv-radius-label');
+    g+=ln(...ha,...hf,'lv-height-line')+svgText((ha[0]+hf[0])/2+hvUnit[0]*18,(ha[1]+hf[1])/2+hvUnit[1]*18+6,'h','lv-height-label');
+    g+=`<path d="M ${hf[0]+hu[0]*mark} ${hf[1]+hu[1]*mark} L ${hf[0]+(hu[0]+hvUnit[0])*mark} ${hf[1]+(hu[1]+hvUnit[1])*mark} L ${hf[0]+hvUnit[0]*mark} ${hf[1]+hvUnit[1]*mark}" class="lv-height-angle"/></g>`;
     if(t>.75){const op=(t-.75)/.25,top=bottom-h*scale,xright=left+(b+s/2)*scale;
       g+=`<g opacity="${op}">`+ln(left,bottom+25,left+b*scale,bottom+25,'accentline')+ln(left,bottom+19,left,bottom+31,'minor')+ln(left+b*scale,bottom+19,left+b*scale,bottom+31,'minor');
       g+=svgText(left+b*scale/2,bottom+53,f.allowSolutions?`base = P/2 = ${fixed(b)} ${d.unit||'cm'}`:d.label_dimensions&&originalValues?`base = ${fmt(Number(d.base),6)} ${d.unit||'cm'}`:'base','small');
-      g+=ln(xright+22,bottom,xright+22,top,'accentline')+svgText(xright+36,(bottom+top)/2,'h','accenttext','start');
-      g+=ln(left+s*scale/2, bottom-r*scale, xright+45,bottom-r*scale,'guide');
-      g+=svgText(400,bottom-r*scale-14,f.allowSolutions?`dashed level: r = ${fmt(r)};   height gap r − h = ${fixed(r-h)}`:`dashed level: radius = ${fmt(r)}; compare the gap`,'small');
+      g+=ln(xright+22,bottom,xright+22,top,'lv-height-line')+svgText(xright+30,(bottom+top)/2+6,'h','lv-height-label','start');
+      g+=ln(xright+68,bottom,xright+68,bottom-r*scale,'lv-radius-line')+svgText(xright+76,bottom-r*scale/2+6,'r','lv-radius-label','start');
+      g+=ln(xright+16,bottom,xright+74,bottom,'minor')+ln(xright+22,bottom-9,xright+13,bottom-9,'lv-height-angle')+ln(xright+13,bottom-9,xright+13,bottom,'lv-height-angle');
+      g+=ln(left+s*scale/2, bottom-r*scale, xright+74,bottom-r*scale,'guide');
+      g+=svgText(400,bottom-r*scale-14,f.allowSolutions?`height gap r − h = ${fixed(r-h)} ${unit}`:'Compare the perpendicular height with the radius.','small');
       g+=svgText(400,412,f.allowSolutions?'Base approaches πr. Height approaches r. Area approaches πr × r.':'Describe what the base and height approach.','small')+'</g>';
     } else g+=svgText(400,32,`${n} equal triangles — same pieces, new arrangement`,'small');
     f.svg.innerHTML=g;
     const estimating=(problem.fields||[]).some(field=>/estimated perimeter/i.test(field.label));
-    f.setMetrics(!f.allowSolutions ? [['Radius',`${fmt(r)} ${d.unit||'cm'}`],...(d.label_dimensions&&originalValues?[['Given polygon base',`${fmt(Number(d.base),6)} ${d.unit||'cm'}`],['Given polygon height',`${fmt(Number(d.height),6)} ${d.unit||'cm'}`]]:[]),['Think about the change','Compare the edges and heights']] : estimating ? [['Circle estimate 2 × 3.14 × r',`${fmt(2*3.14*r,4)} ${d.unit||'cm'}`],['Estimated base: 3.14 × r',`${fmt(3.14*r,4)} ${d.unit||'cm'}`],['Finite polygon base P/2',`${fixed(b)} ${d.unit||'cm'}`],['Polygon height h',`${fixed(h)} ${d.unit||'cm'}`]] : [['Base b = P/2',`${fixed(b)} ${d.unit||'cm'}`],['Height h',`${fixed(h)} ${d.unit||'cm'}`],['Radius − height',`${fixed(r-h)} ${d.unit||'cm'}`],['Polygon area b × h',`${fixed(b*h)} square ${d.unit||'cm'}`]]);
+    f.setMetrics(!f.allowSolutions ? [['Radius',`${fmt(r)} ${unit}`],['Perpendicular height',`${heightDisplay} ${unit}`],...(d.label_dimensions&&originalValues?[['Given polygon base',`${fmt(Number(d.base),6)} ${unit}`]]:[]),['Think about the change','Compare the edges and heights']] : estimating ? [['Circle estimate 2 × 3.14 × r',`${fmt(2*3.14*r,4)} ${d.unit||'cm'}`],['Estimated base: 3.14 × r',`${fmt(3.14*r,4)} ${d.unit||'cm'}`],['Finite polygon base P/2',`${fixed(b)} ${d.unit||'cm'}`],['Polygon height h',`${heightDisplay} ${unit}`]] : [['Base b = P/2',`${fixed(b)} ${d.unit||'cm'}`],['Height h',`${heightDisplay} ${unit}`],['Radius − height',`${fixed(r-h)} ${d.unit||'cm'}`],['Polygon area b × h',`${fixed(b*h)} square ${d.unit||'cm'}`]]);
   }
   tr=transport(f,draw,1,3200);tr.set(0);return f.clean;
 }
