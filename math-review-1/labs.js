@@ -1,4 +1,5 @@
-import { renderDiagram } from './diagrams.js';
+import { renderDiagram } from './diagrams.js?v=geometry-5';
+import {createNetModel,renderNet} from './net-unfold.js?v=geometry-5';
 import {mathHTML} from './math-format.js?v=learning-4';
 import {guidanceFor} from './guidance.js?v=learning-4';
 
@@ -30,6 +31,7 @@ export function mountLab(host,problem,onChange=()=>{}){
   const ctx={host,stage,readout,controls,caption,p,onChange,
     // Report actual worked help once; exploratory controls and student input stay independent.
     assist(){if(p.allowSolutions&&!assisted){assisted=true;onChange({kind:'assistance'});}},
+    cleanup(fn){cleanups.push(fn);},
     listen(target,event,fn,opts){target.addEventListener(event,fn,opts);cleanups.push(()=>target.removeEventListener(event,fn,opts));},
     animate(draw,duration=1250){cancelAnimationFrame(raf);if(matchMedia('(prefers-reduced-motion: reduce)').matches){draw(1);return;}const start=performance.now();function frame(now){if(stopped)return;let t=clamp((now-start)/duration,0,1);draw(t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2);if(t<1)raf=requestAnimationFrame(frame);}raf=requestAnimationFrame(frame);},
     stop(){cancelAnimationFrame(raf);clearTimeout(timer);},
@@ -145,14 +147,43 @@ function areaLab(ctx){const {p,stage,readout,controls,caption}=ctx,v=p.visual;co
   controls.append(btn('Square units',()=>{mode='partition';t=0;draw();}));if(ps.length===3||ps.length===4)controls.append(btn('Rearrange',()=>{mode='rearrange';t=0;draw();}));addAnimation(ctx,n=>{t=n;draw();},{duration:1800});caption.textContent='Use the exact shape to connect a formula to its area.';draw();
 }
 
-function solidLab(ctx){
+function unfoldNetLab(ctx){
+  const {p,stage,readout,controls,caption}=ctx,model=createNetModel(p.visual);
+  let progress=0,direction=1,playing=false,frame=0,last=0,closed=false;
+  const duration=3300,lateral=/lateral/.test(p.family||'');
+  stage.classList.add('lab-net-stage');
+  function pause(){playing=false;cancelAnimationFrame(frame);frame=0;play.textContent='Play';play.setAttribute('aria-pressed','false');}
+  function draw(){stage.innerHTML=renderNet(model,progress,{lateral});slider.set(Math.round(progress*100));
+    readout.textContent=progress<.001?'Folded solid':progress>.999?'Flat net':direction>0?'Unfolding along shared edges':'Folding along shared edges';
+    reverse.textContent=progress>=1||direction>0?'Fold back':'Unfold';reverse.disabled=progress<=0;
+    caption.textContent=lateral?'The pale base faces stay attached; the colored side faces form the lateral surface.':'The colors follow the same faces. Dashed edges are hinges; the faces keep their size.';
+  }
+  function tick(now){if(closed||!playing)return;if(last)progress=clamp(progress+direction*(now-last)/duration,0,1);last=now;draw();if((direction>0&&progress>=1)||(direction<0&&progress<=0)){pause();return;}frame=requestAnimationFrame(tick);}
+  function start(){if(progress<=0&&direction<0)direction=1;if(progress>=1&&direction>0)direction=-1;
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches){progress=direction>0?1:0;draw();pause();return;}
+    playing=true;last=0;play.textContent='Pause';play.setAttribute('aria-pressed','true');frame=requestAnimationFrame(tick);
+  }
+  const slider=ctx.slider('Unfold',0,100,0,1,n=>{pause();progress=n/100;draw();});
+  slider.input.setAttribute('aria-label','Unfold solid into net');
+  const play=btn('Play',()=>playing?pause():start());
+  const reverse=btn('Fold back',()=>{pause();direction=progress<=0?1:progress>=1?-1:-direction;start();});
+  const reset=btn('Reset solid',()=>{pause();progress=0;direction=1;draw();});
+  const flat=btn('Flat net',()=>{pause();progress=1;direction=-1;draw();});
+  controls.append(play,reverse,reset,flat);
+  if(p.visual.type==='prism')controls.append(btn('Build volume',()=>{pause();stage.classList.remove('lab-net-stage');controls.innerHTML='';solidLab(ctx,true);}));
+  controls.append(btn('Given diagram',()=>{pause();stage.innerHTML=`<div class="lab-static">${renderDiagram(p.visual,{answer:false})}</div>`;readout.textContent='Exact problem dimensions';caption.textContent='Move the unfolding slider or select Play to return to the model.';}));
+  ctx.cleanup(()=>{closed=true;pause();stage.classList.remove('lab-net-stage');});draw();
+}
+
+function solidLab(ctx,forceVolume=false){
   const {p,stage,readout,controls,caption}=ctx,v=p.visual;
+  if(!forceVolume&&(v.type==='net'||v.type==='pyramid'||(/surface|lateral|net-/.test(p.family||'')||/surface area/i.test(p.blockTitle||p.block?.title||'')))&&!v.crossSection&&!v.slice){unfoldNetLab(ctx);return;}
   const isPyramid=v.type==='pyramid',isSlice=!!v.crossSection||!!v.slice;let t=0,mode=isSlice?'slice':/surface|lateral/.test(p.family||'')?'faces':'layers';
   let base=v.vertices3D?v.vertices3D.slice(0,-1).map(q=>q.slice(0,2)):(v.base||[[0,0],[Number(v.width||4),0],[Number(v.width||4),Number(v.length||3)],[0,Number(v.length||3)]]);
   const depth=Number(v.vertices3D?v.vertices3D.at(-1)[2]:v.depth??v.height??4);
   const center=base.reduce((a,q)=>[a[0]+q[0]/base.length,a[1]+q[1]/base.length],[0,0]);
   const apex=v.vertices3D?v.vertices3D.at(-1):[...center,depth];
-  const iso=q=>[Math.sqrt(3)/2*(q[0]-q[1]),q[2]-(q[0]+q[1])/2];
+  const iso=q=>base.length>4?[Math.sqrt(3)/2*(q[0]-q[2]),q[1]-(q[0]+q[2])/2]:[Math.sqrt(3)/2*(q[0]-q[1]),q[2]-(q[0]+q[1])/2];
   const all=[...base.map(q=>[...q,0]),...(isPyramid?[apex]:base.map(q=>[...q,depth]))].map(iso);
   const xs=all.map(q=>q[0]),ys=all.map(q=>q[1]),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
   const scale=Math.min(420/(xmax-xmin||1),215/(ymax-ymin||1));
@@ -165,6 +196,7 @@ function solidLab(ctx){
       if(p.family==='net-faces')ctx.assist();const count=Math.round((v.faces?.length||0)*t),nv={...v,faces:(v.faces||[]).map((f,i)=>({...f,fill:i<count?'#b6e6df':'#edf2f7'}))};
       stage.innerHTML=`<div class="lab-static">${renderDiagram(nv,{answer:false})}</div>`;readout.textContent=p.allowSolutions||p.family!=='net-faces'?`${count} of ${v.faces?.length||0} faces highlighted`:'Follow each face as the net folds.';caption.textContent='A net has exactly the same faces as the solid. Add each face once.';slider.set(t);return;
     }
+    if(base.length>4&&mode==='layers'&&t===0){stage.innerHTML=`<div class="lab-static">${renderDiagram(v,{answer:false})}</div>`;readout.textContent='Build layers from the L-shaped base';slider.set(t);return;}
     let s=header(600,340);const front=base.map(q=>P([...q,0])),back=base.map(q=>P([...q,depth]));
     if(isPyramid&&mode==='faces'){
       const includeBase=!/lateral/.test(p.family||''),faces=[...front.map((q,i)=>[q,front[(i+1)%front.length],P(apex)]),...(includeBase?[front]:[])],count=Math.round(faces.length*t);
@@ -202,7 +234,7 @@ function solidLab(ctx){
     s+=text(300,320,'Equal scale along all three isometric axes.',12);stage.innerHTML=s+'</svg>';slider.set(t);
   }
   if(isPyramid)controls.append(btn('Inspect faces',()=>{mode='faces';t=0;draw();}),btn('Slice',()=>{mode='slice';t=.5;draw();}));
-  if(!isPyramid&&v.type!=='net')controls.append(btn('Fill layers',()=>{mode='layers';t=0;draw();}),btn('Separate faces',()=>{mode='faces';t=0;draw();}),btn('Slice',()=>{mode='slice';t=.5;draw();}));
+  if(!isPyramid&&v.type!=='net')controls.append(btn('Fill layers',()=>{mode='layers';t=0;draw();}),btn('Unfold net',()=>{ctx.stop();controls.innerHTML='';unfoldNetLab(ctx);}),btn('Slice',()=>{mode='slice';t=.5;draw();}));
   addAnimation(ctx,n=>{t=n;draw();},{duration:2100});controls.append(btn('Given diagram',()=>{ctx.stop();stage.innerHTML=`<div class="lab-static">${renderDiagram(v,{answer:false})}</div>`;readout.textContent='Exact problem dimensions';}));
   caption.textContent='Move the slider to inspect the actual solid. Dimensions do not change.';draw();
 }

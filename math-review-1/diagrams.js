@@ -5,6 +5,8 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const n=x=>Math.round(Number(x)*1000)/1000;
 const pt=p=>Array.isArray(p)?p:[p.x,p.y];
 const iso=p=>[Math.sqrt(3)/2*(p[0]+p[1]),p[2]+(p[1]-p[0])/2];
+const isRectilinearL=ps=>ps?.length===6&&ps.every((p,i)=>{const q=ps[(i+1)%ps.length];return Math.abs(p[0]-q[0])<1e-9||Math.abs(p[1]-q[1])<1e-9;})&&new Set(ps.map(p=>p[0])).size===3&&new Set(ps.map(p=>p[1])).size===3;
+const uprightIso=p=>iso([p[0],p[2],p[1]]);
 const center=ps=>ps.reduce((a,p)=>[a[0]+p[0]/ps.length,a[1]+p[1]/ps.length],[0,0]);
 
 export function renderDiagram(v,opts={}){
@@ -20,10 +22,10 @@ export function renderDiagram(v,opts={}){
   const customLabels=(ls)=>{for(const l of ls||[])label([l.x,l.y],l.text??l.label,{anchor:l.anchor,dx:l.dx,dy:l.dy,color:l.color});};
 
   if(v.type==='polygon'){
-    poly(v.points||[],{fill:v.fill||BLUE});
+    poly(v.points||[],{fill:v.fill||BLUE,width:isRectilinearL(v.points)?2.2:1.8});
     if(v.highlight?.points)poly(v.highlight.points,{fill:'#f3d696',color:'#a57931'});
     for(const p of v.polygons||[])poly(p.points||p,{fill:p.fill||BLUE,dashed:p.dashed});
-    for(const s of v.segments||[])segment(s);
+    for(const s of v.segments||[])segment(isRectilinearL(v.points)&&s.dashed?{...s,color:'#879ca5',width:1.1}:s);
     for(const l of v.pointLabels||[])label([l.x,l.y],l.text||l.label,{dx:7,dy:-7});
     if(v.rightAngles)for(const a of v.rightAngles){const p=a.at||a;const r=a.size||.3;poly([[p[0],p[1]+r],[p[0]+r,p[1]+r],[p[0]+r,p[1]]],{open:true,fill:'none'});}
   }else if(v.type==='circle'){
@@ -63,6 +65,40 @@ export function renderDiagram(v,opts={}){
     if(answer)for(const p of v.targets||[]){dot(pt(p),{color:RED,radius:4});if(p.label)label(pt(p),p.label,{dx:9,dy:-9,color:RED});}
     if(v.connectPoints&&v.points?.length>1)poly(v.points.map(pt),{open:!v.closedPoints,fill:'none',color:ACCENT});
     if(answer&&v.targetEdges&&(v.targets?.length||0)+(v.points?.length||0)>2)poly((v.targets?.length>=3?v.targets:[...(v.points||[]),...(v.targets||[])]).map(pt),{fill:'none',color:RED,width:2.4});
+  }else if(v.type==='prism'&&isRectilinearL(v.base)){
+    // Present an L-shaped cross section upright. All three spatial axes retain
+    // the same projected scale; the depth recedes behind the readable front.
+    // Only opaque visible faces are drawn, so hidden base edges cannot look
+    // like extra cuts across the notch.
+    const base=v.base.map(pt),d=Number(v.depth||1),front=base.map(p=>uprightIso([...p,0])),back=base.map(p=>uprightIso([...p,d]));
+    const signed=base.reduce((sum,a,i)=>{const b=base[(i+1)%base.length];return sum+a[0]*b[1]-b[0]*a[1];},0),winding=Math.sign(signed)||1;
+    const faces=[];
+    for(let i=0;i<base.length;i++){
+      const j=(i+1)%base.length,a=base[i],b=base[j],dx=b[0]-a[0],dy=b[1]-a[1];
+      if(winding*(dy-dx)>1e-9)faces.push({i,j,order:(a[0]+b[0]+a[1]+b[1])/2-d/2,fill:Math.abs(dy)>1e-9?'#dceaf0':'#edf4f7'});
+    }
+    faces.sort((a,b)=>a.order-b.order);
+    for(const f of faces)poly([front[f.i],front[f.j],back[f.j],back[f.i]],{fill:f.fill,width:1.6});
+    poly(front,{fill:'#f5f9fa',width:2.2});
+    const xs=base.map(p=>p[0]),ys=base.map(p=>p[1]),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
+    const rightTop=base.filter(p=>Math.abs(p[0]-xmax)<1e-9).reduce((a,b)=>a[1]>b[1]?a:b);
+    const depthPoint=uprightIso([rightTop[0],rightTop[1],d/2]),depthLabelPoint=uprightIso([rightTop[0],rightTop[1],d]);
+    const custom=v.labels3D||[];
+    for(const l of custom){
+      const q=l.point||[l.x,l.y,l.z];
+      if(q[2]>1e-9&&q[2]<d-1e-9){label(depthLabelPoint,l.text,{dx:14,dy:-20,anchor:'start',leader:true,leaderFrom:depthPoint});continue;}
+      const p=uprightIso([q[0],q[1],0]);
+      if(Math.abs(q[0]-xmin)<1e-9)label(p,l.text,{dx:-16,anchor:'end'});
+      else if(Math.abs(q[1]-ymin)<1e-9)label(p,l.text,{dy:23});
+      else if(Math.abs(q[1]-ymax)<1e-9)label(uprightIso([q[0],q[1],d]),l.text,{dy:-24});
+      else if(Math.abs(q[0]-xmax)<1e-9)label(uprightIso([q[0],q[1],d]),l.text,{dx:17,anchor:'start'});
+      else label(p,l.text,{dx:l.dx,dy:l.dy,anchor:l.anchor});
+    }
+    if(!custom.length&&v.dimensionLabels!==false){
+      for(let i=0;i<base.length;i++){const j=(i+1)%base.length,txt=v.baseLabels?.[i];if(txt)label(center([front[i],front[j]]),txt,{dy:17});}
+      label(depthLabelPoint,v.depthLabel||`${n(d)} ${v.unit||''}`,{dx:14,dy:-20,anchor:'start',leader:true,leaderFrom:depthPoint});
+    }
+    for(const s of v.segments3D||[]){line(uprightIso(s.from),uprightIso(s.to),{dashed:s.dashed,color:s.color,width:s.width});if(s.label)label(uprightIso(s.labelPosition||s.from.map((x,i)=>(x+s.to[i])/2)),s.label,{dx:s.dx,dy:s.dy});}
   }else if(v.type==='prism'){
     const base=v.base||[[0,0],[4,0],[4,3],[0,3]],d=Number(v.depth||1),front=base.map(p=>iso([p[0],p[1],0])),back=base.map(p=>iso([p[0],p[1],d]));
     poly(front,{fill:'#eff5f7',dashed:true});
@@ -127,8 +163,8 @@ export function renderDiagram(v,opts={}){
     else if(s.kind==='circle')out+=`<circle cx="${n(X(s.p[0]))}" cy="${n(Y(s.p[1]))}" r="${n(s.r*scale)}" fill="${s.fill||'none'}" stroke="${stroke}" stroke-width="${width}"/>`;
   }
   for(const l of labels){const lx=X(l.p[0])+(l.dx||0),ly=Y(l.p[1])+(l.dy||0),fs=l.fontSize||18,tw=String(l.text).length*fs*.53;
-    if(l.leader&&(l.dx||l.dy))out+=`<line x1="${n(X(l.p[0]))}" y1="${n(Y(l.p[1]))}" x2="${n(lx)}" y2="${n(ly)}" stroke="#91a4ad" stroke-width=".8"/>`;
-    if(l.leader)out+=`<rect x="${n(lx-tw/2-2)}" y="${n(ly-fs*.58)}" width="${n(tw+4)}" height="${n(fs*1.15)}" fill="white"/>`;
+    if(l.leader&&(l.dx||l.dy))out+=`<line x1="${n(X((l.leaderFrom||l.p)[0]))}" y1="${n(Y((l.leaderFrom||l.p)[1]))}" x2="${n(lx)}" y2="${n(ly)}" stroke="#91a4ad" stroke-width=".8"/>`;
+    if(l.leader)out+=`<rect x="${n(lx-(l.anchor==='start'?0:l.anchor==='end'?tw:tw/2)-2)}" y="${n(ly-fs*.58)}" width="${n(tw+4)}" height="${n(fs*1.15)}" fill="white"/>`;
     out+=`<text x="${n(X(l.p[0])+(l.dx||0))}" y="${n(Y(l.p[1])+(l.dy||0))}" text-anchor="${l.anchor||'middle'}" dominant-baseline="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="${l.fontSize||18}" fill="${l.color||INK}">${esc(l.text)}</text>`;}
   if(v.caption)out+=`<text x="${W/2}" y="${H-7}" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="11" fill="#687881">${esc(v.caption)}</text>`;
   return out+'</svg>';

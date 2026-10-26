@@ -41,7 +41,7 @@ export function buildReport(state,problems){
   const skills=new Map(),byKey=new Map();
   const ensure=(p)=>{const info=problemInfo(p),id=skillId(info.chapter,info.label);if(!skills.has(id))skills.set(id,{id,label:info.label,chapter:info.chapter,total:0,attempted:0,correct:0,practiceTried:0,practiceCorrect:0,firstTryCorrect:0,firstTryTotal:0,independentExtra:0,helped:0,pending:0,unmarked:0,legacyCorrect:0,checks:0,recommendKey:info.originalKey||info.key,status:'not-started'});return skills.get(id);};
   for(const p of canonical.values()){const skill=ensure(p);skill.total++;byKey.set(String(p.key??p.block?.id),skill);}
-  const entries=[...canonical.values(),...(Array.isArray(state.extra)?state.extra:[])];
+  const entries=[...canonical.values(),...(Array.isArray(state.extra)?state.extra.filter(p=>canonical.has(String(p.originalKey))):[])];
   const seen=new Set();
   for(const p of entries){const info=problemInfo(p);if(!safeKey(info.key)||seen.has(info.key))continue;seen.add(info.key);
     const original=canonical.get(info.originalKey),skill=info.originalKey&&original?byKey.get(info.originalKey):byKey.get(info.key)||ensure(p);

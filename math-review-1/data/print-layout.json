@@ -1,85 +1,87 @@
 {
-  "version": 1,
-  "pageCount": 52,
+  "version": 2,
+  "pageCount": 43,
   "sectionToPage": {
     "1": 1,
     "2": 1,
     "3": 1,
-    "4": 2,
-    "5": 2,
+    "4": 1,
+    "5": 1,
     "6": 2,
-    "7": 3,
-    "8": 3,
-    "9": 3,
-    "10": 4,
-    "11": 4,
-    "12": 4,
-    "13": 5,
-    "14": 5,
-    "15": 6,
-    "16": 6,
-    "17": 6,
-    "18": 7,
-    "19": 7,
-    "20": 8,
-    "21": 8,
-    "22": 9,
-    "23": 9,
-    "24": 10,
-    "25": 10,
-    "26": 11,
-    "27": 11,
-    "28": 12,
-    "29": 12,
-    "30": 13,
-    "31": 13,
-    "32": 14,
-    "33": 15,
-    "34": 16,
-    "35": 17,
-    "36": 18,
-    "37": 18,
-    "38": 19,
-    "39": 19,
-    "40": 20,
-    "41": 20,
-    "42": 21,
-    "43": 22,
-    "44": 23,
-    "45": 24,
-    "46": 25,
-    "47": 26,
-    "48": 27,
-    "49": 28,
-    "50": 29,
-    "51": 30,
-    "52": 31,
-    "53": 32,
-    "54": 33,
-    "55": 34,
-    "56": 35,
-    "57": 36,
-    "58": 37,
-    "59": 38,
-    "60": 39,
-    "61": 40,
-    "62": 41,
-    "63": 42,
-    "64": 43,
-    "65": 44,
-    "66": 45,
-    "67": 46,
-    "68": 47,
-    "69": 48,
-    "70": 49,
-    "71": 50,
-    "72": 51,
-    "73": 52
+    "7": 2,
+    "8": 2,
+    "9": 2,
+    "9.01": 3,
+    "10": 3,
+    "11": 3,
+    "12": 3,
+    "13": 3,
+    "14": 4,
+    "15": 4,
+    "16": 4,
+    "17": 4,
+    "17.01": 5,
+    "18": 5,
+    "19": 5,
+    "20": 6,
+    "21": 6,
+    "22": 6,
+    "23": 7,
+    "24": 7,
+    "25": 7,
+    "25.01": 8,
+    "26": 8,
+    "27": 8,
+    "27.01": 9,
+    "28": 9,
+    "29": 9,
+    "30": 10,
+    "31": 10,
+    "32": 11,
+    "33": 12,
+    "34": 13,
+    "35": 14,
+    "36": 15,
+    "37": 15,
+    "38": 15,
+    "39": 16,
+    "40": 16,
+    "41": 16,
+    "41.01": 17,
+    "42": 17,
+    "43": 18,
+    "44": 19,
+    "45": 20,
+    "46": 21,
+    "47": 22,
+    "48": 23,
+    "49": 24,
+    "50": 25,
+    "51": 26,
+    "52": 27,
+    "53": 28,
+    "54": 29,
+    "55": 30,
+    "56": 31,
+    "57": 32,
+    "58": 33,
+    "59": 34,
+    "60": 35,
+    "61": 36,
+    "62": 37,
+    "63": 37,
+    "66": 38,
+    "67": 38,
+    "68": 39,
+    "69": 40,
+    "70": 41,
+    "71": 42,
+    "72": 43
   },
   "pages": [
     {
       "number": 1,
-      "title": "Order, opposites, and distance / Add integers / Subtract integers",
+      "title": "Order, opposites, and distance / Add integers / Subtract integers / Multiply integers / Divide integers",
       "chapter": "Numbers & operations",
       "chapters": [
         "Numbers & operations"
@@ -87,149 +89,123 @@
       "sections": [
         1,
         2,
-        3
+        3,
+        4,
+        5
       ]
     },
     {
       "number": 2,
-      "title": "Multiply integers / Divide integers / Add positive fractions",
+      "title": "Add positive fractions / Subtract positive fractions / Multiply positive fractions / Divide positive fractions",
       "chapter": "Numbers & operations",
       "chapters": [
         "Numbers & operations"
       ],
       "sections": [
-        4,
-        5,
-        6
-      ]
-    },
-    {
-      "number": 3,
-      "title": "Subtract positive fractions / Multiply positive fractions / Divide positive fractions",
-      "chapter": "Numbers & operations",
-      "chapters": [
-        "Numbers & operations"
-      ],
-      "sections": [
+        6,
         7,
         8,
         9
       ]
     },
     {
-      "number": 4,
-      "title": "Add and subtract signed fractions / Multiply and divide signed fractions / Add and subtract decimals",
+      "number": 3,
+      "title": "Divide positive fractions (continued) / Add and subtract signed fractions / Multiply and divide signed fractions / Add and subtract decimals / Multiply and divide decimals",
       "chapter": "Numbers & operations",
       "chapters": [
         "Numbers & operations"
       ],
       "sections": [
+        9.01,
         10,
         11,
-        12
+        12,
+        13
       ]
     },
     {
-      "number": 5,
-      "title": "Multiply and divide decimals / Fractions, decimals, and percents",
+      "number": 4,
+      "title": "Fractions, decimals, and percents / Order of operations with positive numbers / Two methods: signs and operation order / Two methods: fractions and operation order",
       "chapter": "Numbers & operations",
       "chapters": [
-        "Numbers & operations"
-      ],
-      "sections": [
-        13,
-        14
-      ]
-    },
-    {
-      "number": 6,
-      "title": "Order of operations with positive numbers / Two methods: signs and operation order / Two methods: fractions and operation order",
-      "chapter": "Combining operations",
-      "chapters": [
+        "Numbers & operations",
         "Combining operations"
       ],
       "sections": [
+        14,
         15,
         16,
         17
       ]
     },
     {
-      "number": 7,
-      "title": "Three or more methods together / Combine like terms",
+      "number": 5,
+      "title": "Two methods: fractions and operation order (continued) / Three or more methods together / Combine like terms",
       "chapter": "Combining operations",
       "chapters": [
         "Combining operations",
         "Expressions"
       ],
       "sections": [
+        17.01,
         18,
         19
       ]
     },
     {
-      "number": 8,
-      "title": "Distribute to expand / Factor a linear expression",
+      "number": 6,
+      "title": "Distribute to expand / Factor a linear expression / Equivalent forms and combined expressions",
       "chapter": "Expressions",
       "chapters": [
         "Expressions"
       ],
       "sections": [
         20,
-        21
+        21,
+        22
       ]
     },
     {
-      "number": 9,
-      "title": "Equivalent forms and combined expressions / One-step equations: add and subtract",
-      "chapter": "Expressions",
-      "chapters": [
-        "Expressions",
-        "Equations & inequalities"
-      ],
-      "sections": [
-        22,
-        23
-      ]
-    },
-    {
-      "number": 10,
-      "title": "One-step equations: multiply and divide / One-step equations with rational numbers",
+      "number": 7,
+      "title": "One-step equations: add and subtract / One-step equations: multiply and divide / One-step equations with rational numbers",
       "chapter": "Equations & inequalities",
       "chapters": [
         "Equations & inequalities"
       ],
       "sections": [
+        23,
         24,
         25
       ]
     },
     {
-      "number": 11,
-      "title": "Two-step equations / Multi-step equations and inverse reasoning",
+      "number": 8,
+      "title": "One-step equations with rational numbers (continued) / Two-step equations / Multi-step equations and inverse reasoning",
       "chapter": "Equations & inequalities",
       "chapters": [
         "Equations & inequalities"
       ],
       "sections": [
+        25.01,
         26,
         27
       ]
     },
     {
-      "number": 12,
-      "title": "One-step inequalities / Two-step inequalities and boundary checks",
+      "number": 9,
+      "title": "Multi-step equations and inverse reasoning (continued) / One-step inequalities / Two-step inequalities and boundary checks",
       "chapter": "Equations & inequalities",
       "chapters": [
         "Equations & inequalities"
       ],
       "sections": [
+        27.01,
         28,
         29
       ]
     },
     {
-      "number": 13,
+      "number": 10,
       "title": "Arithmetic sequences: a constant difference / Geometric sequences: a constant ratio",
       "chapter": "Patterns & coordinates",
       "chapters": [
@@ -241,7 +217,7 @@
       ]
     },
     {
-      "number": 14,
+      "number": 11,
       "title": "Read the Cartesian plane",
       "chapter": "Patterns & coordinates",
       "chapters": [
@@ -252,7 +228,7 @@
       ]
     },
     {
-      "number": 15,
+      "number": 12,
       "title": "Plot points in every quadrant",
       "chapter": "Patterns & coordinates",
       "chapters": [
@@ -263,7 +239,7 @@
       ]
     },
     {
-      "number": 16,
+      "number": 13,
       "title": "Proportional tables and equations",
       "chapter": "Proportional reasoning",
       "chapters": [
@@ -274,7 +250,7 @@
       ]
     },
     {
-      "number": 17,
+      "number": 14,
       "title": "Proportional graphs",
       "chapter": "Proportional reasoning",
       "chapters": [
@@ -285,54 +261,46 @@
       ]
     },
     {
-      "number": 18,
-      "title": "Unit rates, including fractional quantities / Solve proportions",
+      "number": 15,
+      "title": "Unit rates, including fractional quantities / Solve proportions / Percent: find the part, whole, or rate",
       "chapter": "Proportional reasoning",
       "chapters": [
-        "Proportional reasoning"
+        "Proportional reasoning",
+        "Percents"
       ],
       "sections": [
         36,
-        37
+        37,
+        38
       ]
     },
     {
-      "number": 19,
-      "title": "Percent: find the part, whole, or rate / Percent increase and decrease",
+      "number": 16,
+      "title": "Percent increase and decrease / Reverse percents and percent error / Financial percents one step at a time",
       "chapter": "Percents",
       "chapters": [
         "Percents"
       ],
       "sections": [
-        38,
-        39
-      ]
-    },
-    {
-      "number": 20,
-      "title": "Reverse percents and percent error / Financial percents one step at a time",
-      "chapter": "Percents",
-      "chapters": [
-        "Percents"
-      ],
-      "sections": [
+        39,
         40,
         41
       ]
     },
     {
-      "number": 21,
-      "title": "Combine financial percent methods",
+      "number": 17,
+      "title": "Financial percents one step at a time (continued) / Combine financial percent methods",
       "chapter": "Percents",
       "chapters": [
         "Percents"
       ],
       "sections": [
+        41.01,
         42
       ]
     },
     {
-      "number": 22,
+      "number": 18,
       "title": "Length and perimeter",
       "chapter": "Length & area",
       "chapters": [
@@ -343,7 +311,7 @@
       ]
     },
     {
-      "number": 23,
+      "number": 19,
       "title": "Area: counting square units",
       "chapter": "Length & area",
       "chapters": [
@@ -354,7 +322,7 @@
       ]
     },
     {
-      "number": 24,
+      "number": 20,
       "title": "Area of a triangle",
       "chapter": "Length & area",
       "chapters": [
@@ -365,7 +333,7 @@
       ]
     },
     {
-      "number": 25,
+      "number": 21,
       "title": "Area of a parallelogram",
       "chapter": "Length & area",
       "chapters": [
@@ -376,7 +344,7 @@
       ]
     },
     {
-      "number": 26,
+      "number": 22,
       "title": "Area of a trapezoid",
       "chapter": "Length & area",
       "chapters": [
@@ -387,7 +355,7 @@
       ]
     },
     {
-      "number": 27,
+      "number": 23,
       "title": "Area of composite figures",
       "chapter": "Length & area",
       "chapters": [
@@ -398,7 +366,7 @@
       ]
     },
     {
-      "number": 28,
+      "number": 24,
       "title": "Radius and diameter",
       "chapter": "Circles",
       "chapters": [
@@ -409,7 +377,7 @@
       ]
     },
     {
-      "number": 29,
+      "number": 25,
       "title": "Circumference: distance around a circle",
       "chapter": "Circles",
       "chapters": [
@@ -420,7 +388,7 @@
       ]
     },
     {
-      "number": 30,
+      "number": 26,
       "title": "Area of a circle",
       "chapter": "Circles",
       "chapters": [
@@ -431,7 +399,7 @@
       ]
     },
     {
-      "number": 31,
+      "number": 27,
       "title": "Circle calculations in reverse",
       "chapter": "Circles",
       "chapters": [
@@ -442,7 +410,7 @@
       ]
     },
     {
-      "number": 32,
+      "number": 28,
       "title": "Angle facts",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -453,7 +421,7 @@
       ]
     },
     {
-      "number": 33,
+      "number": 29,
       "title": "Angle facts and equations",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -464,7 +432,7 @@
       ]
     },
     {
-      "number": 34,
+      "number": 30,
       "title": "Which triangles are possible?",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -475,7 +443,7 @@
       ]
     },
     {
-      "number": 35,
+      "number": 31,
       "title": "Construct triangles on a grid",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -486,7 +454,7 @@
       ]
     },
     {
-      "number": 36,
+      "number": 32,
       "title": "Scale factors and lengths",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -497,7 +465,7 @@
       ]
     },
     {
-      "number": 37,
+      "number": 33,
       "title": "Scale drawings and area",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -508,7 +476,7 @@
       ]
     },
     {
-      "number": 38,
+      "number": 34,
       "title": "Nets and surface area",
       "chapter": "Surface area",
       "chapters": [
@@ -519,7 +487,7 @@
       ]
     },
     {
-      "number": 39,
+      "number": 35,
       "title": "Surface area of rectangular prisms",
       "chapter": "Surface area",
       "chapters": [
@@ -530,7 +498,7 @@
       ]
     },
     {
-      "number": 40,
+      "number": 36,
       "title": "Surface area of triangular prisms",
       "chapter": "Surface area",
       "chapters": [
@@ -541,135 +509,82 @@
       ]
     },
     {
-      "number": 41,
-      "title": "Square pyramids: lateral area",
+      "number": 37,
+      "title": "Square pyramids: lateral and total surface area",
       "chapter": "Surface area",
       "chapters": [
         "Surface area"
       ],
       "sections": [
-        62
-      ]
-    },
-    {
-      "number": 42,
-      "title": "Square pyramids: total surface area",
-      "chapter": "Surface area",
-      "chapters": [
-        "Surface area"
-      ],
-      "sections": [
+        62,
         63
       ]
     },
     {
-      "number": 43,
-      "title": "Triangular pyramids: lateral area",
-      "chapter": "Surface area",
-      "chapters": [
-        "Surface area"
-      ],
-      "sections": [
-        64
-      ]
-    },
-    {
-      "number": 44,
-      "title": "Triangular pyramids: total surface area",
-      "chapter": "Surface area",
-      "chapters": [
-        "Surface area"
-      ],
-      "sections": [
-        65
-      ]
-    },
-    {
-      "number": 45,
+      "number": 38,
       "title": "Surface area of composite prisms",
       "chapter": "Surface area",
       "chapters": [
         "Surface area"
       ],
       "sections": [
-        66
-      ]
-    },
-    {
-      "number": 46,
-      "title": "Composite prisms: more surface area",
-      "chapter": "Surface area",
-      "chapters": [
-        "Surface area"
-      ],
-      "sections": [
+        66,
         67
       ]
     },
     {
-      "number": 47,
+      "number": 39,
       "title": "Volume: counting cubic units",
-      "chapter": "Volume & cross sections",
+      "chapter": "Volume",
       "chapters": [
-        "Volume & cross sections"
+        "Volume"
       ],
       "sections": [
         68
       ]
     },
     {
-      "number": 48,
+      "number": 40,
       "title": "Volume with fractional dimensions",
-      "chapter": "Volume & cross sections",
+      "chapter": "Volume",
       "chapters": [
-        "Volume & cross sections"
+        "Volume"
       ],
       "sections": [
         69
       ]
     },
     {
-      "number": 49,
+      "number": 41,
       "title": "Volume of triangular prisms",
-      "chapter": "Volume & cross sections",
+      "chapter": "Volume",
       "chapters": [
-        "Volume & cross sections"
+        "Volume"
       ],
       "sections": [
         70
       ]
     },
     {
-      "number": 50,
+      "number": 42,
       "title": "Volume of irregular prisms",
-      "chapter": "Volume & cross sections",
+      "chapter": "Volume",
       "chapters": [
-        "Volume & cross sections"
+        "Volume"
       ],
       "sections": [
         71
       ]
     },
     {
-      "number": 51,
+      "number": 43,
       "title": "Find a missing prism height",
-      "chapter": "Volume & cross sections",
+      "chapter": "Volume",
       "chapters": [
-        "Volume & cross sections"
+        "Volume"
       ],
       "sections": [
         72
-      ]
-    },
-    {
-      "number": 52,
-      "title": "Cross sections of solids",
-      "chapter": "Volume & cross sections",
-      "chapters": [
-        "Volume & cross sections"
-      ],
-      "sections": [
-        73
       ]
     }
   ]
