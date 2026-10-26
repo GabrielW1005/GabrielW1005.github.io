@@ -19,3 +19,8 @@ October 25, 2026 extension requirements:
 - Start new experiments with a sensible incorrect guess, preserve student edits, and clamp physical inputs to appropriate finite ranges. Negative values remain allowed when they represent direction.
 - Provide autosaving, portable downloadable backups, and a readable progress report students can send to their teacher.
 - Use clear third-law contact and buoyancy visuals, without introducing advanced deformation or astrophysics prerequisites.
+
+Handout solution policy (October 25, 2026):
+- Original printed questions and printed arithmetic warm-ups provide explanations and hints without final answers or worked solutions. Keep answer checking and student progress.
+- More Practice variants, changed custom measurements, and online-only extensions may show full step-by-step solutions.
+- Hide explicit reference answers and exact answer differences in original-problem simulation feedback. Keep simulations and graphs available as evidence students can interpret.

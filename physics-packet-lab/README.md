@@ -96,3 +96,7 @@ No CDN, analytics, login, or network service is used after page assets load. Pro
 The force model follows Newton’s second law and the component method described by [OpenStax](https://openstax.org/books/college-physics-2e/pages/4-3-newtons-second-law-of-motion-concept-of-a-system). Its aircraft assumptions follow the classroom simplification described by [NASA Glenn](https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/simplified-aircraft-motion/). Net force determines acceleration; the object’s existing velocity can point in another direction.
 
 The extension and storage checks also run `verify-extension-physics.mjs`, `verify-extensions-content.mjs`, `verify-extended-audit.mjs`, `verify-backup.mjs`, `verify-progress-export.mjs`, and `verify-packet-defaults.mjs` when present.
+
+## Handout help policy
+
+Original printed questions and arithmetic warm-ups show hints and general explanations without worked answers. The simulation keeps interactive predictions and correctness checks, but hides explicit reference results and exact differences. More Practice, changed custom measurements, and online-only extensions retain worked solutions. Restoring the original givens restores hints-only help, regardless of saved panel state.

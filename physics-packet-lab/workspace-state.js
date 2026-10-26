@@ -1,7 +1,7 @@
 /* Shared selection and bounded, per-question browser state for both study views. */
 import {createProgressStore,LIMITS} from './packet-core.js?v=20261026-2';
 import packet from './data.js?v=20261026-2';
-import {getPractice,listPracticeIds} from './practice.js?v=20261026-2';
+import {getPractice,listPracticeIds} from './practice.js?v=20261026-4';
 
 export const WORKSPACE_SELECTION_PREFIX='motion-lab-selection-v1:';
 export const WORKSPACE_SIMULATION_PREFIX='motion-lab-simulation-v1:';

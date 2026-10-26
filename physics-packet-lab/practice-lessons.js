@@ -3,7 +3,7 @@ export {getEquationWarmup,getEquationWarmups} from './extensions.js?v=20261026-2
 /* Worked explanations follow the current SI model and the question's display units.
    Printed-packet lessons remain in packet-lessons.js. Written responses are self-reviewed. */
 import {solve} from './physics.js?v=20261026-2';
-import {getQuestion,getAnswerUnit,unitFactor,displayValue} from './practice.js?v=20261026-2';
+import {getQuestion,getAnswerUnit,unitFactor,displayValue} from './practice.js?v=20261026-4';
 
 const clone=value=>JSON.parse(JSON.stringify(value));
 const n=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;

@@ -39,7 +39,7 @@ function variantParams(id,i){
  case'P09':{const a=round(.24+.07*i),t=5+i%4,vi=round(1.8+.2*(i%8)),start=2+i%6;q={vi,vf:round(vi+a*t),startTime:start,endTime:start+t,time:t};u=unitSet({speed:odd?'km/h':'m/s',answer:odd?'cm/s²':'m/s²'});break;}
  case'P10':q={vi:round(1+.1*(i%5)),acceleration:round(.2+.03*i),time:3+i%4};u=unitSet({speed:odd?'km/h':'m/s',acceleration:i%3===2?'cm/s²':'m/s²',answer:pick(['m/s','cm/s','km/h'],i)});break;
  case'P11':{const slow=round(.4+.045*i),fast=round(slow+.55+.04*i);q={vi:odd?-fast:-slow,vf:odd?-slow:-fast,time:2+i%4};u=unitSet({speed:odd?'cm/s':'m/s'});break;}
- case'P12':q={orbital:true,orbitAU:round(.4+.1*i),laps:1};q.radius=q.orbitAU*149600000000;break;
+ case'P12':q={orbital:true,orbitAU:round(.4+.1*i),laps:1};if(q.orbitAU===1)q.orbitAU=1.05;q.radius=q.orbitAU*149600000000;break;
  case'P13':{const t=60+60*(i%3),total=round((.55+.04*i)*t);q={times:[0,t*.4,t*.6,t],positions:[0,round(total*.5),round(total*.5),total],distanceScale:1,timeScale:1};u=unitSet({distance:i%3===2?'km':'m',time:odd?'min':'s',answer:pick(['m/s','km/h','cm/s'],i)});break;}
  case'P14':{const vi=round(1.2+.1*(i%6)),t=4+i%4,a=round(.15+.035*i);q={vi,vf:round(vi+a*t),time:t};u=unitSet({speed:odd?'km/h':'m/s',answer:odd?'cm/s²':'m/s²'});break;}
  case'P15':{const dt=12+6*(i%5),speeds=[round(.55+.01*i),round(1.3+.025*i),round(.8+.015*i)];for(let r=0;r<i%3;r++)speeds.unshift(speeds.pop());q={times:[0,dt,2*dt,3*dt],positions:[0,round(dt*speeds[0]),round(dt*(speeds[0]+speeds[1])),round(dt*speeds.reduce((a,b)=>a+b))],distanceScale:1,timeScale:1};u=unitSet({time:odd?'min':'s',distance:i%3===2?'km':'m'});break;}
