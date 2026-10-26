@@ -24,3 +24,5 @@ Handout solution policy (October 25, 2026):
 - Original printed questions and printed arithmetic warm-ups provide explanations and hints without final answers or worked solutions. Keep answer checking and student progress.
 - More Practice variants, changed custom measurements, and online-only extensions may show full step-by-step solutions.
 - Hide explicit reference answers and exact answer differences in original-problem simulation feedback. Keep simulations and graphs available as evidence students can interpret.
+
+- Accept decimals, negative numbers using `-`, and fractions using `/` in answer fields and numerical experiment controls; keep valid fraction answers intact when saving.
