@@ -280,3 +280,11 @@ body:is([data-view=lesson],[data-view=practice]) .section-select{min-height:44px
 @media screen and (min-width:960px) and (max-height:599px){
   body:is([data-view=lesson],[data-view=practice]) main{grid-template-rows:auto minmax(460px,1fr)}
 }
+/* Generated examples can open their worked steps beside their answer fields. */
+.inline-solution{margin-top:12px}
+.inline-solution-toggle{min-height:44px;width:100%;text-align:left;justify-content:space-between;border:1px solid var(--line);border-radius:8px;background:var(--accent-soft);color:var(--accent);padding:10px 12px;font-size:13px;font-weight:600}
+.inline-solution-body{margin-top:9px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:14px;line-height:1.55}
+.inline-solution-body ol{padding-left:20px;margin:0 0 12px}.inline-solution-body li{margin:6px 0}
+.example-answers{padding-top:9px;border-top:1px solid var(--line)}
+.example-answers p{margin:5px 0}.inline-reflection{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px}
+.lessonviz .lv-visual svg:focus-visible{outline:3px solid #75a6d5;outline-offset:-3px;border-radius:6px}

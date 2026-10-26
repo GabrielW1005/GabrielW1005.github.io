@@ -46,6 +46,41 @@ function styles(root) {
   `;
   root.append(style);
 }
+function svgViewport(svg){
+  const W=800,H=430,pointers=new Map();let zoom=1,cx=W/2,cy=H/2,gesture=null;
+  const rect=()=>svg.getBoundingClientRect();
+  function render(){
+    const vw=W/zoom,vh=H/zoom;
+    if(zoom<=1){cx=W/2;cy=H/2;}else{cx=clamp(cx,vw/2,W-vw/2);cy=clamp(cy,vh/2,H-vh/2);}
+    svg.setAttribute('viewBox',`${cx-vw/2} ${cy-vh/2} ${vw} ${vh}`);svg.setAttribute('data-zoom',String(zoom));
+    svg.style.cursor=zoom>1?'grab':'default';
+  }
+  function scaleAt(factor,x=null,y=null){
+    const before=zoom,next=clamp(zoom*factor,.75,6);
+    if(x!==null){const r=rect(),scale=Math.min(r.width/(W/before),r.height/(H/before));const dx=(x-r.left-r.width/2)/scale,dy=(y-r.top-r.height/2)/scale;cx+=dx*(1-before/next);cy+=dy*(1-before/next);}
+    zoom=next;render();
+  }
+  function action(which){if(which==='zoom-reset'){zoom=1;cx=W/2;cy=H/2;render();}else if(which==='zoom-in')scaleAt(1.25);else if(which==='zoom-out')scaleAt(.8);}
+  function begin(){
+    const ps=[...pointers.values()],r=rect(),a=ps[0],b=ps[1];
+    gesture=ps.length>1?{x:(a.x+b.x)/2,y:(a.y+b.y)/2,d:Math.hypot(a.x-b.x,a.y-b.y),z:zoom,cx,cy,w:r.width,h:r.height,left:r.left,top:r.top}:{x:a.x,y:a.y,z:zoom,cx,cy,w:r.width,h:r.height,left:r.left,top:r.top};
+  }
+  svg.style.touchAction='none';svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','Mathematical diagram. Use zoom buttons; drag or pinch to explore when enlarged.');
+  svg.onpointerdown=e=>{if(e.pointerType==='mouse'&&(e.button!==0||zoom<=1))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});svg.setPointerCapture?.(e.pointerId);begin();};
+  svg.onpointermove=e=>{
+    if(!pointers.has(e.pointerId)||!gesture)return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const ps=[...pointers.values()],a=ps[0],b=ps[1],g=gesture,scale=Math.min(g.w/(W/g.z),g.h/(H/g.z));
+    if(ps.length>1&&g.d){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;zoom=clamp(g.z*Math.hypot(a.x-b.x,a.y-b.y)/g.d,.75,6);const nextScale=scale*zoom/g.z,centerX=g.left+g.w/2,centerY=g.top+g.h/2;cx=g.cx+(g.x-centerX)/scale-(mx-centerX)/nextScale;cy=g.cy+(g.y-centerY)/scale-(my-centerY)/nextScale;}
+    else if(zoom>1){cx=g.cx-(a.x-g.x)/scale;cy=g.cy-(a.y-g.y)/scale;}
+    render();if(zoom>1)svg.style.cursor='grabbing';
+  };
+  const end=e=>{pointers.delete(e.pointerId);if(pointers.size)begin();else{gesture=null;render();}};
+  svg.onpointerup=end;svg.onpointercancel=end;svg.onlostpointercapture=end;
+  svg.onwheel=e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();scaleAt(Math.exp(-e.deltaY*.008),e.clientX,e.clientY);};
+  svg.onkeydown=e=>{if(e.key==='+'||e.key==='='){action('zoom-in');e.preventDefault();}else if(e.key==='-'){action('zoom-out');e.preventDefault();}else if(e.key==='0'){action('zoom-reset');e.preventDefault();}else if(zoom>1&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){cx+=({ArrowLeft:-40,ArrowRight:40}[e.key]||0)/zoom;cy+=({ArrowUp:-40,ArrowDown:40}[e.key]||0)/zoom;render();e.preventDefault();}};
+  render();return{action,clean(){pointers.clear();svg.onpointerdown=svg.onpointermove=svg.onpointerup=svg.onpointercancel=svg.onlostpointercapture=svg.onwheel=svg.onkeydown=null;}};
+}
+
 function frame(container, options={}) {
   const root=document.createElement('section'); root.className='lessonviz';
   root.setAttribute('aria-label','Interactive lesson visualization');
@@ -65,19 +100,21 @@ function frame(container, options={}) {
   root.append(status,visual,footer);container.replaceChildren(root);
   root.onkeydown=event=>{if(event.key==='Escape'&&optionsDrawer.open){optionsDrawer.open=false;optionsSummary.focus();event.stopPropagation();}};
   let disposed=false, raf=0;
+  const viewport=svgViewport(svg),allowSolutions=options.allowSolutions===true;
   const reduced=options.reducedMotion ?? (typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches);
   function animate(from,to,duration,render,done) {
     cancelAnimationFrame(raf);
     if(reduced){render(to);done?.();return;}
     const start=performance.now();
-    function tick(now){if(disposed)return;const p=clamp((now-start)/duration);render(lerp(from,to,ease(p)));if(p<1)raf=requestAnimationFrame(tick);else{raf=0;done?.();}}
+    function tick(now){if(disposed)return;const p=clamp((now-start)/duration);render(lerp(from,to,p));if(p<1)raf=requestAnimationFrame(tick);else{raf=0;done?.();}}
     raf=requestAnimationFrame(tick);
   }
   function stop(){cancelAnimationFrame(raf);raf=0;}
-  function clean(){disposed=true;stop();root.remove();}
+  function clean(){disposed=true;stop();viewport.clean();root.remove();}
+  clean.zoom=viewport.action;
   const button=(label,callback,parent=toolbar)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=callback;if(parent===toolbar&&(label==='Next step'||label==='Place next piece'))parent=playbar;if(parent===toolbar&&label==='Show area calculation')parent=footer;parent.append(b);return b;};
   const setMetrics=entries=>metrics.innerHTML=entries.map(([label,value])=>`<div class="lv-metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
-  return{root,toolbar,status,svg,playbar,metrics,caption,animate,stop,clean,button,setMetrics,reduced};
+  return{root,toolbar,status,svg,playbar,metrics,caption,animate,stop,clean,button,setMetrics,reduced,allowSolutions};
 }
 function transport(f, redraw, maximum=1, duration=2800) {
   let t=0,playing=false;
@@ -94,8 +131,8 @@ function polygonSettings(f,d,onChange) {
   let n=origN,r=origR;
   const group=document.createElement('div');group.style.display='flex';group.style.gap='5px';group.setAttribute('aria-label','Number of polygon sides');f.toolbar.append(group);
   const buttons=[];
-  for(const nn of [6,12,24,48]){const b=f.button(`${nn} sides`,()=>{n=nn;refresh();onChange(n,r);},group);buttons.push([nn,b]);}
-  const lab=document.createElement('label');lab.className='lv-radius lv-push';lab.innerHTML=`Radius <input type="range" min="2" max="12" step="1" value="${origR}" aria-label="Exploration radius"><output>${fmt(origR)}</output>`;f.toolbar.append(lab);
+  for(const nn of [...new Set([6,12,24,48,origN])].sort((a,b)=>a-b)){const b=f.button(`${nn} sides`,()=>{n=nn;refresh();onChange(n,r);},group);buttons.push([nn,b]);}
+  const lab=document.createElement('label');lab.className='lv-radius lv-push';lab.innerHTML=`Radius <input type="range" min="1" max="${Math.max(32,Math.ceil(origR))}" step="0.5" value="${origR}" aria-label="Exploration radius"><output>${fmt(origR)}</output>`;f.toolbar.append(lab);
   const input=lab.querySelector('input'),output=lab.querySelector('output');input.oninput=()=>{r=Number(input.value);refresh();onChange(n,r);};
   const original=f.button('Packet values',()=>{n=origN;r=origR;input.value=r;refresh();onChange(n,r);});
   function refresh(){buttons.forEach(([nn,b])=>b.setAttribute('aria-pressed',String(nn===n)));output.textContent=fmt(r);const changed=n!==origN||r!==origR;f.status.textContent=changed?'Exploration — packet values and saved answers stay unchanged.':'Packet values';original.disabled=!changed;}
@@ -122,13 +159,13 @@ function mountPerimeter(container,problem,options) {
       g+=ln(x,y,x2,y2,i%2?'accentline':'edge');
     }
     g+=svgText(400,27,`${n}-gon inside the circle`,'small');
-    if(t<.95)g+=svgText(400,285,`Each side = ${fixed(givenSide,9)} ${d.unit||'cm'};   P = ${n} × side length`,'small');
+    if(t<.95)g+=svgText(400,285,`Each side = ${fixed(givenSide,9)} ${d.unit||'cm'}`,'small');
     if(t>.98){const op=(t-.98)/.02;g+=`<g opacity="${op}">${svgText(80,280,'Perimeter P','small','start')}${ln(80,354,80+D*scale,354,'accentline')}${svgText(80+D*scale/2,381,`One diameter: ${fmt(D)} ${d.unit||'cm'}`,'small')}`;
       for(let j=1;j<=3;j++)g+=ln(80+j*D*scale,290,80+j*D*scale,310,'guide')+svgText(80+j*D*scale,326,`${j}d`,'tiny');
-      g+=svgText(400,414,`P ÷ d = ${fixed(ratio)};   π ≈ 3.141593`,'accenttext')+'</g>';
+      g+=svgText(400,414,f.allowSolutions?`P ÷ d = ${fixed(ratio)};   π ≈ 3.141593`:'Compare the unrolled boundary with one diameter.','accenttext')+'</g>';
     }
     f.svg.innerHTML=g;
-    f.setMetrics(t>=.999 ? [['Polygon perimeter P',`${fixed(P)} ${d.unit||'cm'}`],['Diameter d',`${fmt(D)} ${d.unit||'cm'}`],['Perimeter ÷ diameter',fixed(ratio)],['Circle relationship','C = πd = 2πr']] : [['Number of equal sides',String(n)],['Length of each side',`${fixed(givenSide,9)} ${d.unit||'cm'}`],['Diameter d',`${fmt(D)} ${d.unit||'cm'}`],['Find the perimeter first',`P = ${n} × side length`]]);
+    f.setMetrics(f.allowSolutions&&t>=.999 ? [['Polygon perimeter P',`${fixed(P)} ${d.unit||'cm'}`],['Diameter d',`${fmt(D)} ${d.unit||'cm'}`],['Perimeter ÷ diameter',fixed(ratio)],['Circle relationship','C = πd = 2πr']] : [['Number of equal sides',String(n)],['Length of each side',`${fixed(givenSide,9)} ${d.unit||'cm'}`],['Diameter d',`${fmt(D)} ${d.unit||'cm'}`],['Find the perimeter first','Number of sides × side length']]);
   }
   tr=transport(f,draw);tr.set(0);return f.clean;
 }
@@ -136,9 +173,9 @@ function mountPerimeter(container,problem,options) {
 function mountRearrange(container,problem,options) {
   const f=frame(container,options),d=problem.diagram;let n=Number(d.n)||12,r=Number(d.radius)||6;let tr;
   polygonSettings(f,d,(nn,rr)=>{n=nn;r=rr;tr.pause();draw(tr.t);});
-  f.caption.textContent='Each triangle keeps its size. Together they form a parallelogram: base = half the polygon perimeter, height = the polygon’s center-to-side distance. As the number of sides increases, the base approaches πr and the height approaches r.';
+  f.caption.textContent=f.allowSolutions?'Each triangle keeps its size. Together they form a parallelogram: base = half the polygon perimeter, height = the polygon’s center-to-side distance. As the number of sides increases, the base approaches πr and the height approaches r.':'Each triangle keeps its size. Compare the bottom edge with the polygon boundary. Compare the rearranged height with the original radius, and describe what changes as the number of sides grows.';
   function draw(t){
-    const s=2*r*Math.sin(Math.PI/n),h=r*Math.cos(Math.PI/n),b=n*s/2,scale=138/r;
+    const s=2*r*Math.sin(Math.PI/n),h=r*Math.cos(Math.PI/n),b=n*s/2,scale=138/r,originalValues=n===Number(d.n)&&r===Number(d.radius);
     const center=[400,228],left=400-(b+s/2)*scale/2,bottom=312;
     const phase=0,rad=r*scale;
     let g=`<circle cx="${center[0]}" cy="${center[1]}" r="${rad}" class="ghost" opacity="${1-t*.75}"/>`;
@@ -155,15 +192,15 @@ function mountRearrange(container,problem,options) {
     }
     if(t>.75){const op=(t-.75)/.25,top=bottom-h*scale,xright=left+(b+s/2)*scale;
       g+=`<g opacity="${op}">`+ln(left,bottom+25,left+b*scale,bottom+25,'accentline')+ln(left,bottom+19,left,bottom+31,'minor')+ln(left+b*scale,bottom+19,left+b*scale,bottom+31,'minor');
-      g+=svgText(left+b*scale/2,bottom+53,`base = P/2 = ${fixed(b)} ${d.unit||'cm'}`,'small');
+      g+=svgText(left+b*scale/2,bottom+53,f.allowSolutions?`base = P/2 = ${fixed(b)} ${d.unit||'cm'}`:d.label_dimensions&&originalValues?`base = ${fmt(Number(d.base),6)} ${d.unit||'cm'}`:'base','small');
       g+=ln(xright+22,bottom,xright+22,top,'accentline')+svgText(xright+36,(bottom+top)/2,'h','accenttext','start');
       g+=ln(left+s*scale/2, bottom-r*scale, xright+45,bottom-r*scale,'guide');
-      g+=svgText(400,bottom-r*scale-14,`dashed level: r = ${fmt(r)};   height gap r − h = ${fixed(r-h)}`,'small');
-      g+=svgText(400,412,'Base approaches πr. Height approaches r. Area approaches πr × r.','small')+'</g>';
+      g+=svgText(400,bottom-r*scale-14,f.allowSolutions?`dashed level: r = ${fmt(r)};   height gap r − h = ${fixed(r-h)}`:`dashed level: radius = ${fmt(r)}; compare the gap`,'small');
+      g+=svgText(400,412,f.allowSolutions?'Base approaches πr. Height approaches r. Area approaches πr × r.':'Describe what the base and height approach.','small')+'</g>';
     } else g+=svgText(400,32,`${n} equal triangles — same pieces, new arrangement`,'small');
     f.svg.innerHTML=g;
     const estimating=(problem.fields||[]).some(field=>/estimated perimeter/i.test(field.label));
-    f.setMetrics(estimating ? [['Circle estimate 2 × 3.14 × r',`${fmt(2*3.14*r,4)} ${d.unit||'cm'}`],['Estimated base: 3.14 × r',`${fmt(3.14*r,4)} ${d.unit||'cm'}`],['Finite polygon base P/2',`${fixed(b)} ${d.unit||'cm'}`],['Polygon height h',`${fixed(h)} ${d.unit||'cm'}`]] : [['Base b = P/2',`${fixed(b)} ${d.unit||'cm'}`],['Height h',`${fixed(h)} ${d.unit||'cm'}`],['Radius − height',`${fixed(r-h)} ${d.unit||'cm'}`],['Polygon area b × h',`${fixed(b*h)} square ${d.unit||'cm'}`]]);
+    f.setMetrics(!f.allowSolutions ? [['Radius',`${fmt(r)} ${d.unit||'cm'}`],...(d.label_dimensions&&originalValues?[['Given polygon base',`${fmt(Number(d.base),6)} ${d.unit||'cm'}`],['Given polygon height',`${fmt(Number(d.height),6)} ${d.unit||'cm'}`]]:[]),['Think about the change','Compare the edges and heights']] : estimating ? [['Circle estimate 2 × 3.14 × r',`${fmt(2*3.14*r,4)} ${d.unit||'cm'}`],['Estimated base: 3.14 × r',`${fmt(3.14*r,4)} ${d.unit||'cm'}`],['Finite polygon base P/2',`${fixed(b)} ${d.unit||'cm'}`],['Polygon height h',`${fixed(h)} ${d.unit||'cm'}`]] : [['Base b = P/2',`${fixed(b)} ${d.unit||'cm'}`],['Height h',`${fixed(h)} ${d.unit||'cm'}`],['Radius − height',`${fixed(r-h)} ${d.unit||'cm'}`],['Polygon area b × h',`${fixed(b*h)} square ${d.unit||'cm'}`]]);
   }
   tr=transport(f,draw,1,3200);tr.set(0);return f.clean;
 }
@@ -171,7 +208,7 @@ function mountRearrange(container,problem,options) {
 function mountParallelogram(container,problem,options) {
   const f=frame(container,options),d=problem.diagram,b=Number(d.base),h=Number(d.height),shift=Number(d.shift)||Math.min(2,b/3);let tr;
   f.status.textContent='Cut along the dashed height, then slide the triangle to the other end.';
-  f.caption.textContent='The rearranged rectangle has the same base and perpendicular height. Every piece is kept, so the area is unchanged: A = base × height.';
+  f.caption.textContent=f.allowSolutions?'The rearranged rectangle has the same base and perpendicular height. Every piece is kept, so the area is unchanged: A = base × height.':'Follow the cut and compare the resulting rectangle with the original parallelogram. Which measurements stay the same? Use that comparison to explain your answer.';
   f.button('Cut and move',()=>{tr.pause();f.animate(tr.t,1,2200,tr.set);});
   f.button('Original shape',()=>tr.reset());
   function draw(t){
@@ -186,8 +223,8 @@ function mountParallelogram(container,problem,options) {
     g+=ln(basex,y+25,basex+b*scale,y+25,'accentline')+svgText(basex+b*scale/2,y+52,`base = ${fmt(b)} ${d.unit||'units'}`,'small');
     const hx=x+(b+shift)*scale+35;
     g+=ln(hx,y,hx,y-h*scale,'accentline')+svgText(hx+12,y-h*scale/2,`h = ${fmt(h)}`,'small','start');
-    g+=svgText(400,405,'No pieces added. No pieces lost. Same area.','accenttext');
-    f.svg.innerHTML=g;f.setMetrics([['Original base',`${fmt(b)} ${d.unit||'units'}`],['Perpendicular height',`${fmt(h)} ${d.unit||'units'}`],['Corresponding rectangle',`${fmt(b)} × ${fmt(h)}`]]);
+    g+=svgText(400,405,f.allowSolutions?'No pieces added. No pieces lost. Same area.':'Compare the original shape and the rectangle.','accenttext');
+    f.svg.innerHTML=g;f.setMetrics([['Original base',`${fmt(b)} ${d.unit||'units'}`],['Perpendicular height',`${fmt(h)} ${d.unit||'units'}`],['Corresponding rectangle',`${fmt(b)} by ${fmt(h)}`]]);
   }
   tr=transport(f,draw);tr.set(0);return f.clean;
 }
@@ -196,7 +233,7 @@ function mountCentral(container,problem,options) {
   const f=frame(container,options),d=problem.diagram,r=Number(d.radius)||6,n=Number(d.n)||12;
   const base=Number(d.radial_base)||r,alt=Number(d.perpendicular_height)||r*Math.sin(TAU/n),unit=d.unit||'cm';let count=1,reveal=false;
   f.status.textContent='The enlarged triangle uses a radius as its base. Its marked height is perpendicular to that base.';
-  const show=f.button('Show area calculation',()=>{reveal=!reveal;show.textContent=reveal?'Hide calculation':'Show area calculation';draw();});
+  const show=f.allowSolutions&&f.button('Show area calculation',()=>{reveal=!reveal;show.textContent=reveal?'Hide calculation':'Show area calculation';draw();});
   const label=document.createElement('label');label.className='lv-radius';label.innerHTML=`Triangles <input type="range" min="1" max="${n}" value="1" step="1" aria-label="Number of triangles counted"><output>1</output>`;f.toolbar.append(label);
   label.querySelector('input').oninput=e=>{count=Number(e.target.value);label.querySelector('output').textContent=count;draw();};
   f.caption.textContent='Use ½ × base × perpendicular height for one triangle. Add all 12 equal triangle areas to get the polygon’s exact area. The polygon stays slightly smaller than its surrounding circle.';
@@ -211,13 +248,32 @@ function mountCentral(container,problem,options) {
     g+=ln(apexx,apexy,apexx,y,'guide')+ln(apexx-12,y,apexx-12,y-12,'minor')+ln(apexx-12,y-12,apexx,y-12,'minor');
     g+=svgText(x+r*scale/2,y+30,`base = ${fmt(base)} ${unit}`,'small');
     g+=svgText(745,(apexy+y)/2,`h = ${fmt(alt)} ${unit}`,'small');
-    if(reveal){const one=.5*base*alt;g+=svgText(400,375,`One triangle: ½ × ${fmt(base)} × ${fmt(alt)} = ${fmt(one)} square ${unit}`,'formula');g+=svgText(400,410,`${count} ${count===1?'triangle':'triangles'}: ${count} × ${fmt(one)} = ${fmt(count*one)} square ${unit}`,'accenttext');}
-    f.svg.innerHTML=g;f.setMetrics([['Counted triangles',`${count} of ${n}`],['Triangle base',`${fmt(base)} ${unit}`],['Triangle perpendicular height',`${fmt(alt)} ${unit}`],['Circle comparison',`A ≈ 3.14 × ${fmt(r)}²`]]);
+    if(f.allowSolutions&&reveal){const one=.5*base*alt;g+=svgText(400,375,`One triangle: ½ × ${fmt(base)} × ${fmt(alt)} = ${fmt(one)} square ${unit}`,'formula');g+=svgText(400,410,`${count} ${count===1?'triangle':'triangles'}: ${count} × ${fmt(one)} = ${fmt(count*one)} square ${unit}`,'accenttext');}
+    f.svg.innerHTML=g;f.setMetrics([['Counted triangles',`${count} of ${n}`],['Triangle base',`${fmt(base)} ${unit}`],['Triangle perpendicular height',`${fmt(alt)} ${unit}`],['Circle comparison',f.allowSolutions?`A ≈ 3.14 × ${fmt(r)}²`:'Use the given circle formula']]);
   }
   f.playbar.hidden=true;draw();return f.clean;
 }
 
+function mountRatioGuide(container,problem,options){
+  const f=frame(container,options),d=problem.diagram,given=[d.a,d.b,d.c,d.d].map(String),hasX=given.some(v=>v.toLowerCase()==='x');let tr;
+  f.status.textContent='The letters mark positions. Apply the same movement to your given numbers.';
+  f.caption.textContent='Multiply across each diagonal. Compare the two products yourself. If a factor is unknown, use the inverse operation to isolate it.';
+  f.button('Next step',()=>tr.next());f.button('Start again',()=>tr.reset());
+  function draw(t){
+    const initial=[[245,135],[245,220],[555,135],[555,220]],target=[[225,280],[490,280],[565,280],[300,280]],letters=['a','b','c','d'],p=clamp(t);
+    let g=svgText(400,45,`${given[0]}/${given[1]} ${hasX?'=':'?'} ${given[2]}/${given[3]}`,'formula');
+    if(t<1)g+=`<g opacity="${1-p}">${ln(208,170,282,170)}${ln(518,170,592,170)}${svgText(400,180,'?','large')}</g>`;
+    if(t<1&&p>0)g+=`<g opacity="${Math.sin(p*Math.PI)}">${ln(260,140,540,208,'accentline')}${ln(260,208,540,140,'accentline')}</g>`;
+    for(let i=0;i<4;i++)g+=svgText(lerp(initial[i][0],target[i][0],p),lerp(initial[i][1],target[i][1],p),letters[i],'number');
+    g+=`<g opacity="${p}">${svgText(263,280,'×','large')}${svgText(528,280,'×','large')}${svgText(400,280,'?','large')}</g>`;
+    g+=svgText(400,367,t>=1?'Find both products using your numbers.':'Watch how the two diagonals pair the positions.','small');
+    g+=svgText(400,410,'The original problem stays yours to solve.','tiny');f.svg.innerHTML=g;f.metrics.hidden=true;
+  }
+  tr=transport(f,draw,1,1800);tr.set(0);return f.clean;
+}
+
 function mountRatio(container,problem,options) {
+  if(options.allowSolutions!==true)return mountRatioGuide(container,problem,options);
   const f=frame(container,options),d=problem.diagram,raw=[d.a,d.b,d.c,d.d].map(String),unknown=raw.findIndex(x=>x.trim().toLowerCase()==='x');
   const v=raw.map(Number),hasX=unknown>=0;let tr;
   const max=hasX?4:3;
@@ -297,8 +353,8 @@ function mountGrid(container,problem,options) {
       else{g+=`<rect x="${xx}" y="${yy}" width="${s}" height="${s}" class="${k++<count?'piece':'softfill'}"/>`;}
     }
     g+=svgText(400,y+h*s+37,`${w} units across`,'small')+svgText(x-12,y+h*s/2,`${h}`,'small','end');
-    g+=svgText(400,400,`${count} ${half?'half-square pieces':'unit squares'} counted`,'accenttext');
-    f.svg.innerHTML=g;f.setMetrics([['One piece',half?'½ square unit':'1 square unit'],['Pieces counted',String(count)],['Area of counted pieces',`${fmt(count/(half?2:1))} square units`]]);
+    g+=svgText(400,400,f.allowSolutions?`${count} ${half?'half-square pieces':'unit squares'} counted`:'Count the highlighted pieces yourself.','accenttext');
+    f.svg.innerHTML=g;f.setMetrics(f.allowSolutions?[['One piece',half?'½ square unit':'1 square unit'],['Pieces counted',String(count)],['Area of counted pieces',`${fmt(count/(half?2:1))} square units`]]:[['One piece',half?'½ square unit':'1 square unit'],['Your task','Count the pieces and find their total area']]);
   }
   tr=transport(f,draw,total,Math.min(5000,total*150));tr.set(0);return f.clean;
 }
@@ -307,7 +363,7 @@ function mountGrid(container,problem,options) {
 function mountPolygonArea(container,problem,options) {
   const f=frame(container,options),d=problem.diagram;let n=Number(d.n)||12,r=Number(d.radius)||6,reveal=false;
   polygonSettings(f,d,(nn,rr)=>{n=nn;r=rr;draw();});
-  const revealButton=f.button('Compare areas',()=>{reveal=!reveal;revealButton.textContent=reveal?'Hide area values':'Compare areas';draw();});
+  const revealButton=f.allowSolutions&&f.button('Compare areas',()=>{reveal=!reveal;revealButton.textContent=reveal?'Hide area values':'Compare areas';draw();});
   f.playbar.hidden=true;
   f.caption.textContent='The polygon lies inside its corresponding circle. Use the radius of the surrounding circle in A ≈ 3.14r² to estimate the polygon’s area. More sides make the estimate closer.';
   function draw(){
@@ -320,7 +376,7 @@ function mountPolygonArea(container,problem,options) {
     g+=svgText(400,410,`Circle formula: A = πr²`,'formula');
     f.svg.innerHTML=g;
     const actual=n*r*r*Math.sin(TAU/n)/2;
-    f.setMetrics(reveal?[['Circle estimate using 3.14',`${fmt(3.14*r*r,4)} square ${d.unit||'cm'}`],['Polygon area from its triangles',`${fixed(actual)} square ${d.unit||'cm'}`]]:[['Radius',`${fmt(r)} ${d.unit||'cm'}`],['Circle estimate setup',`3.14 × ${fmt(r)} × ${fmt(r)}`]]);
+    f.setMetrics(f.allowSolutions&&reveal?[['Circle estimate using 3.14',`${fmt(3.14*r*r,4)} square ${d.unit||'cm'}`],['Polygon area from its triangles',`${fixed(actual)} square ${d.unit||'cm'}`]]:[['Radius',`${fmt(r)} ${d.unit||'cm'}`],['Circle estimate setup',f.allowSolutions?`3.14 × ${fmt(r)} × ${fmt(r)}`:'Use the radius in the given formula']]);
   }
   draw();return f.clean;
 }
@@ -369,12 +425,22 @@ function drawPrism(points,z0,z1,project,cls='piece',extra=''){
   }
   return out+poly(points.map(p=>project(p[0],p[1],z0)),cls,extra);
 }
-function cutControls(f,draw,pieces,duration=6500){
-  let tr;
-  f.button('1 · Cut a unit',()=>{tr.pause();f.animate(tr.t,1,900,tr.set);});
-  f.button('2 · Fill the shape',()=>{tr.pause();if(tr.t<1)tr.set(1);f.animate(tr.t,2,duration*Math.max(.08,2-tr.t),tr.set);});
-  f.button('Place next piece',()=>{tr.pause();const next=Math.min(pieces,Math.floor(Math.max(0,tr.t-1)*pieces+1e-6)+1);f.animate(tr.t,1+next/pieces,450,tr.set);});
-  tr=transport(f,draw,2,duration+1200);return tr;
+function cutControls(f,draw,pieces){
+  const cutMs=800,pieceMs=480,totalMs=cutMs+pieces*pieceMs;
+  let clock=0,playing=false;
+  const phase=ms=>ms<=cutMs?ms/cutMs:1+(ms-cutMs)/(pieces*pieceMs);
+  function render(ms){clock=clamp(ms,0,totalMs);slider.value=phase(clock);draw(phase(clock));}
+  function pause(){f.stop();playing=false;play.textContent=clock>=totalMs?'Replay':'Play';}
+  function runTo(target){f.stop();playing=true;play.textContent='Pause';f.animate(clock,target,Math.abs(target-clock),render,()=>{playing=false;play.textContent=clock>=totalMs?'Replay':'Play';});}
+  f.button('1 · Cut a unit',()=>{pause();render(0);runTo(cutMs);});
+  f.button('2 · Fill the shape',()=>{pause();if(clock<cutMs||clock>=totalMs)render(cutMs);runTo(totalMs);});
+  f.button('Place next piece',()=>{pause();const next=Math.min(pieces,Math.floor(Math.max(0,clock-cutMs)/pieceMs+1e-8)+1);runTo(cutMs+next*pieceMs);});
+  const play=f.button('Play',()=>{if(playing){pause();return;}if(clock>=totalMs)render(0);runTo(totalMs);},f.playbar);
+  const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='2';slider.step='0.001';slider.value='0';slider.setAttribute('aria-label','Animation progress');f.playbar.append(slider);
+  f.button('Reset',()=>{pause();render(0);},f.playbar);
+  function set(t){render(t<=1?t*cutMs:cutMs+(t-1)*pieces*pieceMs);}
+  slider.oninput=()=>{pause();set(Number(slider.value));};
+  return{get t(){return phase(clock);},set,pause,reset(){pause();render(0);}};
 }
 function mountLineUnits(container,problem,options){
   const d=problem.diagram,unit=d.unit||'cm',pieceUnit=Number(d.unit_length)||1;
@@ -414,8 +480,8 @@ function mountLineUnits(container,problem,options){
       if(i===pieces.length-1)g+=ln(b[0]-dy/len*delta,b[1]+dx/len*delta,b[0]+dy/len*delta,b[1]-dx/len*delta,'minor');
     }
     const placedLength=pieces.slice(0,count).reduce((a,p)=>a+p.length,0);
-    g+=svgText(400,410,count===pieces.length?`${fullCount} whole unit${fullCount===1?'':'s'}${partCount?` + ${partCount} cut piece${partCount===1?'':'s'}`:''} fill the path.`:`${count} piece${count===1?'':'s'} placed`,'accenttext');
-    f.svg.innerHTML=g;f.setMetrics([['One full unit',`${fmt(pieceUnit)} ${unit}`],['Cut piece',`${fmt(short)} ${unit}`],['Length placed so far',`${fmt(placedLength)} ${unit}`],['Total length',count===pieces.length?`${fmt(fullLength)} ${unit}`:'Fill the path to reveal']]);
+    g+=svgText(400,410,!f.allowSolutions?'Count whole units and cut pieces to find the length.':count===pieces.length?`${fullCount} whole unit${fullCount===1?'':'s'}${partCount?` + ${partCount} cut piece${partCount===1?'':'s'}`:''} fill the path.`:`${count} piece${count===1?'':'s'} placed`,'accenttext');
+    f.svg.innerHTML=g;f.setMetrics(f.allowSolutions?[['One full unit',`${fmt(pieceUnit)} ${unit}`],['Cut piece',`${fmt(short)} ${unit}`],['Length placed so far',`${fmt(placedLength)} ${unit}`],['Total length',count===pieces.length?`${fmt(fullLength)} ${unit}`:'Fill the path to reveal']]:[['One full unit',`${fmt(pieceUnit)} ${unit}`],['Cut piece',`${fmt(short)} ${unit}`],['Your task','Count and combine the pieces']]);
   }
   const tr=cutControls(f,draw,pieces.length);tr.set(0);return f.clean;
 }
@@ -446,8 +512,8 @@ function mountAreaUnits(container,problem,options){
     if(count<ordered.length&&fraction>0){const c=ordered[count];g+=poly(c.local.map((p,i)=>{const a=source(p,c.area<1-1e-8?gap/2:0),b=map(c.points[i]);return[lerp(a[0],b[0],fraction),lerp(a[1],b[1],fraction)];}),c.area<1-1e-8?'highlight':'piece');}
     g+=poly(shape.map(p=>map(p)),'edge');
     const doneWhole=ordered.slice(0,count).filter(p=>Math.abs(p.area-1)<1e-8).length,doneParts=count-doneWhole,area=ordered.slice(0,count).reduce((s,c)=>s+c.area,0),total=cells.reduce((s,c)=>s+c.area,0);
-    g+=svgText(400,392,`${doneWhole} whole square${doneWhole===1?'':'s'} + ${doneParts} cut piece${doneParts===1?'':'s'} placed`,'accenttext');
-    f.svg.innerHTML=g;f.setMetrics([['Whole squares placed',String(doneWhole)],['Cut pieces placed',String(doneParts)],['Area placed so far',`${fmt(area)} ${unit}²`],['Total area',count===ordered.length?`${fmt(total)} ${unit}²`:'Fill the shape to reveal']]);
+    g+=svgText(400,392,f.allowSolutions?`${doneWhole} whole square${doneWhole===1?'':'s'} + ${doneParts} cut piece${doneParts===1?'':'s'} placed`:'Count whole squares and cut pieces to find the area.','accenttext');
+    f.svg.innerHTML=g;f.setMetrics(f.allowSolutions?[['Whole squares placed',String(doneWhole)],['Cut pieces placed',String(doneParts)],['Area placed so far',`${fmt(area)} ${unit}²`],['Total area',count===ordered.length?`${fmt(total)} ${unit}²`:'Fill the shape to reveal']]:[['Unit square','1 square unit'],['Cut piece','One half of a unit square'],['Your task','Combine the areas of all pieces']]);
   }
   const tr=cutControls(f,draw,ordered.length);tr.set(0);return f.clean;
 }
@@ -497,16 +563,75 @@ function mountVolumeUnits(container,problem,options){
     for(const p of visible)g+=drawPrism(p.points,p.z,p.z+p.depth,project,p.volume<1-1e-8?'highlight':'piece');
     if(count<ordered.length&&fraction>0){const p=ordered[count];if(!layer||p.z===0){const moving=(x,y,z)=>{const a=source(x-p.x,y-p.y,z-p.z,p.volume<1-1e-8?gap/2:0),b=project(x,y,z);return[lerp(a[0],b[0],fraction),lerp(a[1],b[1],fraction)];};g+=drawPrism(p.points,p.z,p.z+p.depth,moving,p.volume<1-1e-8?'highlight':'piece');}}
     const placed=ordered.slice(0,count),whole=placed.filter(p=>Math.abs(p.volume-1)<1e-8).length,partialCount=count-whole,volume=placed.reduce((s,p)=>s+p.volume,0),total=pieces.reduce((s,p)=>s+p.volume,0);
-    g+=svgText(400,391,`${whole} whole cube${whole===1?'':'s'} + ${partialCount} cut piece${partialCount===1?'':'s'} placed`,'accenttext');
+    g+=svgText(400,391,f.allowSolutions?`${whole} whole cube${whole===1?'':'s'} + ${partialCount} cut piece${partialCount===1?'':'s'} placed`:'Count whole cubes and cut pieces to find the volume.','accenttext');
     g+=svgText(400,418,layer?'Layer view changes the picture; counts still include all layers.':`${fmt(depth)} unit${depth===1?'':'s'} deep — cubes have 1-unit edges`,'tiny');
-    f.svg.innerHTML=g;f.setMetrics([['Whole cubes placed',String(whole)],['Cut pieces placed',String(partialCount)],['Volume placed so far',`${fmt(volume)} ${unit}³`],['Total volume',count===ordered.length?`${fmt(total)} ${unit}³`:'Fill the prism to reveal']]);
+    f.svg.innerHTML=g;f.setMetrics(f.allowSolutions?[['Whole cubes placed',String(whole)],['Cut pieces placed',String(partialCount)],['Volume placed so far',`${fmt(volume)} ${unit}³`],['Total volume',count===ordered.length?`${fmt(total)} ${unit}³`:'Fill the prism to reveal']]:[['One whole cube','1 cubic unit'],['Your task','Count all depth layers and combine the pieces']]);
   }
   const tr=cutControls(f,draw,ordered.length,Math.min(9000,4000+pieces.length*65));tr.set(0);return f.clean;
+}
+
+function mountCompositeArea(container,problem,options){
+  const d=problem.diagram,unit=d.unit||'units',kind=d.type==='L_area'||d.type==='lshape'?'L':d.type==='trapezoid'?'trapezoid':'house';
+  let pieces,areas,bounds,givens,guide;
+  if(kind==='L'){
+    const w=Number(d.width),h=Number(d.height),tw=Number(d.top_width),rh=Number(d.right_height),gap=Math.min(w,h)*.35;
+    if(!(w>tw&&h>rh&&tw>0&&rh>0))return false;
+    pieces=[{v:[[0,0],[tw,0],[tw,h],[0,h]],dx:-gap/2,dy:0,label:'Rectangle A'},{v:[[tw,0],[w,0],[w,rh],[tw,rh]],dx:gap/2,dy:0,label:'Rectangle B'}];
+    areas=[tw*h,(w-tw)*rh];bounds=[-gap/2,w+gap/2,h];
+    givens=`Given: overall width ${fmt(w)} ${unit}; height ${fmt(h)} ${unit}; upright width ${fmt(tw)} ${unit}; lower height ${fmt(rh)} ${unit}.`;
+    guide='Cut the L-shape into two rectangles. Find any missing side by subtraction, then add the two rectangle areas.';
+  }else if(kind==='trapezoid'){
+    const B=Number(d.bottom),b=Number(d.top),h=Number(d.height),q=(B-b)/2,gap=Math.min(B,h)*.35;
+    if(!(B>b&&b>0&&h>0))return false;
+    pieces=[{v:[[0,0],[q,0],[q,h]],dx:-gap,dy:0,label:'Triangle A'},{v:[[q,0],[q+b,0],[q+b,h],[q,h]],dx:0,dy:0,label:'Rectangle'},{v:[[q+b,0],[B,0],[q+b,h]],dx:gap,dy:0,label:'Triangle B'}];
+    areas=[q*h/2,b*h,q*h/2];bounds=[-gap,B+gap,h];
+    givens=`Given: lower base ${fmt(B)} ${unit}; upper base ${fmt(b)} ${unit}; perpendicular height ${fmt(h)} ${unit}.`;
+    guide='Cut along the two perpendicular heights. The center is a rectangle and each end is a right triangle. The three areas add to the original area.';
+  }else{
+    const w=Number(d.width),h=Number(d.wall_height),rh=Number(d.roof_height),gap=Math.min(w,h+rh)*.35;
+    if(!(w>0&&h>0&&rh>0))return false;
+    pieces=[{v:[[0,0],[w,0],[w,h],[0,h]],dx:-(w+gap)/2,dy:0,label:'Rectangle'},{v:[[0,h],[w,h],[w/2,h+rh]],dx:(w+gap)/2,dy:-h,label:'Triangle'}];
+    areas=[w*h,w*rh/2];bounds=[-(w+gap)/2,w+(w+gap)/2,h+rh];
+    givens=`Given: width ${fmt(w)} ${unit}; wall height ${fmt(h)} ${unit}; roof height ${fmt(rh)} ${unit}.`;
+    guide='Separate the roof triangle from the wall rectangle. Moving them preserves every length and area. Find each area, then add.';
+  }
+  const f=frame(container,options),scale=Math.min(620/(bounds[1]-bounds[0]),235/bounds[2]),x=400-(bounds[0]+bounds[1])*scale/2,y=325;let tr;
+  f.status.textContent=givens;f.caption.textContent=guide;
+  f.button('Next step',()=>tr.next());f.button('Put pieces back',()=>tr.reset());
+  function draw(t){
+    let g=svgText(400,35,t<.01?'Find the smaller shapes inside the figure':'Same pieces, separated for measuring','small');
+    const map=([a,b])=>[x+a*scale,y-b*scale];
+    for(let i=0;i<pieces.length;i++){
+      const p=pieces[i],v=p.v.map(([a,b])=>[a+p.dx*t,b+p.dy*t]);
+      g+=poly(v.map(map),i%2?'highlight':'piece',`data-composite-piece="${i}"`);
+      if(t>.7){const mid=v.reduce((c,p)=>[c[0]+p[0]/v.length,c[1]+p[1]/v.length],[0,0]),xy=map(mid);g+=svgText(xy[0],xy[1],p.label,'small');}
+    }
+    g+=svgText(400,385,f.allowSolutions&&t>=.999?`${areas.map(a=>fmt(a)).join(' + ')} = ${fmt(areas.reduce((a,b)=>a+b,0))} square ${unit}`:'Find each piece’s area, then combine the areas.','accenttext');
+    g+=svgText(400,416,'Rectangles: A = bh. Triangles: A = ½bh.','small');
+    f.svg.innerHTML=g;
+    f.setMetrics(f.allowSolutions&&t>=.999?[...areas.map((a,i)=>[pieces[i].label,`${fmt(a)} square ${unit}`]),['Total area',`${fmt(areas.reduce((a,b)=>a+b,0))} square ${unit}`]]:[['Pieces preserve area','No gaps, overlaps, or pieces lost'],['Try it','Use the given measurements for each smaller shape']]);
+  }
+  tr=transport(f,draw,1,2200);tr.set(0);return f.clean;
+}
+function mountCircle(container,problem,options){
+  const f=frame(container,options),d=problem.diagram,r=Number(d.radius)||4,cx=400,cy=210,rp=142;
+  const radiusLabel=d.radius_label||(d.given==='radius'?`r = ${d.label}`:'r = ?'),diameterLabel=d.diameter_label||(d.given==='diameter'?`d = ${d.label}`:'d = ?');
+  f.status.textContent='A radius reaches from the center to the circle. A diameter passes through the center.';
+  f.caption.textContent='Use the given information and the formula in your problem. Zoom in, drag to pan, or pinch with two fingers to inspect the diagram.';
+  f.playbar.hidden=true;
+  let g=`<circle cx="${cx}" cy="${cy}" r="${rp}" class="edge"/>`;
+  if(d.show_diameter!==false)g+=ln(cx-rp,cy,cx+rp,cy,'accentline')+svgText(cx,cy+28,diameterLabel,'small');
+  if(d.show_radius!==false){const a=-Math.PI/3,xx=cx+rp*Math.cos(a),yy=cy+rp*Math.sin(a);g+=ln(cx,cy,xx,yy,'edge')+svgText(xx+8,(cy+yy)/2,radiusLabel,'small','start');}
+  g+=`<circle cx="${cx}" cy="${cy}" r="4" fill="var(--lv-ink)"/>`;
+  if(d.given==='circumference')g+=svgText(cx,42,d.label,'formula');
+  f.svg.innerHTML=g;f.metrics.hidden=true;return f.clean;
 }
 
 export function mountInteractive(container, problem, options={}) {
   if(!container||!problem?.diagram)return false;
   const type=problem.diagram.type;
+  if(type==='circle')return mountCircle(container,problem,options);
+  if(type==='L_area'||type==='trapezoid'||(type==='composite'&&problem.diagram.shape==='house')||(type==='lshape'&&/area/i.test((problem.topic||'')+' '+(problem.prompt||''))))return mountCompositeArea(container,problem,options);
   if(type==='polygon')return problem.diagram.show_radii&&!problem.diagram.show_diameter?mountPolygonArea(container,problem,options):mountPerimeter(container,problem,options);
   if(type==='polygon_rearrange')return mountRearrange(container,problem,options);
   if(type==='central_triangle')return mountCentral(container,problem,options);

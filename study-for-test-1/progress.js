@@ -1,8 +1,9 @@
+import {getExample,MAX_EXAMPLE_INDEX} from './generators.js?v=7';
 /* Local learning records and portable, deliberately non-secure student reports. */
 const FORMAT = 'study-for-test-1-backup';
 const STATUSES = new Set(['correct','incorrect','blank','review','self-reviewed']);
 const COMPLETE = new Set(['correct','self-reviewed']);
-const MAPS = ['answers','plots','lines','checked','plotChecked','variants'];
+const MAPS = ['answers','plots','lines','checked','plotChecked','variants','exampleIndices'];
 const BAD_KEYS = new Set(['__proto__','prototype','constructor']);
 const now = () => new Date().toISOString();
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value) && [Object.prototype,null].includes(Object.getPrototypeOf(value));
@@ -12,13 +13,25 @@ const recordKey = (id,variant=0) => `${Number(id)}:${Number(variant)}`;
 const safeCount = value => Number.isSafeInteger(value) && value >= 0 ? Math.min(value,1000000) : 0;
 const timestamp = value => typeof value === 'string' && value.length <= 40 && Number.isFinite(Date.parse(value)) ? new Date(value).toISOString() : now();
 const flatten = definitions => Array.isArray(definitions) ? definitions : (definitions?.pages || []).flatMap(page=>page.problems || []);
-const actualProblem = (problem,variant) => variant ? {...problem,...problem.variants[variant-1],id:problem.id} : problem;
+const validVariant = variant => Number.isSafeInteger(variant) && variant >= 0 && variant <= MAX_EXAMPLE_INDEX;
+const actualProblem = (problem,variant) => getExample(problem,variant);
+// Collect only examples with saved data. A million possible indices must never create a million-row report.
+function savedExamples(problems,{records={},variants={},maps=[]}={}) {
+  const found = new Map(problems.map(problem=>[Number(problem.id),new Set([0])]));
+  const add = (id,variant) => { if (found.has(id) && validVariant(variant)) found.get(id).add(variant); };
+  for (const [id,variant] of Object.entries(variants || {})) add(Number(id),Number(variant));
+  for (const map of [records,...maps]) for (const key of Object.keys(map || {})) {
+    const match = key.match(/^(\d+):(\d+)(?::[^:]+)?$/);
+    if (match) add(Number(match[1]),Number(match[2]));
+  }
+  return found;
+}
 const isPlotField = (problem,field) => problem.diagram?.student_plot && /plot.*point/i.test(field.label || '');
 
 export function createProgressState() { return {version:1,records:{}}; }
 
 export function recordCheck(progress,{id,variant=0,fields=[],graphStatus,timestamp:checkedAt} = {}) {
-  if (!Number.isInteger(Number(id)) || Number(id) < 1 || !Number.isInteger(Number(variant)) || Number(variant) < 0) throw new Error('A valid problem and example are required.');
+  if (!Number.isInteger(Number(id)) || Number(id) < 1 || !validVariant(Number(variant))) throw new Error('A valid problem and example are required.');
   if (!plain(progress.records)) progress.records = {};
   progress.version = 1;
   const key = recordKey(id,variant), previous = progress.records[key] || {};
@@ -51,14 +64,16 @@ export function recordSelfReview(progress,{id,variant=0,fieldKeys=[],timestamp:r
 
 export function summarizeProgress(progress,definitions,variantsMap={}) {
   const problems = flatten(definitions), records = progress?.records || {};
-  const overall = {mainTotal:problems.length,mainAttempted:0,mainComplete:0,extraTotal:0,extraAttempted:0,extraComplete:0,totalAttempts:0};
+  const overall = {mainTotal:problems.length,mainAttempted:0,mainComplete:0,extraTotal:null,extraSeen:0,extraAvailableUnlimited:true,extraAttempted:0,extraComplete:0,totalAttempts:0};
+  const indices = savedExamples(problems,{records,variants:variantsMap});
   const topics = new Map(), targetedReview = [], missed = new Set(), review = new Set();
   for (const base of problems) {
     const topic = base.topic || 'Mathematics';
-    if (!topics.has(topic)) topics.set(topic,{topic,mainTotal:0,mainAttempted:0,mainComplete:0,extraTotal:0,extraAttempted:0,extraComplete:0,missedIds:[],reviewIds:[]});
+    if (!topics.has(topic)) topics.set(topic,{topic,mainTotal:0,mainAttempted:0,mainComplete:0,extraTotal:null,extraSeen:0,extraAvailableUnlimited:true,extraAttempted:0,extraComplete:0,missedIds:[],reviewIds:[]});
     const skill = topics.get(topic); skill.mainTotal++;
-    overall.extraTotal += (base.variants || []).length; skill.extraTotal += (base.variants || []).length;
-    for (let variant=0;variant<=(base.variants || []).length;variant++) {
+    const seen = indices.get(Number(base.id));
+    overall.extraSeen += seen.size-1; skill.extraSeen += seen.size-1;
+    for (const variant of [...seen].sort((a,b)=>a-b)) {
       const entry = records[recordKey(base.id,variant)];
       if (!entry) continue;
       const attempted = safeCount(entry.attempts)>0 || Object.values(entry.fields || {}).includes('self-reviewed');
@@ -70,10 +85,10 @@ export function summarizeProgress(progress,definitions,variantsMap={}) {
       const values = Object.values(entry.fields || {});
       if (!complete && values.includes('incorrect')) {
         missed.add(base.id); if (!skill.missedIds.includes(base.id)) skill.missedIds.push(base.id);
-        targetedReview.push({id:base.id,variant,topic,reason:'An answer needs another look.',hint:actualProblem(base,variant).hint || 'Review the measurements and units, then try again.'});
+        targetedReview.push({id:base.id,variant,topic,reason:'An answer needs another look.',hint:variant ? actualProblem(base,variant).hint || 'Review the measurements and units, then try again.' : 'Review the diagram, measurements, and units, then explain each step.'});
       } else if (!complete && values.includes('review')) {
         review.add(base.id); if (!skill.reviewIds.includes(base.id)) skill.reviewIds.push(base.id);
-        targetedReview.push({id:base.id,variant,topic,reason:'Compare your explanation with the sample answer.',hint:actualProblem(base,variant).hint || 'Check whether your explanation includes the same mathematical idea.'});
+        targetedReview.push({id:base.id,variant,topic,reason:variant ? 'Compare your explanation with the example solution.' : 'Review your explanation with the concept guidance or your teacher.',hint:variant ? actualProblem(base,variant).hint || 'Check whether your explanation includes the same mathematical idea.' : 'Review the diagram, measurements, and units, then explain each step.'});
       }
     }
   }
@@ -83,16 +98,17 @@ export function summarizeProgress(progress,definitions,variantsMap={}) {
   if (!recommended) recommended = targetedReview[0] || null;
   if (!recommended) for (const problem of problems) {
     const preferred = Number(variantsMap[problem.id] || 0);
-    const order = [...new Set([...(preferred > 0 ? [preferred] : []),...(problem.variants || []).map((_,i)=>i+1)])];
-    const variant = order.find(index=>index<=(problem.variants || []).length && !records[recordKey(problem.id,index)]?.complete);
-    if (variant) { recommended = {id:problem.id,variant}; break; }
+    let variant = validVariant(preferred) && preferred>0 && !records[recordKey(problem.id,preferred)]?.complete ? preferred : 1;
+    while (variant<=MAX_EXAMPLE_INDEX && records[recordKey(problem.id,variant)]?.complete) variant++;
+    if (variant<=MAX_EXAMPLE_INDEX) { recommended = {id:problem.id,variant}; break; }
   }
   return {overall,topics:[...topics.values()],missedIds:[...missed],reviewIds:[...review],targetedReview,recommendedId:recommended?.id ?? null,recommendedVariant:recommended?.variant ?? 0};
 }
 
 function reportRows(data,state) {
-  const rows = [];
-  for (const base of flatten(data)) for (let variant=0;variant<=(base.variants || []).length;variant++) {
+  const rows = [], problems = flatten(data);
+  const indices = savedExamples(problems,{records:state.progress?.records,variants:state.variants,maps:[state.answers,state.plots,state.lines,state.checked,state.plotChecked]});
+  for (const base of problems) for (const variant of [...indices.get(Number(base.id))].sort((a,b)=>a-b)) {
     const key = recordKey(base.id,variant), entry = state.progress?.records?.[key];
     const problem = actualProblem(base,variant);
     const responses = (problem.fields || []).map(field=>({field,answer:isPlotField(problem,field) ? (state.plots?.[key] || []).map(pt=>`(${pt[0]}, ${pt[1]})`).join('; ') : String(state.answers?.[`${key}:${field.key}`] ?? ''),status:entry?.fields?.[field.key] || (isPlotField(problem,field) ? entry?.fields?.$graph : '') || 'not checked'}));
@@ -101,7 +117,7 @@ function reportRows(data,state) {
   }
   return rows;
 }
-function statusLabel(value) { return ({correct:'Correct',incorrect:'Needs review',blank:'Incomplete',review:'Self-review needed','self-reviewed':'Self-reviewed'})[value] || 'Not checked'; }
+function statusLabel(value) { return ({correct:'Correct',incorrect:'Needs review',blank:'Incomplete',review:'Explanation review needed','self-reviewed':'Self-reviewed'})[value] || 'Not checked'; }
 
 export function makeReportHTML({data,state,studentName='',createdAt=now()}) {
   const summary = summarizeProgress(state.progress,data,state.variants), rows = reportRows(data,state);
@@ -123,10 +139,11 @@ export function makeReportText({data,state,studentName='',createdAt=now()}) {
   if(name)lines.push(`Student: ${name}`);
   lines.push(`Created: ${createdAt}`,'',
     'This report reflects answers and checks saved on one browser. It is not a verified grade.',
-    'Correct = automatically checked. Self-reviewed = the student compared an explanation with a sample answer. Completion may include self-reviewed explanations. Unchecked answers do not count as complete.','',
+    'Correct = automatically checked. Self-reviewed = the student reviewed an explanation; example problems include worked solutions. Packet explanations can be reviewed with a teacher. Completion may include self-reviewed explanations. Unchecked answers do not count as complete.','',
     'PROGRESS',
     `Packet problems complete: ${summary.overall.mainComplete} / ${summary.overall.mainTotal}`,
-    `Extra examples complete: ${summary.overall.extraComplete} / ${summary.overall.extraTotal}`,
+    `Extra examples complete: ${summary.overall.extraComplete}`,
+    `Extra examples attempted: ${summary.overall.extraAttempted}; generate more whenever you are ready.`,
     `Answer checks: ${summary.overall.totalAttempts}`);
   if(summary.recommendedId!==null)lines.push(`Recommended next: Problem ${summary.recommendedId}${summary.recommendedVariant ? `, extra example ${summary.recommendedVariant}` : ', packet original'}`);
   lines.push('','SKILLS');
@@ -153,6 +170,8 @@ export function validateBackup(value,definitions) {
   if (typeof value === 'string') { if (value.length > 5_000_000) throw new Error('The backup is too large.'); try { value = JSON.parse(value); } catch { throw new Error('This file is not valid JSON.'); } }
   if (!plain(value) || value.format !== FORMAT || value.version !== 1 || !plain(value.state)) throw new Error('Choose a Study for Test 1 backup file.');
   const problems = new Map(flatten(definitions).map(problem=>[Number(problem.id),problem]));
+  const resolvedProblems = new Map();
+  const resolve = (base,variant) => { const key=recordKey(base.id,variant); if (!resolvedProblems.has(key)) resolvedProblems.set(key,actualProblem(base,variant)); return resolvedProblems.get(key); };
   const source = value.state, out = {answers:{},plots:{},lines:{},checked:{},plotChecked:{},variants:{},progress:createProgressState()};
   const entries = (object,label) => {
     if (object === undefined) return [];
@@ -165,8 +184,8 @@ export function validateBackup(value,definitions) {
     const match = String(key).match(withField ? /^(\d+):(\d+):([^:]+)$/ : /^(\d+):(\d+)$/);
     if (!match) throw new Error('A saved problem reference is invalid.');
     const id=Number(match[1]),variant=Number(match[2]),base=problems.get(id);
-    if (!base || variant>(base.variants || []).length || String(key)!==`${id}:${variant}${withField ? ':'+match[3] : ''}`) throw new Error('The backup contains an unavailable problem or example.');
-    const problem=actualProblem(base,variant),field=withField ? (problem.fields || []).find(f=>f.key===match[3]) : null;
+    if (!base || !validVariant(variant) || String(key)!==`${id}:${variant}${withField ? ':'+match[3] : ''}`) throw new Error('The backup contains an unavailable problem or example.');
+    const problem=resolve(base,variant),field=withField ? (problem.fields || []).find(f=>f.key===match[3]) : null;
     if (withField && (!field || BAD_KEYS.has(match[3]))) throw new Error('The backup contains an unknown answer field.');
     return {id,variant,problem,field};
   }
@@ -187,7 +206,14 @@ export function validateBackup(value,definitions) {
     const unique=new Set(out.plots[key].map(point=>point.join(','))); if(unique.size!==points.length) throw new Error('A saved graph contains duplicate points.');
   }
   for (const [id,variant] of entries(source.variants,'examples')) {
-    if (!/^\d+$/.test(id) || String(Number(id))!==id || !Number.isInteger(variant) || variant<0 || !problems.has(Number(id)) || variant>(problems.get(Number(id)).variants || []).length) throw new Error('A selected example is invalid.'); out.variants[id]=variant;
+    if (!/^\d+$/.test(id) || String(Number(id))!==id || !validVariant(variant) || !problems.has(Number(id))) throw new Error('A selected example is invalid.'); out.variants[id]=variant;
+  }
+  if (source.exampleIndices !== undefined) {
+    out.exampleIndices = {};
+    for (const [id,index] of entries(source.exampleIndices,'example history')) {
+      if (!/^\d+$/.test(id) || String(Number(id))!==id || !validVariant(index) || !problems.has(Number(id))) throw new Error('A saved example history is invalid.');
+      out.exampleIndices[id] = index;
+    }
   }
   if (source.progress !== undefined) {
     if (!plain(source.progress) || source.progress.version!==1) throw new Error('The learning progress section is invalid.');

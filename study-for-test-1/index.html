@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f5f3ee">
   <meta name="description" content="A Grade 7 study packet with geometry visualizations, saved practice, and lessons on circles, area, volume, and proportions.">
   <title>Study for Test 1</title>
-  <link rel="stylesheet" href="./styles.css?v=6">
+  <link rel="stylesheet" href="./styles.css?v=7">
 </head>
 <body>
   <header class="app-header">
@@ -19,10 +19,10 @@
     <div class="header-actions">
       <button id="contents-toggle" class="quiet-button" type="button" aria-haspopup="dialog">Contents</button>
       <button id="progress-toggle" class="quiet-button" type="button" aria-haspopup="dialog">Progress</button>
-      <button id="solutions-toggle" class="quiet-button" type="button" aria-pressed="false">Solutions</button>
+      <button id="solutions-toggle" class="quiet-button" type="button" aria-pressed="false" hidden>Example steps</button>
       <button id="theme-toggle" class="icon-button" type="button" title="Change color theme" aria-label="Switch to dark theme">◐</button>
       <button id="fullscreen-toggle" class="icon-button" type="button" title="Full screen" aria-label="Enter full screen">⛶</button>
-      <button id="download-toggle" hidden class="icon-button" type="button" aria-label="Download packet" title="Download packet">↓</button>
+      <button id="download-toggle" class="icon-button" type="button" aria-label="Download packet" title="Download packet" hidden>↓</button>
     </div>
   </header>
   <div id="download-menu" class="download-menu" hidden></div>
@@ -33,6 +33,6 @@
   <div id="toast" role="status" aria-live="polite"></div>
   <div id="advance-banner" class="advance-banner" role="status" aria-live="polite" hidden></div>
   <dialog id="study-dialog" class="study-dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div><input id="restore-input" type="file" accept=".json,application/json" hidden></dialog>
-  <script type="module" src="./app.js?v=6"></script>
+  <script type="module" src="./app.js?v=7"></script>
 </body>
 </html>
