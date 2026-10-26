@@ -1,5 +1,6 @@
 /* Deterministic, independent problem generation. No source text is numerically patched. */
-const clean = s => String(s ?? '').replaceAll('−','-').replaceAll('–','-').replaceAll('×','*').replaceAll('÷','/').replaceAll('⁄','/').replaceAll('\u00a0',' ').trim();
+const vulgarFractions={'½':'1/2','⅓':'1/3','⅔':'2/3','¼':'1/4','¾':'3/4','⅕':'1/5','⅖':'2/5','⅗':'3/5','⅘':'4/5','⅙':'1/6','⅚':'5/6','⅛':'1/8','⅜':'3/8','⅝':'5/8','⅞':'7/8'};
+const clean = s => String(s ?? '').replaceAll('−','-').replaceAll('–','-').replaceAll('×','*').replaceAll('÷','/').replaceAll('⁄','/').replaceAll('\u00a0',' ').replace(/([0-9]?)([½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])/g,(_,whole,f)=>`${whole}${whole?' ':''}${vulgarFractions[f]}`).trim();
 const gcd = (a,b) => b ? gcd(b,a%b) : Math.abs(a)||1;
 const frac = (n,d=1) => { if(d===0) throw Error('Zero denominator'); const g=gcd(Math.round(n),Math.round(d)),sg=d<0?-1:1;return {n:sg*n/g,d:sg*d/g}; };
 const fs = f => f.d===1 ? String(f.n) : `${f.n}/${f.d}`;
@@ -114,7 +115,7 @@ function triangleArea3(a,b,c){const u=b.map((x,i)=>x-a[i]),v=c.map((x,i)=>x-a[i]
 function specialized(p,seed,R,F,level,unit){
   const f=identify(p),I=R.int,P=R.pick;
   if(f==='measure-unit'){
-    const length=I(2,12),u=P(['cm','m','in']),segments=[{from:[0,0],to:[length,0]},...Array.from({length:length+1},(_,i)=>({from:[i,-.14],to:[i,.14]}))];
+    const length=I(2,25),u=P(['cm','m','in']),segments=[{from:[0,0],to:[length,0]},...Array.from({length:length+1},(_,i)=>({from:[i,-.14],to:[i,.14]}))];
     return F(f,{prompt:`Each interval is 1 ${u}. Find the segment length.`,value:length,answer:`${length} ${u}`,unit:u,steps:[`Count the ${length} intervals between the two endpoints.`,`Length = ${length} × 1 = ${length} ${u}.`],visual:{type:'segments',segments,unit:u,measureLength:length}});
   }
   if(f==='area-count'){
@@ -126,22 +127,22 @@ function specialized(p,seed,R,F,level,unit){
     return F(f,{prompt:`Order least to greatest: ${shuffled.join(', ')}.`,value:vals,answer:vals.join(', '),steps:['Compare locations on the number line. Negative values come before positive values.',`From left to right: ${vals.join(', ')}.`],visual:null});
   }
   if(f==='absolute-opposite'){
-    const a=-I(3,31)/2;return F(f,{prompt:`Find the opposite of ${a}; then |${a}|.`,value:[-a,-a],answer:`${-a}; ${-a}`,steps:[`The opposite is equally far from 0 on the other side: ${-a}.`,`Absolute value is distance from 0: |${a}| = ${-a}.`],visual:null});
+    const a=rnd((R.bool()?-1:1)*I(1,120)/P([1,2,4,5,10]),6),absolute=Math.abs(a);return F(f,{prompt:`Find the opposite of ${a}; then |${a}|.`,value:[-a,absolute],answer:`${-a}; ${absolute}`,steps:[`The opposite is equally far from 0 on the other side: ${-a}.`,`Absolute value is distance from 0: |${a}| = ${absolute}.`],visual:null});
   }
   if(f==='zero-division'){
-    const a=I(2,30);return F(f,{prompt:`${a} ÷ 0`,value:null,answer:'undefined',accept:['not defined','undefined'],steps:[`Division asks for a number x with 0 × x = ${a}.`,`No such number exists. Division by 0 is undefined.`],visual:null});
+    const a=(R.bool()?-1:1)*I(2,150);return F(f,{prompt:`${a} ÷ 0`,value:null,answer:'undefined',accept:['not defined','undefined'],steps:[`Division asks for a number x with 0 × x = ${a}.`,`No such number exists. Division by 0 is undefined.`],visual:null});
   }
   if(f==='fraction-decimal-percent'){
-    const v=P([.125,.2,.25,.35,.4,.45,.625,.7,.75,.8,.875]),q=frac(v*1000,1000),pc=rnd(v*100,3);
+    const denominator=P([4,5,8,10,20,25,40,50,100]),q=frac(I(1,denominator-1),denominator),v=num(q),pc=rnd(v*100,3);
     if(/write\s+[\d.]+%/i.test(p.prompt||''))return F(f,{prompt:`Write ${pc}% as a decimal and a simplified fraction.`,value:[v,v],answer:`${v}; ${fs(q)}`,steps:[`Divide by 100: ${pc}% = ${v}.`,`Write ${v} as ${Math.round(v*1000)}/1000 and simplify to ${fs(q)}.`],visual:null});
     if(/write\s+\d+\s*\//i.test(p.prompt||''))return F(f,{prompt:`Write ${fs(q)} as a decimal and a percent.`,value:[v,pc],answer:`${v}; ${pc}%`,steps:[`Divide: ${q.n} ÷ ${q.d} = ${v}.`,`Multiply by 100: ${v} × 100 = ${pc}%.`],visual:null});
     return F(f,{prompt:`Write ${v} as a simplified fraction and a percent.`,value:[v,pc],answer:`${fs(q)}; ${pc}%`,steps:[`Write ${v} as ${Math.round(v*1000)}/1000 and simplify to ${fs(q)}.`,`Multiply by 100: ${v} × 100 = ${pc}%.`],visual:null});
   }
   if(f==='repeating-decimal'){
-    const n=I(1,8);return F(f,{prompt:`Divide ${n} by 9. Terminating or repeating?`,value:null,answer:`0.${n}${n}${n}…; repeating`,accept:[`0.${n} repeating`,`0.${n}${n}${n} repeating`,`0.${n}${n}${n}...; repeating`,`0.${n}... repeating`],steps:[`Long division leaves the same remainder ${n} each cycle.`,`The digit ${n} repeats forever: 0.${n}${n}${n}… .`],visual:null});
+    const n=I(1,98),cycle=String(n).padStart(2,'0');return F(f,{prompt:`Divide ${n} by 99. Terminating or repeating?`,value:null,answer:`0.${cycle}${cycle}${cycle}…; repeating`,accept:[`0.(${cycle}); repeating`,`0.${cycle} repeating`,`0.${cycle}${cycle}${cycle} repeating`,`0.${cycle}${cycle}${cycle}...; repeating`,`0.${cycle}... repeating`],steps:[`Long division returns to the same remainder after the two-digit cycle ${cycle}.`,`The digits ${cycle} repeat forever: 0.${cycle}${cycle}${cycle}… .`],visual:null});
   }
   if(f==='percent-expression'){
-    const pc=I(2,18);return F(f,{prompt:`p + ${pc/100}p = ___p. This is an increase of ___%.`,value:[1+pc/100,pc],answer:`${1+pc/100}; ${pc}%`,steps:[`Combine coefficients: 1 + ${pc/100} = ${1+pc/100}.`,`The extra ${pc/100} of the original is ${pc}%.`],visual:null});
+    const pc=I(1,95),multiplier=rnd(1+pc/100,2);return F(f,{prompt:`p + ${pc/100}p = ___p. This is an increase of ___%.`,value:[multiplier,pc],answer:`${multiplier}; ${pc}%`,steps:[`Combine coefficients: 1 + ${pc/100} = ${multiplier}.`,`The extra ${pc/100} of the original is ${pc}%.`],visual:null});
   }
   if(f==='fraction-order'){
     const a=frac(I(1,5),P([3,4,5,6])),b=frac(I(1,4),P([3,5,6])),c=frac(I(1,4),P([6,8,9]));
@@ -185,18 +186,19 @@ function specialized(p,seed,R,F,level,unit){
     return F(f,{prompt:`Solve and graph: ${left} ${symbol} ${rationalText(rhs)}.${boundaryCheck?` Does x = ${boundary} work?`:''}`,value:null,answer,steps,input:'text',visual:{type:'numberline',min:Math.min(-6,boundary-4),max:Math.max(6,boundary+4),step:1,solution:{boundary,direction:solved==='<'||solved==='≤'?'left':'right',closed:works}}});
   }
   if(f==='coordinate-plot'){
-    const count=Math.max(1,Math.min(4,p.visual?.targets?.length||2)),pts=[];for(let j=0;j<count;j++){const target=p.visual?.targets?.[j];let x=I(1,5)*(target?.x<0?-1:1),y=I(1,5)*(target?.y<0?-1:1);if(target?.x===0)x=0;else if(target&&!Number.isInteger(target.x))x-=Math.sign(x)*.5;if(target?.y===0)y=0;else if(target&&!Number.isInteger(target.y))y-=Math.sign(y)*.5;pts.push({x,y,label:String.fromCharCode(65+j)});}
-    return F(f,{prompt:`Plot ${pts.map(q=>`${q.label}(${q.x}, ${q.y})`).join(' and ')}.`,value:pts.flatMap(q=>[q.x,q.y]),answer:pts.map(q=>`${q.label}(${q.x}, ${q.y})`).join('; '),input:'plot',steps:pts.map(q=>`${q.label}: move ${Math.abs(q.x)} ${q.x<0?'left':'right'} and ${Math.abs(q.y)} ${q.y<0?'down':'up'} from the origin.`),visual:{type:'grid',min:-6,max:6,step:1,points:[],targets:pts}});
+    const count=Math.max(1,Math.min(4,p.visual?.targets?.length||2)),pts=[];for(let j=0;j<count;j++){const target=p.visual?.targets?.[j];let x=I(1,12)*(target?.x<0?-1:1),y=I(1,12)*(target?.y<0?-1:1);if(target?.x===0)x=0;else if(target&&!Number.isInteger(target.x))x-=Math.sign(x)*.5;if(target?.y===0)y=0;else if(target&&!Number.isInteger(target.y))y-=Math.sign(y)*.5;pts.push({x,y,label:String.fromCharCode(65+j)});}
+    const extent=Math.max(6,Math.ceil(Math.max(...pts.flatMap(q=>[Math.abs(q.x),Math.abs(q.y)])))+1);
+    return F(f,{prompt:`Plot ${pts.map(q=>`${q.label}(${q.x}, ${q.y})`).join(' and ')}.`,value:pts.flatMap(q=>[q.x,q.y]),answer:pts.map(q=>`${q.label}(${q.x}, ${q.y})`).join('; '),input:'plot',steps:pts.map(q=>`${q.label}: move ${Math.abs(q.x)} ${q.x<0?'left':'right'} and ${Math.abs(q.y)} ${q.y<0?'down':'up'} from the origin.`),visual:{type:'grid',min:-extent,max:extent,step:1,points:[],targets:pts}});
   }
   if(f==='proportion-plot'){
-    const k=P([.5,1,1.5,2,2.5]),x=2,pts=[{x:-x,y:-x*k,label:'A'},{x:0,y:0,label:'B'},{x,y:x*k,label:'C'}];
-    return F(f,{prompt:`For y = ${k}x, plot x = −${x}, 0, ${x}; draw the line.`,value:pts.flatMap(q=>[q.x,q.y]),answer:pts.map(q=>`(${q.x}, ${q.y})`).join('; '),input:'plot',proportion:{k,xs:[-x,0,x]},steps:[`Multiply each x-value by ${k}: ${pts.map(q=>`${q.x} → ${q.y}`).join('; ')}.`,`Plot all three points and connect them with a straight line through (0, 0).`],visual:{type:'grid',min:-6,max:6,step:1,points:[],targets:pts,line:null,answerLine:{k}}});
+    const k=I(1,16)/4,x=I(1,4),extent=Math.ceil(Math.max(6,x*k+1)),pts=[{x:-x,y:-x*k,label:'A'},{x:0,y:0,label:'B'},{x,y:x*k,label:'C'}];
+    return F(f,{prompt:`For y = ${k}x, plot x = −${x}, 0, ${x}; draw the line.`,value:pts.flatMap(q=>[q.x,q.y]),answer:pts.map(q=>`(${q.x}, ${q.y})`).join('; '),input:'plot',proportion:{k,xs:[-x,0,x]},steps:[`Multiply each x-value by ${k}: ${pts.map(q=>`${q.x} → ${q.y}`).join('; ')}.`,`Plot all three points and connect them with a straight line through (0, 0).`],visual:{type:'grid',min:-extent,max:extent,step:1,points:[],targets:pts,line:null,answerLine:{k}}});
   }
   if(f==='arithmetic-sequence'||f==='geometric-sequence'){
     const geometric=f==='geometric-sequence',src=p.sequence||{},sub=p.subtype||'next-rule',fractional=!Number.isInteger(src.first??1)||!Number.isInteger(src.difference??1);
-    let d=geometric?(src.ratio<0?P([-2,-3]):src.ratio>0&&src.ratio<1?P([.5,1/3,.25]):P([2,3])):(src.difference<0?-I(2,7):fractional?P([.25,.5,.75]):I(2,7));
-    let a=geometric&&d>0&&d<1?I(1,6)*Math.round(1/d)**4:fractional?I(1,9)/4:I(2,12);
-    if(sub==='plot'){a=geometric?I(1,8)/4:I(-3,3);d=geometric?2:I(1,3);}
+    let d=geometric?(src.ratio<0?P([-2,-3,-4,-.5]):src.ratio>0&&src.ratio<1?P([.5,1/3,.25,.2]):P([2,3,4,5])):(src.difference<0?-I(1,18):fractional?I(1,15)/4:I(1,18));
+    let a=geometric&&Math.abs(d)<1?I(1,18)*Math.round(1/Math.abs(d))**4:fractional?I(-24,40)/4:I(-24,40)||1;
+    if(sub==='plot'){a=geometric?I(1,24)/4:I(-8,8);d=geometric?P([.5,1.5,2,2.5]):I(1,6);}
     const vals=Array.from({length:5},(_,i)=>rnd(geometric?a*d**i:a+i*d,10)),fmt=n=>rationalText(n),ds=fmt(d),as=fmt(a);
     const rule=geometric?`${coefficientText(as)}(${ds})^(n − 1)`:`${coefficientText(ds)}n ${a-d<0?'−':'+'} ${fmt(Math.abs(a-d))}`;
     const sequence=geometric?{kind:'geometric',first:a,ratio:d}:{kind:'arithmetic',first:a,difference:d};
@@ -225,29 +227,29 @@ function specialized(p,seed,R,F,level,unit){
   }
   if(f==='proportion-constant'||f==='proportion-interpret'){
     if(f==='proportion-interpret'&&p.visual?.type==='grid'){
-      const k=P([.5,1,1.5,2,2.5,3,3.5]),answer=`k = ${k}; 1 unit of x gives ${k} units of y; zero gives zero.`;
-      return F(f,{prompt:`Find k from the graph. Explain what (1, ${k}) and (0, 0) mean.`,value:null,answer,input:'text',freeResponse:true,steps:[`The graph passes through (1, ${k}), so k = ${k}/1 = ${k}.`,`(1, ${k}) states the unit rate.`,`The origin means zero x corresponds to zero y.`],visual:{type:'grid',min:-5,max:5,step:1,points:[{x:1,y:k,label:'A'},{x:0,y:0,label:'B'}],targets:[],line:{k,b:0}}});
+      const k=I(1,48)/8,extent=Math.max(5,Math.ceil(k+1)),answer=`k = ${k}; 1 unit of x gives ${k} units of y; zero gives zero.`;
+      return F(f,{prompt:`Find k from the graph. Explain what (1, ${k}) and (0, 0) mean.`,value:null,answer,input:'text',freeResponse:true,steps:[`The graph passes through (1, ${k}), so k = ${k}/1 = ${k}.`,`(1, ${k}) states the unit rate.`,`The origin means zero x corresponds to zero y.`],visual:{type:'grid',min:-extent,max:extent,step:1,points:[{x:1,y:k,label:'A'},{x:0,y:0,label:'B'}],targets:[],line:{k,b:0}}});
     }
-    const k=P([1.5,2,2.5,3,3.5,4]),x=I(2,6);return F(f,{prompt:`A proportional relationship contains (0, 0) and (${x}, ${x*k}). Find k in y = kx.`,value:k,answer:String(k),steps:[`For a nonzero x, k = y/x.`,`k = ${x*k}/${x} = ${k}. The point (1, ${k}) gives the unit rate.`],visual:null});
+    const k=I(1,48)/4,x=I(2,15);return F(f,{prompt:`A proportional relationship contains (0, 0) and (${x}, ${x*k}). Find k in y = kx.`,value:k,answer:String(k),steps:[`For a nonzero x, k = y/x.`,`k = ${x*k}/${x} = ${k}. The point (1, ${k}) gives the unit rate.`],visual:null});
   }
   if(f==='proportion-equation'){
-    const n=I(1,5),d=I(2,6),k=frac(n,d),xs=[d,2*d,3*d],ys=[n,2*n,3*n],answer=`y = ${coefficientText(fs(k))}x`;
+    const n=I(1,23),d=I(2,16),k=frac(n,d),xs=[d,2*d,3*d],ys=[n,2*n,3*n],answer=`y = ${coefficientText(fs(k))}x`;
     return F(f,{prompt:`x: ${xs.join(', ')}; y: ${ys.join(', ')}. Write y in terms of x.`,value:null,answer,input:'text',freeResponse:true,proportion:{k:num(k)},steps:[`Divide y by x: ${n}/${d} = ${fs(k)} for each pair.`,`Use y = kx: ${answer}.`],visual:null});
   }
   if(f==='proportion-table'&&p.subtype==='table'){
-    const k=P([.5,.75,1.5,2,2.5,3,4]),xs=[0,I(1,4),I(5,9)],ys=xs.map(x=>x*k);
+    const k=I(1,40)/4,xs=[0,I(1,8),I(9,18)],ys=xs.map(x=>x*k);
     return F(f,{prompt:`y = ${coefficientText(rationalText(k))}x. Find y when x = ${xs.join(', ')}.`,value:ys,answer:ys.map(rationalText).join(', '),proportion:{k,xs},steps:[`Substitute each x-value into y = ${coefficientText(rationalText(k))}x.`,...xs.map((x,i)=>`${rationalText(k)} × ${x} = ${rationalText(ys[i])}.`)],visual:null});
   }
   if(f==='proportion-check'){
     if(p.visual?.type==='grid'){
-      const k=P([.5,1,1.5,2]),b=R.bool()?0:P([-3,-2,-1,1,2,3]),yes=b===0;
+      const k=I(1,16)/4,b=R.bool()?0:P([-3,-2.5,-2,-1.5,-1,.5,1,1.5,2,2.5,3]),yes=b===0;
       return F(f,{prompt:'Is the graphed relationship proportional? Explain.',value:null,answer:yes?'Yes; it is a straight line through the origin.':'No; the line does not pass through the origin.',accept:[yes?'yes':'no'],freeResponse:true,steps:[`The graph crosses the y-axis at (0, ${b}).`,yes?'A straight line through (0, 0) represents a proportional relationship.':'A proportional graph must pass through (0, 0); this one does not.'],visual:{type:'grid',min:-5,max:5,step:1,points:[{x:0,y:b,label:'A'},{x:1,y:k+b,label:'B'}],targets:[],line:{k,b}}});
     }
     if(/find k/i.test(p.prompt||'')){
-      const k=P([.5,1.5,2,2.5,3.5,4]),xs=[2,4,6],ys=xs.map(x=>k*x);
+      const k=I(1,48)/4,start=I(1,6),gap=I(1,5),xs=[start,start+gap,start+2*gap],ys=xs.map(x=>k*x);
       return F(f,{prompt:`x: ${xs.join(', ')}; y: ${ys.join(', ')}. Is it proportional? If so, find k.`,value:null,answer:`Yes; k = ${rationalText(k)}`,freeResponse:true,steps:[`The ratios y/x are all ${rationalText(k)}.`,`Yes, the common ratio is k = ${rationalText(k)}.`],visual:null});
     }
-    const k=I(2,6),b=R.bool()?0:I(1,5),ys=[k+b,2*k+b,3*k+b],yes=b===0;return F(f,{prompt:`x: 1, 2, 3; y: ${ys.join(', ')}. Proportional?`,value:null,answer:yes?'Yes':'No',accept:[yes?'yes':'no'],steps:[`Compare y/x: ${ys[0]}, ${rnd(ys[1]/2,4)}, ${rnd(ys[2]/3,4)}.`,yes?'All ratios match, so the relationship is proportional.':'The ratios differ, so the relationship is not proportional.'],visual:null});
+    const k=I(1,30)/2,b=R.bool()?0:I(1,19)/2,ys=[k+b,2*k+b,3*k+b],yes=b===0;return F(f,{prompt:`x: 1, 2, 3; y: ${ys.join(', ')}. Proportional?`,value:null,answer:yes?'Yes':'No',accept:[yes?'yes':'no'],steps:[`Compare y/x: ${ys[0]}, ${rnd(ys[1]/2,4)}, ${rnd(ys[2]/3,4)}.`,yes?'All ratios match, so the relationship is proportional.':'The ratios differ, so the relationship is not proportional.'],visual:null});
   }
   if(f==='proportion-solve'){
     const n=I(1,8),d=I(n+1,n+8),k=I(2,6);return F(f,{prompt:`${n}/${d} = x/${d*k}. Find x.`,value:n*k,answer:String(n*k),steps:[`The denominator is multiplied by ${k}: ${d} × ${k} = ${d*k}.`,`Multiply the numerator by the same factor: x = ${n} × ${k} = ${n*k}.`],visual:null});
@@ -260,40 +262,40 @@ function specialized(p,seed,R,F,level,unit){
     const ra=I(5,12),rb=I(1,4),ta=I(2,6),tb=I(2,6);return F(f,{prompt:`A: ${ra*ta} cm in ${ta} s. B: ${rb*tb} cm in ${tb} s. How much faster is A, in cm/s?`,value:ra-rb,answer:String(ra-rb),unit:'cm/s',steps:[`A: ${ra*ta}/${ta} = ${ra} cm/s. B: ${rb*tb}/${tb} = ${rb} cm/s.`,`Difference = ${ra} − ${rb} = ${ra-rb} cm/s.`],visual:null});
   }
   if(f==='percent-whole'){
-    const pc=P([10,15,20,25,30,40,50,60,75]),whole=P([40,60,80,120,160,200]),part=pc*whole/100;return F(f,{prompt:`${part} is ${pc}% of what number?`,value:whole,answer:String(whole),steps:[`Let w be the whole: ${pc/100}w = ${part}.`,`Divide: w = ${part}/${pc/100} = ${whole}.`],visual:null});
+    const pc=I(1,95),whole=I(4,100)*5,part=rnd(pc*whole/100,4);return F(f,{prompt:`${part} is ${pc}% of what number?`,value:whole,answer:String(whole),steps:[`Let w be the whole: ${pc/100}w = ${part}.`,`Divide: w = ${part}/${pc/100} = ${whole}.`],visual:null});
   }
   if(f==='percent-rate'){
-    const whole=P([20,40,50,60,80,100,120,160,200]),pc=P([5,10,15,20,25,30,35,40,50,60,75,80]),part=whole*pc/100;
+    const whole=I(4,100)*5,pc=I(1,95),part=rnd(whole*pc/100,4);
     return F(f,{prompt:`${part} is what percent of ${whole}?`,value:pc,answer:`${pc}%`,unit:'%',steps:[`Divide the part by the whole: ${part}/${whole} = ${pc/100}.`,`Multiply by 100: ${pc/100} × 100 = ${pc}%.`],visual:null});
   }
   if(f==='percent-reverse'){
-    const original=P([25,40,50,60,75,80,100,120,150,200]),pc=P([10,15,20,25,30,40]),down=p.percent?.direction?p.percent.direction==='decrease':R.bool(),factor=1+(down?-pc:pc)/100,now=rnd(original*factor,2);
+    const original=I(5,100)*5,pc=I(1,75),down=p.percent?.direction?p.percent.direction==='decrease':R.bool(),factor=rnd(1+(down?-pc:pc)/100,4),now=rnd(original*factor,2);
     return F(f,{prompt:`After a ${pc}% ${down?'decrease':'increase'}, the value is ${now}. Find the original value.`,value:original,answer:String(original),percent:{direction:down?'decrease':'increase',final:now,rate:pc},steps:[`The new value is ${100+(down?-pc:pc)}% of the original: ${factor}x = ${now}.`,`Divide by ${factor}: x = ${now}/${factor} = ${original}.`],visual:null});
   }
   if(f==='percent-adjust'){
-    const original=P([25,40,50,60,80,100,120,150,200]),pc=P([5,10,15,20,25,30,40]),down=p.percent?.direction==='decrease',factor=1+(down?-pc:pc)/100,value=rnd(original*factor,2);
+    const original=I(5,100)*5,pc=I(1,75),down=p.percent?.direction==='decrease',factor=rnd(1+(down?-pc:pc)/100,4),value=rnd(original*factor,2);
     return F(f,{prompt:`${down?'Decrease':'Increase'} ${original} by ${pc}%.`,value,answer:String(value),percent:{direction:down?'decrease':'increase',original,rate:pc},steps:[`Multiplier = 1 ${down?'−':'+'} ${pc/100} = ${factor}.`,`New amount = ${original} × ${factor} = ${value}.`],visual:null});
   }
   if(['tax','commission','discount-amount','markup-amount'].includes(f)){
-    const amount=P([40,60,80,120,160,200]),pc=f==='tax'?P([4,5,6.25,7.5,8]):P([5,8,10,12.5,15,20,25,35]),value=rnd(amount*pc/100,2),label={tax:'tax',commission:'commission','discount-amount':'discount','markup-amount':'markup'}[f];
+    const amount=I(4,120)*5,pc=f==='tax'?I(8,40)/4:I(1,60),value=rnd(amount*pc/100,2),label={tax:'tax',commission:'commission','discount-amount':'discount','markup-amount':'markup'}[f];
     return F(f,{prompt:`Find the ${pc}% ${label} amount on $${amount.toFixed(2)}.`,value,answer:`$${value.toFixed(2)}`,unit:'$',steps:[`Convert ${pc}% to ${pc/100}.`,`${label[0].toUpperCase()+label.slice(1)} = ${amount} × ${pc/100} = $${value.toFixed(2)}.`],visual:null});
   }
   if(f==='tip-total'||f==='markup-discount'){
-    const amount=P([25,30,40,50,60,80,100,120]),pc=P([10,15,18,20,25]),discount=P([5,10,15,20]),raised=rnd(amount*(1+pc/100),2),value=f==='tip-total'?raised:rnd(raised*(1-discount/100),2);
-    return F(f,{prompt:f==='tip-total'?`$${amount} meal: add a ${pc}% tip based on the meal price. Find the total.`:`$${amount} cost: ${pc}% markup, then a ${discount}% discount on the marked price. Find the final price.`,value,answer:`$${value.toFixed(2)}`,unit:'$',steps:[`${f==='tip-total'?'Total after tip':'Marked price'} = ${amount} × ${1+pc/100} = $${raised.toFixed(2)}.`,...(f==='markup-discount'?[`After discount: ${raised} × ${1-discount/100} = $${value.toFixed(2)}.`]:[])],visual:null});
+    const amount=I(3,80)*5,pc=I(10,30),discount=I(5,40),raised=rnd(amount*(1+pc/100),2),value=f==='tip-total'?raised:rnd(raised*(1-discount/100),2);
+    return F(f,{prompt:f==='tip-total'?`$${amount} meal: add a ${pc}% tip based on the meal price. Find the total.`:`$${amount} cost: ${pc}% markup, then a ${discount}% discount on the marked price. Find the final price.`,value,answer:`$${value.toFixed(2)}`,unit:'$',steps:[`${f==='tip-total'?'Total after tip':'Marked price'} = ${amount} × ${rnd(1+pc/100,4)} = $${raised.toFixed(2)}.`,...(f==='markup-discount'?[`After discount: ${raised} × ${rnd(1-discount/100,4)} = $${value.toFixed(2)}.`]:[])],visual:null});
   }
   if(f==='discount-tax-fee'){
-    const price=P([40,50,60,80,100,120,160]),discount=P([10,15,20,25]),tax=P([4,5,6,8]),fee=I(2,7),reduced=rnd(price*(1-discount/100),2),taxed=rnd(reduced*(1+tax/100),2),value=rnd(taxed+fee,2);
-    return F(f,{prompt:`$${price} price: ${discount}% discount, ${tax}% tax on the discounted price, then a $${fee} fee. Find the total.`,value,answer:`$${value.toFixed(2)}`,unit:'$',steps:[`Discounted price = ${price} × ${1-discount/100} = $${reduced.toFixed(2)}.`,`After tax = ${reduced} × ${1+tax/100} = $${taxed.toFixed(2)}.`,`Add the fee: ${taxed} + ${fee} = $${value.toFixed(2)}.`],visual:null});
+    const price=I(4,80)*5,discount=I(5,50),tax=I(4,10),fee=I(2,15),reduced=rnd(price*(1-discount/100),2),taxed=rnd(reduced*(1+tax/100),2),value=rnd(taxed+fee,2);
+    return F(f,{prompt:`$${price} price: ${discount}% discount, ${tax}% tax on the discounted price, then a $${fee} fee. Find the total.`,value,answer:`$${value.toFixed(2)}`,unit:'$',steps:[`Discounted price = ${price} × ${rnd(1-discount/100,4)} = $${reduced.toFixed(2)}.`,`After tax = ${reduced} × ${rnd(1+tax/100,4)} = $${taxed.toFixed(2)}.`,`Add the fee: ${taxed} + ${fee} = $${value.toFixed(2)}.`],visual:null});
   }
   if(f==='discount-tax'){
-    const price=P([30,40,50,60,80,120]),discount=P([10,15,20,25]),tax=P([4,5,6,8]),reduced=price*(1-discount/100),value=rnd(reduced*(1+tax/100));return F(f,{prompt:`A $${price} item has ${discount}% off, then ${tax}% tax. Find the final price.`,value,answer:`$${value.toFixed(2)}`,steps:[`After the discount: ${price} × ${1-discount/100} = $${rnd(reduced)}.`,`Apply tax to that price: ${rnd(reduced)} × ${1+tax/100} = $${value.toFixed(2)}.`],visual:null});
+    const price=I(4,80)*5,discount=I(5,50),tax=I(4,10),reduced=price*(1-discount/100),value=rnd(reduced*(1+tax/100));return F(f,{prompt:`A $${price} item has ${discount}% off, then ${tax}% tax. Find the final price.`,value,answer:`$${value.toFixed(2)}`,steps:[`After the discount: ${price} × ${rnd(1-discount/100,4)} = $${rnd(reduced)}.`,`Apply tax to that price: ${rnd(reduced)} × ${rnd(1+tax/100,4)} = $${value.toFixed(2)}.`],visual:null});
   }
   if(f==='commission-fee'){
-    const sales=P([100,200,300,400,500]),pc=P([4,5,6,8,10]),fee=I(2,6),commission=sales*pc/100;return F(f,{prompt:`${pc}% commission on $${sales}, minus a $${fee} fee. Find the amount kept.`,value:commission-fee,answer:`$${commission-fee}`,steps:[`Commission = ${pc/100} × ${sales} = $${commission}.`,`Subtract the fee: ${commission} − ${fee} = $${commission-fee}.`],visual:null});
+    const sales=I(5,100)*20,pc=I(2,15),fee=I(2,15),commission=sales*pc/100;return F(f,{prompt:`${pc}% commission on $${sales}, minus a $${fee} fee. Find the amount kept.`,value:commission-fee,answer:`$${commission-fee}`,steps:[`Commission = ${pc/100} × ${sales} = $${commission}.`,`Subtract the fee: ${commission} − ${fee} = $${commission-fee}.`],visual:null});
   }
   if(f==='tip'){
-    const pc=P([10,12,15,18,20]),amount=P([20,25,30,40,50]),value=rnd(amount*pc/100);return F(f,{prompt:`Find a ${pc}% tip on $${amount}.`,value,answer:`$${value.toFixed(2)}`,steps:[`Convert ${pc}% to ${pc/100}.`,`Tip = ${pc/100} × ${amount} = $${value.toFixed(2)}.`],visual:null});
+    const pc=I(10,25),amount=I(4,80)*5,value=rnd(amount*pc/100);return F(f,{prompt:`Find a ${pc}% tip on $${amount}.`,value,answer:`$${value.toFixed(2)}`,steps:[`Convert ${pc}% to ${pc/100}.`,`Tip = ${pc/100} × ${amount} = $${value.toFixed(2)}.`],visual:null});
   }
   if(f==='angle-equation'){
     const rays=p.visual?.rays||[],relation=p.relation||(rays.length===3?(rays.at(-1)===90?'complement':'supplement'):'opposite');
@@ -305,44 +307,45 @@ function specialized(p,seed,R,F,level,unit){
     return F(f,{prompt:'Find x.',value:x,answer:String(x),steps:['Opposite angles at an intersection are equal.',`${a}x + ${b} = ${angle}. Subtract ${b}: ${a}x = ${a*x}.`,`Divide by ${a}: x = ${x}.`],visual:{type:'angle',rays:[0,angle,180,180+angle],arcs:[{from:0,to:angle,label:`${angle}°`},{from:180,to:180+angle,label:`${a}x + ${b}°`}]}});
   }
   if(f==='triangle-construction'){
-    const triple=P([[3,4,5],[4,3,5],[5,12,13],[8,6,10]]),k=P([.5,1,1.5,2]),[a,b,c]=triple.map(n=>n*k);return F(f,{prompt:`Each interval is 1 unit. Place C above AB so AC = ${a} and BC = ${c}. Join A, B, C.`,value:[0,a],answer:`C(0, ${a})`,input:'plot',steps:[`AB = ${b}; AC = ${a}; BC = ${c}. Locate the intersection of the two length constraints above AB.`,`C = (0, ${a}) is ${a} units from A and ${c} units from B.`,`Connect A–B–C–A.`],visual:{type:'grid',xMin:0,xMax:Math.ceil(b+1),yMin:0,yMax:Math.ceil(a+1),step:1,points:[{x:0,y:0,label:'A'},{x:b,y:0,label:'B'}],targets:[{x:0,y:a,label:'C'}],targetEdges:true,axisLabels:false}});
+    const triple=P([[3,4,5],[4,3,5],[5,12,13],[12,5,13],[8,15,17],[15,8,17]]),k=I(2,20)/8,[a,b,c]=triple.map(n=>n*k);return F(f,{prompt:`Each interval is 1 unit. Place C above AB so AC = ${a} and BC = ${c}. Join A, B, C.`,value:[0,a],answer:`C(0, ${a})`,input:'plot',steps:[`AB = ${b}; AC = ${a}; BC = ${c}. Locate the intersection of the two length constraints above AB.`,`C = (0, ${a}) is ${a} units from A and ${c} units from B.`,`Connect A–B–C–A.`],visual:{type:'grid',xMin:0,xMax:Math.ceil(b+1),yMin:0,yMax:Math.ceil(a+1),step:1,points:[{x:0,y:0,label:'A'},{x:b,y:0,label:'B'}],targets:[{x:0,y:a,label:'C'}],targetEdges:true,axisLabels:false}});
   }
   if(f==='triangle-conditions'){
-    const k=I(1,3),a=3*k,b=4*k,c=5*k;return F(f,{prompt:`Do side lengths ${a}, ${b}, ${c} determine one triangle shape?`,value:null,answer:'Yes',accept:['yes','one','one triangle','unique'],steps:[`The two shorter sides sum to ${a+b}, greater than ${c}.`,`Three fixed valid side lengths determine one triangle shape, up to rotation and reflection.`],visual:polygon([[0,0],[b,0],[0,a]],[{text:String(a),x:-.6,y:a/2},{text:String(b),x:b/2,y:-.6},{text:String(c),x:b/2,y:a/2}])});
+    const triple=P([[3,4,5],[5,12,13],[8,15,17],[7,24,25]]),k=I(1,12)/2,[a,b,c]=triple.map(n=>n*k);return F(f,{prompt:`Do side lengths ${a}, ${b}, ${c} determine one triangle shape?`,value:null,answer:'Yes',accept:['yes','one','one triangle','unique'],steps:[`The two shorter sides sum to ${a+b}, greater than ${c}.`,`Three fixed valid side lengths determine one triangle shape, up to rotation and reflection.`],visual:polygon([[0,0],[b,0],[0,a]],[{text:String(a),x:-.6,y:a/2},{text:String(b),x:b/2,y:-.6},{text:String(c),x:b/2,y:a/2}])});
   }
   if(f==='triangle-angle-conditions'){
-    const A=P([35,40,45,50]),B=P([55,60,65]),C=180-A-B,base=I(4,8),len=base*Math.sin(B*Math.PI/180)/Math.sin(C*Math.PI/180),top=[len*Math.cos(A*Math.PI/180),len*Math.sin(A*Math.PI/180)];
+    const A=I(25,65),B=I(30,75),C=180-A-B,base=I(4,15),len=base*Math.sin(B*Math.PI/180)/Math.sin(C*Math.PI/180),top=[len*Math.cos(A*Math.PI/180),len*Math.sin(A*Math.PI/180)];
     return F(f,{prompt:`Do angles ${A}°, ${B}°, ${C} determine one size or many sizes?`,value:null,answer:'Many sizes',accept:['many','many sizes','infinitely many','more than one'],steps:[`The angles sum to ${A+B+C}°, so such triangles exist.`,`Scaling all sides preserves the angles, so there are many sizes.`],visual:polygon([[0,0],[base,0],top],[],{pointLabels:[{x:0,y:0,text:`${A}°`},{x:base,y:0,text:`${B}°`},{x:top[0],y:top[1],text:`${C}°`}]})});
   }
   if(f==='scale-length'||f==='scale-area'){
     const sourceFactor=p.scaleFactor??parseNumber((p.prompt||'').match(/scale factor\s+([\d./]+)/i)?.[1]),reduction=sourceFactor>0&&sourceFactor<1,fracScale=sourceFactor>1&&!Number.isInteger(sourceFactor);
-    const k=reduction?P([.5,1/3,.25]):fracScale?P([1.5,2.5]):P([2,3]),divisor=reduction?Math.round(1/k):1,w=I(2,5)*divisor,h=I(2,4)*divisor,newW=rnd(w*k,5),newH=rnd(h*k,5),isArea=f==='scale-area',value=isArea?newW*newH:[newW,newH],ks=rationalText(k);
+    const k=reduction?P([.5,1/3,.25,.2]):fracScale?P([1.25,1.5,1.75,2.25,2.5,2.75]):P([2,3,4]),divisor=reduction?Math.round(1/k):1,w=I(2,10)*divisor,h=I(2,8)*divisor,newW=rnd(w*k,5),newH=rnd(h*k,5),isArea=f==='scale-area',value=isArea?newW*newH:[newW,newH],ks=rationalText(k);
     if(p.visual?.type==='polygon')return F(f,{prompt:`Scale factor ${ks}: find the new width and height.`,value,answer:`${newW}; ${newH} ${unit}`,unit,scaleFactor:k,steps:[`Multiply each original length by ${ks}.`,`Width = ${w} × ${ks} = ${newW} ${unit}.`,`Height = ${h} × ${ks} = ${newH} ${unit}.`],visual:rect(w,h,unit)});
     const points=[{x:0,y:0},{x:w,y:0},{x:w,y:h},{x:0,y:h}],targets=[{x:0,y:0},{x:newW,y:0},{x:newW,y:newH},{x:0,y:newH}];
     return F(f,{prompt:`Each interval is 1 unit. Scale factor ${ks}: ${isArea?'draw the scaled rectangle and find its area.':'find the new width and height.'}`,value,answer:isArea?`${value} square units`:`${newW}, ${newH}`,unit:isArea?'square units':'units',scaleFactor:k,steps:[`Multiply every length by ${ks}.`,`Width = ${w} × ${ks} = ${newW}; height = ${h} × ${ks} = ${newH}.`,...(isArea?[`Area = ${newW} × ${newH} = ${value} square units.`]:[])],visual:{type:'grid',xMin:0,xMax:Math.max(w,newW)+1,yMin:0,yMax:Math.max(h,newH)+1,step:1,points,connectPoints:true,closedPoints:true,targets,targetEdges:true}});
   }
   if(f==='circle-radius'||f==='circle-diameter'||f==='circle-area-from-circumference'||f==='circle-reverse'){
-    const r=P([2,2.5,3,3.5,4,4.5,5,6,7.5,8,9]),d=2*r,C=rnd(2*3.14*r),A=rnd(3.14*r*r,6),rev=f==='circle-reverse',fromC=f==='circle-area-from-circumference';
+    const r=I(2,60)/2,d=2*r,C=rnd(2*3.14*r),A=rnd(3.14*r*r,6),rev=f==='circle-reverse',fromC=f==='circle-area-from-circumference';
     let value=f==='circle-radius'?r:f==='circle-diameter'?d:rev?[d,r]:A;
     const prompt=f==='circle-radius'?'Find the radius.':f==='circle-diameter'?'Find the diameter.':rev?'Find the diameter and radius. Use π = 3.14.':'Find the circle area from its circumference. Use π = 3.14.';
     const steps=rev||fromC?[`d = C/π = ${C}/3.14 = ${d}.`,`r = d/2 = ${r}.`,...(fromC?[`A = πr² = 3.14 × ${r}² = ${A}.`]:[])]:[f==='circle-radius'?`r = d/2 = ${d}/2 = ${r}.`:`d = 2r = 2 × ${r} = ${d}.`];
     return F(f,{prompt,value,answer:rev?`${d}; ${r}`:String(value),steps,unit:fromC?`${unit}²`:unit,visual:{type:'circle',r,given:rev||fromC?'circumference':f==='circle-radius'?'diameter':'radius',label:rev||fromC?`C = ${C} ${unit}`:f==='circle-radius'?`d = ${d} ${unit}`:`r = ${r} ${unit}`}});
   }
   if(f==='cross-section'&&p.visual){
-    const v=scaledVisual(p.visual,P([.75,1.25,1.5,2])),pyramid=v.type==='pyramid',parallel=R.bool();v.crossSection=parallel?'parallel-base':'vertical';
+    const v=scaledVisual(p.visual,I(3,32)/8),pyramid=v.type==='pyramid',parallel=R.bool();v.crossSection=parallel?'parallel-base':'vertical';
     const answer=pyramid?(parallel?'Square':'Triangle'):(parallel&&v.base?.length===3?'Triangle':'Rectangle');
     const prompt=pyramid?(parallel?'Name the slice parallel to the square pyramid base.':'Name the slice through the pyramid apex and two opposite base-edge midpoints.'):(parallel?'Name the slice parallel to the prism base.':'Name the vertical slice along the prism height.');
     return F(f,{prompt,value:null,answer,accept:[answer.toLowerCase(),`a ${answer.toLowerCase()}`],input:'text',steps:[parallel?'A parallel slice has the same shape as the base.':pyramid?'The slice includes the apex and two base points, forming three sides.':'The vertical slice has two edges along the prism height and two across the base.',`The cross-section is a ${answer.toLowerCase()}.`],visual:v});
   }
   if(f.startsWith('area-')&&p.visual?.type==='prism'){
-    const v=relabelUnit(scaledVisual(p.visual,P([.5,.75,1.25,1.5,2])),unit),value=rnd(area(v.base),6);
+    const v=relabelUnit(scaledVisual(p.visual,I(3,32)/8),unit),value=rnd(area(v.base),6);
     const xs=v.base.map(q=>q[0]),ys=v.base.map(q=>q[1]),w=rnd(Math.max(...xs)-Math.min(...xs),6),h=rnd(Math.max(...ys)-Math.min(...ys),6);
     const computation=v.base.length===3?`Base area = 1/2 × ${w} × ${h} = ${value}.`:v.base.length===4?`Base area = ${w} × ${h} = ${value}.`:`Split the L-shaped base into rectangles, or subtract the rectangular cutout from its ${w} by ${h} bounding rectangle. The base area is ${value}.`;
     return F(f,{prompt:'Find the area of one base.',value,answer:`${value} ${unit}²`,unit:`${unit}²`,steps:[computation,`The prism depth is not needed to find one base area: ${value} ${unit}².`],visual:v});
   }
   const solidFamilies=['net-faces','net-surface','prism-lateral','prism-surface','triangle-prism-lateral','triangle-prism-surface','pyramid-lateral','pyramid-surface','triangular-pyramid-lateral','triangular-pyramid-surface','composite-prism-surface','volume-count','prism-volume','triangle-prism-volume','composite-prism-volume','prism-height'];
   if(solidFamilies.includes(f)&&p.visual){
-    const k=f==='volume-count'?P([1,2,3]):P([.5,.75,1.25,1.5,2,2.5,3]),v=relabelUnit(scaledVisual(p.visual,k),unit),u=v.unit;let value,prompt,steps,answer,unitOut=`${u}²`;
+    const k=I(3,32)/8,v=relabelUnit(scaledVisual(p.visual,k),unit),u=v.unit;let value,prompt,steps,answer,unitOut=`${u}²`;
+    if(f==='volume-count'){const w=I(2,10),h=I(2,8),d=I(2,9);Object.assign(v,{base:[[0,0],[w,0],[w,h],[0,h]],depth:d,labels3D:[{point:[w/2,0,0],text:`${w} ${u}`,dy:21},{point:[0,h/2,0],text:`${h} ${u}`,dx:-26},{point:[0,0,d/2],text:`${d} ${u}`,dx:-28}],showUnitGrid:true});}
     if(f==='net-faces'){value=[6,12,8];prompt='How many faces, edges, and vertices does this rectangular-prism net make?';steps=['Six rectangular faces fold around the box.','Count each shared edge once: 12 edges.','The corners are its 8 vertices.'];answer='6; 12; 8';unitOut='';}
     else if(f==='net-surface'){value=v.faces.reduce((s,face)=>s+area(face.points),0);prompt='Find the total area of this net.';steps=[`Find the areas of the six rectangles: ${v.faces.map(face=>rnd(area(face.points),4)).join(', ')}.`,`Add all face areas: ${rnd(value,4)} ${u}².`];}
     else if(v.type==='prism'){
@@ -397,8 +400,8 @@ export function generateVariant(problem,seed=Date.now(),difficulty='same'){
   }
   if(family.startsWith('fraction-')){
     const signMode=difficulty==='single'?'positive':problem.generation?.signs||((originalFamily.startsWith('signed-')||level>1)?'signed':'positive'),negative=signMode==='signed';
-    const da=P([2,3,4,5,6,8,10,12]),db=problem.generation?.denominators==='same'?da:P([2,3,4,5,6,8,10,12].filter(d=>problem.generation?.denominators!=='different'||d!==da));
-    let a=frac(I(1,9)*(negative&&R.bool()?-1:1),da),b=frac(I(1,7)*(negative&&R.bool()?-1:1),db);
+    const denominators=[2,3,4,5,6,8,9,10,12,15,16,18,20,24],da=P(denominators),db=problem.generation?.denominators==='same'?da:P(denominators.filter(d=>problem.generation?.denominators!=='different'||d!==da));
+    let a=frac(I(1,19)*(negative&&R.bool()?-1:1),da),b=frac(I(1,17)*(negative&&R.bool()?-1:1),db);
     if(problem.generation?.denominators==='same'){
       const ns=Array.from({length:da-1},(_,i)=>i+1).filter(n=>gcd(n,da)===1);
       a=frac(P(ns)*(a.n<0?-1:1),da);b=frac(P(ns)*(b.n<0?-1:1),da);
@@ -406,7 +409,8 @@ export function generateVariant(problem,seed=Date.now(),difficulty='same'){
     if(negative&&a.n>0&&b.n>0)a=frac(-a.n,a.d);
     if(!negative&&family==='fraction-subtract'&&(problem.value??1)>=0){if(num(a)<num(b))[a,b]=[b,a];if(num(a)===num(b))a=frac(a.n+a.d,a.d);}
     const op=family.split('-')[1],res=op==='multiply'?mul(a,b):op==='divide'?mul(a,frac(b.d,b.n)):add(a,op==='subtract'?frac(-b.n,b.d):b),sym=op==='multiply'?'×':op==='divide'?'÷':op==='subtract'?'−':'+';
-    const steps=op==='divide'?[`Multiply by the reciprocal: ${fs(a)} × ${fs(frac(b.d,b.n))}.`]:op==='multiply'?[`Multiply numerators and denominators: (${a.n} × ${b.n})/(${a.d} × ${b.d}).`]:[`Use denominator ${a.d*b.d}: ${a.n*b.d}/${a.d*b.d} ${sym} ${b.n*a.d}/${a.d*b.d}.`];
+    const common=a.d/gcd(a.d,b.d)*b.d,an=a.n*(common/a.d),bn=b.n*(common/b.d);
+    const steps=op==='divide'?[`Multiply by the reciprocal: ${fs(a)} × ${fs(frac(b.d,b.n))}.`]:op==='multiply'?[`Multiply numerators and denominators: (${a.n} × ${b.n})/(${a.d} × ${b.d}).`]:a.d===b.d?[`Keep denominator ${common}: (${an} ${sym} ${signed(bn)})/${common} = ${an+(op==='subtract'?-bn:bn)}/${common}.`]:[`Use least common denominator ${common}: ${an}/${common} ${sym} ${bn<0?`(${bn}/${common})`:`${bn}/${common}`}.`];
     steps.push(`Simplify: ${fs(res)}.`);return F(family,{prompt:`${a.n<0?`(${fs(a)})`:fs(a)} ${sym} ${b.n<0?`(${fs(b)})`:fs(b)}`,value:num(res),answer:fs(res),steps,visual:null});
   }
   if(family==='decimal'){
@@ -418,7 +422,7 @@ export function generateVariant(problem,seed=Date.now(),difficulty='same'){
     return F(family,{prompt:`${a} ${op} ${b}`,value,answer:String(value),steps:[op==='×'?'Multiply the whole-number digits, then place the decimal using the total number of decimal places.':op==='÷'?`Multiply both dividend and divisor by 10: ${rnd(a*10,4)} ÷ ${rnd(b*10,4)}.`:'Align decimal places, then use the rules for signed numbers.',`${a} ${op} ${b} = ${value}.`],visual:null});
   }
   if(family==='convert'){
-    const d=P([4,5,8,10,20,25]),n=I(1,d-1),f=frac(n,d),value=num(f);return F(family,{prompt:`Write ${fs(f)} as a decimal.`,value,answer:String(value),steps:[`Divide numerator by denominator: ${f.n} ÷ ${f.d}.`,`${f.n} ÷ ${f.d} = ${value}. This decimal terminates.`],visual:null});
+    const d=P([4,5,8,10,20,25,40,50,100]),n=I(1,d-1),f=frac(n,d),value=num(f);return F(family,{prompt:`Write ${fs(f)} as a decimal.`,value,answer:String(value),steps:[`Divide numerator by denominator: ${f.n} ÷ ${f.d}.`,`${f.n} ÷ ${f.d} = ${value}. This decimal terminates.`],visual:null});
   }
   if(family==='mixed-order'){
     if(difficulty==='same')level=/mixed|three/i.test(problem.block?.stage||'')?3:/two/i.test(problem.block?.stage||'')?2:1;
@@ -436,7 +440,7 @@ export function generateVariant(problem,seed=Date.now(),difficulty='same'){
   }
   if(['combine-terms','expand','factor'].includes(family)){
     const kind=problem.generation?.numberKind||(/\d+\s*\/\s*\d+/.test(problem.prompt||'')?'fraction':/\d+\.\d+/.test(problem.prompt||'')?'decimal':'integer');
-    const fractionKind=kind==='fraction',decimalKind=kind==='decimal',fmt=n=>fractionKind?rationalText(n):String(rnd(n,5)),draw=()=>fractionKind?I(1,7)/P([2,3,4]):decimalKind?I(1,25)/10:I(2,8);
+    const fractionKind=kind==='fraction',decimalKind=kind==='decimal',fmt=n=>fractionKind?rationalText(n):String(rnd(n,5)),draw=()=>fractionKind?I(1,23)/P([2,3,4,5,6,8,10,12]):decimalKind?I(1,99)/10:I(1,24);
     let a=draw(),b=draw(),c=draw(),k=draw();let prompt,answer,steps;
     const sign=(n)=>`${n<0?'−':'+'} ${fmt(Math.abs(n))}`;
     if(family==='factor'){
@@ -490,23 +494,23 @@ export function generateVariant(problem,seed=Date.now(),difficulty='same'){
     const k=P([1,1.5,2,2.5,3]),x=P([1,2]),y=k*x;return F(family,{prompt:`For y = ${k}x, plot the point with x = ${x}.`,value:[x,y],answer:`(${x}, ${y})`,input:'plot',steps:[`Substitute x = ${x}: y = ${k} × ${x} = ${y}.`,`Plot (${x}, ${y}); the proportional graph also passes through (0, 0).`],visual:{type:'grid',min:-1,max:7,step:1,points:[{x:0,y:0,label:'O'}],targets:[{x,y,label:'P'}],line:null}});
   }
   if(family==='proportion-table'){
-    const k=P([2,3,4,5,1.5,2.5]),x=I(3,9);return F(family,{prompt:`A proportional table contains (1, ${k}) and (${x}, ?). Find the missing y-value.`,value:k*x,answer:String(k*x),steps:[`The constant of proportionality is k = ${k}/1 = ${k}.`,`Use y = ${k}x. For x = ${x}, y = ${k*x}.`],visual:null});
+    const k=I(1,48)/4,x=I(2,18);return F(family,{prompt:`A proportional table contains (1, ${k}) and (${x}, ?). Find the missing y-value.`,value:k*x,answer:String(k*x),steps:[`The constant of proportionality is k = ${k}/1 = ${k}.`,`Use y = ${k}x. For x = ${x}, y = ${k*x}.`],visual:null});
   }
   if(family==='unit-rate'){
     const fractional=/\d+\//.test(problem.prompt||''),k=fractional?frac(I(3,15),P([2,3,4])):frac(I(2,12)),time=fractional?frac(I(1,5),P([3,4,6])):frac(I(2,7)),amount=mul(k,time),[u,t]=P([['miles','hour'],['meters','second'],['liters','minute'],['kilometers','hour']]);
     return F(family,{prompt:`Find the unit rate: ${fs(amount)} ${u} in ${fs(time)} ${t}${num(time)>1?'s':''}.`,value:num(k),answer:`${fs(k)} ${u}/${t}`,unit:`${u}/${t}`,steps:[`Divide amount by time: ${fs(amount)} ÷ ${fs(time)}.`,`Multiply by the reciprocal: ${fs(amount)} × ${fs(frac(time.d,time.n))} = ${fs(k)}.`,`The rate is ${fs(k)} ${u}/${t}.`],visual:null});
   }
   if(family==='percent'){
-    const percent=P([5,10,15,20,25,30,40,60,75]),whole=P([40,60,80,120,160,200]),value=whole*percent/100;return F(family,{prompt:`Find ${percent}% of ${whole}.`,value,answer:String(value),steps:[`Convert: ${percent}% = ${percent/100}.`,`Multiply: ${percent/100} × ${whole} = ${value}.`],visual:null});
+    const percent=I(1,95),whole=I(4,100)*5,value=rnd(whole*percent/100,4);return F(family,{prompt:`Find ${percent}% of ${whole}.`,value,answer:String(value),steps:[`Convert: ${percent}% = ${percent/100}.`,`Multiply: ${percent/100} × ${whole} = ${value}.`],visual:null});
   }
   if(family==='percent-change'){
-    const old=P([40,60,80,100,150,200]),pc=P([10,15,20,25,30]),down=R.bool(),now=old*(1+(down?-pc:pc)/100);return F(family,{prompt:`Find the percent ${down?'decrease':'increase'} from ${old} to ${rnd(now)}.`,value:pc,answer:`${pc}%`,unit:'%',steps:[`Change = |${rnd(now)} − ${old}| = ${rnd(Math.abs(now-old))}.`,`Percent change = ${rnd(Math.abs(now-old))}/${old} × 100 = ${pc}%.`],visual:null});
+    const old=I(4,100)*5,pc=I(1,75),down=R.bool(),now=rnd(old*(1+(down?-pc:pc)/100),4);return F(family,{prompt:`Find the percent ${down?'decrease':'increase'} from ${old} to ${rnd(now)}.`,value:pc,answer:`${pc}%`,unit:'%',steps:[`Change = |${rnd(now)} − ${old}| = ${rnd(Math.abs(now-old))}.`,`Percent change = ${rnd(Math.abs(now-old))}/${old} × 100 = ${pc}%.`],visual:null});
   }
   if(family==='percent-error'){
-    const actual=P([40,50,80,100]),pc=P([5,10,15,20]),estimate=actual*(1+pc/100);return F(family,{prompt:`Actual value = ${actual}; estimate = ${rnd(estimate)}. Find the percent error.`,value:pc,answer:`${pc}%`,unit:'%',steps:[`Absolute error = |${rnd(estimate)} − ${actual}| = ${rnd(estimate-actual)}.`,`Percent error = ${rnd(estimate-actual)}/${actual} × 100 = ${pc}%.`],visual:null});
+    const actual=I(4,100)*5,pc=I(1,60),estimate=rnd(actual*(1+(R.bool()?-pc:pc)/100),4);return F(family,{prompt:`Actual value = ${actual}; estimate = ${rnd(estimate)}. Find the percent error.`,value:pc,answer:`${pc}%`,unit:'%',steps:[`Absolute error = |${rnd(estimate)} − ${actual}| = ${rnd(Math.abs(estimate-actual))}.`,`Percent error = ${rnd(Math.abs(estimate-actual))}/${actual} × 100 = ${pc}%.`],visual:null});
   }
   if(family==='simple-interest'){
-    const p=P([100,200,300,400,500,600,800]),r=P([2,3,4,5,6]),t=I(1,4),interest=p*r/100*t,total=p+interest,both=problem.subtype==='interest-total';return F(family,{prompt:`Principal $${p}, simple interest ${r}% per year, time ${t} years. Find ${both?'interest, then total balance':'the interest'}.`,value:both?[interest,total]:interest,answer:both?`$${interest.toFixed(2)}; $${total.toFixed(2)}`:`$${interest.toFixed(2)}`,unit:'$',steps:[`I = Prt; r = ${r/100}.`,`I = ${p} × ${r/100} × ${t} = $${interest.toFixed(2)}.`,...(both?[`Balance = ${p} + ${interest} = $${total.toFixed(2)}.`]:[])],visual:null});
+    const p=I(5,100)*50,r=I(1,32)/4,t=I(1,12)/2,interest=p*r/100*t,total=p+interest,both=problem.subtype==='interest-total';return F(family,{prompt:`Principal $${p}, simple interest ${r}% per year, time ${t} years. Find ${both?'interest, then total balance':'the interest'}.`,value:both?[interest,total]:interest,answer:both?`$${interest.toFixed(2)}; $${total.toFixed(2)}`:`$${interest.toFixed(2)}`,unit:'$',steps:[`I = Prt; r = ${r/100}.`,`I = ${p} × ${r/100} × ${t} = $${interest.toFixed(2)}.`,...(both?[`Balance = ${p} + ${interest} = $${total.toFixed(2)}.`]:[])],visual:null});
   }
   if(family.startsWith('angle-')){
     const max=family==='angle-complement'?90:180,given=I(20,max-20),value=family==='angle-vertical'?given:max-given;
@@ -542,7 +546,7 @@ export function generateVariant(problem,seed=Date.now(),difficulty='same'){
     const volume=family==='composite-volume',value=volume?base*dep:base;return F(family,{prompt:volume?'Find the volume of the L-shaped prism.':'Find the area of the L-shape.',value,answer:`${value} ${unit}${volume?'³':'²'}`,unit:`${unit}${volume?'³':'²'}`,steps:[`Outer rectangle: ${w} × ${h} = ${w*h}.`,`Remove the cutout: ${cutW} × ${cutH} = ${cutW*cutH}. Base area = ${base}.`,...(volume?[`Volume = base area × depth = ${base} × ${dep} = ${value} ${unit}³.`]:[])],visual:volume?{type:'prism',base:pts,depth:dep,labels,unit}:polygon(pts,labels,{unit})});
   }
   if(family.startsWith('circle-')){
-    const r=I(2,12),d=2*r,C=rnd(2*3.14*r),A=rnd(3.14*r*r);let given='radius',label=`r = ${r} ${unit}`,prompt,answer,value,steps;
+    const r=I(2,60)/2,d=2*r,C=rnd(2*3.14*r),A=rnd(3.14*r*r,4);let given='radius',label=`r = ${r} ${unit}`,prompt,answer,value,steps;
     if(family==='circle-radius-diameter'){const radius=R.bool();given=radius?'diameter':'radius';label=`${radius?'d':'r'} = ${radius?d:r} ${unit}`;value=radius?r:d;prompt=`Find the ${radius?'radius':'diameter'}.`;answer=`${value} ${unit}`;steps=[radius?`Radius is half the diameter: ${d} ÷ 2 = ${r}.`:`Diameter is twice the radius: 2 × ${r} = ${d}.`];}
     else if(family==='circle-reverse'){given='circumference';label=`C = ${C} ${unit}`;prompt='Find the diameter. Use π = 3.14.';value=d;answer=`${d} ${unit}`;steps=[`C = πd, so d = C/π.`,`d = ${C}/3.14 = ${d} ${unit}.`];}
     else if(family==='circle-circumference'){given=['diameter','radius'].includes(problem.visual?.given)?problem.visual.given:R.bool()?'diameter':'radius';label=`${given==='diameter'?'d':'r'} = ${given==='diameter'?d:r} ${unit}`;prompt='Find the circumference. Use π = 3.14.';value=C;answer=`${C} ${unit}`;steps=[given==='diameter'?`Use C = πd.`:`Use C = 2πr. Diameter = 2 × ${r} = ${d}.`,`C = 3.14 × ${d} = ${C} ${unit}.`];}
@@ -565,7 +569,7 @@ export function generateVariant(problem,seed=Date.now(),difficulty='same'){
 
 // Only recognized quantity labels may follow a number. Do not harvest a number
 // from arbitrary prose: a response such as “2 or 7” is not a numeric answer.
-const unitWord='(?:square\\s+units?|cubic\\s+units?|units?|square\\s+centimeters?|cubic\\s+centimeters?|centimeters?|millimeters?|kilometers?|meters?|liters?|gallons?|inches?|feet|foot|miles?|hours?|minutes?|seconds?|items?|dollars?|cents?|cubes?|cm|mm|km|in|ft|mi|hr|h|s|m)';
+const unitWord='(?:(?:square|cubic)\\s+)?(?:units?|centimeters?|millimeters?|kilometers?|meters?|liters?|litres?|gallons?|inch(?:es)?|feet|foot|degrees?|miles?|hours?|minutes?|seconds?|items?|dollars?|cents?|cubes?|cm|mm|km|in|ft|mi|hr|h|s|m)';
 const unitSuffix=new RegExp('\\s*(?:(?:%|°|\\$)|'+unitWord+'(?:[²³]|\\^[23])?(?:\\s*(?:/|per)\\s*'+unitWord+')?)\\s*$','i');
 function stripNumberDecoration(raw){
   let s=clean(raw).replace(/^\$\s*/,'').replace(/^[a-z]\s*=\s*/i,'');
@@ -583,12 +587,13 @@ function parseNumber(raw){
   if(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(s))return Number(s);
   const f=s.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+))\/([+-]?(?:\d+(?:\.\d*)?|\.\d+))$/);
   if(f&&Number(f[2])!==0)return Number(f[1])/Number(f[2]);
-  if(/^[\d.()+*/-]+$/.test(s))try{const value=linear(s);return value[0]===0&&Number.isFinite(value[1])?value[1]:NaN;}catch{}
+  if(/^[\d.()+*/^²³-]+$/.test(s))try{return arithmetic(s);}catch{}
   return NaN;
 }
 function numbers(raw){
   if(Array.isArray(raw))return raw.flat(Infinity).map(parseNumber);
-  let s=clean(raw).replace(/\b[A-Za-z]\s*[:=]?\s*(?=\()/g,'').replace(/[\[\]]/g,'').replace(/\band\b/gi,',');
+  let s=clean(raw).replace(/\b[A-Za-z]\s*[:=]?\s*(?=\()/g,'').replace(/[\[\]]/g,'').replace(/\band\b/gi,',').replace(/\)\s*[,;]?\s*\(/g,');(').replace(/\r?\n/g,';');
+  s=s.replace(/\b(?:ratio|difference|term\s*\d+)\s*[:=]?\s*/gi,'');
   // Parentheses in ordered pairs group coordinates; parentheses around a fraction
   // are handled by the scalar parser instead.
   if(/[,;]/.test(s))return s.replace(/[()]/g,'').split(/[,;]/).filter(x=>x.trim()).map(parseNumber);
@@ -597,13 +602,27 @@ function numbers(raw){
   return [];
 }
 const normalizedText=s=>clean(s).toLowerCase().replace(/\s+/g,'').replaceAll('≤','<=').replaceAll('≥','>=').replace(/[.,;!?]$/,'');
+/* Restricted arithmetic for numeric answers and sequence rules. Tokens are
+   parsed directly; student input is never passed to eval or Function. */
+function arithmetic(raw,n){
+  const s=clean(raw).replaceAll('²','^2').replaceAll('³','^3').replaceAll('**','^').replace(/\s/g,'').replace(/(\d|\)|n)(?=[(n])/g,'$1*');
+  if(s.length>512)throw Error('Expression too long');
+  const tok=s.match(/\d*\.?\d+|[n()+\-*/^]/g);if(!tok||tok.join('')!==s||tok.length>256)throw Error('Bad arithmetic');let pos=0;
+  function atom(){const t=tok[pos++];if(t==='('){const a=sum();if(tok[pos++]!==')')throw Error('Unclosed');return a;}if(t==='n'&&Number.isFinite(n))return n;if(t!==undefined&&!isNaN(+t))return +t;throw Error('Bad atom');}
+  function power(){let a=atom();if(tok[pos]==='^'){pos++;const b=unary();if(Math.abs(b)>32)throw Error('Exponent too large');a=a**b;}return a;}
+  function unary(){if(tok[pos]==='-'){pos++;return -unary();}if(tok[pos]==='+'){pos++;return unary();}return power();}
+  function product(){let a=unary();while(tok[pos]==='*'||tok[pos]==='/'){const op=tok[pos++],b=unary();a=op==='*'?a*b:a/b;}return a;}
+  function sum(){let a=product();while(tok[pos]==='+'||tok[pos]==='-'){const op=tok[pos++],b=product();a=op==='+'?a+b:a-b;}return a;}
+  const result=sum();if(pos!==tok.length||!Number.isFinite(result))throw Error('Invalid result');return result;
+}
 /* A tiny, restricted linear-expression parser for equivalence; it never runs JavaScript. */
-function linear(raw){
-  let s=clean(raw).replace(/\s/g,'').replace(/(\d|\))(?=x|\()/g,'$1*').replace(/x(?=\()/g,'x*');
-  const tok=s.match(/\d*\.?\d+|x|[()+\-*/]/g);if(!tok||tok.join('')!==s)throw Error('Bad expression');let pos=0;
-  const plus=(a,b,sg=1)=>[a[0]+sg*b[0],a[1]+sg*b[1]];
-  function atom(){const t=tok[pos++];if(t==='-'){const a=atom();return [-a[0],-a[1]];}if(t==='+')return atom();if(t==='x')return[1,0];if(t==='('){const a=sum();if(tok[pos++]!==')')throw Error('Unclosed');return a;}if(t!==undefined&&!isNaN(+t))return[0,+t];throw Error('Bad atom');}
-  function product(){let a=atom();while(tok[pos]==='*'||tok[pos]==='/'){const op=tok[pos++],b=atom();if(op==='*'){if(a[0]&&b[0])throw Error('Nonlinear');a=[a[0]*b[1]+b[0]*a[1],a[1]*b[1]];}else{if(b[0]||!b[1])throw Error('Bad divisor');a=[a[0]/b[1],a[1]/b[1]];}}return a;}
+function linear(raw,variables=['x']){
+  let s=clean(raw).replace(/\s/g,'').replace(/(\d|\))(?=[xy]|\()/g,'$1*').replace(/[xy](?=\()/g,'$&*');
+  if(s.length>512)throw Error('Expression too long');
+  const tok=s.match(/\d*\.?\d+|[xy]|[()+\-*/]/g);if(!tok||tok.join('')!==s)throw Error('Bad expression');let pos=0;
+  const size=variables.length,constant=n=>[...variables.map(()=>0),n],plus=(a,b,sg=1)=>a.map((v,i)=>v+sg*b[i]),hasVariable=a=>a.slice(0,size).some(v=>v!==0);
+  function atom(){const t=tok[pos++];if(t==='-')return atom().map(v=>-v);if(t==='+')return atom();if(variables.includes(t)){const a=constant(0);a[variables.indexOf(t)]=1;return a;}if(t==='('){const a=sum();if(tok[pos++]!==')')throw Error('Unclosed');return a;}if(t!==undefined&&!isNaN(+t))return constant(+t);throw Error('Bad atom');}
+  function product(){let a=atom();while(tok[pos]==='*'||tok[pos]==='/'){const op=tok[pos++],b=atom();if(op==='*'){if(hasVariable(a)&&hasVariable(b))throw Error('Nonlinear');a=a.map((v,i)=>i===size?v*b[size]:v*b[size]+b[i]*a[size]);}else{if(hasVariable(b)||!b[size])throw Error('Bad divisor');a=a.map(v=>v/b[size]);}}return a;}
   function sum(){let a=product();while(tok[pos]==='+'||tok[pos]==='-'){const op=tok[pos++];a=plus(a,product(),op==='+'?1:-1);}return a;}
   const result=sum();if(pos!==tok.length)throw Error('Trailing');return result;
 }
@@ -626,15 +645,25 @@ export function checkAnswer(problem,raw){
     const parse=s=>{
       const bits=clean(s).replaceAll('≤','<=').replaceAll('≥','>=').split(';'),match=bits[0].trim().match(/^(.+?)\s*(<=|>=|<|>)\s*(.+?)\.?$/);
       if(!match)return null;const reverse={'<':'>','>':'<','<=':'>=','>=':'<='};
-      if(match[1].trim()==='x')return [match[2],parseNumber(match[3]),bits.slice(1).join(';')];
-      if(match[3].trim()==='x')return [reverse[match[2]],parseNumber(match[1]),bits.slice(1).join(';')];
+      try{const side=s=>Number.isFinite(parseNumber(s))?[0,parseNumber(s)]:linear(s),left=side(match[1]),right=side(match[3]),coefficient=left[0]-right[0],constant=right[1]-left[1];if(coefficient)return [coefficient<0?reverse[match[2]]:match[2],constant/coefficient,bits.slice(1).join(';')];}catch{}
       return null;
     };
     const a=parse(raw),b=parse(expected);
     if(a&&b){const needed=b[2].match(/\b(yes|no)\b/i)?.[1],provided=a[2].match(/\b(yes|no)\b/i)?.[1];return {...output,correct:a[0]===b[0]&&close(a[1],b[1])&&(!needed||needed.toLowerCase()===provided?.toLowerCase())};}
   }
+  if(problem.sequence&&typeof problem.value!=='number'&&!Array.isArray(problem.value)){
+    try{
+      const bits=clean(raw).split(';'),sequence=problem.sequence,term=n=>sequence.kind==='geometric'?sequence.first*sequence.ratio**(n-1):sequence.first+sequence.difference*(n-1);
+      const rule=bits.at(-1).trim().replace(/^(?:term\s*n|a_?n|a\(n\))\s*=\s*/i,'');
+      const rulesMatch=[1,2,3,4,7].every(n=>close(arithmetic(rule,n),term(n)));
+      const asksTerms=problem.subtype==='next-rule'||/next two terms.+rule/i.test(problem.prompt||'');
+      const entered=asksTerms?numbers(bits.slice(0,-1).join(';')):[];
+      const termsMatch=!asksTerms||(entered.length===2&&entered.every((v,i)=>close(v,term(i+4))));
+      return {...output,correct:rulesMatch&&termsMatch};
+    }catch{}
+  }
   if(problem.family==='proportion-equation'){
-    try{const a=clean(raw).replace(/^y\s*=\s*/i,''),b=clean(expected).replace(/^y\s*=\s*/i,'');if(!/^y\s*=/i.test(clean(raw)))return output;const aa=linear(a),bb=linear(b);return {...output,correct:aa.every((v,i)=>close(v,bb[i]))};}catch{}
+    try{const equation=s=>{const sides=clean(s).split('=');if(sides.length!==2)throw Error('Equation required');const left=linear(sides[0],['x','y']),right=linear(sides[1],['x','y']),v=left.map((n,i)=>n-right[i]);if(!v[1])throw Error('y required');return v.map(n=>n/v[1]);};const aa=equation(raw),bb=equation(expected);return {...output,correct:aa.every((v,i)=>close(v,bb[i]))};}catch{}
   }
   if(problem.algebraic||/simplify|expand|factor/.test(String(problem.prompt).toLowerCase())){
     try{
