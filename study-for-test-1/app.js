@@ -35,6 +35,10 @@ try {
 for (const key of ['variants','exampleIndices','answers','plots','lines','checked','plotChecked']) if (!state[key] || typeof state[key] !== 'object') state[key] = {};
 if (!['lesson','packet','practice'].includes(state.view)) state.view = 'lesson';
 if (!['light','dark'].includes(state.theme)) state.theme = 'light';
+try {
+  const linkedTheme = new URL(window.location.href).searchParams.get('theme');
+  if (['light','dark'].includes(linkedTheme)) state.theme = linkedTheme;
+} catch { /* A saved theme also works without URL support. */ }
 if (!state.progress || state.progress.version !== 1 || !state.progress.records || typeof state.progress.records !== 'object') state.progress = createProgressState();
 if (typeof state.autoNext !== 'boolean') state.autoNext = true;
 document.body.classList.toggle('dark',state.theme === 'dark');
@@ -121,6 +125,7 @@ function saveURL() {
     url.searchParams.set('problem',String(state.question));
     url.searchParams.set('view',state.view);
     url.searchParams.set('example',String(variantIndex()));
+    if (url.searchParams.has('theme')) url.searchParams.set('theme',state.theme);
     url.hash = '';
     history.replaceState(null,'',url);
   } catch { /* File previews may not support URL history. */ }
@@ -473,7 +478,7 @@ document.querySelector('#contents-toggle').addEventListener('click',()=>openDial
 document.querySelector('#progress-toggle').addEventListener('click',()=>openDialog('progress'));
 document.querySelector('#solutions-toggle').addEventListener('click',()=>showInlineSolution(state.question,true));
 document.querySelector('#theme-toggle').addEventListener('click',()=> {
-  state.theme = state.theme === 'dark' ? 'light' : 'dark'; document.body.classList.toggle('dark',state.theme === 'dark'); persist(); if (data) render();
+  state.theme = state.theme === 'dark' ? 'light' : 'dark'; document.body.classList.toggle('dark',state.theme === 'dark'); persist(); if (data) { render(); saveURL(); }
 });
 document.querySelector('#fullscreen-toggle').addEventListener('click',async()=> {
   try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }
