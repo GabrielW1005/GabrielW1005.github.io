@@ -288,3 +288,13 @@ body:is([data-view=lesson],[data-view=practice]) .section-select{min-height:44px
 .example-answers{padding-top:9px;border-top:1px solid var(--line)}
 .example-answers p{margin:5px 0}.inline-reflection{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px}
 .lessonviz .lv-visual svg:focus-visible{outline:3px solid #75a6d5;outline-offset:-3px;border-radius:6px}
+/* A live side-count control stays beside the simulation, outside Explore. */
+.lessonviz .lv-live-controls{flex:none;display:flex;align-items:center;min-height:44px;gap:8px;margin:0 0 5px}
+.lessonviz .lv-live-controls:empty{display:none}
+.lessonviz .lv-sides-control{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;font-size:13px;color:var(--lv-ink)}
+.lessonviz .lv-sides-label{font-weight:600;flex:none}
+.lessonviz .lv-sides-value{min-width:28px;text-align:center;font-weight:650;font-variant-numeric:tabular-nums;color:var(--lv-accent)}
+.lessonviz .lv-sides-control input{flex:1;min-width:70px;height:44px;margin:0;accent-color:var(--lv-accent);touch-action:pan-x}
+.lessonviz .lv-sides-note{flex:none;font-size:11px;color:var(--lv-muted);line-height:1.3;max-width:135px}
+@media(min-width:1600px) and (min-height:900px){.lessonviz .lv-sides-control{font-size:16px;min-height:48px}.lessonviz .lv-sides-note{font-size:13px;max-width:165px}}
+@media(max-width:540px){.lessonviz .lv-sides-control{gap:6px}.lessonviz .lv-sides-note{max-width:85px;font-size:10px}}

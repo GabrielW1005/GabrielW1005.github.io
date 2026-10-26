@@ -65,7 +65,7 @@ function svgViewport(svg){
     const ps=[...pointers.values()],r=rect(),a=ps[0],b=ps[1];
     gesture=ps.length>1?{x:(a.x+b.x)/2,y:(a.y+b.y)/2,d:Math.hypot(a.x-b.x,a.y-b.y),z:zoom,cx,cy,w:r.width,h:r.height,left:r.left,top:r.top}:{x:a.x,y:a.y,z:zoom,cx,cy,w:r.width,h:r.height,left:r.left,top:r.top};
   }
-  svg.style.touchAction='none';svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','Mathematical diagram. Use zoom buttons; drag or pinch to explore when enlarged.');
+  svg.style.touchAction='none';svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','Mathematical diagram. Scroll over the diagram to zoom, drag when enlarged, or pinch with two fingers.');
   svg.onpointerdown=e=>{if(e.pointerType==='mouse'&&(e.button!==0||zoom<=1))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});svg.setPointerCapture?.(e.pointerId);begin();};
   svg.onpointermove=e=>{
     if(!pointers.has(e.pointerId)||!gesture)return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
@@ -76,7 +76,7 @@ function svgViewport(svg){
   };
   const end=e=>{pointers.delete(e.pointerId);if(pointers.size)begin();else{gesture=null;render();}};
   svg.onpointerup=end;svg.onpointercancel=end;svg.onlostpointercapture=end;
-  svg.onwheel=e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();scaleAt(Math.exp(-e.deltaY*.008),e.clientX,e.clientY);};
+  svg.onwheel=e=>{e.preventDefault();const delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?svg.getBoundingClientRect().height:1);scaleAt(Math.exp(-clamp(delta,-180,180)*.004),e.clientX,e.clientY);};
   svg.onkeydown=e=>{if(e.key==='+'||e.key==='='){action('zoom-in');e.preventDefault();}else if(e.key==='-'){action('zoom-out');e.preventDefault();}else if(e.key==='0'){action('zoom-reset');e.preventDefault();}else if(zoom>1&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){cx+=({ArrowLeft:-40,ArrowRight:40}[e.key]||0)/zoom;cy+=({ArrowUp:-40,ArrowDown:40}[e.key]||0)/zoom;render();e.preventDefault();}};
   render();return{action,clean(){pointers.clear();svg.onpointerdown=svg.onpointermove=svg.onpointerup=svg.onpointercancel=svg.onlostpointercapture=svg.onwheel=svg.onkeydown=null;}};
 }
@@ -87,6 +87,7 @@ function frame(container, options={}) {
   styles(root);
   const toolbar=document.createElement('div');toolbar.className='lv-toolbar';
   const status=document.createElement('div');status.className='lv-status';status.setAttribute('aria-live','polite');
+  const liveControls=document.createElement('div');liveControls.className='lv-live-controls';
   const visual=document.createElement('div');visual.className='lv-visual';
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 800 430');svg.setAttribute('role','img');svg.setAttribute('aria-label','Mathematical diagram');visual.append(svg);
   const playbar=document.createElement('div');playbar.className='lv-playbar';
@@ -97,7 +98,7 @@ function frame(container, options={}) {
   const optionsSummary=document.createElement('summary');optionsSummary.textContent='Explore';optionsSummary.setAttribute('aria-label','Explore: open controls, measurements, and explanation');
   const optionsPanel=document.createElement('div');optionsPanel.className='lv-options-panel';optionsPanel.append(toolbar,metrics,caption);
   optionsDrawer.append(optionsSummary,optionsPanel);footer.append(playbar,optionsDrawer);
-  root.append(status,visual,footer);container.replaceChildren(root);
+  root.append(status,liveControls,visual,footer);container.replaceChildren(root);
   root.onkeydown=event=>{if(event.key==='Escape'&&optionsDrawer.open){optionsDrawer.open=false;optionsSummary.focus();event.stopPropagation();}};
   let disposed=false, raf=0;
   const viewport=svgViewport(svg),allowSolutions=options.allowSolutions===true;
@@ -114,7 +115,7 @@ function frame(container, options={}) {
   clean.zoom=viewport.action;
   const button=(label,callback,parent=toolbar)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=callback;if(parent===toolbar&&(label==='Next step'||label==='Place next piece'))parent=playbar;if(parent===toolbar&&label==='Show area calculation')parent=footer;parent.append(b);return b;};
   const setMetrics=entries=>metrics.innerHTML=entries.map(([label,value])=>`<div class="lv-metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
-  return{root,toolbar,status,svg,playbar,metrics,caption,animate,stop,clean,button,setMetrics,reduced,allowSolutions};
+  return{root,toolbar,status,liveControls,svg,playbar,metrics,caption,animate,stop,clean,button,setMetrics,reduced,allowSolutions};
 }
 function transport(f, redraw, maximum=1, duration=2800) {
   let t=0,playing=false;
@@ -127,30 +128,37 @@ function transport(f, redraw, maximum=1, duration=2800) {
   return {get t(){return t;},set,pause,next(){pause();const next=Math.min(maximum,Math.floor(t+0.001)+1);f.animate(t,next,700,set);},reset(){pause();set(0);},dispose:pause};
 }
 function polygonSettings(f,d,onChange) {
-  const origN=Number(d.n)||12,origR=Number(d.radius)||6;
+  const origN=Number(d.n)||12,origR=Number(d.radius)||6,even=d.type==='polygon_rearrange',minSides=even?4:3,maxSides=Math.max(96,origN),step=even?2:1;
   let n=origN,r=origR;
-  const group=document.createElement('div');group.style.display='flex';group.style.gap='5px';group.setAttribute('aria-label','Number of polygon sides');f.toolbar.append(group);
+  const sides=document.createElement('label');sides.className='lv-sides-control';
+  const sidesName=document.createElement('span');sidesName.className='lv-sides-label';sidesName.textContent='Sides';
+  const sideOutput=document.createElement('output');sideOutput.className='lv-sides-value';sideOutput.textContent=String(n);
+  const sideInput=document.createElement('input');sideInput.type='range';sideInput.min=String(minSides);sideInput.max=String(maxSides);sideInput.step=String(step);sideInput.value=String(n);sideInput.setAttribute('aria-label',even?'Number of sides, even counts for triangle pairs':'Number of polygon sides');
+  const sideNote=document.createElement('span');sideNote.className='lv-sides-note';sideNote.textContent=even?'Even counts · triangle pairs':`${minSides}–${maxSides}`;
+  sides.append(sidesName,sideOutput,sideInput,sideNote);f.liveControls.append(sides);
+  sideInput.oninput=()=>{n=clamp(minSides+Math.round((Number(sideInput.value)-minSides)/step)*step,minSides,maxSides);refresh();onChange(n,r);};
+  const group=document.createElement('div');group.style.display='flex';group.style.gap='5px';group.setAttribute('aria-label','Polygon side shortcuts');f.toolbar.append(group);
   const buttons=[];
-  for(const nn of [...new Set([6,12,24,48,origN])].sort((a,b)=>a-b)){const b=f.button(`${nn} sides`,()=>{n=nn;refresh();onChange(n,r);},group);buttons.push([nn,b]);}
+  for(const nn of [...new Set([6,12,24,48,origN])].sort((a,b)=>a-b).filter(v=>!even||v%2===0)){const b=f.button(`${nn} sides`,()=>{n=nn;refresh();onChange(n,r);},group);buttons.push([nn,b]);}
   const lab=document.createElement('label');lab.className='lv-radius lv-push';lab.innerHTML=`Radius <input type="range" min="1" max="${Math.max(32,Math.ceil(origR))}" step="0.5" value="${origR}" aria-label="Exploration radius"><output>${fmt(origR)}</output>`;f.toolbar.append(lab);
   const input=lab.querySelector('input'),output=lab.querySelector('output');input.oninput=()=>{r=Number(input.value);refresh();onChange(n,r);};
   const original=f.button('Packet values',()=>{n=origN;r=origR;input.value=r;refresh();onChange(n,r);});
-  function refresh(){buttons.forEach(([nn,b])=>b.setAttribute('aria-pressed',String(nn===n)));output.textContent=fmt(r);const changed=n!==origN||r!==origR;f.status.textContent=changed?'Exploration — packet values and saved answers stay unchanged.':'Packet values';original.disabled=!changed;}
+  function refresh(){buttons.forEach(([nn,b])=>b.setAttribute('aria-pressed',String(nn===n)));sideInput.value=String(n);sideOutput.textContent=String(n);sideInput.setAttribute('aria-valuetext',`${n} sides${even?', arranged in equal pairs':''}`);output.textContent=fmt(r);const changed=n!==origN||r!==origR;f.status.textContent=changed?'Exploration — packet values and saved answers stay unchanged.':'Packet values';original.disabled=!changed;}
   refresh();return {get n(){return n;},get r(){return r;}};
 }
 
 function mountPerimeter(container,problem,options) {
   const f=frame(container,options),d=problem.diagram;let n=Number(d.n)||12,r=Number(d.radius)||6;
   let tr;
-  const settings=polygonSettings(f,d,(nn,rr)=>{n=nn;r=rr;tr.pause();draw(tr.t);});
+  const settings=polygonSettings(f,d,(nn,rr)=>{n=nn;r=rr;draw(tr.t);});
   f.caption.textContent='Unroll the straight sides, then compare their total length with one diameter. More sides make the polygon’s perimeter approach the circle’s circumference.';
   function draw(t){
     const scale=640/(TAU*r),rp=r*scale,cx=400,cy=155,side=2*r*Math.sin(Math.PI/n),givenSide=(n===Number(d.n)&&r===Number(d.radius)&&Number.isFinite(Number(d.side_length)))?Number(d.side_length):Number(side.toFixed(9)),P=Number((n*givenSide).toFixed(6)),D=2*r,ratio=Math.round(Math.round(P*1e6)/D)/1e6;
-    let g=`<circle cx="${cx}" cy="${cy}" r="${rp}" class="guide"/>`;
+    let g=`<circle cx="${cx}" cy="${cy}" r="${rp}" fill="none" class="guide"/>`;
     const verts=Array.from({length:n},(_,i)=>[cx+rp*Math.cos(i*TAU/n),cy-rp*Math.sin(i*TAU/n)]);
     g+=ln(cx-rp,cy,cx+rp,cy,'accentline')+svgText(cx,cy+27,`diameter = ${fmt(D)} ${d.unit||'cm'}`,'small');
     const rx=cx+rp*Math.cos(Math.PI/3),ry=cy-rp*Math.sin(Math.PI/3);
-    g+=ln(cx,cy,rx,ry,'edge')+svgText(rx+8,ry+22,`r = ${fmt(r)}`,'small','start')+`<circle cx="${cx}" cy="${cy}" r="3.5" fill="var(--lv-ink)"/>`;
+    g+=ln(cx,cy,rx,ry,'edge')+svgText(rx+8,ry+22,`r = ${fmt(r)}`,'small','start');
     for(let i=0;i<n;i++){
       const a=verts[i],b=verts[(i+1)%n],len=side*scale,sourceAngle=Math.atan2(b[1]-a[1],b[0]-a[0]);
       const targetX=80+i*len,targetY=300;
@@ -172,13 +180,13 @@ function mountPerimeter(container,problem,options) {
 
 function mountRearrange(container,problem,options) {
   const f=frame(container,options),d=problem.diagram;let n=Number(d.n)||12,r=Number(d.radius)||6;let tr;
-  polygonSettings(f,d,(nn,rr)=>{n=nn;r=rr;tr.pause();draw(tr.t);});
+  polygonSettings(f,d,(nn,rr)=>{n=nn;r=rr;draw(tr.t);});
   f.caption.textContent=f.allowSolutions?'Each triangle keeps its size. Together they form a parallelogram: base = half the polygon perimeter, height = the polygon’s center-to-side distance. As the number of sides increases, the base approaches πr and the height approaches r.':'Each triangle keeps its size. Compare the bottom edge with the polygon boundary. Compare the rearranged height with the original radius, and describe what changes as the number of sides grows.';
   function draw(t){
     const s=2*r*Math.sin(Math.PI/n),h=r*Math.cos(Math.PI/n),b=n*s/2,scale=138/r,originalValues=n===Number(d.n)&&r===Number(d.radius);
     const center=[400,228],left=400-(b+s/2)*scale/2,bottom=312;
     const phase=0,rad=r*scale;
-    let g=`<circle cx="${center[0]}" cy="${center[1]}" r="${rad}" class="ghost" opacity="${1-t*.75}"/>`;
+    let g=`<circle cx="${center[0]}" cy="${center[1]}" r="${rad}" fill="none" class="ghost" opacity="${1-t*.75}"/>`;
     if(t<.02)g+=ln(center[0],center[1],center[0]+rad,center[1],'accentline')+svgText(center[0]+rad/2,center[1]-12,`r = ${fmt(r)}`,'small');
     for(let i=0;i<n;i++){
       const a=phase+i*TAU/n,j=Math.floor(i/2),up=i%2===0;
@@ -188,7 +196,7 @@ function mountRearrange(container,problem,options) {
       const apex=[lerp(center[0],left+targetApex[0]*scale,t),lerp(center[1],bottom-targetApex[1]*scale,t)];
       const angleA=a+rotation,angleB=a+TAU/n+rotation;
       const triangle=[apex,[apex[0]+rad*Math.cos(angleA),apex[1]-rad*Math.sin(angleA)],[apex[0]+rad*Math.cos(angleB),apex[1]-rad*Math.sin(angleB)]];
-      g+=poly(triangle,up?'piece':'alternate');
+      g+=poly(triangle,up?'piece':'alternate',`style="stroke:#8ca3b9;stroke-width:${Math.min(.8,4.8/n)}"`);
     }
     if(t>.75){const op=(t-.75)/.25,top=bottom-h*scale,xright=left+(b+s/2)*scale;
       g+=`<g opacity="${op}">`+ln(left,bottom+25,left+b*scale,bottom+25,'accentline')+ln(left,bottom+19,left,bottom+31,'minor')+ln(left+b*scale,bottom+19,left+b*scale,bottom+31,'minor');
@@ -240,8 +248,10 @@ function mountCentral(container,problem,options) {
   function draw(){
     const cx=190,cy=210,rad=120,theta=TAU/n;
     const verts=Array.from({length:n},(_,i)=>[cx+rad*Math.cos(i*theta),cy-rad*Math.sin(i*theta)]);
-    let g=`<circle cx="${cx}" cy="${cy}" r="${rad}" class="ghost"/>`;
-    for(let i=0;i<n;i++)g+=poly([[cx,cy],verts[i],verts[(i+1)%n]],i<count?'highlight':'alternate');
+    let g=`<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" class="ghost"/>`;
+    for(let i=0;i<n;i++)g+=poly([[cx,cy],verts[i],verts[(i+1)%n]],i<count?'highlight':'alternate','style="stroke:none"');
+    for(const v of verts)g+=ln(cx,cy,...v,'minor',`style="stroke:#8ca3b9;stroke-width:${Math.min(.8,9.6/n)}"`);
+    g+=poly(verts,'edge');
     const scale=280/r,x=425,y=288,apexx=x+r*Math.cos(theta)*scale,apexy=y-alt*scale;
     g+=svgText(cx,47,'The 12-gon','small')+svgText(565,47,'One triangle, enlarged','small');
     g+=poly([[x,y],[x+r*scale,y],[apexx,apexy]],'piece');
@@ -369,8 +379,10 @@ function mountPolygonArea(container,problem,options) {
   function draw(){
     const cx=400,cy=214,rp=145;
     const vv=Array.from({length:n},(_,i)=>[cx+rp*Math.cos(i*TAU/n),cy-rp*Math.sin(i*TAU/n)]);
-    let g=`<circle cx="${cx}" cy="${cy}" r="${rp}" class="guide"/>`;
-    for(let i=0;i<n;i++)g+=poly([[cx,cy],vv[i],vv[(i+1)%n]],i%2?'alternate':'piece');
+    let g=`<circle cx="${cx}" cy="${cy}" r="${rp}" fill="none" class="guide"/>`;
+    for(let i=0;i<n;i++)g+=poly([[cx,cy],vv[i],vv[(i+1)%n]],i%2?'alternate':'piece','style="stroke:none"');
+    for(const v of vv)g+=ln(cx,cy,...v,'minor',`style="stroke:#8ca3b9;stroke-width:${Math.min(.8,9.6/n)}"`);
+    g+=poly(vv,'edge');
     g+=ln(cx,cy,cx+rp,cy,'accentline')+svgText(cx+rp/2,cy-13,`r = ${fmt(r)} ${d.unit||'cm'}`,'small');
     g+=svgText(400,35,`${n}-gon and its surrounding circle`,'small');
     g+=svgText(400,410,`Circle formula: A = πr²`,'formula');
@@ -617,12 +629,11 @@ function mountCircle(container,problem,options){
   const f=frame(container,options),d=problem.diagram,r=Number(d.radius)||4,cx=400,cy=210,rp=142;
   const radiusLabel=d.radius_label||(d.given==='radius'?`r = ${d.label}`:'r = ?'),diameterLabel=d.diameter_label||(d.given==='diameter'?`d = ${d.label}`:'d = ?');
   f.status.textContent='A radius reaches from the center to the circle. A diameter passes through the center.';
-  f.caption.textContent='Use the given information and the formula in your problem. Zoom in, drag to pan, or pinch with two fingers to inspect the diagram.';
+  f.caption.textContent='Use the given information and the formula in your problem. Scroll over the diagram to zoom, drag to pan, or pinch with two fingers.';
   f.playbar.hidden=true;
-  let g=`<circle cx="${cx}" cy="${cy}" r="${rp}" class="edge"/>`;
+  let g=`<circle cx="${cx}" cy="${cy}" r="${rp}" fill="none" class="edge"/>`;
   if(d.show_diameter!==false)g+=ln(cx-rp,cy,cx+rp,cy,'accentline')+svgText(cx,cy+28,diameterLabel,'small');
   if(d.show_radius!==false){const a=-Math.PI/3,xx=cx+rp*Math.cos(a),yy=cy+rp*Math.sin(a);g+=ln(cx,cy,xx,yy,'edge')+svgText(xx+8,(cy+yy)/2,radiusLabel,'small','start');}
-  g+=`<circle cx="${cx}" cy="${cy}" r="4" fill="var(--lv-ink)"/>`;
   if(d.given==='circumference')g+=svgText(cx,42,d.label,'formula');
   f.svg.innerHTML=g;f.metrics.hidden=true;return f.clean;
 }
