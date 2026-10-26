@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f3ee">
+  <meta name="description" content="A Grade 7 study packet with geometry visualizations, saved practice, and lessons on circles, area, volume, and proportions.">
+  <title>Study for Test 1</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="#lesson" aria-label="Study for Test 1 home"><span class="brand-mark" aria-hidden="true">∠</span><span>Study for Test 1<small>Geometry &amp; proportions</small></span></a>
+    <nav class="view-tabs" aria-label="Study view">
+      <button type="button" data-view="lesson" class="active">Lesson</button>
+      <button type="button" data-view="packet">Virtual Packet</button>
+      <button type="button" data-view="practice">More Practice</button>
+    </nav>
+    <div class="header-actions">
+      <button id="solutions-toggle" class="quiet-button" type="button" aria-pressed="false">Solutions</button>
+      <button id="theme-toggle" class="icon-button" type="button" title="Change color theme" aria-label="Switch to dark theme">◐</button>
+      <button id="fullscreen-toggle" class="icon-button" type="button" title="Full screen" aria-label="Enter full screen">⛶</button>
+      <button id="download-toggle" hidden class="icon-button" type="button" aria-label="Download packet" title="Download packet">↓</button>
+    </div>
+  </header>
+  <div id="download-menu" hidden></div>
+  <main id="app" aria-busy="true">
+    <div class="loading-state"><div class="loading-line"></div><p>Opening your study packet…</p></div>
+  </main>
+  <footer class="app-footer"><span id="save-status">Answers stay on this browser.</span><button id="reset-progress" type="button">Reset saved answers</button></footer>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
