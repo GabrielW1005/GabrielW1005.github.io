@@ -26,3 +26,9 @@ Handout solution policy (October 25, 2026):
 - Hide explicit reference answers and exact answer differences in original-problem simulation feedback. Keep simulations and graphs available as evidence students can interpret.
 
 - Accept decimals, negative numbers using `-`, and fractions using `/` in answer fields and numerical experiment controls; keep valid fraction answers intact when saving.
+
+Numerical-answer preferences (October 27, 2026):
+- Choose varied, nonrepetitive numerical answers within and across topics; use a meaningful mix of whole numbers, decimals, fractions, and signs while keeping values realistic and arithmetic grade-appropriate.
+- Never choose 1 or -1 as the final answer to a generated calculation problem. Avoid answers of 2 or 3 wherever practical; do not make the exercise harder merely by using awkward or unrealistic measurements.
+- Check the full set of calculated answers before finalizing a worksheet, test, or practice set, and revise repetitive or overly simple results.
+- These rules apply to numerical calculation answers, not conceptual relationships such as acceleration doubling or being halved.
