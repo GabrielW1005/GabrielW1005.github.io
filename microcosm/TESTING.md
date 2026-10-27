@@ -94,3 +94,10 @@ A local 1366 × 768 draw benchmark measured opening scenes at 0.73–1.62 ms/fra
 All 60 automated checks pass: the prior model/render checks, eight survival/contact tests, and the app harness extended to Guide tabs, environment readout and rendered FPS. New cases cover touching and coincident cell separation, food displacement, elongated rock contact, stationary prey anchors including save round trips, starvation and feeding recovery, thermal demand, hypoxia, salinity, depleted reserves, oxygen competition and legacy environment migration.
 
 A native Canvas six-stage contact sheet was inspected for capture at encounter position, closure, internalization, cell separation and solid-food pushing. Thirty simulated seconds were run for all five lineages and their saves reloaded. Following broad-phase optimization, an amoeba-world run averaged 1.38 ms per simulation tick on the local runtime. This is not a browser FPS measurement or a Chromebook guarantee. Actual browser layout/input and classroom hardware remain untested. Contact constraints approximate deforming outlines; dense packing and prolonged ecosystem balance still need playtesting.
+
+
+## 2.6 combat and live upgrade checks
+
+All 67 checks pass, including timed live expression, saved progress, inheritance, trait eligibility/caps, resource costs, burst cooldown, interrupted recovery, actual mitigated damage cues, and higher-reserve rival attacks. The app harness checks that simulation runs with the upgrade panel open, a choice starts expression, and pause/resume works in that panel.
+
+Native Canvas inspection covers health numbers, damage feedback, recovery and upgrades. A local opening-world simulation measured 1.80 ms per 30 Hz step over 30 simulated seconds; an isolated action scene drew in 0.68 ms/frame. These are workload measurements, not device FPS. Cloud-browser inspection confirmed the side-panel layout, upgrade purchase and energy cost, G close and F cooldown feedback; a readout overlap was corrected afterward. Cloud-browser rendering was throttled, so no smooth-play or physical Chromebook performance claim is made.

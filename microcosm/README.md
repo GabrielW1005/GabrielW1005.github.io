@@ -1,4 +1,4 @@
-# Microcosm 2.5 — Living worlds
+# Microcosm 2.6 — Living worlds
 
 A dependency-free Canvas game at https://gabrielw1005.github.io/microcosm/.
 
@@ -90,3 +90,8 @@ Distinct silhouettes and consistent species colors accompany ciliary feeding, an
 ## Survival update
 
 Guide / H opens survival instructions, controls and biology. The compact readout shows relative oxygen, temperature, water warnings and habitat food reserves; FPS counts rendered canvas frames (30 target in play, intentionally lower while paused). Cells and solid food push against membranes and rocks. Amoeba prey stays at the encounter point until sealing. Food, energy, oxygen, osmosis and temperature affect survival. Existing saves receive the new environmental state on load.
+
+
+## Combat and live upgrades
+
+Space: species-specific primary ability. F: brief energy-costing movement burst. C: stationary recovery, interrupted by motion, attacks or damage. G: live upgrade panel; choose a benefit for the focused cell, watch expression complete, and pass the trait to daughters. P pauses even while upgrading. HP and combined actual damage numbers appear during combat; inspected opponents show health. New worlds add three encounters beyond the quiet starting area; rivals pursue and use abilities more often and retreat/recover when weak.

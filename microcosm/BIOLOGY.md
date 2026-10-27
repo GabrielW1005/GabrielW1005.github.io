@@ -39,7 +39,7 @@ Research:
 
 ## Genetics, mutation and reproduction
 
-Player-selected variants stand for mutation followed by selection across compressed generations. A selected mutation is expressed in the two daughters at division. Mutations cannot create arbitrary foreign organelles. Level caps and prices are game rules.
+Player-selected variants stand for mutation followed by selection across compressed generations. New live upgrades express in the focused cell after a short timer and are inherited at division; older queued save variants still apply at division. This is an explicitly accelerated game abstraction, not a claim that organisms deliberately choose mutations. Mutations cannot create arbitrary foreign organelles. Level caps and prices are game rules.
 
 Bacterial natural transformation requires modeled competence, DNA uptake, compatibility and an integration delay. An integration attempt can fail. Incompatible DNA does not confer a trait. Compatibility uses a coarse same-model-lineage gate; real sequence homology, restriction systems, competence regulation and mobile genetic elements are more complex. Digestion and genetic transformation are different processes.
 
@@ -113,3 +113,10 @@ Food supports energy and biomass. Basal maintenance and activity consume energy;
 A spatial temperature field changes movement, digestion and energy demand. Extreme temperatures cause damage. The curve and 10–34 °C unstressed band are game tuning, not species-specific measured limits. Freshwater influx and saline dehydration remain distinct, with energy-consuming contractile-vacuole regulation in protists.
 
 Contact uses three bounded, overdamped cell-constraint passes and spatially bucketed solid-food contact. Cells can push each other without inertial rebounds. Dissolved nutrient dots represent molecules and are not solid obstacles. Captured prey can enter its captor; open amoeba cups retain the encounter location until sealing. Membrane contact is an approximate 2D constraint, not molecular adhesion, a fluid solver or exact polygon intersection.
+
+
+## 2.6 encounters and live variants
+
+Species retain their existing feeding and attack restrictions. Didinium contact toxicysts cause a small modeled injury before capture; this HP change is illustrative, not a measured toxin dose. Paramecium retains its escape role rather than an invented damaging projectile. Bacterial clouds and T6SS target susceptible modeled rivals; pursuit, factions and cooldowns remain game abstractions.
+
+Burst and recovery represent temporary energy expenditure on motility and membrane repair. Their timing, costs and manual activation are gameplay controls, not calibrated physiological rates. Recovery is interrupted by movement, successful attacks or damage and requires suitable environmental conditions. Upgrade expression takes 2.5 seconds in-game; mutation, selection and gene expression are biologically distinct and do not ordinarily occur on this chosen timescale. Natural transformation remains a separate compatible DNA integration path.
