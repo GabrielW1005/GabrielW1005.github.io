@@ -1,26 +1,24 @@
 {
   "packet": {
     "filename": "8th_Grade_Math_Review_1_Packet.pdf",
-    "bytes": 3314778,
-    "sha256": "83be0965cd911af6639b14610a229b8b7324fd72f1c34561285dc0b13d343409",
+    "bytes": 2728246,
+    "sha256": "74cd8f15904e05b19c754bf825f3cab08a8b509d8493902c69533c6e7e2b8a21",
     "parts": [
-      "downloads/parts/packet-geometry5-00.bin",
-      "downloads/parts/packet-geometry5-01.bin",
-      "downloads/parts/packet-geometry5-02.bin",
-      "downloads/parts/packet-geometry5-03.bin",
-      "downloads/parts/packet-geometry5-04.bin"
+      "downloads/parts/packet-numbering6-00.bin",
+      "downloads/parts/packet-numbering6-01.bin",
+      "downloads/parts/packet-numbering6-02.bin",
+      "downloads/parts/packet-numbering6-03.bin"
     ]
   },
   "key": {
     "filename": "8th_Grade_Math_Review_1_Answer_Key.pdf",
-    "bytes": 3728571,
-    "sha256": "3bdc5022d280f472b22b47caeb4b597f90d174bb11b213bc5ba4e5d664e04d65",
+    "bytes": 3106853,
+    "sha256": "6b1366473449c3ff773636a592295f1fc313806975af0dd6935d6abde25ae337",
     "parts": [
-      "downloads/parts/key-geometry5-00.bin",
-      "downloads/parts/key-geometry5-01.bin",
-      "downloads/parts/key-geometry5-02.bin",
-      "downloads/parts/key-geometry5-03.bin",
-      "downloads/parts/key-geometry5-04.bin"
+      "downloads/parts/key-numbering6-00.bin",
+      "downloads/parts/key-numbering6-01.bin",
+      "downloads/parts/key-numbering6-02.bin",
+      "downloads/parts/key-numbering6-03.bin"
     ]
   }
 }

@@ -39,7 +39,8 @@ function keyHTML(key) {
 
 export function answerEntryHTML(problem, value = '', result = null) {
   const key = String(problem.key ?? problem.id ?? ''), id = idFor(key), kind = answerKind(problem);
-  const number = problem.originalKey ? `${problem.originalKey} · extra` : key;
+  const displayNumber = problem.displayNumber ?? problem.block?.number ?? key;
+  const number = problem.originalKey ? `${displayNumber} · extra` : displayNumber;
   const preview = previewMarkup(value);
   const fractionBuilder = `<div class="entry-builder"><span class="entry-builder-title">Build a fraction</span><div class="entry-builder-fields"><label><span>Whole (optional)</span><input type="text" class="entry-piece" data-entry-whole inputmode="text" autocomplete="off" aria-label="Whole number for fraction, optional"></label><label><span>Numerator</span><input type="text" class="entry-piece" data-entry-numerator inputmode="text" autocomplete="off" aria-label="Fraction numerator"></label><label><span>Denominator</span><input type="text" class="entry-piece" data-entry-denominator inputmode="text" autocomplete="off" aria-label="Fraction denominator"></label></div><button type="button" class="entry-insert" data-entry-fraction>Insert fraction</button></div>`;
   const pointBuilder = kind === 'coordinates' ? `<div class="entry-builder"><span class="entry-builder-title">Build a point</span><div class="entry-builder-fields entry-point-fields"><label><span>x</span><input type="text" class="entry-piece" data-entry-x autocomplete="off" aria-label="Point x coordinate"></label><label><span>y</span><input type="text" class="entry-piece" data-entry-y autocomplete="off" aria-label="Point y coordinate"></label></div><button type="button" class="entry-insert" data-entry-point>Insert point</button></div>` : '';

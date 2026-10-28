@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "pageCount": 43,
+  "version": 3,
+  "pageCount": 39,
   "sectionToPage": {
     "1": 1,
     "2": 1,
@@ -62,21 +62,15 @@
     "53": 28,
     "54": 29,
     "55": 30,
-    "56": 31,
-    "57": 32,
-    "58": 33,
-    "59": 34,
-    "60": 35,
-    "61": 36,
-    "62": 37,
-    "63": 37,
-    "66": 38,
-    "67": 38,
-    "68": 39,
-    "69": 40,
-    "70": 41,
-    "71": 42,
-    "72": 43
+    "57": 31,
+    "58": 32,
+    "59": 33,
+    "60": 34,
+    "68": 35,
+    "69": 36,
+    "70": 37,
+    "71": 38,
+    "72": 39
   },
   "pages": [
     {
@@ -444,17 +438,6 @@
     },
     {
       "number": 31,
-      "title": "Construct triangles on a grid",
-      "chapter": "Angles, triangles & scale",
-      "chapters": [
-        "Angles, triangles & scale"
-      ],
-      "sections": [
-        56
-      ]
-    },
-    {
-      "number": 32,
       "title": "Scale factors and lengths",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -465,7 +448,7 @@
       ]
     },
     {
-      "number": 33,
+      "number": 32,
       "title": "Scale drawings and area",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -476,7 +459,7 @@
       ]
     },
     {
-      "number": 34,
+      "number": 33,
       "title": "Nets and surface area",
       "chapter": "Surface area",
       "chapters": [
@@ -487,7 +470,7 @@
       ]
     },
     {
-      "number": 35,
+      "number": 34,
       "title": "Surface area of rectangular prisms",
       "chapter": "Surface area",
       "chapters": [
@@ -498,42 +481,7 @@
       ]
     },
     {
-      "number": 36,
-      "title": "Surface area of triangular prisms",
-      "chapter": "Surface area",
-      "chapters": [
-        "Surface area"
-      ],
-      "sections": [
-        61
-      ]
-    },
-    {
-      "number": 37,
-      "title": "Square pyramids: lateral and total surface area",
-      "chapter": "Surface area",
-      "chapters": [
-        "Surface area"
-      ],
-      "sections": [
-        62,
-        63
-      ]
-    },
-    {
-      "number": 38,
-      "title": "Surface area of composite prisms",
-      "chapter": "Surface area",
-      "chapters": [
-        "Surface area"
-      ],
-      "sections": [
-        66,
-        67
-      ]
-    },
-    {
-      "number": 39,
+      "number": 35,
       "title": "Volume: counting cubic units",
       "chapter": "Volume",
       "chapters": [
@@ -544,7 +492,7 @@
       ]
     },
     {
-      "number": 40,
+      "number": 36,
       "title": "Volume with fractional dimensions",
       "chapter": "Volume",
       "chapters": [
@@ -555,7 +503,7 @@
       ]
     },
     {
-      "number": 41,
+      "number": 37,
       "title": "Volume of triangular prisms",
       "chapter": "Volume",
       "chapters": [
@@ -566,7 +514,7 @@
       ]
     },
     {
-      "number": 42,
+      "number": 38,
       "title": "Volume of irregular prisms",
       "chapter": "Volume",
       "chapters": [
@@ -577,7 +525,7 @@
       ]
     },
     {
-      "number": 43,
+      "number": 39,
       "title": "Find a missing prism height",
       "chapter": "Volume",
       "chapters": [

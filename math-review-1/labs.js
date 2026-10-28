@@ -1,5 +1,5 @@
-import { renderDiagram } from './diagrams.js?v=geometry-5';
-import {createNetModel,renderNet} from './net-unfold.js?v=geometry-5';
+import { renderDiagram } from './diagrams.js?v=numbering-6';
+import {createNetModel,renderNet} from './net-unfold.js?v=numbering-6';
 import {mathHTML} from './math-format.js?v=learning-4';
 import {guidanceFor} from './guidance.js?v=learning-4';
 
@@ -49,6 +49,7 @@ export function mountLab(host,problem,onChange=()=>{}){
     else if(type==='circle') circleLab(ctx);
     else if(type==='prism'||type==='pyramid'||type==='net'||type==='crossSection'||type==='cross-section') solidLab(ctx);
     else if(p.family==='perimeter-rectangle') perimeterLab(ctx);
+    else if(p.family==='triangle-angle-conditions') fallbackLab(ctx);
     else if(type==='polygon'||type==='composite'||type==='triangle'||type==='construction') areaLab(ctx);
     else if(/sequence|pattern/i.test(p.description)) sequenceLab(ctx);
     else if(/^unit-rate/.test(p.family||'')) rateLab(ctx);

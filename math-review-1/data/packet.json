@@ -1,6 +1,6 @@
 {
   "title": "8th Grade - Math Review 1",
-  "version": 2,
+  "version": 6,
   "pages": [
     {
       "number": 1,
@@ -38,7 +38,8 @@
               "family": "order-rational"
             }
           ],
-          "sourceBlockId": "N1"
+          "sourceBlockId": "N1",
+          "number": 1
         },
         {
           "id": "2",
@@ -67,7 +68,8 @@
               "family": "order-rational"
             }
           ],
-          "sourceBlockId": "N2"
+          "sourceBlockId": "N2",
+          "number": 2
         },
         {
           "id": "3",
@@ -95,7 +97,8 @@
               "family": "absolute-opposite"
             }
           ],
-          "sourceBlockId": "N3"
+          "sourceBlockId": "N3",
+          "number": 3
         },
         {
           "id": "4",
@@ -123,7 +126,8 @@
               "family": "absolute-opposite"
             }
           ],
-          "sourceBlockId": "N4"
+          "sourceBlockId": "N4",
+          "number": 4
         },
         {
           "id": "5",
@@ -149,7 +153,8 @@
               "checkExpression": "abs(3-(-4))"
             }
           ],
-          "sourceBlockId": "N5"
+          "sourceBlockId": "N5",
+          "number": 5
         },
         {
           "id": "6",
@@ -175,7 +180,8 @@
               "checkExpression": "abs(1.25-(-2.5))"
             }
           ],
-          "sourceBlockId": "N6"
+          "sourceBlockId": "N6",
+          "number": 6
         }
       ],
       "originalSection": 1,
@@ -212,7 +218,8 @@
               "checkExpression": "4 + 7"
             }
           ],
-          "sourceBlockId": "N7"
+          "sourceBlockId": "N7",
+          "number": 7
         },
         {
           "id": "8",
@@ -238,7 +245,8 @@
               "checkExpression": "-3 + (-6)"
             }
           ],
-          "sourceBlockId": "N8"
+          "sourceBlockId": "N8",
+          "number": 8
         },
         {
           "id": "9",
@@ -264,7 +272,8 @@
               "checkExpression": "-8 + 5"
             }
           ],
-          "sourceBlockId": "N9"
+          "sourceBlockId": "N9",
+          "number": 9
         },
         {
           "id": "10",
@@ -290,7 +299,8 @@
               "checkExpression": "7 + (-12)"
             }
           ],
-          "sourceBlockId": "N10"
+          "sourceBlockId": "N10",
+          "number": 10
         },
         {
           "id": "11",
@@ -316,7 +326,8 @@
               "checkExpression": "-11 + 11"
             }
           ],
-          "sourceBlockId": "N11"
+          "sourceBlockId": "N11",
+          "number": 11
         },
         {
           "id": "12",
@@ -342,7 +353,8 @@
               "checkExpression": "-15 + (-9)"
             }
           ],
-          "sourceBlockId": "N12"
+          "sourceBlockId": "N12",
+          "number": 12
         }
       ],
       "originalSection": 2,
@@ -379,7 +391,8 @@
               "checkExpression": "9 \u2212 4"
             }
           ],
-          "sourceBlockId": "N13"
+          "sourceBlockId": "N13",
+          "number": 13
         },
         {
           "id": "14",
@@ -405,7 +418,8 @@
               "checkExpression": "3 \u2212 11"
             }
           ],
-          "sourceBlockId": "N14"
+          "sourceBlockId": "N14",
+          "number": 14
         },
         {
           "id": "15",
@@ -431,7 +445,8 @@
               "checkExpression": "-6 \u2212 5"
             }
           ],
-          "sourceBlockId": "N15"
+          "sourceBlockId": "N15",
+          "number": 15
         },
         {
           "id": "16",
@@ -457,7 +472,8 @@
               "checkExpression": "4 \u2212 (-7)"
             }
           ],
-          "sourceBlockId": "N16"
+          "sourceBlockId": "N16",
+          "number": 16
         },
         {
           "id": "17",
@@ -483,7 +499,8 @@
               "checkExpression": "-12 \u2212 (-5)"
             }
           ],
-          "sourceBlockId": "N17"
+          "sourceBlockId": "N17",
+          "number": 17
         },
         {
           "id": "18",
@@ -509,7 +526,8 @@
               "checkExpression": "-8 \u2212 (-14)"
             }
           ],
-          "sourceBlockId": "N18"
+          "sourceBlockId": "N18",
+          "number": 18
         },
         {
           "id": "P1-1",
@@ -535,7 +553,8 @@
               "family": "integer-subtract",
               "sourceSection": 3
             }
-          ]
+          ],
+          "number": 19
         },
         {
           "id": "P1-2",
@@ -561,7 +580,8 @@
               "family": "integer-subtract",
               "sourceSection": 3
             }
-          ]
+          ],
+          "number": 20
         },
         {
           "id": "P1-3",
@@ -587,7 +607,8 @@
               "family": "integer-subtract",
               "sourceSection": 3
             }
-          ]
+          ],
+          "number": 21
         }
       ],
       "originalSection": 3,
@@ -625,7 +646,8 @@
               "checkExpression": "6 \u00d7 4"
             }
           ],
-          "sourceBlockId": "N19"
+          "sourceBlockId": "N19",
+          "number": 22
         },
         {
           "id": "20",
@@ -652,7 +674,8 @@
               "checkExpression": "(-5) \u00d7 7"
             }
           ],
-          "sourceBlockId": "N20"
+          "sourceBlockId": "N20",
+          "number": 23
         },
         {
           "id": "21",
@@ -679,7 +702,8 @@
               "checkExpression": "8 \u00d7 (-3)"
             }
           ],
-          "sourceBlockId": "N21"
+          "sourceBlockId": "N21",
+          "number": 24
         },
         {
           "id": "22",
@@ -706,7 +730,8 @@
               "checkExpression": "(-6) \u00d7 (-9)"
             }
           ],
-          "sourceBlockId": "N22"
+          "sourceBlockId": "N22",
+          "number": 25
         },
         {
           "id": "23",
@@ -733,7 +758,8 @@
               "checkExpression": "(-11) \u00d7 (-4)"
             }
           ],
-          "sourceBlockId": "N23"
+          "sourceBlockId": "N23",
+          "number": 26
         },
         {
           "id": "24",
@@ -760,7 +786,8 @@
               "checkExpression": "(-12) \u00d7 5"
             }
           ],
-          "sourceBlockId": "N24"
+          "sourceBlockId": "N24",
+          "number": 27
         }
       ],
       "originalSection": 4,
@@ -798,7 +825,8 @@
               "checkExpression": "42 \u00f7 6"
             }
           ],
-          "sourceBlockId": "N25"
+          "sourceBlockId": "N25",
+          "number": 28
         },
         {
           "id": "26",
@@ -825,7 +853,8 @@
               "checkExpression": "(-48) \u00f7 8"
             }
           ],
-          "sourceBlockId": "N26"
+          "sourceBlockId": "N26",
+          "number": 29
         },
         {
           "id": "27",
@@ -852,7 +881,8 @@
               "checkExpression": "63 \u00f7 (-9)"
             }
           ],
-          "sourceBlockId": "N27"
+          "sourceBlockId": "N27",
+          "number": 30
         },
         {
           "id": "28",
@@ -879,7 +909,8 @@
               "checkExpression": "(-72) \u00f7 (-6)"
             }
           ],
-          "sourceBlockId": "N28"
+          "sourceBlockId": "N28",
+          "number": 31
         },
         {
           "id": "29",
@@ -906,7 +937,8 @@
               "checkExpression": "0 \u00f7 5"
             }
           ],
-          "sourceBlockId": "N29"
+          "sourceBlockId": "N29",
+          "number": 32
         },
         {
           "id": "30",
@@ -933,7 +965,8 @@
               "family": "zero-division"
             }
           ],
-          "sourceBlockId": "N30"
+          "sourceBlockId": "N30",
+          "number": 33
         }
       ],
       "originalSection": 5,
@@ -976,7 +1009,8 @@
               }
             }
           ],
-          "sourceBlockId": "N31"
+          "sourceBlockId": "N31",
+          "number": 34
         },
         {
           "id": "32",
@@ -1008,7 +1042,8 @@
               }
             }
           ],
-          "sourceBlockId": "N32"
+          "sourceBlockId": "N32",
+          "number": 35
         },
         {
           "id": "33",
@@ -1040,7 +1075,8 @@
               }
             }
           ],
-          "sourceBlockId": "N33"
+          "sourceBlockId": "N33",
+          "number": 36
         },
         {
           "id": "34",
@@ -1072,7 +1108,8 @@
               }
             }
           ],
-          "sourceBlockId": "N34"
+          "sourceBlockId": "N34",
+          "number": 37
         },
         {
           "id": "35",
@@ -1104,7 +1141,8 @@
               }
             }
           ],
-          "sourceBlockId": "N35"
+          "sourceBlockId": "N35",
+          "number": 38
         },
         {
           "id": "36",
@@ -1136,7 +1174,8 @@
               }
             }
           ],
-          "sourceBlockId": "N36"
+          "sourceBlockId": "N36",
+          "number": 39
         },
         {
           "id": "P2-1",
@@ -1167,7 +1206,8 @@
               },
               "sourceSection": 6
             }
-          ]
+          ],
+          "number": 40
         },
         {
           "id": "P2-2",
@@ -1198,7 +1238,8 @@
               },
               "sourceSection": 6
             }
-          ]
+          ],
+          "number": 41
         },
         {
           "id": "P2-3",
@@ -1229,7 +1270,8 @@
               },
               "sourceSection": 6
             }
-          ]
+          ],
+          "number": 42
         },
         {
           "id": "P2-4",
@@ -1260,7 +1302,8 @@
               },
               "sourceSection": 6
             }
-          ]
+          ],
+          "number": 43
         },
         {
           "id": "P2-5",
@@ -1291,7 +1334,8 @@
               },
               "sourceSection": 6
             }
-          ]
+          ],
+          "number": 44
         },
         {
           "id": "P2-6",
@@ -1322,7 +1366,8 @@
               },
               "sourceSection": 6
             }
-          ]
+          ],
+          "number": 45
         }
       ],
       "originalSection": 6,
@@ -1365,7 +1410,8 @@
               }
             }
           ],
-          "sourceBlockId": "N37"
+          "sourceBlockId": "N37",
+          "number": 46
         },
         {
           "id": "38",
@@ -1397,7 +1443,8 @@
               }
             }
           ],
-          "sourceBlockId": "N38"
+          "sourceBlockId": "N38",
+          "number": 47
         },
         {
           "id": "39",
@@ -1429,7 +1476,8 @@
               }
             }
           ],
-          "sourceBlockId": "N39"
+          "sourceBlockId": "N39",
+          "number": 48
         },
         {
           "id": "40",
@@ -1461,7 +1509,8 @@
               }
             }
           ],
-          "sourceBlockId": "N40"
+          "sourceBlockId": "N40",
+          "number": 49
         },
         {
           "id": "41",
@@ -1493,7 +1542,8 @@
               }
             }
           ],
-          "sourceBlockId": "N41"
+          "sourceBlockId": "N41",
+          "number": 50
         },
         {
           "id": "42",
@@ -1525,7 +1575,8 @@
               }
             }
           ],
-          "sourceBlockId": "N42"
+          "sourceBlockId": "N42",
+          "number": 51
         }
       ],
       "originalSection": 7,
@@ -1566,7 +1617,8 @@
               }
             }
           ],
-          "sourceBlockId": "N43"
+          "sourceBlockId": "N43",
+          "number": 52
         },
         {
           "id": "44",
@@ -1596,7 +1648,8 @@
               }
             }
           ],
-          "sourceBlockId": "N44"
+          "sourceBlockId": "N44",
+          "number": 53
         },
         {
           "id": "45",
@@ -1626,7 +1679,8 @@
               }
             }
           ],
-          "sourceBlockId": "N45"
+          "sourceBlockId": "N45",
+          "number": 54
         },
         {
           "id": "46",
@@ -1656,7 +1710,8 @@
               }
             }
           ],
-          "sourceBlockId": "N46"
+          "sourceBlockId": "N46",
+          "number": 55
         },
         {
           "id": "47",
@@ -1686,7 +1741,8 @@
               }
             }
           ],
-          "sourceBlockId": "N47"
+          "sourceBlockId": "N47",
+          "number": 56
         },
         {
           "id": "48",
@@ -1716,7 +1772,8 @@
               }
             }
           ],
-          "sourceBlockId": "N48"
+          "sourceBlockId": "N48",
+          "number": 57
         }
       ],
       "originalSection": 8,
@@ -1758,7 +1815,8 @@
               }
             }
           ],
-          "sourceBlockId": "N49"
+          "sourceBlockId": "N49",
+          "number": 58
         },
         {
           "id": "50",
@@ -1789,7 +1847,8 @@
               }
             }
           ],
-          "sourceBlockId": "N50"
+          "sourceBlockId": "N50",
+          "number": 59
         },
         {
           "id": "51",
@@ -1820,7 +1879,8 @@
               }
             }
           ],
-          "sourceBlockId": "N51"
+          "sourceBlockId": "N51",
+          "number": 60
         }
       ],
       "originalSection": 9,
@@ -1862,7 +1922,8 @@
               }
             }
           ],
-          "sourceBlockId": "N52"
+          "sourceBlockId": "N52",
+          "number": 61
         },
         {
           "id": "53",
@@ -1893,7 +1954,8 @@
               }
             }
           ],
-          "sourceBlockId": "N53"
+          "sourceBlockId": "N53",
+          "number": 62
         },
         {
           "id": "54",
@@ -1924,7 +1986,8 @@
               }
             }
           ],
-          "sourceBlockId": "N54"
+          "sourceBlockId": "N54",
+          "number": 63
         }
       ],
       "originalSection": 9,
@@ -1967,7 +2030,8 @@
               }
             }
           ],
-          "sourceBlockId": "N55"
+          "sourceBlockId": "N55",
+          "number": 64
         },
         {
           "id": "56",
@@ -1999,7 +2063,8 @@
               }
             }
           ],
-          "sourceBlockId": "N56"
+          "sourceBlockId": "N56",
+          "number": 65
         },
         {
           "id": "57",
@@ -2031,7 +2096,8 @@
               }
             }
           ],
-          "sourceBlockId": "N57"
+          "sourceBlockId": "N57",
+          "number": 66
         },
         {
           "id": "58",
@@ -2063,7 +2129,8 @@
               }
             }
           ],
-          "sourceBlockId": "N58"
+          "sourceBlockId": "N58",
+          "number": 67
         },
         {
           "id": "59",
@@ -2095,7 +2162,8 @@
               }
             }
           ],
-          "sourceBlockId": "N59"
+          "sourceBlockId": "N59",
+          "number": 68
         },
         {
           "id": "60",
@@ -2127,7 +2195,8 @@
               }
             }
           ],
-          "sourceBlockId": "N60"
+          "sourceBlockId": "N60",
+          "number": 69
         }
       ],
       "originalSection": 10,
@@ -2168,7 +2237,8 @@
               }
             }
           ],
-          "sourceBlockId": "N61"
+          "sourceBlockId": "N61",
+          "number": 70
         },
         {
           "id": "62",
@@ -2198,7 +2268,8 @@
               }
             }
           ],
-          "sourceBlockId": "N62"
+          "sourceBlockId": "N62",
+          "number": 71
         },
         {
           "id": "63",
@@ -2228,7 +2299,8 @@
               }
             }
           ],
-          "sourceBlockId": "N63"
+          "sourceBlockId": "N63",
+          "number": 72
         },
         {
           "id": "64",
@@ -2259,7 +2331,8 @@
               }
             }
           ],
-          "sourceBlockId": "N64"
+          "sourceBlockId": "N64",
+          "number": 73
         },
         {
           "id": "65",
@@ -2290,7 +2363,8 @@
               }
             }
           ],
-          "sourceBlockId": "N65"
+          "sourceBlockId": "N65",
+          "number": 74
         },
         {
           "id": "66",
@@ -2321,7 +2395,8 @@
               }
             }
           ],
-          "sourceBlockId": "N66"
+          "sourceBlockId": "N66",
+          "number": 75
         }
       ],
       "originalSection": 11,
@@ -2362,7 +2437,8 @@
               }
             }
           ],
-          "sourceBlockId": "N67"
+          "sourceBlockId": "N67",
+          "number": 76
         },
         {
           "id": "68",
@@ -2392,7 +2468,8 @@
               }
             }
           ],
-          "sourceBlockId": "N68"
+          "sourceBlockId": "N68",
+          "number": 77
         },
         {
           "id": "69",
@@ -2422,7 +2499,8 @@
               }
             }
           ],
-          "sourceBlockId": "N69"
+          "sourceBlockId": "N69",
+          "number": 78
         },
         {
           "id": "70",
@@ -2452,7 +2530,8 @@
               }
             }
           ],
-          "sourceBlockId": "N70"
+          "sourceBlockId": "N70",
+          "number": 79
         },
         {
           "id": "71",
@@ -2482,7 +2561,8 @@
               }
             }
           ],
-          "sourceBlockId": "N71"
+          "sourceBlockId": "N71",
+          "number": 80
         },
         {
           "id": "72",
@@ -2512,7 +2592,8 @@
               }
             }
           ],
-          "sourceBlockId": "N72"
+          "sourceBlockId": "N72",
+          "number": 81
         },
         {
           "id": "P4-1",
@@ -2542,7 +2623,8 @@
               },
               "sourceSection": 12
             }
-          ]
+          ],
+          "number": 82
         },
         {
           "id": "P4-2",
@@ -2572,7 +2654,8 @@
               },
               "sourceSection": 12
             }
-          ]
+          ],
+          "number": 83
         },
         {
           "id": "P4-3",
@@ -2602,7 +2685,8 @@
               },
               "sourceSection": 12
             }
-          ]
+          ],
+          "number": 84
         }
       ],
       "originalSection": 12,
@@ -2643,7 +2727,8 @@
               }
             }
           ],
-          "sourceBlockId": "N73"
+          "sourceBlockId": "N73",
+          "number": 85
         },
         {
           "id": "74",
@@ -2673,7 +2758,8 @@
               }
             }
           ],
-          "sourceBlockId": "N74"
+          "sourceBlockId": "N74",
+          "number": 86
         },
         {
           "id": "75",
@@ -2703,7 +2789,8 @@
               }
             }
           ],
-          "sourceBlockId": "N75"
+          "sourceBlockId": "N75",
+          "number": 87
         },
         {
           "id": "76",
@@ -2733,7 +2820,8 @@
               }
             }
           ],
-          "sourceBlockId": "N76"
+          "sourceBlockId": "N76",
+          "number": 88
         },
         {
           "id": "77",
@@ -2763,7 +2851,8 @@
               }
             }
           ],
-          "sourceBlockId": "N77"
+          "sourceBlockId": "N77",
+          "number": 89
         },
         {
           "id": "78",
@@ -2793,7 +2882,8 @@
               }
             }
           ],
-          "sourceBlockId": "N78"
+          "sourceBlockId": "N78",
+          "number": 90
         }
       ],
       "originalSection": 13,
@@ -2832,7 +2922,8 @@
               "family": "fraction-decimal-percent"
             }
           ],
-          "sourceBlockId": "N79"
+          "sourceBlockId": "N79",
+          "number": 91
         },
         {
           "id": "80",
@@ -2860,7 +2951,8 @@
               "family": "fraction-decimal-percent"
             }
           ],
-          "sourceBlockId": "N80"
+          "sourceBlockId": "N80",
+          "number": 92
         },
         {
           "id": "81",
@@ -2888,7 +2980,8 @@
               "family": "fraction-decimal-percent"
             }
           ],
-          "sourceBlockId": "N81"
+          "sourceBlockId": "N81",
+          "number": 93
         },
         {
           "id": "82",
@@ -2916,7 +3009,8 @@
               "family": "fraction-decimal-percent"
             }
           ],
-          "sourceBlockId": "N82"
+          "sourceBlockId": "N82",
+          "number": 94
         },
         {
           "id": "83",
@@ -2945,7 +3039,8 @@
               "family": "repeating-decimal"
             }
           ],
-          "sourceBlockId": "N83"
+          "sourceBlockId": "N83",
+          "number": 95
         },
         {
           "id": "84",
@@ -2973,7 +3068,8 @@
               "family": "terminating-decimal"
             }
           ],
-          "sourceBlockId": "N84"
+          "sourceBlockId": "N84",
+          "number": 96
         },
         {
           "id": "P5-1",
@@ -3002,7 +3098,8 @@
               "family": "fraction-decimal-percent",
               "sourceSection": 14
             }
-          ]
+          ],
+          "number": 97
         },
         {
           "id": "P5-2",
@@ -3031,7 +3128,8 @@
               "family": "fraction-decimal-percent",
               "sourceSection": 14
             }
-          ]
+          ],
+          "number": 98
         }
       ],
       "originalSection": 14,
@@ -3068,7 +3166,8 @@
               "checkExpression": "7 + 3 \u00d7 4"
             }
           ],
-          "sourceBlockId": "N85"
+          "sourceBlockId": "N85",
+          "number": 99
         },
         {
           "id": "86",
@@ -3094,7 +3193,8 @@
               "checkExpression": "(7 + 3) \u00d7 4"
             }
           ],
-          "sourceBlockId": "N86"
+          "sourceBlockId": "N86",
+          "number": 100
         },
         {
           "id": "87",
@@ -3120,7 +3220,8 @@
               "checkExpression": "30 \u00f7 5 \u00d7 2"
             }
           ],
-          "sourceBlockId": "N87"
+          "sourceBlockId": "N87",
+          "number": 101
         },
         {
           "id": "88",
@@ -3146,7 +3247,8 @@
               "checkExpression": "20 \u2212 12 \u00f7 3"
             }
           ],
-          "sourceBlockId": "N88"
+          "sourceBlockId": "N88",
+          "number": 102
         },
         {
           "id": "89",
@@ -3173,7 +3275,8 @@
               "checkExpression": "2^3 + 3 \u00d7 5"
             }
           ],
-          "sourceBlockId": "N89"
+          "sourceBlockId": "N89",
+          "number": 103
         },
         {
           "id": "90",
@@ -3200,7 +3303,8 @@
               "checkExpression": "36 \u00f7 (2 + 4) + 5^2"
             }
           ],
-          "sourceBlockId": "N90"
+          "sourceBlockId": "N90",
+          "number": 104
         }
       ],
       "originalSection": 15,
@@ -3237,7 +3341,8 @@
               "checkExpression": "\u22128 + 3 \u00d7 5"
             }
           ],
-          "sourceBlockId": "N91"
+          "sourceBlockId": "N91",
+          "number": 105
         },
         {
           "id": "92",
@@ -3263,7 +3368,8 @@
               "checkExpression": "6 \u2212 4 \u00d7 3"
             }
           ],
-          "sourceBlockId": "N92"
+          "sourceBlockId": "N92",
+          "number": 106
         },
         {
           "id": "93",
@@ -3289,7 +3395,8 @@
               "checkExpression": "(\u22127 + 3) \u00d7 5"
             }
           ],
-          "sourceBlockId": "N93"
+          "sourceBlockId": "N93",
+          "number": 107
         },
         {
           "id": "94",
@@ -3315,7 +3422,8 @@
               "checkExpression": "18 \u00f7 (\u22123) + 2"
             }
           ],
-          "sourceBlockId": "N94"
+          "sourceBlockId": "N94",
+          "number": 108
         },
         {
           "id": "95",
@@ -3341,7 +3449,8 @@
               "checkExpression": "(\u22124)^2 \u2212 11"
             }
           ],
-          "sourceBlockId": "N95"
+          "sourceBlockId": "N95",
+          "number": 109
         },
         {
           "id": "96",
@@ -3367,7 +3476,8 @@
               "checkExpression": "\u22123 \u00d7 (\u22126) \u2212 5^2"
             }
           ],
-          "sourceBlockId": "N96"
+          "sourceBlockId": "N96",
+          "number": 110
         }
       ],
       "originalSection": 16,
@@ -3404,7 +3514,8 @@
               "checkExpression": "1/2 + 2 \u00d7 1/3"
             }
           ],
-          "sourceBlockId": "N97"
+          "sourceBlockId": "N97",
+          "number": 111
         },
         {
           "id": "98",
@@ -3430,7 +3541,8 @@
               "checkExpression": "3/4 \u2212 1/2 \u00d7 1/3"
             }
           ],
-          "sourceBlockId": "N98"
+          "sourceBlockId": "N98",
+          "number": 112
         },
         {
           "id": "99",
@@ -3456,7 +3568,8 @@
               "checkExpression": "(1/3 + 1/6) \u00d7 3/5"
             }
           ],
-          "sourceBlockId": "N99"
+          "sourceBlockId": "N99",
+          "number": 113
         },
         {
           "id": "100",
@@ -3482,7 +3595,8 @@
               "checkExpression": "5/6 \u00f7 2/3 \u2212 1/4"
             }
           ],
-          "sourceBlockId": "N100"
+          "sourceBlockId": "N100",
+          "number": 114
         },
         {
           "id": "101",
@@ -3508,7 +3622,8 @@
               "checkExpression": "2/5 + (3/4)^2"
             }
           ],
-          "sourceBlockId": "N101"
+          "sourceBlockId": "N101",
+          "number": 115
         },
         {
           "id": "102",
@@ -3534,7 +3649,8 @@
               "checkExpression": "(7/8 \u2212 1/4) \u00f7 5/6"
             }
           ],
-          "sourceBlockId": "N102"
+          "sourceBlockId": "N102",
+          "number": 116
         }
       ],
       "originalSection": 17,
@@ -3572,7 +3688,8 @@
               "stage": "Two skills",
               "sourceSection": 17
             }
-          ]
+          ],
+          "number": 117
         },
         {
           "id": "P6-2",
@@ -3599,7 +3716,8 @@
               "stage": "Two skills",
               "sourceSection": 17
             }
-          ]
+          ],
+          "number": 118
         },
         {
           "id": "P6-3",
@@ -3626,7 +3744,8 @@
               "stage": "Two skills",
               "sourceSection": 17
             }
-          ]
+          ],
+          "number": 119
         },
         {
           "id": "P6-4",
@@ -3653,7 +3772,8 @@
               "stage": "Two skills",
               "sourceSection": 17
             }
-          ]
+          ],
+          "number": 120
         },
         {
           "id": "P6-5",
@@ -3680,7 +3800,8 @@
               "stage": "Two skills",
               "sourceSection": 17
             }
-          ]
+          ],
+          "number": 121
         },
         {
           "id": "P6-6",
@@ -3707,7 +3828,8 @@
               "stage": "Two skills",
               "sourceSection": 17
             }
-          ]
+          ],
+          "number": 122
         }
       ],
       "originalSection": 17,
@@ -3745,7 +3867,8 @@
               "checkExpression": "\u22123/4 + 2 \u00d7 1/3"
             }
           ],
-          "sourceBlockId": "N103"
+          "sourceBlockId": "N103",
+          "number": 123
         },
         {
           "id": "104",
@@ -3772,7 +3895,8 @@
               "checkExpression": "(\u22122/3 + 1/6) \u00f7 3/4"
             }
           ],
-          "sourceBlockId": "N104"
+          "sourceBlockId": "N104",
+          "number": 124
         },
         {
           "id": "105",
@@ -3799,7 +3923,8 @@
               "checkExpression": "1.5 \u2212 2 \u00d7 3/4"
             }
           ],
-          "sourceBlockId": "N105"
+          "sourceBlockId": "N105",
+          "number": 125
         },
         {
           "id": "106",
@@ -3826,7 +3951,8 @@
               "checkExpression": "(\u22121/2)^2 \u2212 3/4 \u00f7 (\u22123)"
             }
           ],
-          "sourceBlockId": "N106"
+          "sourceBlockId": "N106",
+          "number": 126
         },
         {
           "id": "107",
@@ -3854,7 +3980,8 @@
               "checkExpression": "\u22122 + 3 \u00d7 (1/2 \u2212 1.25)"
             }
           ],
-          "sourceBlockId": "N107"
+          "sourceBlockId": "N107",
+          "number": 127
         },
         {
           "id": "108",
@@ -3882,7 +4009,8 @@
               "checkExpression": "(2/3 \u2212 5/6)^2 \u00d7 (\u221218) + 0.75"
             }
           ],
-          "sourceBlockId": "N108"
+          "sourceBlockId": "N108",
+          "number": 128
         }
       ],
       "originalSection": 18,
@@ -3919,7 +4047,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N109"
+          "sourceBlockId": "N109",
+          "number": 129
         },
         {
           "id": "110",
@@ -3945,7 +4074,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N110"
+          "sourceBlockId": "N110",
+          "number": 130
         },
         {
           "id": "111",
@@ -3972,7 +4102,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N111"
+          "sourceBlockId": "N111",
+          "number": 131
         },
         {
           "id": "112",
@@ -3998,7 +4129,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N112"
+          "sourceBlockId": "N112",
+          "number": 132
         },
         {
           "id": "113",
@@ -4025,7 +4157,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N113"
+          "sourceBlockId": "N113",
+          "number": 133
         },
         {
           "id": "114",
@@ -4052,7 +4185,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N114"
+          "sourceBlockId": "N114",
+          "number": 134
         },
         {
           "id": "P7-1",
@@ -4079,7 +4213,8 @@
               "algebraic": true,
               "sourceSection": 19
             }
-          ]
+          ],
+          "number": 135
         },
         {
           "id": "P7-2",
@@ -4107,7 +4242,8 @@
               "algebraic": true,
               "sourceSection": 19
             }
-          ]
+          ],
+          "number": 136
         },
         {
           "id": "P7-3",
@@ -4135,7 +4271,8 @@
               "algebraic": true,
               "sourceSection": 19
             }
-          ]
+          ],
+          "number": 137
         }
       ],
       "originalSection": 19,
@@ -4173,7 +4310,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N115"
+          "sourceBlockId": "N115",
+          "number": 138
         },
         {
           "id": "116",
@@ -4200,7 +4338,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N116"
+          "sourceBlockId": "N116",
+          "number": 139
         },
         {
           "id": "117",
@@ -4227,7 +4366,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N117"
+          "sourceBlockId": "N117",
+          "number": 140
         },
         {
           "id": "118",
@@ -4254,7 +4394,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N118"
+          "sourceBlockId": "N118",
+          "number": 141
         },
         {
           "id": "119",
@@ -4281,7 +4422,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N119"
+          "sourceBlockId": "N119",
+          "number": 142
         },
         {
           "id": "120",
@@ -4308,7 +4450,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N120"
+          "sourceBlockId": "N120",
+          "number": 143
         }
       ],
       "originalSection": 20,
@@ -4347,7 +4490,8 @@
               "requiredForm": "factored"
             }
           ],
-          "sourceBlockId": "N121"
+          "sourceBlockId": "N121",
+          "number": 144
         },
         {
           "id": "122",
@@ -4375,7 +4519,8 @@
               "requiredForm": "factored"
             }
           ],
-          "sourceBlockId": "N122"
+          "sourceBlockId": "N122",
+          "number": 145
         },
         {
           "id": "123",
@@ -4403,7 +4548,8 @@
               "requiredForm": "factored"
             }
           ],
-          "sourceBlockId": "N123"
+          "sourceBlockId": "N123",
+          "number": 146
         },
         {
           "id": "124",
@@ -4431,7 +4577,8 @@
               "requiredForm": "factored"
             }
           ],
-          "sourceBlockId": "N124"
+          "sourceBlockId": "N124",
+          "number": 147
         },
         {
           "id": "125",
@@ -4459,7 +4606,8 @@
               "requiredForm": "factored"
             }
           ],
-          "sourceBlockId": "N125"
+          "sourceBlockId": "N125",
+          "number": 148
         },
         {
           "id": "126",
@@ -4487,7 +4635,8 @@
               "requiredForm": "factored"
             }
           ],
-          "sourceBlockId": "N126"
+          "sourceBlockId": "N126",
+          "number": 149
         },
         {
           "id": "P8-1",
@@ -4515,7 +4664,8 @@
               "requiredForm": "factored",
               "sourceSection": 21
             }
-          ]
+          ],
+          "number": 150
         },
         {
           "id": "P8-2",
@@ -4543,7 +4693,8 @@
               "requiredForm": "factored",
               "sourceSection": 21
             }
-          ]
+          ],
+          "number": 151
         },
         {
           "id": "P8-3",
@@ -4571,7 +4722,8 @@
               "requiredForm": "factored",
               "sourceSection": 21
             }
-          ]
+          ],
+          "number": 152
         }
       ],
       "originalSection": 21,
@@ -4608,7 +4760,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N127"
+          "sourceBlockId": "N127",
+          "number": 153
         },
         {
           "id": "128",
@@ -4634,7 +4787,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N128"
+          "sourceBlockId": "N128",
+          "number": 154
         },
         {
           "id": "129",
@@ -4660,7 +4814,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N129"
+          "sourceBlockId": "N129",
+          "number": 155
         },
         {
           "id": "130",
@@ -4688,7 +4843,8 @@
               "algebraic": true
             }
           ],
-          "sourceBlockId": "N130"
+          "sourceBlockId": "N130",
+          "number": 156
         },
         {
           "id": "131",
@@ -4715,7 +4871,8 @@
               "freeResponse": true
             }
           ],
-          "sourceBlockId": "N131"
+          "sourceBlockId": "N131",
+          "number": 157
         },
         {
           "id": "132",
@@ -4743,7 +4900,8 @@
               "freeResponse": true
             }
           ],
-          "sourceBlockId": "N132"
+          "sourceBlockId": "N132",
+          "number": 158
         }
       ],
       "originalSection": 22,
@@ -4781,7 +4939,8 @@
               "equation": "x + 5 = 13"
             }
           ],
-          "sourceBlockId": "N133"
+          "sourceBlockId": "N133",
+          "number": 159
         },
         {
           "id": "134",
@@ -4808,7 +4967,8 @@
               "equation": "x \u2212 7 = 4"
             }
           ],
-          "sourceBlockId": "N134"
+          "sourceBlockId": "N134",
+          "number": 160
         },
         {
           "id": "135",
@@ -4835,7 +4995,8 @@
               "equation": "x + 9 = 2"
             }
           ],
-          "sourceBlockId": "N135"
+          "sourceBlockId": "N135",
+          "number": 161
         },
         {
           "id": "136",
@@ -4862,7 +5023,8 @@
               "equation": "x \u2212 8 = \u221213"
             }
           ],
-          "sourceBlockId": "N136"
+          "sourceBlockId": "N136",
+          "number": 162
         },
         {
           "id": "137",
@@ -4889,7 +5051,8 @@
               "equation": "x + (\u22126) = 10"
             }
           ],
-          "sourceBlockId": "N137"
+          "sourceBlockId": "N137",
+          "number": 163
         },
         {
           "id": "138",
@@ -4916,7 +5079,8 @@
               "equation": "x \u2212 (\u22124) = \u22125"
             }
           ],
-          "sourceBlockId": "N138"
+          "sourceBlockId": "N138",
+          "number": 164
         },
         {
           "id": "P9-1",
@@ -4943,7 +5107,8 @@
               "family": "equation-add",
               "sourceSection": 23
             }
-          ]
+          ],
+          "number": 165
         },
         {
           "id": "P9-2",
@@ -4970,7 +5135,8 @@
               "family": "equation-subtract",
               "sourceSection": 23
             }
-          ]
+          ],
+          "number": 166
         },
         {
           "id": "P9-3",
@@ -4997,7 +5163,8 @@
               "family": "equation-add",
               "sourceSection": 23
             }
-          ]
+          ],
+          "number": 167
         },
         {
           "id": "P9-4",
@@ -5024,7 +5191,8 @@
               "family": "equation-subtract",
               "sourceSection": 23
             }
-          ]
+          ],
+          "number": 168
         },
         {
           "id": "P9-5",
@@ -5051,7 +5219,8 @@
               "family": "equation-add",
               "sourceSection": 23
             }
-          ]
+          ],
+          "number": 169
         },
         {
           "id": "P9-6",
@@ -5078,7 +5247,8 @@
               "family": "equation-subtract",
               "sourceSection": 23
             }
-          ]
+          ],
+          "number": 170
         },
         {
           "id": "P9-7",
@@ -5105,7 +5275,8 @@
               "family": "equation-add",
               "sourceSection": 23
             }
-          ]
+          ],
+          "number": 171
         },
         {
           "id": "P9-8",
@@ -5132,7 +5303,8 @@
               "family": "equation-subtract",
               "sourceSection": 23
             }
-          ]
+          ],
+          "number": 172
         },
         {
           "id": "P9-9",
@@ -5159,7 +5331,8 @@
               "family": "equation-add",
               "sourceSection": 23
             }
-          ]
+          ],
+          "number": 173
         }
       ],
       "originalSection": 23,
@@ -5197,7 +5370,8 @@
               "equation": "4x = 28"
             }
           ],
-          "sourceBlockId": "N139"
+          "sourceBlockId": "N139",
+          "number": 174
         },
         {
           "id": "140",
@@ -5224,7 +5398,8 @@
               "equation": "\u22123x = 24"
             }
           ],
-          "sourceBlockId": "N140"
+          "sourceBlockId": "N140",
+          "number": 175
         },
         {
           "id": "141",
@@ -5251,7 +5426,8 @@
               "equation": "\u22126x = \u221254"
             }
           ],
-          "sourceBlockId": "N141"
+          "sourceBlockId": "N141",
+          "number": 176
         },
         {
           "id": "142",
@@ -5278,7 +5454,8 @@
               "equation": "x/5 = 3"
             }
           ],
-          "sourceBlockId": "N142"
+          "sourceBlockId": "N142",
+          "number": 177
         },
         {
           "id": "143",
@@ -5305,7 +5482,8 @@
               "equation": "x/4 = \u22127"
             }
           ],
-          "sourceBlockId": "N143"
+          "sourceBlockId": "N143",
+          "number": 178
         },
         {
           "id": "144",
@@ -5332,7 +5510,8 @@
               "equation": "x/(\u22128) = \u22122"
             }
           ],
-          "sourceBlockId": "N144"
+          "sourceBlockId": "N144",
+          "number": 179
         }
       ],
       "originalSection": 24,
@@ -5370,7 +5549,8 @@
               "equation": "x + 2.6 = 7.15"
             }
           ],
-          "sourceBlockId": "N145"
+          "sourceBlockId": "N145",
+          "number": 180
         },
         {
           "id": "146",
@@ -5397,7 +5577,8 @@
               "equation": "x \u2212 3.5 = \u22121.2"
             }
           ],
-          "sourceBlockId": "N146"
+          "sourceBlockId": "N146",
+          "number": 181
         },
         {
           "id": "147",
@@ -5424,7 +5605,8 @@
               "equation": "x + 3/4 = 5/6"
             }
           ],
-          "sourceBlockId": "N147"
+          "sourceBlockId": "N147",
+          "number": 182
         }
       ],
       "originalSection": 25,
@@ -5462,7 +5644,8 @@
               "equation": "(2/3)x = 10/9"
             }
           ],
-          "sourceBlockId": "N148"
+          "sourceBlockId": "N148",
+          "number": 183
         },
         {
           "id": "149",
@@ -5489,7 +5672,8 @@
               "equation": "\u22120.4x = 2.8"
             }
           ],
-          "sourceBlockId": "N149"
+          "sourceBlockId": "N149",
+          "number": 184
         },
         {
           "id": "150",
@@ -5516,7 +5700,8 @@
               "equation": "x/(3/5) = \u22125/2"
             }
           ],
-          "sourceBlockId": "N150"
+          "sourceBlockId": "N150",
+          "number": 185
         },
         {
           "id": "P10-1",
@@ -5543,7 +5728,8 @@
               "family": "equation-add",
               "sourceSection": 25
             }
-          ]
+          ],
+          "number": 186
         },
         {
           "id": "P10-2",
@@ -5570,7 +5756,8 @@
               "family": "equation-subtract",
               "sourceSection": 25
             }
-          ]
+          ],
+          "number": 187
         },
         {
           "id": "P10-3",
@@ -5597,7 +5784,8 @@
               "family": "equation-add",
               "sourceSection": 25
             }
-          ]
+          ],
+          "number": 188
         }
       ],
       "originalSection": 25,
@@ -5635,7 +5823,8 @@
               "equation": "2x + 3 = 17"
             }
           ],
-          "sourceBlockId": "N151"
+          "sourceBlockId": "N151",
+          "number": 189
         },
         {
           "id": "152",
@@ -5662,7 +5851,8 @@
               "equation": "5x \u2212 6 = 34"
             }
           ],
-          "sourceBlockId": "N152"
+          "sourceBlockId": "N152",
+          "number": 190
         },
         {
           "id": "153",
@@ -5689,7 +5879,8 @@
               "equation": "\u22123x + 2 = 20"
             }
           ],
-          "sourceBlockId": "N153"
+          "sourceBlockId": "N153",
+          "number": 191
         },
         {
           "id": "154",
@@ -5716,7 +5907,8 @@
               "equation": "x/4 \u2212 5 = \u22122"
             }
           ],
-          "sourceBlockId": "N154"
+          "sourceBlockId": "N154",
+          "number": 192
         },
         {
           "id": "155",
@@ -5743,7 +5935,8 @@
               "equation": "(2/3)x + 1/4 = 9/4"
             }
           ],
-          "sourceBlockId": "N155"
+          "sourceBlockId": "N155",
+          "number": 193
         },
         {
           "id": "156",
@@ -5770,7 +5963,8 @@
               "equation": "\u22121.5x \u2212 0.7 = 5.3"
             }
           ],
-          "sourceBlockId": "N156"
+          "sourceBlockId": "N156",
+          "number": 194
         }
       ],
       "originalSection": 26,
@@ -5808,7 +6002,8 @@
               "equation": "3(x + 2) = 27"
             }
           ],
-          "sourceBlockId": "N157"
+          "sourceBlockId": "N157",
+          "number": 195
         },
         {
           "id": "158",
@@ -5836,7 +6031,8 @@
               "equation": "2(x + 3) + x = 33"
             }
           ],
-          "sourceBlockId": "N158"
+          "sourceBlockId": "N158",
+          "number": 196
         },
         {
           "id": "159",
@@ -5864,7 +6060,8 @@
               "equation": "4(2x \u2212 1) \u2212 3x = 26"
             }
           ],
-          "sourceBlockId": "N159"
+          "sourceBlockId": "N159",
+          "number": 197
         },
         {
           "id": "160",
@@ -5892,7 +6089,8 @@
               "equation": "\u22122(3x \u2212 4) + x = 23"
             }
           ],
-          "sourceBlockId": "N160"
+          "sourceBlockId": "N160",
+          "number": 198
         },
         {
           "id": "161",
@@ -5920,7 +6118,8 @@
               "equation": "1/2 (4x \u2212 6) + 5 = 28"
             }
           ],
-          "sourceBlockId": "N161"
+          "sourceBlockId": "N161",
+          "number": 199
         },
         {
           "id": "162",
@@ -5950,7 +6149,8 @@
               "solutionValue": 11
             }
           ],
-          "sourceBlockId": "N162"
+          "sourceBlockId": "N162",
+          "number": 200
         }
       ],
       "originalSection": 27,
@@ -5989,7 +6189,8 @@
               "family": "equation-multi",
               "sourceSection": 27
             }
-          ]
+          ],
+          "number": 201
         },
         {
           "id": "P11-2",
@@ -6017,7 +6218,8 @@
               "family": "equation-multi",
               "sourceSection": 27
             }
-          ]
+          ],
+          "number": 202
         },
         {
           "id": "P11-3",
@@ -6045,7 +6247,8 @@
               "family": "equation-multi",
               "sourceSection": 27
             }
-          ]
+          ],
+          "number": 203
         },
         {
           "id": "P11-4",
@@ -6073,7 +6276,8 @@
               "family": "equation-multi",
               "sourceSection": 27
             }
-          ]
+          ],
+          "number": 204
         }
       ],
       "originalSection": 27,
@@ -6127,7 +6331,8 @@
               }
             }
           ],
-          "sourceBlockId": "N163"
+          "sourceBlockId": "N163",
+          "number": 205
         },
         {
           "id": "164",
@@ -6170,7 +6375,8 @@
               }
             }
           ],
-          "sourceBlockId": "N164"
+          "sourceBlockId": "N164",
+          "number": 206
         },
         {
           "id": "165",
@@ -6213,7 +6419,8 @@
               }
             }
           ],
-          "sourceBlockId": "N165"
+          "sourceBlockId": "N165",
+          "number": 207
         },
         {
           "id": "166",
@@ -6256,7 +6463,8 @@
               }
             }
           ],
-          "sourceBlockId": "N166"
+          "sourceBlockId": "N166",
+          "number": 208
         },
         {
           "id": "167",
@@ -6299,7 +6507,8 @@
               }
             }
           ],
-          "sourceBlockId": "N167"
+          "sourceBlockId": "N167",
+          "number": 209
         },
         {
           "id": "168",
@@ -6342,7 +6551,8 @@
               }
             }
           ],
-          "sourceBlockId": "N168"
+          "sourceBlockId": "N168",
+          "number": 210
         }
       ],
       "originalSection": 28,
@@ -6398,7 +6608,8 @@
               }
             }
           ],
-          "sourceBlockId": "N169"
+          "sourceBlockId": "N169",
+          "number": 211
         },
         {
           "id": "170",
@@ -6443,7 +6654,8 @@
               }
             }
           ],
-          "sourceBlockId": "N170"
+          "sourceBlockId": "N170",
+          "number": 212
         },
         {
           "id": "171",
@@ -6488,7 +6700,8 @@
               }
             }
           ],
-          "sourceBlockId": "N171"
+          "sourceBlockId": "N171",
+          "number": 213
         },
         {
           "id": "172",
@@ -6533,7 +6746,8 @@
               }
             }
           ],
-          "sourceBlockId": "N172"
+          "sourceBlockId": "N172",
+          "number": 214
         },
         {
           "id": "173",
@@ -6578,7 +6792,8 @@
               }
             }
           ],
-          "sourceBlockId": "N173"
+          "sourceBlockId": "N173",
+          "number": 215
         },
         {
           "id": "174",
@@ -6623,7 +6838,8 @@
               }
             }
           ],
-          "sourceBlockId": "N174"
+          "sourceBlockId": "N174",
+          "number": 216
         }
       ],
       "originalSection": 29,
@@ -6668,7 +6884,8 @@
               "subtype": "next-terms"
             }
           ],
-          "sourceBlockId": "N175"
+          "sourceBlockId": "N175",
+          "number": 217
         },
         {
           "id": "176",
@@ -6702,7 +6919,8 @@
               "subtype": "next-terms"
             }
           ],
-          "sourceBlockId": "N176"
+          "sourceBlockId": "N176",
+          "number": 218
         },
         {
           "id": "177",
@@ -6736,7 +6954,8 @@
               "subtype": "next-terms"
             }
           ],
-          "sourceBlockId": "N177"
+          "sourceBlockId": "N177",
+          "number": 219
         },
         {
           "id": "178",
@@ -6771,7 +6990,8 @@
               "freeResponse": true
             }
           ],
-          "sourceBlockId": "N178"
+          "sourceBlockId": "N178",
+          "number": 220
         },
         {
           "id": "179",
@@ -6808,7 +7028,8 @@
               "subtype": "table"
             }
           ],
-          "sourceBlockId": "N179"
+          "sourceBlockId": "N179",
+          "number": 221
         },
         {
           "id": "180",
@@ -6879,7 +7100,8 @@
               "subtype": "plot"
             }
           ],
-          "sourceBlockId": "N180"
+          "sourceBlockId": "N180",
+          "number": 222
         }
       ],
       "originalSection": 30,
@@ -6926,7 +7148,8 @@
               "askRatio": true
             }
           ],
-          "sourceBlockId": "N181"
+          "sourceBlockId": "N181",
+          "number": 223
         },
         {
           "id": "182",
@@ -6962,7 +7185,8 @@
               "askRatio": true
             }
           ],
-          "sourceBlockId": "N182"
+          "sourceBlockId": "N182",
+          "number": 224
         },
         {
           "id": "183",
@@ -6997,7 +7221,8 @@
               "subtype": "next-terms"
             }
           ],
-          "sourceBlockId": "N183"
+          "sourceBlockId": "N183",
+          "number": 225
         },
         {
           "id": "184",
@@ -7031,7 +7256,8 @@
               "freeResponse": true
             }
           ],
-          "sourceBlockId": "N184"
+          "sourceBlockId": "N184",
+          "number": 226
         },
         {
           "id": "185",
@@ -7068,7 +7294,8 @@
               "subtype": "table"
             }
           ],
-          "sourceBlockId": "N185"
+          "sourceBlockId": "N185",
+          "number": 227
         },
         {
           "id": "186",
@@ -7139,7 +7366,8 @@
               "subtype": "plot"
             }
           ],
-          "sourceBlockId": "N186"
+          "sourceBlockId": "N186",
+          "number": 228
         }
       ],
       "originalSection": 31,
@@ -7191,7 +7419,8 @@
               "subtype": "axes"
             }
           ],
-          "sourceBlockId": "N187"
+          "sourceBlockId": "N187",
+          "number": 229
         },
         {
           "id": "188",
@@ -7237,7 +7466,8 @@
               "subtype": "read-quadrant"
             }
           ],
-          "sourceBlockId": "N188"
+          "sourceBlockId": "N188",
+          "number": 230
         },
         {
           "id": "189",
@@ -7282,7 +7512,8 @@
               "subtype": "read-quadrant"
             }
           ],
-          "sourceBlockId": "N189"
+          "sourceBlockId": "N189",
+          "number": 231
         },
         {
           "id": "190",
@@ -7331,7 +7562,8 @@
               "subtype": "read"
             }
           ],
-          "sourceBlockId": "N190"
+          "sourceBlockId": "N190",
+          "number": 232
         }
       ],
       "originalSection": 32,
@@ -7390,7 +7622,8 @@
               "family": "coordinate-plot"
             }
           ],
-          "sourceBlockId": "N191"
+          "sourceBlockId": "N191",
+          "number": 233
         },
         {
           "id": "192",
@@ -7438,7 +7671,8 @@
               "family": "coordinate-plot"
             }
           ],
-          "sourceBlockId": "N192"
+          "sourceBlockId": "N192",
+          "number": 234
         },
         {
           "id": "193",
@@ -7486,7 +7720,8 @@
               "family": "coordinate-plot"
             }
           ],
-          "sourceBlockId": "N193"
+          "sourceBlockId": "N193",
+          "number": 235
         },
         {
           "id": "194",
@@ -7534,7 +7769,8 @@
               "family": "coordinate-plot"
             }
           ],
-          "sourceBlockId": "N194"
+          "sourceBlockId": "N194",
+          "number": 236
         }
       ],
       "originalSection": 33,
@@ -7570,7 +7806,8 @@
               "family": "proportion-constant"
             }
           ],
-          "sourceBlockId": "N195"
+          "sourceBlockId": "N195",
+          "number": 237
         },
         {
           "id": "196",
@@ -7599,7 +7836,8 @@
               "freeResponse": true
             }
           ],
-          "sourceBlockId": "N196"
+          "sourceBlockId": "N196",
+          "number": 238
         },
         {
           "id": "197",
@@ -7629,7 +7867,8 @@
               "subtype": "table"
             }
           ],
-          "sourceBlockId": "N197"
+          "sourceBlockId": "N197",
+          "number": 239
         },
         {
           "id": "198",
@@ -7659,7 +7898,8 @@
               "subtype": "table"
             }
           ],
-          "sourceBlockId": "N198"
+          "sourceBlockId": "N198",
+          "number": 240
         },
         {
           "id": "199",
@@ -7687,7 +7927,8 @@
               "family": "proportion-check"
             }
           ],
-          "sourceBlockId": "N199"
+          "sourceBlockId": "N199",
+          "number": 241
         },
         {
           "id": "200",
@@ -7713,7 +7954,8 @@
               "freeResponse": true
             }
           ],
-          "sourceBlockId": "N200"
+          "sourceBlockId": "N200",
+          "number": 242
         },
         {
           "id": "P16-1",
@@ -7739,7 +7981,8 @@
               "family": "proportion-constant",
               "sourceSection": 34
             }
-          ]
+          ],
+          "number": 243
         },
         {
           "id": "P16-2",
@@ -7769,7 +8012,8 @@
               },
               "sourceSection": 34
             }
-          ]
+          ],
+          "number": 244
         },
         {
           "id": "P16-3",
@@ -7810,7 +8054,8 @@
               },
               "sourceSection": 34
             }
-          ]
+          ],
+          "number": 245
         },
         {
           "id": "P16-4",
@@ -7851,7 +8096,8 @@
               },
               "sourceSection": 34
             }
-          ]
+          ],
+          "number": 246
         },
         {
           "id": "P16-5",
@@ -7879,7 +8125,8 @@
               "family": "proportion-check",
               "sourceSection": 34
             }
-          ]
+          ],
+          "number": 247
         },
         {
           "id": "P16-6",
@@ -7906,7 +8153,8 @@
               "freeResponse": true,
               "sourceSection": 34
             }
-          ]
+          ],
+          "number": 248
         }
       ],
       "originalSection": 34,
@@ -7987,7 +8235,8 @@
               }
             }
           ],
-          "sourceBlockId": "N201"
+          "sourceBlockId": "N201",
+          "number": 249
         },
         {
           "id": "202",
@@ -8057,7 +8306,8 @@
               }
             }
           ],
-          "sourceBlockId": "N202"
+          "sourceBlockId": "N202",
+          "number": 250
         },
         {
           "id": "203",
@@ -8106,7 +8356,8 @@
               "freeResponse": true
             }
           ],
-          "sourceBlockId": "N203"
+          "sourceBlockId": "N203",
+          "number": 251
         },
         {
           "id": "204",
@@ -8157,7 +8408,8 @@
               "freeResponse": true
             }
           ],
-          "sourceBlockId": "N204"
+          "sourceBlockId": "N204",
+          "number": 252
         }
       ],
       "originalSection": 35,
@@ -8195,7 +8447,8 @@
               "checkExpression": "(18)/(3)"
             }
           ],
-          "sourceBlockId": "N205"
+          "sourceBlockId": "N205",
+          "number": 253
         },
         {
           "id": "206",
@@ -8222,7 +8475,8 @@
               "checkExpression": "(5/2)/(1/2)"
             }
           ],
-          "sourceBlockId": "N206"
+          "sourceBlockId": "N206",
+          "number": 254
         },
         {
           "id": "207",
@@ -8249,7 +8503,8 @@
               "checkExpression": "(3/4)/(2/3)"
             }
           ],
-          "sourceBlockId": "N207"
+          "sourceBlockId": "N207",
+          "number": 255
         },
         {
           "id": "208",
@@ -8276,7 +8531,8 @@
               "checkExpression": "(7/3)/(5/6)"
             }
           ],
-          "sourceBlockId": "N208"
+          "sourceBlockId": "N208",
+          "number": 256
         },
         {
           "id": "209",
@@ -8305,7 +8561,8 @@
               "family": "unit-rate-compare"
             }
           ],
-          "sourceBlockId": "N209"
+          "sourceBlockId": "N209",
+          "number": 257
         },
         {
           "id": "210",
@@ -8334,7 +8591,8 @@
               "family": "unit-rate-compare"
             }
           ],
-          "sourceBlockId": "N210"
+          "sourceBlockId": "N210",
+          "number": 258
         }
       ],
       "originalSection": 36,
@@ -8372,7 +8630,8 @@
               "equation": "2/5 = x/20"
             }
           ],
-          "sourceBlockId": "N211"
+          "sourceBlockId": "N211",
+          "number": 259
         },
         {
           "id": "212",
@@ -8399,7 +8658,8 @@
               "equation": "3/8 = 9/x"
             }
           ],
-          "sourceBlockId": "N212"
+          "sourceBlockId": "N212",
+          "number": 260
         },
         {
           "id": "213",
@@ -8425,7 +8685,8 @@
               "equation": "x/12 = 5/8"
             }
           ],
-          "sourceBlockId": "N213"
+          "sourceBlockId": "N213",
+          "number": 261
         },
         {
           "id": "214",
@@ -8451,7 +8712,8 @@
               "equation": "1.5/4 = x/10"
             }
           ],
-          "sourceBlockId": "N214"
+          "sourceBlockId": "N214",
+          "number": 262
         },
         {
           "id": "215",
@@ -8478,7 +8740,8 @@
               "equation": "(2/3)/(5/6) = x/15"
             }
           ],
-          "sourceBlockId": "N215"
+          "sourceBlockId": "N215",
+          "number": 263
         },
         {
           "id": "216",
@@ -8505,7 +8768,8 @@
               "checkExpression": "(18/12)*7"
             }
           ],
-          "sourceBlockId": "N216"
+          "sourceBlockId": "N216",
+          "number": 264
         }
       ],
       "originalSection": 37,
@@ -8542,7 +8806,8 @@
               "checkExpression": "15/100*80"
             }
           ],
-          "sourceBlockId": "N217"
+          "sourceBlockId": "N217",
+          "number": 265
         },
         {
           "id": "218",
@@ -8568,7 +8833,8 @@
               "checkExpression": "25/2/100*64"
             }
           ],
-          "sourceBlockId": "N218"
+          "sourceBlockId": "N218",
+          "number": 266
         },
         {
           "id": "219",
@@ -8594,7 +8860,8 @@
               "checkExpression": "18/(30/100)"
             }
           ],
-          "sourceBlockId": "N219"
+          "sourceBlockId": "N219",
+          "number": 267
         },
         {
           "id": "220",
@@ -8620,7 +8887,8 @@
               "checkExpression": "42/(35/100)"
             }
           ],
-          "sourceBlockId": "N220"
+          "sourceBlockId": "N220",
+          "number": 268
         },
         {
           "id": "221",
@@ -8646,7 +8914,8 @@
               "checkExpression": "21/84*100"
             }
           ],
-          "sourceBlockId": "N221"
+          "sourceBlockId": "N221",
+          "number": 269
         },
         {
           "id": "222",
@@ -8672,7 +8941,8 @@
               "checkExpression": "9/24*100"
             }
           ],
-          "sourceBlockId": "N222"
+          "sourceBlockId": "N222",
+          "number": 270
         }
       ],
       "originalSection": 38,
@@ -8714,7 +8984,8 @@
               }
             }
           ],
-          "sourceBlockId": "N223"
+          "sourceBlockId": "N223",
+          "number": 271
         },
         {
           "id": "224",
@@ -8745,7 +9016,8 @@
               }
             }
           ],
-          "sourceBlockId": "N224"
+          "sourceBlockId": "N224",
+          "number": 272
         },
         {
           "id": "225",
@@ -8773,7 +9045,8 @@
               "subtype": "find-rate"
             }
           ],
-          "sourceBlockId": "N225"
+          "sourceBlockId": "N225",
+          "number": 273
         },
         {
           "id": "226",
@@ -8801,7 +9074,8 @@
               "subtype": "find-rate"
             }
           ],
-          "sourceBlockId": "N226"
+          "sourceBlockId": "N226",
+          "number": 274
         },
         {
           "id": "227",
@@ -8829,7 +9103,8 @@
               "subtype": "find-rate"
             }
           ],
-          "sourceBlockId": "N227"
+          "sourceBlockId": "N227",
+          "number": 275
         },
         {
           "id": "228",
@@ -8857,7 +9132,8 @@
               "subtype": "find-rate"
             }
           ],
-          "sourceBlockId": "N228"
+          "sourceBlockId": "N228",
+          "number": 276
         },
         {
           "id": "P19-1",
@@ -8888,7 +9164,8 @@
               },
               "sourceSection": 39
             }
-          ]
+          ],
+          "number": 277
         },
         {
           "id": "P19-2",
@@ -8919,7 +9196,8 @@
               },
               "sourceSection": 39
             }
-          ]
+          ],
+          "number": 278
         },
         {
           "id": "P19-3",
@@ -8946,7 +9224,8 @@
               "subtype": "find-rate",
               "sourceSection": 39
             }
-          ]
+          ],
+          "number": 279
         },
         {
           "id": "P19-4",
@@ -8973,7 +9252,8 @@
               "subtype": "find-rate",
               "sourceSection": 39
             }
-          ]
+          ],
+          "number": 280
         }
       ],
       "originalSection": 39,
@@ -9016,7 +9296,8 @@
               }
             }
           ],
-          "sourceBlockId": "N229"
+          "sourceBlockId": "N229",
+          "number": 281
         },
         {
           "id": "230",
@@ -9048,7 +9329,8 @@
               }
             }
           ],
-          "sourceBlockId": "N230"
+          "sourceBlockId": "N230",
+          "number": 282
         },
         {
           "id": "231",
@@ -9080,7 +9362,8 @@
               }
             }
           ],
-          "sourceBlockId": "N231"
+          "sourceBlockId": "N231",
+          "number": 283
         },
         {
           "id": "232",
@@ -9107,7 +9390,8 @@
               "checkExpression": "abs(38-40)/40*100"
             }
           ],
-          "sourceBlockId": "N232"
+          "sourceBlockId": "N232",
+          "number": 284
         },
         {
           "id": "233",
@@ -9134,7 +9418,8 @@
               "checkExpression": "abs(54-48)/48*100"
             }
           ],
-          "sourceBlockId": "N233"
+          "sourceBlockId": "N233",
+          "number": 285
         },
         {
           "id": "234",
@@ -9161,7 +9446,8 @@
               "checkExpression": "abs(9.6-10)/10*100"
             }
           ],
-          "sourceBlockId": "N234"
+          "sourceBlockId": "N234",
+          "number": 286
         }
       ],
       "originalSection": 40,
@@ -9198,7 +9484,8 @@
               "checkExpression": "25*18/100"
             }
           ],
-          "sourceBlockId": "N235"
+          "sourceBlockId": "N235",
+          "number": 287
         },
         {
           "id": "236",
@@ -9224,7 +9511,8 @@
               "checkExpression": "80*6.25/100"
             }
           ],
-          "sourceBlockId": "N236"
+          "sourceBlockId": "N236",
+          "number": 288
         },
         {
           "id": "237",
@@ -9250,7 +9538,8 @@
               "checkExpression": "450*8/100"
             }
           ],
-          "sourceBlockId": "N237"
+          "sourceBlockId": "N237",
+          "number": 289
         },
         {
           "id": "238",
@@ -9276,7 +9565,8 @@
               "checkExpression": ".2*60"
             }
           ],
-          "sourceBlockId": "N238"
+          "sourceBlockId": "N238",
+          "number": 290
         }
       ],
       "originalSection": 41,
@@ -9313,7 +9603,8 @@
               "checkExpression": ".35*40"
             }
           ],
-          "sourceBlockId": "N239"
+          "sourceBlockId": "N239",
+          "number": 291
         },
         {
           "id": "240",
@@ -9340,7 +9631,8 @@
               "checkExpression": "200*.04*3"
             }
           ],
-          "sourceBlockId": "N240"
+          "sourceBlockId": "N240",
+          "number": 292
         },
         {
           "id": "P20-1",
@@ -9366,7 +9658,8 @@
               "family": "tip",
               "sourceSection": 41
             }
-          ]
+          ],
+          "number": 293
         },
         {
           "id": "P20-2",
@@ -9392,7 +9685,8 @@
               "family": "tax",
               "sourceSection": 41
             }
-          ]
+          ],
+          "number": 294
         }
       ],
       "originalSection": 41,
@@ -9430,7 +9724,8 @@
               "checkExpression": "50*.8*1.05"
             }
           ],
-          "sourceBlockId": "N241"
+          "sourceBlockId": "N241",
+          "number": 295
         },
         {
           "id": "242",
@@ -9456,7 +9751,8 @@
               "checkExpression": "32*1.18"
             }
           ],
-          "sourceBlockId": "N242"
+          "sourceBlockId": "N242",
+          "number": 296
         },
         {
           "id": "243",
@@ -9482,7 +9778,8 @@
               "checkExpression": "300*.08-3"
             }
           ],
-          "sourceBlockId": "N243"
+          "sourceBlockId": "N243",
+          "number": 297
         },
         {
           "id": "244",
@@ -9509,7 +9806,8 @@
               "checkExpression": "80*1.25*.9"
             }
           ],
-          "sourceBlockId": "N244"
+          "sourceBlockId": "N244",
+          "number": 298
         },
         {
           "id": "245",
@@ -9538,7 +9836,8 @@
               "subtype": "interest-total"
             }
           ],
-          "sourceBlockId": "N245"
+          "sourceBlockId": "N245",
+          "number": 299
         },
         {
           "id": "246",
@@ -9566,7 +9865,8 @@
               "checkExpression": "120*.85*1.05+4"
             }
           ],
-          "sourceBlockId": "N246"
+          "sourceBlockId": "N246",
+          "number": 300
         },
         {
           "id": "P21-1",
@@ -9592,7 +9892,8 @@
               "family": "discount-tax",
               "sourceSection": 42
             }
-          ]
+          ],
+          "number": 301
         },
         {
           "id": "P21-2",
@@ -9617,7 +9918,8 @@
               "family": "tip-total",
               "sourceSection": 42
             }
-          ]
+          ],
+          "number": 302
         },
         {
           "id": "P21-3",
@@ -9643,7 +9945,8 @@
               "family": "commission-fee",
               "sourceSection": 42
             }
-          ]
+          ],
+          "number": 303
         },
         {
           "id": "P21-4",
@@ -9669,7 +9972,8 @@
               "family": "markup-discount",
               "sourceSection": 42
             }
-          ]
+          ],
+          "number": 304
         },
         {
           "id": "P21-5",
@@ -9700,7 +10004,8 @@
               "subtype": "interest-total",
               "sourceSection": 42
             }
-          ]
+          ],
+          "number": 305
         },
         {
           "id": "P21-6",
@@ -9727,7 +10032,8 @@
               "family": "discount-tax-fee",
               "sourceSection": 42
             }
-          ]
+          ],
+          "number": 306
         },
         {
           "id": "P21-7",
@@ -9753,7 +10059,8 @@
               "family": "discount-tax",
               "sourceSection": 42
             }
-          ]
+          ],
+          "number": 307
         },
         {
           "id": "P21-8",
@@ -9778,7 +10085,8 @@
               "family": "tip-total",
               "sourceSection": 42
             }
-          ]
+          ],
+          "number": 308
         },
         {
           "id": "P21-9",
@@ -9804,7 +10112,8 @@
               "family": "commission-fee",
               "sourceSection": 42
             }
-          ]
+          ],
+          "number": 309
         },
         {
           "id": "P21-10",
@@ -9830,7 +10139,8 @@
               "family": "markup-discount",
               "sourceSection": 42
             }
-          ]
+          ],
+          "number": 310
         }
       ],
       "originalSection": 42,
@@ -9944,7 +10254,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G1"
+          "sourceBlockId": "G1",
+          "number": 311
         },
         {
           "id": "248",
@@ -10067,7 +10378,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G2"
+          "sourceBlockId": "G2",
+          "number": 312
         },
         {
           "id": "249",
@@ -10132,7 +10444,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G3"
+          "sourceBlockId": "G3",
+          "number": 313
         },
         {
           "id": "250",
@@ -10197,7 +10510,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G4"
+          "sourceBlockId": "G4",
+          "number": 314
         },
         {
           "id": "251",
@@ -10262,7 +10576,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G5"
+          "sourceBlockId": "G5",
+          "number": 315
         },
         {
           "id": "252",
@@ -10327,7 +10642,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G6"
+          "sourceBlockId": "G6",
+          "number": 316
         }
       ],
       "originalSection": 43,
@@ -10465,7 +10781,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G7"
+          "sourceBlockId": "G7",
+          "number": 317
         },
         {
           "id": "254",
@@ -10616,7 +10933,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G8"
+          "sourceBlockId": "G8",
+          "number": 318
         },
         {
           "id": "255",
@@ -10681,7 +10999,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G9"
+          "sourceBlockId": "G9",
+          "number": 319
         },
         {
           "id": "256",
@@ -10746,7 +11065,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G10"
+          "sourceBlockId": "G10",
+          "number": 320
         },
         {
           "id": "257",
@@ -10811,7 +11131,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G11"
+          "sourceBlockId": "G11",
+          "number": 321
         },
         {
           "id": "258",
@@ -10876,7 +11197,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G12"
+          "sourceBlockId": "G12",
+          "number": 322
         }
       ],
       "originalSection": 44,
@@ -10999,7 +11321,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G13"
+          "sourceBlockId": "G13",
+          "number": 323
         },
         {
           "id": "260",
@@ -11111,7 +11434,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G14"
+          "sourceBlockId": "G14",
+          "number": 324
         },
         {
           "id": "261",
@@ -11223,7 +11547,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G15"
+          "sourceBlockId": "G15",
+          "number": 325
         },
         {
           "id": "262",
@@ -11335,7 +11660,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G16"
+          "sourceBlockId": "G16",
+          "number": 326
         },
         {
           "id": "263",
@@ -11447,7 +11773,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G17"
+          "sourceBlockId": "G17",
+          "number": 327
         },
         {
           "id": "264",
@@ -11559,7 +11886,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G18"
+          "sourceBlockId": "G18",
+          "number": 328
         }
       ],
       "originalSection": 45,
@@ -11656,7 +11984,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G19"
+          "sourceBlockId": "G19",
+          "number": 329
         },
         {
           "id": "266",
@@ -11742,7 +12071,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G20"
+          "sourceBlockId": "G20",
+          "number": 330
         },
         {
           "id": "267",
@@ -11828,7 +12158,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G21"
+          "sourceBlockId": "G21",
+          "number": 331
         },
         {
           "id": "268",
@@ -11914,7 +12245,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G22"
+          "sourceBlockId": "G22",
+          "number": 332
         },
         {
           "id": "269",
@@ -12000,7 +12332,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G23"
+          "sourceBlockId": "G23",
+          "number": 333
         },
         {
           "id": "270",
@@ -12086,7 +12419,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G24"
+          "sourceBlockId": "G24",
+          "number": 334
         }
       ],
       "originalSection": 46,
@@ -12189,7 +12523,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G25"
+          "sourceBlockId": "G25",
+          "number": 335
         },
         {
           "id": "272",
@@ -12281,7 +12616,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G26"
+          "sourceBlockId": "G26",
+          "number": 336
         },
         {
           "id": "273",
@@ -12373,7 +12709,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G27"
+          "sourceBlockId": "G27",
+          "number": 337
         },
         {
           "id": "274",
@@ -12465,7 +12802,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G28"
+          "sourceBlockId": "G28",
+          "number": 338
         },
         {
           "id": "275",
@@ -12557,7 +12895,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G29"
+          "sourceBlockId": "G29",
+          "number": 339
         },
         {
           "id": "276",
@@ -12649,7 +12988,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G30"
+          "sourceBlockId": "G30",
+          "number": 340
         }
       ],
       "originalSection": 47,
@@ -12756,7 +13096,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G31"
+          "sourceBlockId": "G31",
+          "number": 341
         },
         {
           "id": "278",
@@ -12852,7 +13193,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G32"
+          "sourceBlockId": "G32",
+          "number": 342
         },
         {
           "id": "279",
@@ -12948,7 +13290,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G33"
+          "sourceBlockId": "G33",
+          "number": 343
         },
         {
           "id": "280",
@@ -13044,7 +13387,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G34"
+          "sourceBlockId": "G34",
+          "number": 344
         },
         {
           "id": "281",
@@ -13140,7 +13484,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G35"
+          "sourceBlockId": "G35",
+          "number": 345
         },
         {
           "id": "282",
@@ -13236,7 +13581,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G36"
+          "sourceBlockId": "G36",
+          "number": 346
         }
       ],
       "originalSection": 48,
@@ -13280,7 +13626,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G37"
+          "sourceBlockId": "G37",
+          "number": 347
         },
         {
           "id": "284",
@@ -13313,7 +13660,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G38"
+          "sourceBlockId": "G38",
+          "number": 348
         },
         {
           "id": "285",
@@ -13346,7 +13694,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G39"
+          "sourceBlockId": "G39",
+          "number": 349
         },
         {
           "id": "286",
@@ -13379,7 +13728,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G40"
+          "sourceBlockId": "G40",
+          "number": 350
         },
         {
           "id": "287",
@@ -13412,7 +13762,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G41"
+          "sourceBlockId": "G41",
+          "number": 351
         },
         {
           "id": "288",
@@ -13445,7 +13796,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G42"
+          "sourceBlockId": "G42",
+          "number": 352
         }
       ],
       "originalSection": 49,
@@ -13489,7 +13841,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G43"
+          "sourceBlockId": "G43",
+          "number": 353
         },
         {
           "id": "290",
@@ -13522,7 +13875,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G44"
+          "sourceBlockId": "G44",
+          "number": 354
         },
         {
           "id": "291",
@@ -13555,7 +13909,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G45"
+          "sourceBlockId": "G45",
+          "number": 355
         },
         {
           "id": "292",
@@ -13588,7 +13943,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G46"
+          "sourceBlockId": "G46",
+          "number": 356
         },
         {
           "id": "293",
@@ -13621,7 +13977,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G47"
+          "sourceBlockId": "G47",
+          "number": 357
         },
         {
           "id": "294",
@@ -13654,7 +14011,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G48"
+          "sourceBlockId": "G48",
+          "number": 358
         }
       ],
       "originalSection": 50,
@@ -13698,7 +14056,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G49"
+          "sourceBlockId": "G49",
+          "number": 359
         },
         {
           "id": "296",
@@ -13731,7 +14090,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G50"
+          "sourceBlockId": "G50",
+          "number": 360
         },
         {
           "id": "297",
@@ -13764,7 +14124,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G51"
+          "sourceBlockId": "G51",
+          "number": 361
         },
         {
           "id": "298",
@@ -13798,7 +14159,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G52"
+          "sourceBlockId": "G52",
+          "number": 362
         },
         {
           "id": "299",
@@ -13832,7 +14194,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G53"
+          "sourceBlockId": "G53",
+          "number": 363
         },
         {
           "id": "300",
@@ -13866,7 +14229,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G54"
+          "sourceBlockId": "G54",
+          "number": 364
         }
       ],
       "originalSection": 51,
@@ -13913,7 +14277,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G55"
+          "sourceBlockId": "G55",
+          "number": 365
         },
         {
           "id": "302",
@@ -13949,7 +14314,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G56"
+          "sourceBlockId": "G56",
+          "number": 366
         },
         {
           "id": "303",
@@ -13985,7 +14351,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G57"
+          "sourceBlockId": "G57",
+          "number": 367
         },
         {
           "id": "304",
@@ -14019,7 +14386,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G58"
+          "sourceBlockId": "G58",
+          "number": 368
         },
         {
           "id": "305",
@@ -14053,7 +14421,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G59"
+          "sourceBlockId": "G59",
+          "number": 369
         },
         {
           "id": "306",
@@ -14087,7 +14456,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G60"
+          "sourceBlockId": "G60",
+          "number": 370
         }
       ],
       "originalSection": 52,
@@ -14146,7 +14516,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G61"
+          "sourceBlockId": "G61",
+          "number": 371
         },
         {
           "id": "308",
@@ -14194,7 +14565,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G62"
+          "sourceBlockId": "G62",
+          "number": 372
         },
         {
           "id": "309",
@@ -14242,7 +14614,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G63"
+          "sourceBlockId": "G63",
+          "number": 373
         },
         {
           "id": "310",
@@ -14290,7 +14663,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G64"
+          "sourceBlockId": "G64",
+          "number": 374
         },
         {
           "id": "311",
@@ -14337,7 +14711,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G65"
+          "sourceBlockId": "G65",
+          "number": 375
         },
         {
           "id": "312",
@@ -14384,7 +14759,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G66"
+          "sourceBlockId": "G66",
+          "number": 376
         }
       ],
       "originalSection": 53,
@@ -14444,7 +14820,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G67"
+          "sourceBlockId": "G67",
+          "number": 377
         },
         {
           "id": "314",
@@ -14493,7 +14870,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G68"
+          "sourceBlockId": "G68",
+          "number": 378
         },
         {
           "id": "315",
@@ -14542,7 +14920,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G69"
+          "sourceBlockId": "G69",
+          "number": 379
         },
         {
           "id": "316",
@@ -14591,7 +14970,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G70"
+          "sourceBlockId": "G70",
+          "number": 380
         },
         {
           "id": "317",
@@ -14639,7 +15019,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G71"
+          "sourceBlockId": "G71",
+          "number": 381
         },
         {
           "id": "318",
@@ -14687,7 +15068,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G72"
+          "sourceBlockId": "G72",
+          "number": 382
         }
       ],
       "originalSection": 54,
@@ -14745,7 +15127,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G73"
+          "sourceBlockId": "G73",
+          "number": 383
         },
         {
           "id": "320",
@@ -14792,7 +15175,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G74"
+          "sourceBlockId": "G74",
+          "number": 384
         },
         {
           "id": "321",
@@ -14839,7 +15223,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G75"
+          "sourceBlockId": "G75",
+          "number": 385
         },
         {
           "id": "322",
@@ -14886,7 +15271,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G76"
+          "sourceBlockId": "G76",
+          "number": 386
         },
         {
           "id": "323",
@@ -14935,7 +15321,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G77"
+          "sourceBlockId": "G77",
+          "number": 387
         },
         {
           "id": "324",
@@ -15001,250 +15388,12 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G78"
+          "sourceBlockId": "G78",
+          "number": 388
         }
       ],
       "originalSection": 55,
       "originalTitle": "Which triangles are possible?"
-    },
-    {
-      "number": 56,
-      "title": "Construct triangles on a grid",
-      "chapter": "Angles, triangles & scale",
-      "subtitle": "",
-      "lesson": null,
-      "blocks": [
-        {
-          "id": "325",
-          "title": "Construct triangles on a grid",
-          "stage": "Single skill",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Each interval is 1 unit. Place C above AB so AC = 6 and BC = 10. Join A, B, C.",
-              "value": [
-                0,
-                6
-              ],
-              "answer": "C = (0, 6); join A\u2013B\u2013C\u2013A.",
-              "unit": "",
-              "steps": [
-                "AB = 8. The third vertex must be 6 units from A and 10 units from B.",
-                "Place C at (0, 6), then draw the three sides."
-              ],
-              "visual": {
-                "type": "grid",
-                "xMin": 0,
-                "xMax": 9,
-                "yMin": 0,
-                "yMax": 7,
-                "step": 1,
-                "points": [
-                  {
-                    "x": 0,
-                    "y": 0,
-                    "label": "A"
-                  },
-                  {
-                    "x": 8,
-                    "y": 0,
-                    "label": "B"
-                  }
-                ],
-                "targets": [
-                  {
-                    "x": 0,
-                    "y": 6,
-                    "label": "C"
-                  }
-                ],
-                "targetEdges": true,
-                "alt": "Each interval is 1 unit. Place C above AB so AC = 6 and BC = 10. Join A, B, C."
-              },
-              "family": "triangle-construction",
-              "input": "plot",
-              "accept": [],
-              "stage": "Single skill"
-            }
-          ],
-          "sourceBlockId": "G79"
-        },
-        {
-          "id": "326",
-          "title": "Construct triangles on a grid",
-          "stage": "Single skill",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Each interval is 1 unit. Place C above AB so AC = 4 and BC = 5. Join A, B, C.",
-              "value": [
-                0,
-                4
-              ],
-              "answer": "C = (0, 4); join A\u2013B\u2013C\u2013A.",
-              "unit": "",
-              "steps": [
-                "AB = 3. The third vertex must be 4 units from A and 5 units from B.",
-                "Place C at (0, 4), then draw the three sides."
-              ],
-              "visual": {
-                "type": "grid",
-                "xMin": 0,
-                "xMax": 4,
-                "yMin": 0,
-                "yMax": 5,
-                "step": 1,
-                "points": [
-                  {
-                    "x": 0,
-                    "y": 0,
-                    "label": "A"
-                  },
-                  {
-                    "x": 3,
-                    "y": 0,
-                    "label": "B"
-                  }
-                ],
-                "targets": [
-                  {
-                    "x": 0,
-                    "y": 4,
-                    "label": "C"
-                  }
-                ],
-                "targetEdges": true,
-                "alt": "Each interval is 1 unit. Place C above AB so AC = 4 and BC = 5. Join A, B, C."
-              },
-              "family": "triangle-construction",
-              "input": "plot",
-              "accept": [],
-              "stage": "Single skill"
-            }
-          ],
-          "sourceBlockId": "G80"
-        },
-        {
-          "id": "327",
-          "title": "Construct triangles on a grid",
-          "stage": "Single skill",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Each interval is 1 unit. Place C above AB so AC = 5 and BC = 13. Join A, B, C.",
-              "value": [
-                0,
-                5
-              ],
-              "answer": "C = (0, 5); join A\u2013B\u2013C\u2013A.",
-              "unit": "",
-              "steps": [
-                "AB = 12. The third vertex must be 5 units from A and 13 units from B.",
-                "Place C at (0, 5), then draw the three sides."
-              ],
-              "visual": {
-                "type": "grid",
-                "xMin": 0,
-                "xMax": 13,
-                "yMin": 0,
-                "yMax": 6,
-                "step": 1,
-                "points": [
-                  {
-                    "x": 0,
-                    "y": 0,
-                    "label": "A"
-                  },
-                  {
-                    "x": 12,
-                    "y": 0,
-                    "label": "B"
-                  }
-                ],
-                "targets": [
-                  {
-                    "x": 0,
-                    "y": 5,
-                    "label": "C"
-                  }
-                ],
-                "targetEdges": true,
-                "alt": "Each interval is 1 unit. Place C above AB so AC = 5 and BC = 13. Join A, B, C."
-              },
-              "family": "triangle-construction",
-              "input": "plot",
-              "accept": [],
-              "stage": "Single skill"
-            }
-          ],
-          "sourceBlockId": "G81"
-        },
-        {
-          "id": "328",
-          "title": "Construct triangles on a grid",
-          "stage": "Single skill",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Each interval is 1 unit. Place C above AB so AC = 8 and BC = 10. Join A, B, C.",
-              "value": [
-                0,
-                8
-              ],
-              "answer": "C = (0, 8); join A\u2013B\u2013C\u2013A.",
-              "unit": "",
-              "steps": [
-                "AB = 6. The third vertex must be 8 units from A and 10 units from B.",
-                "Place C at (0, 8), then draw the three sides."
-              ],
-              "visual": {
-                "type": "grid",
-                "xMin": 0,
-                "xMax": 7,
-                "yMin": 0,
-                "yMax": 9,
-                "step": 1,
-                "points": [
-                  {
-                    "x": 0,
-                    "y": 0,
-                    "label": "A"
-                  },
-                  {
-                    "x": 6,
-                    "y": 0,
-                    "label": "B"
-                  }
-                ],
-                "targets": [
-                  {
-                    "x": 0,
-                    "y": 8,
-                    "label": "C"
-                  }
-                ],
-                "targetEdges": true,
-                "alt": "Each interval is 1 unit. Place C above AB so AC = 8 and BC = 10. Join A, B, C."
-              },
-              "family": "triangle-construction",
-              "input": "plot",
-              "accept": [],
-              "stage": "Single skill"
-            }
-          ],
-          "sourceBlockId": "G82"
-        }
-      ],
-      "originalSection": 56,
-      "originalTitle": "Construct triangles on a grid"
     },
     {
       "number": 57,
@@ -15320,7 +15469,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G83"
+          "sourceBlockId": "G83",
+          "number": 389
         },
         {
           "id": "330",
@@ -15389,7 +15539,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G84"
+          "sourceBlockId": "G84",
+          "number": 390
         },
         {
           "id": "331",
@@ -15458,7 +15609,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G85"
+          "sourceBlockId": "G85",
+          "number": 391
         },
         {
           "id": "332",
@@ -15527,7 +15679,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G86"
+          "sourceBlockId": "G86",
+          "number": 392
         },
         {
           "id": "333",
@@ -15596,7 +15749,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G87"
+          "sourceBlockId": "G87",
+          "number": 393
         },
         {
           "id": "334",
@@ -15665,7 +15819,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G88"
+          "sourceBlockId": "G88",
+          "number": 394
         }
       ],
       "originalSection": 57,
@@ -15753,7 +15908,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G89"
+          "sourceBlockId": "G89",
+          "number": 395
         },
         {
           "id": "336",
@@ -15830,7 +15986,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G90"
+          "sourceBlockId": "G90",
+          "number": 396
         },
         {
           "id": "337",
@@ -15907,7 +16064,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G91"
+          "sourceBlockId": "G91",
+          "number": 397
         },
         {
           "id": "338",
@@ -15984,7 +16142,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G92"
+          "sourceBlockId": "G92",
+          "number": 398
         }
       ],
       "originalSection": 58,
@@ -16172,7 +16331,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G93"
+          "sourceBlockId": "G93",
+          "number": 399
         },
         {
           "id": "340",
@@ -16344,7 +16504,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G94"
+          "sourceBlockId": "G94",
+          "number": 400
         },
         {
           "id": "341",
@@ -16516,7 +16677,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G95"
+          "sourceBlockId": "G95",
+          "number": 401
         },
         {
           "id": "342",
@@ -16688,7 +16850,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G96"
+          "sourceBlockId": "G96",
+          "number": 402
         },
         {
           "id": "343",
@@ -16860,7 +17023,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G97"
+          "sourceBlockId": "G97",
+          "number": 403
         },
         {
           "id": "344",
@@ -17032,7 +17196,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G98"
+          "sourceBlockId": "G98",
+          "number": 404
         }
       ],
       "originalSection": 59,
@@ -17123,7 +17288,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G99"
+          "sourceBlockId": "G99",
+          "number": 405
         },
         {
           "id": "346",
@@ -17203,7 +17369,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G100"
+          "sourceBlockId": "G100",
+          "number": 406
         },
         {
           "id": "347",
@@ -17283,7 +17450,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G101"
+          "sourceBlockId": "G101",
+          "number": 407
         },
         {
           "id": "348",
@@ -17365,7 +17533,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G102"
+          "sourceBlockId": "G102",
+          "number": 408
         },
         {
           "id": "349",
@@ -17447,7 +17616,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G103"
+          "sourceBlockId": "G103",
+          "number": 409
         },
         {
           "id": "350",
@@ -17529,1866 +17699,12 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G104"
+          "sourceBlockId": "G104",
+          "number": 410
         }
       ],
       "originalSection": 60,
       "originalTitle": "Surface area of rectangular prisms"
-    },
-    {
-      "number": 61,
-      "title": "Surface area of triangular prisms",
-      "chapter": "Surface area",
-      "subtitle": "",
-      "lesson": null,
-      "blocks": [
-        {
-          "id": "351",
-          "title": "Surface area of triangular prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the lateral surface area.",
-              "value": 60,
-              "answer": "60 m\u00b2",
-              "unit": "m\u00b2",
-              "steps": [
-                "Base perimeter = 12 m.",
-                "Lateral area = 12 \u00d7 5 = 60 m\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    4,
-                    0
-                  ],
-                  [
-                    0,
-                    3
-                  ]
-                ],
-                "depth": 5,
-                "unit": "m",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      2,
-                      0,
-                      0
-                    ],
-                    "text": "4 m",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      1.5,
-                      0
-                    ],
-                    "text": "3 m",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      2.5
-                    ],
-                    "text": "5 m",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      2,
-                      1.5,
-                      0
-                    ],
-                    "text": "5 m",
-                    "dx": 24
-                  }
-                ],
-                "showUnitGrid": false,
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0.25,
-                      0
-                    ],
-                    "to": [
-                      0.25,
-                      0.25,
-                      0
-                    ]
-                  },
-                  {
-                    "from": [
-                      0.25,
-                      0.25,
-                      0
-                    ],
-                    "to": [
-                      0.25,
-                      0,
-                      0
-                    ]
-                  }
-                ],
-                "alt": "Find the lateral surface area."
-              },
-              "family": "triangle-prism-lateral",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G105"
-        },
-        {
-          "id": "352",
-          "title": "Surface area of triangular prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the lateral surface area.",
-              "value": 72,
-              "answer": "72 cm\u00b2",
-              "unit": "cm\u00b2",
-              "steps": [
-                "Base perimeter = 24 cm.",
-                "Lateral area = 24 \u00d7 3 = 72 cm\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    8,
-                    0
-                  ],
-                  [
-                    0,
-                    6
-                  ]
-                ],
-                "depth": 3,
-                "unit": "cm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      4,
-                      0,
-                      0
-                    ],
-                    "text": "8 cm",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      3,
-                      0
-                    ],
-                    "text": "6 cm",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      1.5
-                    ],
-                    "text": "3 cm",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      4,
-                      3,
-                      0
-                    ],
-                    "text": "10 cm",
-                    "dx": 24
-                  }
-                ],
-                "showUnitGrid": false,
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0.5,
-                      0
-                    ],
-                    "to": [
-                      0.5,
-                      0.5,
-                      0
-                    ]
-                  },
-                  {
-                    "from": [
-                      0.5,
-                      0.5,
-                      0
-                    ],
-                    "to": [
-                      0.5,
-                      0,
-                      0
-                    ]
-                  }
-                ],
-                "alt": "Find the lateral surface area."
-              },
-              "family": "triangle-prism-lateral",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G106"
-        },
-        {
-          "id": "353",
-          "title": "Surface area of triangular prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the lateral surface area.",
-              "value": 120,
-              "answer": "120 mm\u00b2",
-              "unit": "mm\u00b2",
-              "steps": [
-                "Base perimeter = 30 mm.",
-                "Lateral area = 30 \u00d7 4 = 120 mm\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    12,
-                    0
-                  ],
-                  [
-                    0,
-                    5
-                  ]
-                ],
-                "depth": 4,
-                "unit": "mm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      6,
-                      0,
-                      0
-                    ],
-                    "text": "12 mm",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      2.5,
-                      0
-                    ],
-                    "text": "5 mm",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      2
-                    ],
-                    "text": "4 mm",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      6,
-                      2.5,
-                      0
-                    ],
-                    "text": "13 mm",
-                    "dx": 24
-                  }
-                ],
-                "showUnitGrid": false,
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0.4166666666666667,
-                      0
-                    ],
-                    "to": [
-                      0.4166666666666667,
-                      0.4166666666666667,
-                      0
-                    ]
-                  },
-                  {
-                    "from": [
-                      0.4166666666666667,
-                      0.4166666666666667,
-                      0
-                    ],
-                    "to": [
-                      0.4166666666666667,
-                      0,
-                      0
-                    ]
-                  }
-                ],
-                "alt": "Find the lateral surface area."
-              },
-              "family": "triangle-prism-lateral",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G107"
-        },
-        {
-          "id": "354",
-          "title": "Surface area of triangular prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the total surface area.",
-              "value": 168,
-              "answer": "168 cm\u00b2",
-              "unit": "cm\u00b2",
-              "steps": [
-                "Base perimeter = 24 cm.",
-                "Lateral area = 24 \u00d7 5 = 120 cm\u00b2.",
-                "Base area = 8 \u00d7 6 \u00f7 2 = 24 cm\u00b2.",
-                "Total = 120 + 2 \u00d7 24 = 168 cm\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    8,
-                    0
-                  ],
-                  [
-                    0,
-                    6
-                  ]
-                ],
-                "depth": 5,
-                "unit": "cm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      4,
-                      0,
-                      0
-                    ],
-                    "text": "8 cm",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      3,
-                      0
-                    ],
-                    "text": "6 cm",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      2.5
-                    ],
-                    "text": "5 cm",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      4,
-                      3,
-                      0
-                    ],
-                    "text": "10 cm",
-                    "dx": 24
-                  }
-                ],
-                "showUnitGrid": false,
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0.5,
-                      0
-                    ],
-                    "to": [
-                      0.5,
-                      0.5,
-                      0
-                    ]
-                  },
-                  {
-                    "from": [
-                      0.5,
-                      0.5,
-                      0
-                    ],
-                    "to": [
-                      0.5,
-                      0,
-                      0
-                    ]
-                  }
-                ],
-                "alt": "Find the total surface area."
-              },
-              "family": "triangle-prism-surface",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G108"
-        },
-        {
-          "id": "355",
-          "title": "Surface area of triangular prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the total surface area.",
-              "value": 240,
-              "answer": "240 m\u00b2",
-              "unit": "m\u00b2",
-              "steps": [
-                "Base perimeter = 40 m.",
-                "Lateral area = 40 \u00d7 3 = 120 m\u00b2.",
-                "Base area = 15 \u00d7 8 \u00f7 2 = 60 m\u00b2.",
-                "Total = 120 + 2 \u00d7 60 = 240 m\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    15,
-                    0
-                  ],
-                  [
-                    0,
-                    8
-                  ]
-                ],
-                "depth": 3,
-                "unit": "m",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      7.5,
-                      0,
-                      0
-                    ],
-                    "text": "15 m",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      4,
-                      0
-                    ],
-                    "text": "8 m",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      1.5
-                    ],
-                    "text": "3 m",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      7.5,
-                      4,
-                      0
-                    ],
-                    "text": "17 m",
-                    "dx": 24
-                  }
-                ],
-                "showUnitGrid": false,
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0.6666666666666666,
-                      0
-                    ],
-                    "to": [
-                      0.6666666666666666,
-                      0.6666666666666666,
-                      0
-                    ]
-                  },
-                  {
-                    "from": [
-                      0.6666666666666666,
-                      0.6666666666666666,
-                      0
-                    ],
-                    "to": [
-                      0.6666666666666666,
-                      0,
-                      0
-                    ]
-                  }
-                ],
-                "alt": "Find the total surface area."
-              },
-              "family": "triangle-prism-surface",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G109"
-        },
-        {
-          "id": "356",
-          "title": "Surface area of triangular prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the total surface area.",
-              "value": 42,
-              "answer": "42 cm\u00b2",
-              "unit": "cm\u00b2",
-              "steps": [
-                "Base perimeter = 12 cm.",
-                "Lateral area = 12 \u00d7 2.5 = 30 cm\u00b2.",
-                "Base area = 4 \u00d7 3 \u00f7 2 = 6 cm\u00b2.",
-                "Total = 30 + 2 \u00d7 6 = 42 cm\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    4,
-                    0
-                  ],
-                  [
-                    0,
-                    3
-                  ]
-                ],
-                "depth": 2.5,
-                "unit": "cm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      2,
-                      0,
-                      0
-                    ],
-                    "text": "4 cm",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      1.5,
-                      0
-                    ],
-                    "text": "3 cm",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      1.25
-                    ],
-                    "text": "2.5 cm",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      2,
-                      1.5,
-                      0
-                    ],
-                    "text": "5 cm",
-                    "dx": 24
-                  }
-                ],
-                "showUnitGrid": false,
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0.25,
-                      0
-                    ],
-                    "to": [
-                      0.25,
-                      0.25,
-                      0
-                    ]
-                  },
-                  {
-                    "from": [
-                      0.25,
-                      0.25,
-                      0
-                    ],
-                    "to": [
-                      0.25,
-                      0,
-                      0
-                    ]
-                  }
-                ],
-                "alt": "Find the total surface area."
-              },
-              "family": "triangle-prism-surface",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G110"
-        }
-      ],
-      "originalSection": 61,
-      "originalTitle": "Surface area of triangular prisms"
-    },
-    {
-      "number": 62,
-      "title": "Square pyramids: lateral area",
-      "chapter": "Surface area",
-      "subtitle": "",
-      "lesson": null,
-      "blocks": [
-        {
-          "id": "357",
-          "title": "Surface area of square pyramids",
-          "stage": "Two skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Side-face height = 5 cm. Find the lateral surface area.",
-              "value": 40,
-              "answer": "40 cm\u00b2",
-              "unit": "cm\u00b2",
-              "steps": [
-                "One triangular side has area 4 \u00d7 5 \u00f7 2 = 10 cm\u00b2.",
-                "Four sides: lateral area = 4 \u00d7 10 = 40 cm\u00b2."
-              ],
-              "visual": {
-                "type": "pyramid",
-                "width": 4,
-                "length": 4,
-                "height": 4.58257569495584,
-                "slant": 5,
-                "centered": true,
-                "unit": "cm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      0,
-                      -2,
-                      0
-                    ],
-                    "text": "4 cm",
-                    "dy": 23
-                  },
-                  {
-                    "point": [
-                      2,
-                      0,
-                      0
-                    ],
-                    "text": "4 cm",
-                    "dx": 26
-                  },
-                  {
-                    "point": [
-                      1,
-                      0,
-                      2.29128784747792
-                    ],
-                    "text": "5 cm",
-                    "dx": 28
-                  }
-                ],
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0,
-                      4.58257569495584
-                    ],
-                    "to": [
-                      2,
-                      0,
-                      0
-                    ],
-                    "dashed": true
-                  }
-                ],
-                "alt": "Side-face height = 5 cm. Find the lateral surface area."
-              },
-              "family": "pyramid-lateral",
-              "input": "number",
-              "accept": [],
-              "stage": "Two skills"
-            }
-          ],
-          "sourceBlockId": "G111"
-        },
-        {
-          "id": "358",
-          "title": "Surface area of square pyramids",
-          "stage": "Two skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Side-face height = 7 m. Find the lateral surface area.",
-              "value": 84,
-              "answer": "84 m\u00b2",
-              "unit": "m\u00b2",
-              "steps": [
-                "One triangular side has area 6 \u00d7 7 \u00f7 2 = 21 m\u00b2.",
-                "Four sides: lateral area = 4 \u00d7 21 = 84 m\u00b2."
-              ],
-              "visual": {
-                "type": "pyramid",
-                "width": 6,
-                "length": 6,
-                "height": 6.324555320336759,
-                "slant": 7,
-                "centered": true,
-                "unit": "m",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      0,
-                      -3,
-                      0
-                    ],
-                    "text": "6 m",
-                    "dy": 23
-                  },
-                  {
-                    "point": [
-                      3,
-                      0,
-                      0
-                    ],
-                    "text": "6 m",
-                    "dx": 26
-                  },
-                  {
-                    "point": [
-                      1.5,
-                      0,
-                      3.1622776601683795
-                    ],
-                    "text": "7 m",
-                    "dx": 28
-                  }
-                ],
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0,
-                      6.324555320336759
-                    ],
-                    "to": [
-                      3,
-                      0,
-                      0
-                    ],
-                    "dashed": true
-                  }
-                ],
-                "alt": "Side-face height = 7 m. Find the lateral surface area."
-              },
-              "family": "pyramid-lateral",
-              "input": "number",
-              "accept": [],
-              "stage": "Two skills"
-            }
-          ],
-          "sourceBlockId": "G112"
-        },
-        {
-          "id": "359",
-          "title": "Surface area of square pyramids",
-          "stage": "Two skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Side-face height = 10 mm. Find the lateral surface area.",
-              "value": 160,
-              "answer": "160 mm\u00b2",
-              "unit": "mm\u00b2",
-              "steps": [
-                "One triangular side has area 8 \u00d7 10 \u00f7 2 = 40 mm\u00b2.",
-                "Four sides: lateral area = 4 \u00d7 40 = 160 mm\u00b2."
-              ],
-              "visual": {
-                "type": "pyramid",
-                "width": 8,
-                "length": 8,
-                "height": 9.16515138991168,
-                "slant": 10,
-                "centered": true,
-                "unit": "mm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      0,
-                      -4,
-                      0
-                    ],
-                    "text": "8 mm",
-                    "dy": 23
-                  },
-                  {
-                    "point": [
-                      4,
-                      0,
-                      0
-                    ],
-                    "text": "8 mm",
-                    "dx": 26
-                  },
-                  {
-                    "point": [
-                      2,
-                      0,
-                      4.58257569495584
-                    ],
-                    "text": "10 mm",
-                    "dx": 28
-                  }
-                ],
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0,
-                      9.16515138991168
-                    ],
-                    "to": [
-                      4,
-                      0,
-                      0
-                    ],
-                    "dashed": true
-                  }
-                ],
-                "alt": "Side-face height = 10 mm. Find the lateral surface area."
-              },
-              "family": "pyramid-lateral",
-              "input": "number",
-              "accept": [],
-              "stage": "Two skills"
-            }
-          ],
-          "sourceBlockId": "G113"
-        }
-      ],
-      "originalSection": 62,
-      "originalTitle": "Square pyramids: lateral area"
-    },
-    {
-      "number": 63,
-      "title": "Square pyramids: total surface area",
-      "chapter": "Surface area",
-      "subtitle": "",
-      "lesson": null,
-      "blocks": [
-        {
-          "id": "360",
-          "title": "Surface area of square pyramids",
-          "stage": "Two skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Side-face height = 6 cm. Find the total surface area.",
-              "value": 85,
-              "answer": "85 cm\u00b2",
-              "unit": "cm\u00b2",
-              "steps": [
-                "One triangular side has area 5 \u00d7 6 \u00f7 2 = 15 cm\u00b2.",
-                "Four sides: lateral area = 4 \u00d7 15 = 60 cm\u00b2.",
-                "Base area = 5\u00b2 = 25 cm\u00b2.",
-                "Total = 60 + 25 = 85 cm\u00b2."
-              ],
-              "visual": {
-                "type": "pyramid",
-                "width": 5,
-                "length": 5,
-                "height": 5.454356057317857,
-                "slant": 6,
-                "centered": true,
-                "unit": "cm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      0,
-                      -2.5,
-                      0
-                    ],
-                    "text": "5 cm",
-                    "dy": 23
-                  },
-                  {
-                    "point": [
-                      2.5,
-                      0,
-                      0
-                    ],
-                    "text": "5 cm",
-                    "dx": 26
-                  },
-                  {
-                    "point": [
-                      1.25,
-                      0,
-                      2.7271780286589284
-                    ],
-                    "text": "6 cm",
-                    "dx": 28
-                  }
-                ],
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0,
-                      5.454356057317857
-                    ],
-                    "to": [
-                      2.5,
-                      0,
-                      0
-                    ],
-                    "dashed": true
-                  }
-                ],
-                "alt": "Side-face height = 6 cm. Find the total surface area."
-              },
-              "family": "pyramid-surface",
-              "input": "number",
-              "accept": [],
-              "stage": "Two skills"
-            }
-          ],
-          "sourceBlockId": "G114"
-        },
-        {
-          "id": "361",
-          "title": "Surface area of square pyramids",
-          "stage": "Two skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Side-face height = 13 m. Find the total surface area.",
-              "value": 360,
-              "answer": "360 m\u00b2",
-              "unit": "m\u00b2",
-              "steps": [
-                "One triangular side has area 10 \u00d7 13 \u00f7 2 = 65 m\u00b2.",
-                "Four sides: lateral area = 4 \u00d7 65 = 260 m\u00b2.",
-                "Base area = 10\u00b2 = 100 m\u00b2.",
-                "Total = 260 + 100 = 360 m\u00b2."
-              ],
-              "visual": {
-                "type": "pyramid",
-                "width": 10,
-                "length": 10,
-                "height": 12,
-                "slant": 13,
-                "centered": true,
-                "unit": "m",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      0,
-                      -5,
-                      0
-                    ],
-                    "text": "10 m",
-                    "dy": 23
-                  },
-                  {
-                    "point": [
-                      5,
-                      0,
-                      0
-                    ],
-                    "text": "10 m",
-                    "dx": 26
-                  },
-                  {
-                    "point": [
-                      2.5,
-                      0,
-                      6
-                    ],
-                    "text": "13 m",
-                    "dx": 28
-                  }
-                ],
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0,
-                      12
-                    ],
-                    "to": [
-                      5,
-                      0,
-                      0
-                    ],
-                    "dashed": true
-                  }
-                ],
-                "alt": "Side-face height = 13 m. Find the total surface area."
-              },
-              "family": "pyramid-surface",
-              "input": "number",
-              "accept": [],
-              "stage": "Two skills"
-            }
-          ],
-          "sourceBlockId": "G115"
-        },
-        {
-          "id": "362",
-          "title": "Surface area of square pyramids",
-          "stage": "Two skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Side-face height = 4 cm. Find the total surface area.",
-              "value": 33,
-              "answer": "33 cm\u00b2",
-              "unit": "cm\u00b2",
-              "steps": [
-                "One triangular side has area 3 \u00d7 4 \u00f7 2 = 6 cm\u00b2.",
-                "Four sides: lateral area = 4 \u00d7 6 = 24 cm\u00b2.",
-                "Base area = 3\u00b2 = 9 cm\u00b2.",
-                "Total = 24 + 9 = 33 cm\u00b2."
-              ],
-              "visual": {
-                "type": "pyramid",
-                "width": 3,
-                "length": 3,
-                "height": 3.7080992435478315,
-                "slant": 4,
-                "centered": true,
-                "unit": "cm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      0,
-                      -1.5,
-                      0
-                    ],
-                    "text": "3 cm",
-                    "dy": 23
-                  },
-                  {
-                    "point": [
-                      1.5,
-                      0,
-                      0
-                    ],
-                    "text": "3 cm",
-                    "dx": 26
-                  },
-                  {
-                    "point": [
-                      0.75,
-                      0,
-                      1.8540496217739157
-                    ],
-                    "text": "4 cm",
-                    "dx": 28
-                  }
-                ],
-                "segments3D": [
-                  {
-                    "from": [
-                      0,
-                      0,
-                      3.7080992435478315
-                    ],
-                    "to": [
-                      1.5,
-                      0,
-                      0
-                    ],
-                    "dashed": true
-                  }
-                ],
-                "alt": "Side-face height = 4 cm. Find the total surface area."
-              },
-              "family": "pyramid-surface",
-              "input": "number",
-              "accept": [],
-              "stage": "Two skills"
-            }
-          ],
-          "sourceBlockId": "G116"
-        }
-      ],
-      "originalSection": 63,
-      "originalTitle": "Square pyramids: total surface area"
-    },
-    {
-      "number": 66,
-      "title": "Surface area of composite prisms",
-      "chapter": "Surface area",
-      "subtitle": "",
-      "lesson": null,
-      "blocks": [
-        {
-          "id": "369",
-          "title": "Surface area of composite prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the area of one base.",
-              "value": 21,
-              "answer": "21 cm\u00b2",
-              "unit": "cm\u00b2",
-              "steps": [
-                "Base area = 3 \u00d7 5 + 3 \u00d7 2 = 21 cm\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    6,
-                    0
-                  ],
-                  [
-                    6,
-                    2
-                  ],
-                  [
-                    3,
-                    2
-                  ],
-                  [
-                    3,
-                    5
-                  ],
-                  [
-                    0,
-                    5
-                  ]
-                ],
-                "depth": 2,
-                "unit": "cm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      3,
-                      0,
-                      0
-                    ],
-                    "text": "6 cm",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      2.5,
-                      0
-                    ],
-                    "text": "5 cm",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      1
-                    ],
-                    "text": "2 cm",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      1.5,
-                      5,
-                      0
-                    ],
-                    "text": "3 cm",
-                    "dy": -20
-                  },
-                  {
-                    "point": [
-                      6,
-                      1,
-                      0
-                    ],
-                    "text": "2 cm",
-                    "dx": 25
-                  }
-                ],
-                "showUnitGrid": false,
-                "alt": "Find the area of one base."
-              },
-              "family": "area-composite",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G123"
-        },
-        {
-          "id": "370",
-          "title": "Surface area of composite prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the area of one base.",
-              "value": 27,
-              "answer": "27 m\u00b2",
-              "unit": "m\u00b2",
-              "steps": [
-                "Base area = 2 \u00d7 6 + 5 \u00d7 3 = 27 m\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    7,
-                    0
-                  ],
-                  [
-                    7,
-                    3
-                  ],
-                  [
-                    2,
-                    3
-                  ],
-                  [
-                    2,
-                    6
-                  ],
-                  [
-                    0,
-                    6
-                  ]
-                ],
-                "depth": 3,
-                "unit": "m",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      3.5,
-                      0,
-                      0
-                    ],
-                    "text": "7 m",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      3,
-                      0
-                    ],
-                    "text": "6 m",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      1.5
-                    ],
-                    "text": "3 m",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      1,
-                      6,
-                      0
-                    ],
-                    "text": "2 m",
-                    "dy": -20
-                  },
-                  {
-                    "point": [
-                      7,
-                      1.5,
-                      0
-                    ],
-                    "text": "3 m",
-                    "dx": 25
-                  }
-                ],
-                "showUnitGrid": false,
-                "alt": "Find the area of one base."
-              },
-              "family": "area-composite",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G124"
-        },
-        {
-          "id": "371",
-          "title": "Surface area of composite prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the total surface area.",
-              "value": 122,
-              "answer": "122 cm\u00b2",
-              "unit": "cm\u00b2",
-              "steps": [
-                "Base perimeter = 30 cm.",
-                "Lateral area = 30 \u00d7 2 = 60 cm\u00b2.",
-                "Base area = 3 \u00d7 7 + 5 \u00d7 2 = 31 cm\u00b2.",
-                "Total = 60 + 2 \u00d7 31 = 122 cm\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    8,
-                    0
-                  ],
-                  [
-                    8,
-                    2
-                  ],
-                  [
-                    3,
-                    2
-                  ],
-                  [
-                    3,
-                    7
-                  ],
-                  [
-                    0,
-                    7
-                  ]
-                ],
-                "depth": 2,
-                "unit": "cm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      4,
-                      0,
-                      0
-                    ],
-                    "text": "8 cm",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      3.5,
-                      0
-                    ],
-                    "text": "7 cm",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      1
-                    ],
-                    "text": "2 cm",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      1.5,
-                      7,
-                      0
-                    ],
-                    "text": "3 cm",
-                    "dy": -20
-                  },
-                  {
-                    "point": [
-                      8,
-                      1,
-                      0
-                    ],
-                    "text": "2 cm",
-                    "dx": 25
-                  }
-                ],
-                "showUnitGrid": false,
-                "alt": "Find the total surface area."
-              },
-              "family": "composite-prism-surface",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G125"
-        }
-      ],
-      "originalSection": 66,
-      "originalTitle": "Surface area of composite prisms"
-    },
-    {
-      "number": 67,
-      "title": "Composite prisms: more surface area",
-      "chapter": "Surface area",
-      "subtitle": "",
-      "lesson": null,
-      "blocks": [
-        {
-          "id": "372",
-          "title": "Surface area of composite prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the total surface area.",
-              "value": 158,
-              "answer": "158 mm\u00b2",
-              "unit": "mm\u00b2",
-              "steps": [
-                "Base perimeter = 30 mm.",
-                "Lateral area = 30 \u00d7 3 = 90 mm\u00b2.",
-                "Base area = 4 \u00d7 6 + 5 \u00d7 2 = 34 mm\u00b2.",
-                "Total = 90 + 2 \u00d7 34 = 158 mm\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    9,
-                    0
-                  ],
-                  [
-                    9,
-                    2
-                  ],
-                  [
-                    4,
-                    2
-                  ],
-                  [
-                    4,
-                    6
-                  ],
-                  [
-                    0,
-                    6
-                  ]
-                ],
-                "depth": 3,
-                "unit": "mm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      4.5,
-                      0,
-                      0
-                    ],
-                    "text": "9 mm",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      3,
-                      0
-                    ],
-                    "text": "6 mm",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      1.5
-                    ],
-                    "text": "3 mm",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      2,
-                      6,
-                      0
-                    ],
-                    "text": "4 mm",
-                    "dy": -20
-                  },
-                  {
-                    "point": [
-                      9,
-                      1,
-                      0
-                    ],
-                    "text": "2 mm",
-                    "dx": 25
-                  }
-                ],
-                "showUnitGrid": false,
-                "alt": "Find the total surface area."
-              },
-              "family": "composite-prism-surface",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G126"
-        },
-        {
-          "id": "373",
-          "title": "Surface area of composite prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the total surface area.",
-              "value": 172,
-              "answer": "172 m\u00b2",
-              "unit": "m\u00b2",
-              "steps": [
-                "Base perimeter = 36 m.",
-                "Lateral area = 36 \u00d7 2 = 72 m\u00b2.",
-                "Base area = 4 \u00d7 8 + 6 \u00d7 3 = 50 m\u00b2.",
-                "Total = 72 + 2 \u00d7 50 = 172 m\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    10,
-                    0
-                  ],
-                  [
-                    10,
-                    3
-                  ],
-                  [
-                    4,
-                    3
-                  ],
-                  [
-                    4,
-                    8
-                  ],
-                  [
-                    0,
-                    8
-                  ]
-                ],
-                "depth": 2,
-                "unit": "m",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      5,
-                      0,
-                      0
-                    ],
-                    "text": "10 m",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      4,
-                      0
-                    ],
-                    "text": "8 m",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      1
-                    ],
-                    "text": "2 m",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      2,
-                      8,
-                      0
-                    ],
-                    "text": "4 m",
-                    "dy": -20
-                  },
-                  {
-                    "point": [
-                      10,
-                      1.5,
-                      0
-                    ],
-                    "text": "3 m",
-                    "dx": 25
-                  }
-                ],
-                "showUnitGrid": false,
-                "alt": "Find the total surface area."
-              },
-              "family": "composite-prism-surface",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G127"
-        },
-        {
-          "id": "374",
-          "title": "Surface area of composite prisms",
-          "stage": "Mixed skills",
-          "prompt": "",
-          "model": null,
-          "parts": [
-            {
-              "id": "",
-              "prompt": "Find the total surface area.",
-              "value": 90.5,
-              "answer": "90.5 cm\u00b2",
-              "unit": "cm\u00b2",
-              "steps": [
-                "Base perimeter = 27 cm.",
-                "Lateral area = 27 \u00d7 1.5 = 40.5 cm\u00b2.",
-                "Base area = 2.5 \u00d7 6 + 5 \u00d7 2 = 25 cm\u00b2.",
-                "Total = 40.5 + 2 \u00d7 25 = 90.5 cm\u00b2."
-              ],
-              "visual": {
-                "type": "prism",
-                "base": [
-                  [
-                    0,
-                    0
-                  ],
-                  [
-                    7.5,
-                    0
-                  ],
-                  [
-                    7.5,
-                    2
-                  ],
-                  [
-                    2.5,
-                    2
-                  ],
-                  [
-                    2.5,
-                    6
-                  ],
-                  [
-                    0,
-                    6
-                  ]
-                ],
-                "depth": 1.5,
-                "unit": "cm",
-                "dimensionLabels": false,
-                "labels3D": [
-                  {
-                    "point": [
-                      3.75,
-                      0,
-                      0
-                    ],
-                    "text": "7.5 cm",
-                    "dy": 21
-                  },
-                  {
-                    "point": [
-                      0,
-                      3,
-                      0
-                    ],
-                    "text": "6 cm",
-                    "dx": -26
-                  },
-                  {
-                    "point": [
-                      0,
-                      0,
-                      0.75
-                    ],
-                    "text": "1.5 cm",
-                    "dx": -28
-                  },
-                  {
-                    "point": [
-                      1.25,
-                      6,
-                      0
-                    ],
-                    "text": "2.5 cm",
-                    "dy": -20
-                  },
-                  {
-                    "point": [
-                      7.5,
-                      1,
-                      0
-                    ],
-                    "text": "2 cm",
-                    "dx": 25
-                  }
-                ],
-                "showUnitGrid": false,
-                "alt": "Find the total surface area."
-              },
-              "family": "composite-prism-surface",
-              "input": "number",
-              "accept": [],
-              "stage": "Mixed skills"
-            }
-          ],
-          "sourceBlockId": "G128"
-        }
-      ],
-      "originalSection": 67,
-      "originalTitle": "Composite prisms: more surface area"
     },
     {
       "number": 68,
@@ -19475,7 +17791,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G129"
+          "sourceBlockId": "G129",
+          "number": 411
         },
         {
           "id": "376",
@@ -19555,7 +17872,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G130"
+          "sourceBlockId": "G130",
+          "number": 412
         },
         {
           "id": "377",
@@ -19635,7 +17953,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G131"
+          "sourceBlockId": "G131",
+          "number": 413
         },
         {
           "id": "378",
@@ -19715,7 +18034,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G132"
+          "sourceBlockId": "G132",
+          "number": 414
         },
         {
           "id": "379",
@@ -19795,7 +18115,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G133"
+          "sourceBlockId": "G133",
+          "number": 415
         },
         {
           "id": "380",
@@ -19875,7 +18196,8 @@
               "stage": "Single skill"
             }
           ],
-          "sourceBlockId": "G134"
+          "sourceBlockId": "G134",
+          "number": 416
         }
       ],
       "originalSection": 68,
@@ -19966,7 +18288,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G135"
+          "sourceBlockId": "G135",
+          "number": 417
         },
         {
           "id": "382",
@@ -20046,7 +18369,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G136"
+          "sourceBlockId": "G136",
+          "number": 418
         },
         {
           "id": "383",
@@ -20126,7 +18450,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G137"
+          "sourceBlockId": "G137",
+          "number": 419
         },
         {
           "id": "384",
@@ -20206,7 +18531,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G138"
+          "sourceBlockId": "G138",
+          "number": 420
         },
         {
           "id": "385",
@@ -20286,7 +18612,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G139"
+          "sourceBlockId": "G139",
+          "number": 421
         },
         {
           "id": "386",
@@ -20366,7 +18693,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G140"
+          "sourceBlockId": "G140",
+          "number": 422
         }
       ],
       "originalSection": 69,
@@ -20478,7 +18806,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G141"
+          "sourceBlockId": "G141",
+          "number": 423
         },
         {
           "id": "388",
@@ -20579,7 +18908,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G142"
+          "sourceBlockId": "G142",
+          "number": 424
         },
         {
           "id": "389",
@@ -20681,7 +19011,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G143"
+          "sourceBlockId": "G143",
+          "number": 425
         },
         {
           "id": "390",
@@ -20783,7 +19114,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G144"
+          "sourceBlockId": "G144",
+          "number": 426
         },
         {
           "id": "391",
@@ -20885,7 +19217,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G145"
+          "sourceBlockId": "G145",
+          "number": 427
         },
         {
           "id": "392",
@@ -20987,7 +19320,8 @@
               "stage": "Two skills"
             }
           ],
-          "sourceBlockId": "G146"
+          "sourceBlockId": "G146",
+          "number": 428
         }
       ],
       "originalSection": 70,
@@ -21103,7 +19437,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G147"
+          "sourceBlockId": "G147",
+          "number": 429
         },
         {
           "id": "394",
@@ -21208,7 +19543,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G148"
+          "sourceBlockId": "G148",
+          "number": 430
         },
         {
           "id": "395",
@@ -21314,7 +19650,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G149"
+          "sourceBlockId": "G149",
+          "number": 431
         },
         {
           "id": "396",
@@ -21420,7 +19757,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G150"
+          "sourceBlockId": "G150",
+          "number": 432
         },
         {
           "id": "397",
@@ -21526,7 +19864,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G151"
+          "sourceBlockId": "G151",
+          "number": 433
         },
         {
           "id": "398",
@@ -21632,7 +19971,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G152"
+          "sourceBlockId": "G152",
+          "number": 434
         }
       ],
       "originalSection": 71,
@@ -21723,7 +20063,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G153"
+          "sourceBlockId": "G153",
+          "number": 435
         },
         {
           "id": "400",
@@ -21803,7 +20144,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G154"
+          "sourceBlockId": "G154",
+          "number": 436
         },
         {
           "id": "401",
@@ -21905,7 +20247,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G155"
+          "sourceBlockId": "G155",
+          "number": 437
         },
         {
           "id": "402",
@@ -22007,7 +20350,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G156"
+          "sourceBlockId": "G156",
+          "number": 438
         },
         {
           "id": "403",
@@ -22113,7 +20457,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G157"
+          "sourceBlockId": "G157",
+          "number": 439
         },
         {
           "id": "404",
@@ -22219,7 +20564,8 @@
               "stage": "Mixed skills"
             }
           ],
-          "sourceBlockId": "G158"
+          "sourceBlockId": "G158",
+          "number": 440
         }
       ],
       "originalSection": 72,

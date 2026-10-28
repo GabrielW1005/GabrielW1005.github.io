@@ -26,7 +26,16 @@ export function renderDiagram(v,opts={}){
     if(v.highlight?.points)poly(v.highlight.points,{fill:'#f3d696',color:'#a57931'});
     for(const p of v.polygons||[])poly(p.points||p,{fill:p.fill||BLUE,dashed:p.dashed});
     for(const s of v.segments||[])segment(isRectilinearL(v.points)&&s.dashed?{...s,color:'#879ca5',width:1.1}:s);
-    for(const l of v.pointLabels||[])label([l.x,l.y],l.text||l.label,{dx:7,dy:-7});
+    for(const l of v.pointLabels||[]){
+      const text=l.text||l.label,vertex=(v.points||[]).findIndex(p=>Math.abs(p[0]-l.x)<1e-8&&Math.abs(p[1]-l.y)<1e-8);
+      if(v.points?.length===3&&vertex>=0&&String(text).includes('°')){
+        // Angle measures belong inside their vertex, along its angle bisector.
+        // The incenter supplies that direction without altering the triangle.
+        const lengths=v.points.map((p,i)=>Math.hypot(v.points[(i+1)%3][0]-v.points[(i+2)%3][0],v.points[(i+1)%3][1]-v.points[(i+2)%3][1])),perimeter=lengths.reduce((a,b)=>a+b,0);
+        const inside=[0,1].map(k=>v.points.reduce((sum,p,i)=>sum+p[k]*lengths[i],0)/perimeter),p=v.points[vertex];
+        label(p.map((x,k)=>x*.4+inside[k]*.6),text,{interiorAngle:{vertex:p,inside,points:v.points}});
+      }else label([l.x,l.y],text,{dx:l.dx??7,dy:l.dy??-7});
+    }
     if(v.rightAngles)for(const a of v.rightAngles){const p=a.at||a;const r=a.size||.3;poly([[p[0],p[1]+r],[p[0]+r,p[1]+r],[p[0]+r,p[1]]],{open:true,fill:'none'});}
   }else if(v.type==='circle'){
     const r=Number(v.r||1);addPoint([-r,-r]);addPoint([r,r]);shapes.push({kind:'circle',p:[0,0],r,fill:BLUE});dot([0,0]);
@@ -150,9 +159,20 @@ export function renderDiagram(v,opts={}){
   if(!bounds.length){return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"></svg>`;}
   let xmin=Math.min(...bounds.map(p=>p[0])),xmax=Math.max(...bounds.map(p=>p[0])),ymin=Math.min(...bounds.map(p=>p[1])),ymax=Math.max(...bounds.map(p=>p[1]));
   if(xmin===xmax){xmin-=1;xmax+=1;}if(ymin===ymax){ymin-=1;ymax+=1;}
-  const mx=v.type==='grid'?46:56,my=v.type==='grid'?36:35;let scale=Math.min((W-2*mx)/(xmax-xmin),(H-2*my)/(ymax-ymin)),offsetX=0,offsetY=0;
+  const interiorAngles=labels.some(l=>l.interiorAngle),mx=v.type==='grid'?46:interiorAngles?24:56,my=v.type==='grid'?36:interiorAngles?24:35;let scale=Math.min((W-2*mx)/(xmax-xmin),(H-2*my)/(ymax-ymin)),offsetX=0,offsetY=0;
   const X=x=>W/2+(x-(xmin+xmax)/2)*scale+offsetX,Y=y=>H/2-(y-(ymin+ymax)/2)*scale+offsetY;
   for(let iteration=0;iteration<5;iteration++){let lx=X(xmin),rx=X(xmax),ty=Y(ymax),by=Y(ymin);for(const l of labels){const tx=X(l.p[0])+(l.dx||0),yy=Y(l.p[1])+(l.dy||0),fs=l.fontSize||18,tw=String(l.text).length*fs*.55;lx=Math.min(lx,tx-(l.anchor==='start'?0:l.anchor==='end'?tw:tw/2)-3);rx=Math.max(rx,tx+(l.anchor==='end'?0:l.anchor==='start'?tw:tw/2)+3);ty=Math.min(ty,yy-fs*.7);by=Math.max(by,yy+fs*.7);}const limitH=v.caption?H-23:H-4;if(rx-lx>W-8||by-ty>limitH-4){scale*=Math.min((W-8)/(rx-lx),(limitH-4)/(by-ty))*.97;offsetX=0;offsetY=0;}else{if(lx<4)offsetX+=4-lx;if(rx>W-4)offsetX-=rx-W+4;if(ty<4)offsetY+=4-ty;if(by>limitH)offsetY-=by-limitH;}}
+
+  for(const l of labels)if(l.interiorAngle){
+    const {vertex,inside,points}=l.interiorAngle;
+    // Reserve room for the larger 22px labels used by the printed packet.
+    const fs=Math.max(22,l.fontSize||18),halfW=String(l.text).length*fs*.3+3,halfH=fs*.65+3,screen=points.map(p=>[X(p[0]),Y(p[1])]);
+    const fits=p=>[[p[0]-halfW,p[1]-halfH],[p[0]+halfW,p[1]-halfH],[p[0]+halfW,p[1]+halfH],[p[0]-halfW,p[1]+halfH]].every(q=>{
+      const cross=screen.map((a,i)=>{const b=screen[(i+1)%3];return (b[0]-a[0])*(q[1]-a[1])-(b[1]-a[1])*(q[0]-a[0]);});
+      return cross.every(x=>x>=-1e-6)||cross.every(x=>x<=1e-6);
+    });
+    for(let t=.1;t<=1.001;t+=.01){const p=vertex.map((x,k)=>x*(1-t)+inside[k]*t);if(fits([X(p[0]),Y(p[1])])){l.p=p;break;}}
+  }
 
   let out=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(v.alt||v.type+' diagram')}"><rect width="${W}" height="${H}" fill="white"/>`;
   for(const s of shapes){const stroke=s.color||INK,width=s.width||1.8,dash=s.dashed?' stroke-dasharray="5 4"':'',opacity=s.opacity?` opacity="${s.opacity}"`:'';
