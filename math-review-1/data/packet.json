@@ -1,6 +1,6 @@
 {
   "title": "8th Grade - Math Review 1",
-  "version": 6,
+  "version": 7,
   "pages": [
     {
       "number": 1,
@@ -5613,6 +5613,1128 @@
       "originalTitle": "One-step equations with rational numbers"
     },
     {
+      "number": 25.005,
+      "title": "Division equations: find x",
+      "chapter": "Equations & inequalities",
+      "subtitle": "",
+      "lesson": null,
+      "blocks": [
+        {
+          "id": "D7-01",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: x = 12/3",
+              "answer": "x = 4",
+              "value": 4,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Divide the numerator by the denominator.",
+                "x = 12 \u00f7 3 = 4."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "x = 12/3",
+              "division": {
+                "position": "quotient",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": null,
+                "numerator": 12,
+                "denominator": 3,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-01",
+          "number": 183
+        },
+        {
+          "id": "D7-02",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 21/7 = x",
+              "answer": "x = 3",
+              "value": 3,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Divide the numerator by the denominator.",
+                "x = 21 \u00f7 7 = 3."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "21/7 = x",
+              "division": {
+                "position": "quotient",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": null,
+                "numerator": 21,
+                "denominator": 7,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-02",
+          "number": 184
+        },
+        {
+          "id": "D7-03",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: x = 45/5",
+              "answer": "x = 9",
+              "value": 9,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Divide the numerator by the denominator.",
+                "x = 45 \u00f7 5 = 9."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "x = 45/5",
+              "division": {
+                "position": "quotient",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": null,
+                "numerator": 45,
+                "denominator": 5,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-03",
+          "number": 185
+        },
+        {
+          "id": "D7-04",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 56/8 = x",
+              "answer": "x = 7",
+              "value": 7,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Divide the numerator by the denominator.",
+                "x = 56 \u00f7 8 = 7."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "56/8 = x",
+              "division": {
+                "position": "quotient",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": null,
+                "numerator": 56,
+                "denominator": 8,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-04",
+          "number": 186
+        },
+        {
+          "id": "D7-05",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: x = 22/2",
+              "answer": "x = 11",
+              "value": 11,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Divide the numerator by the denominator.",
+                "x = 22 \u00f7 2 = 11."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "x = 22/2",
+              "division": {
+                "position": "quotient",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": null,
+                "numerator": 22,
+                "denominator": 2,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-05",
+          "number": 187
+        },
+        {
+          "id": "D7-06",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 54/9 = x",
+              "answer": "x = 6",
+              "value": 6,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Divide the numerator by the denominator.",
+                "x = 54 \u00f7 9 = 6."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "54/9 = x",
+              "division": {
+                "position": "quotient",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": null,
+                "numerator": 54,
+                "denominator": 9,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-06",
+          "number": 188
+        },
+        {
+          "id": "D7-07",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 5 = x/3",
+              "answer": "x = 15",
+              "value": 15,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by 3.",
+                "x = 5 \u00d7 3 = 15."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "5 = x/3",
+              "division": {
+                "position": "numerator",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 5,
+                "numerator": null,
+                "denominator": 3,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-07",
+          "number": 189
+        },
+        {
+          "id": "D7-08",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: x/4 = 8",
+              "answer": "x = 32",
+              "value": 32,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by 4.",
+                "x = 8 \u00d7 4 = 32."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "x/4 = 8",
+              "division": {
+                "position": "numerator",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 8,
+                "numerator": null,
+                "denominator": 4,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-08",
+          "number": 190
+        },
+        {
+          "id": "D7-09",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 7 = x/6",
+              "answer": "x = 42",
+              "value": 42,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by 6.",
+                "x = 7 \u00d7 6 = 42."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "7 = x/6",
+              "division": {
+                "position": "numerator",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 7,
+                "numerator": null,
+                "denominator": 6,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-09",
+          "number": 191
+        },
+        {
+          "id": "D7-10",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: x/9 = 5",
+              "answer": "x = 45",
+              "value": 45,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by 9.",
+                "x = 5 \u00d7 9 = 45."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "x/9 = 5",
+              "division": {
+                "position": "numerator",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 5,
+                "numerator": null,
+                "denominator": 9,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-10",
+          "number": 192
+        },
+        {
+          "id": "D7-11",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 4 = x/7",
+              "answer": "x = 28",
+              "value": 28,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by 7.",
+                "x = 4 \u00d7 7 = 28."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "4 = x/7",
+              "division": {
+                "position": "numerator",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 4,
+                "numerator": null,
+                "denominator": 7,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-11",
+          "number": 193
+        },
+        {
+          "id": "D7-12",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: x/8 = 12",
+              "answer": "x = 96",
+              "value": 96,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by 8.",
+                "x = 12 \u00d7 8 = 96."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "x/8 = 12",
+              "division": {
+                "position": "numerator",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 12,
+                "numerator": null,
+                "denominator": 8,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-12",
+          "number": 194
+        },
+        {
+          "id": "D7-13",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 6 = 48/x",
+              "answer": "x = 8",
+              "value": 8,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by x: 6x = 48.",
+                "Divide by 6: x = 48 \u00f7 6 = 8."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "6 = 48/x",
+              "division": {
+                "position": "denominator",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 6,
+                "numerator": 48,
+                "denominator": null,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-13",
+          "number": 195
+        },
+        {
+          "id": "D7-14",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 63/x = 7",
+              "answer": "x = 9",
+              "value": 9,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by x: 7x = 63.",
+                "Divide by 7: x = 63 \u00f7 7 = 9."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "63/x = 7",
+              "division": {
+                "position": "denominator",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 7,
+                "numerator": 63,
+                "denominator": null,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-14",
+          "number": 196
+        },
+        {
+          "id": "D7-15",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 4 = 52/x",
+              "answer": "x = 13",
+              "value": 13,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by x: 4x = 52.",
+                "Divide by 4: x = 52 \u00f7 4 = 13."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "4 = 52/x",
+              "division": {
+                "position": "denominator",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 4,
+                "numerator": 52,
+                "denominator": null,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-15",
+          "number": 197
+        },
+        {
+          "id": "D7-16",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 84/x = 6",
+              "answer": "x = 14",
+              "value": 14,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by x: 6x = 84.",
+                "Divide by 6: x = 84 \u00f7 6 = 14."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "84/x = 6",
+              "division": {
+                "position": "denominator",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 6,
+                "numerator": 84,
+                "denominator": null,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-16",
+          "number": 198
+        },
+        {
+          "id": "D7-17",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 9 = 153/x",
+              "answer": "x = 17",
+              "value": 17,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by x: 9x = 153.",
+                "Divide by 9: x = 153 \u00f7 9 = 17."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "9 = 153/x",
+              "division": {
+                "position": "denominator",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 9,
+                "numerator": 153,
+                "denominator": null,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-17",
+          "number": 199
+        },
+        {
+          "id": "D7-18",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 154/x = 7",
+              "answer": "x = 22",
+              "value": 22,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by x: 7x = 154.",
+                "Divide by 7: x = 154 \u00f7 7 = 22."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "154/x = 7",
+              "division": {
+                "position": "denominator",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": 7,
+                "numerator": 154,
+                "denominator": null,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-18",
+          "number": 200
+        },
+        {
+          "id": "D7-19",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: x = (-35)/5",
+              "answer": "x = -7",
+              "value": -7,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Divide the numerator by the denominator.",
+                "x = (-35) \u00f7 5 = -7."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "x = (-35)/5",
+              "division": {
+                "position": "quotient",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": true,
+                "quotient": null,
+                "numerator": -35,
+                "denominator": 5,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-19",
+          "number": 201
+        },
+        {
+          "id": "D7-20",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: x/6 = -8",
+              "answer": "x = -48",
+              "value": -48,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by 6.",
+                "x = (-8) \u00d7 6 = -48."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "x/6 = -8",
+              "division": {
+                "position": "numerator",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": true,
+                "quotient": -8,
+                "numerator": null,
+                "denominator": 6,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-20",
+          "number": 202
+        },
+        {
+          "id": "D7-21",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: -4 = 68/x",
+              "answer": "x = -17",
+              "value": -17,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by x: -4x = 68.",
+                "Divide by -4: x = 68 \u00f7 (-4) = -17."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "-4 = 68/x",
+              "division": {
+                "position": "denominator",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": true,
+                "quotient": -4,
+                "numerator": 68,
+                "denominator": null,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-21",
+          "number": 203
+        },
+        {
+          "id": "D7-22",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: (-72)/(-9) = x",
+              "answer": "x = 8",
+              "value": 8,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Divide the numerator by the denominator.",
+                "x = (-72) \u00f7 (-9) = 8."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "(-72)/(-9) = x",
+              "division": {
+                "position": "quotient",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": true,
+                "quotient": null,
+                "numerator": -72,
+                "denominator": -9,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-22",
+          "number": 204
+        },
+        {
+          "id": "D7-23",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: -6 = x/(-7)",
+              "answer": "x = 42",
+              "value": 42,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by -7.",
+                "x = (-6) \u00d7 (-7) = 42."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "-6 = x/(-7)",
+              "division": {
+                "position": "numerator",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": true,
+                "quotient": -6,
+                "numerator": null,
+                "denominator": -7,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-23",
+          "number": 205
+        },
+        {
+          "id": "D7-24",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: (-55)/x = 5",
+              "answer": "x = -11",
+              "value": -11,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by x: 5x = -55.",
+                "Divide by 5: x = (-55) \u00f7 5 = -11."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "(-55)/x = 5",
+              "division": {
+                "position": "denominator",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": true,
+                "quotient": 5,
+                "numerator": -55,
+                "denominator": null,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-24",
+          "number": 206
+        },
+        {
+          "id": "D7-25",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: x = 15/4",
+              "answer": "x = 15/4",
+              "value": 3.75,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Divide the numerator by the denominator.",
+                "x = 15 \u00f7 4 = 15/4."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "x = 15/4",
+              "division": {
+                "position": "quotient",
+                "orientation": "fraction-right",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": null,
+                "numerator": 15,
+                "denominator": 4,
+                "answerKind": "fraction"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-25",
+          "number": 207
+        },
+        {
+          "id": "D7-26",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: x/5 = 2.5",
+              "answer": "x = 25/2",
+              "value": 12.5,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by 5.",
+                "x = 2.5 \u00d7 5 = 25/2."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "x/5 = 2.5",
+              "division": {
+                "position": "numerator",
+                "orientation": "fraction-left",
+                "numberKind": "decimal",
+                "signed": false,
+                "quotient": 2.5,
+                "numerator": null,
+                "denominator": 5,
+                "answerKind": "fraction"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-26",
+          "number": 208
+        },
+        {
+          "id": "D7-27",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 1.5 = 18/x",
+              "answer": "x = 12",
+              "value": 12,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by x: 1.5x = 18.",
+                "Divide by 1.5: x = 18 \u00f7 1.5 = 12."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "1.5 = 18/x",
+              "division": {
+                "position": "denominator",
+                "orientation": "fraction-right",
+                "numberKind": "decimal",
+                "signed": false,
+                "quotient": 1.5,
+                "numerator": 18,
+                "denominator": null,
+                "answerKind": "integer"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-27",
+          "number": 209
+        },
+        {
+          "id": "D7-28",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 7/2 = x",
+              "answer": "x = 7/2",
+              "value": 3.5,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Divide the numerator by the denominator.",
+                "x = 7 \u00f7 2 = 7/2."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "7/2 = x",
+              "division": {
+                "position": "quotient",
+                "orientation": "fraction-left",
+                "numberKind": "integer",
+                "signed": false,
+                "quotient": null,
+                "numerator": 7,
+                "denominator": 2,
+                "answerKind": "fraction"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-28",
+          "number": 210
+        },
+        {
+          "id": "D7-29",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: 0.6 = x/(-4)",
+              "answer": "x = -12/5",
+              "value": -2.4,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by -4.",
+                "x = 0.6 \u00d7 (-4) = -12/5."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "0.6 = x/(-4)",
+              "division": {
+                "position": "numerator",
+                "orientation": "fraction-right",
+                "numberKind": "decimal",
+                "signed": true,
+                "quotient": 0.6,
+                "numerator": null,
+                "denominator": -4,
+                "answerKind": "fraction"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-29",
+          "number": 211
+        },
+        {
+          "id": "D7-30",
+          "title": "Division equations: find x",
+          "stage": "Single skill",
+          "prompt": "",
+          "model": null,
+          "parts": [
+            {
+              "id": "",
+              "prompt": "Solve: (-4.5)/x = 3",
+              "answer": "x = -3/2",
+              "value": -1.5,
+              "unit": "",
+              "accept": [],
+              "steps": [
+                "Multiply both sides by x: 3x = -4.5.",
+                "Divide by 3: x = (-4.5) \u00f7 3 = -3/2."
+              ],
+              "input": "number",
+              "visual": null,
+              "family": "equation-division-position",
+              "equation": "(-4.5)/x = 3",
+              "division": {
+                "position": "denominator",
+                "orientation": "fraction-left",
+                "numberKind": "decimal",
+                "signed": true,
+                "quotient": 3,
+                "numerator": -4.5,
+                "denominator": null,
+                "answerKind": "fraction"
+              }
+            }
+          ],
+          "sourceBlockId": "D7-30",
+          "number": 212
+        }
+      ],
+      "originalSection": 25.005,
+      "originalTitle": "Division equations: find x",
+      "forcePage": true
+    },
+    {
       "number": 25.01,
       "title": "One-step equations with rational numbers (continued)",
       "chapter": "Equations & inequalities",
@@ -5645,7 +6767,7 @@
             }
           ],
           "sourceBlockId": "N148",
-          "number": 183
+          "number": 213
         },
         {
           "id": "149",
@@ -5673,7 +6795,7 @@
             }
           ],
           "sourceBlockId": "N149",
-          "number": 184
+          "number": 214
         },
         {
           "id": "150",
@@ -5701,7 +6823,7 @@
             }
           ],
           "sourceBlockId": "N150",
-          "number": 185
+          "number": 215
         },
         {
           "id": "P10-1",
@@ -5729,7 +6851,7 @@
               "sourceSection": 25
             }
           ],
-          "number": 186
+          "number": 216
         },
         {
           "id": "P10-2",
@@ -5757,7 +6879,7 @@
               "sourceSection": 25
             }
           ],
-          "number": 187
+          "number": 217
         },
         {
           "id": "P10-3",
@@ -5785,7 +6907,7 @@
               "sourceSection": 25
             }
           ],
-          "number": 188
+          "number": 218
         }
       ],
       "originalSection": 25,
@@ -5824,7 +6946,7 @@
             }
           ],
           "sourceBlockId": "N151",
-          "number": 189
+          "number": 219
         },
         {
           "id": "152",
@@ -5852,7 +6974,7 @@
             }
           ],
           "sourceBlockId": "N152",
-          "number": 190
+          "number": 220
         },
         {
           "id": "153",
@@ -5880,7 +7002,7 @@
             }
           ],
           "sourceBlockId": "N153",
-          "number": 191
+          "number": 221
         },
         {
           "id": "154",
@@ -5908,7 +7030,7 @@
             }
           ],
           "sourceBlockId": "N154",
-          "number": 192
+          "number": 222
         },
         {
           "id": "155",
@@ -5936,7 +7058,7 @@
             }
           ],
           "sourceBlockId": "N155",
-          "number": 193
+          "number": 223
         },
         {
           "id": "156",
@@ -5964,7 +7086,7 @@
             }
           ],
           "sourceBlockId": "N156",
-          "number": 194
+          "number": 224
         }
       ],
       "originalSection": 26,
@@ -6003,7 +7125,7 @@
             }
           ],
           "sourceBlockId": "N157",
-          "number": 195
+          "number": 225
         },
         {
           "id": "158",
@@ -6032,7 +7154,7 @@
             }
           ],
           "sourceBlockId": "N158",
-          "number": 196
+          "number": 226
         },
         {
           "id": "159",
@@ -6061,7 +7183,7 @@
             }
           ],
           "sourceBlockId": "N159",
-          "number": 197
+          "number": 227
         },
         {
           "id": "160",
@@ -6090,7 +7212,7 @@
             }
           ],
           "sourceBlockId": "N160",
-          "number": 198
+          "number": 228
         },
         {
           "id": "161",
@@ -6119,7 +7241,7 @@
             }
           ],
           "sourceBlockId": "N161",
-          "number": 199
+          "number": 229
         },
         {
           "id": "162",
@@ -6150,7 +7272,7 @@
             }
           ],
           "sourceBlockId": "N162",
-          "number": 200
+          "number": 230
         }
       ],
       "originalSection": 27,
@@ -6190,7 +7312,7 @@
               "sourceSection": 27
             }
           ],
-          "number": 201
+          "number": 231
         },
         {
           "id": "P11-2",
@@ -6219,7 +7341,7 @@
               "sourceSection": 27
             }
           ],
-          "number": 202
+          "number": 232
         },
         {
           "id": "P11-3",
@@ -6248,7 +7370,7 @@
               "sourceSection": 27
             }
           ],
-          "number": 203
+          "number": 233
         },
         {
           "id": "P11-4",
@@ -6277,7 +7399,7 @@
               "sourceSection": 27
             }
           ],
-          "number": 204
+          "number": 234
         }
       ],
       "originalSection": 27,
@@ -6332,7 +7454,7 @@
             }
           ],
           "sourceBlockId": "N163",
-          "number": 205
+          "number": 235
         },
         {
           "id": "164",
@@ -6376,7 +7498,7 @@
             }
           ],
           "sourceBlockId": "N164",
-          "number": 206
+          "number": 236
         },
         {
           "id": "165",
@@ -6420,7 +7542,7 @@
             }
           ],
           "sourceBlockId": "N165",
-          "number": 207
+          "number": 237
         },
         {
           "id": "166",
@@ -6464,7 +7586,7 @@
             }
           ],
           "sourceBlockId": "N166",
-          "number": 208
+          "number": 238
         },
         {
           "id": "167",
@@ -6508,7 +7630,7 @@
             }
           ],
           "sourceBlockId": "N167",
-          "number": 209
+          "number": 239
         },
         {
           "id": "168",
@@ -6552,7 +7674,7 @@
             }
           ],
           "sourceBlockId": "N168",
-          "number": 210
+          "number": 240
         }
       ],
       "originalSection": 28,
@@ -6609,7 +7731,7 @@
             }
           ],
           "sourceBlockId": "N169",
-          "number": 211
+          "number": 241
         },
         {
           "id": "170",
@@ -6655,7 +7777,7 @@
             }
           ],
           "sourceBlockId": "N170",
-          "number": 212
+          "number": 242
         },
         {
           "id": "171",
@@ -6701,7 +7823,7 @@
             }
           ],
           "sourceBlockId": "N171",
-          "number": 213
+          "number": 243
         },
         {
           "id": "172",
@@ -6747,7 +7869,7 @@
             }
           ],
           "sourceBlockId": "N172",
-          "number": 214
+          "number": 244
         },
         {
           "id": "173",
@@ -6793,7 +7915,7 @@
             }
           ],
           "sourceBlockId": "N173",
-          "number": 215
+          "number": 245
         },
         {
           "id": "174",
@@ -6839,7 +7961,7 @@
             }
           ],
           "sourceBlockId": "N174",
-          "number": 216
+          "number": 246
         }
       ],
       "originalSection": 29,
@@ -6861,7 +7983,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "4, 9, 14, \u2026 Find the next two terms.",
+              "prompt": "4, 9, 14, \u2026 Write the next two numbers in this sequence.",
               "answer": "19, 24",
               "value": [
                 19,
@@ -6879,13 +8001,14 @@
               "sequence": {
                 "kind": "arithmetic",
                 "first": 4,
-                "difference": 5
+                "difference": 5,
+                "task": "continue"
               },
               "subtype": "next-terms"
             }
           ],
           "sourceBlockId": "N175",
-          "number": 217
+          "number": 247
         },
         {
           "id": "176",
@@ -6896,7 +8019,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "12, 8, 4, \u2026 Find the next two terms.",
+              "prompt": "12, 8, 4, \u2026 Write the next two numbers in this sequence.",
               "answer": "0, \u22124",
               "value": [
                 0,
@@ -6914,13 +8037,14 @@
               "sequence": {
                 "kind": "arithmetic",
                 "first": 12,
-                "difference": -4
+                "difference": -4,
+                "task": "continue"
               },
               "subtype": "next-terms"
             }
           ],
           "sourceBlockId": "N176",
-          "number": 218
+          "number": 248
         },
         {
           "id": "177",
@@ -6931,7 +8055,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "1/4, 3/4, 5/4, \u2026 Find the next two terms.",
+              "prompt": "1/4, 3/4, 5/4, \u2026 Write the next two numbers in this sequence.",
               "answer": "7/4, 9/4",
               "value": [
                 1.75,
@@ -6949,13 +8073,14 @@
               "sequence": {
                 "kind": "arithmetic",
                 "first": 0.25,
-                "difference": 0.5
+                "difference": 0.5,
+                "task": "continue"
               },
               "subtype": "next-terms"
             }
           ],
           "sourceBlockId": "N177",
-          "number": 219
+          "number": 249
         },
         {
           "id": "178",
@@ -6966,7 +8091,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "7, 10, 13, \u2026 Write term n, beginning with n = 1.",
+              "prompt": "7, 10, 13, \u2026 Write a formula in n for the value at position n. Position 1 is the first number, position 2 the second, and so on.",
               "answer": "3n + 4",
               "value": null,
               "unit": "",
@@ -6974,9 +8099,9 @@
                 "7+3(n-1)"
               ],
               "steps": [
-                "The first term is 7 and the difference is 3.",
-                "Term n = 7 + 3(n \u2212 1).",
-                "Expand and combine: 3n + 4."
+                "The first value is 7; each later value increases by 3.",
+                "At position n, there have been n \u2212 1 increases: value = 7 + 3(n \u2212 1).",
+                "Expand and combine: value = 3n + 4."
               ],
               "input": "text",
               "visual": null,
@@ -6984,14 +8109,15 @@
               "sequence": {
                 "kind": "arithmetic",
                 "first": 7,
-                "difference": 3
+                "difference": 3,
+                "task": "rule"
               },
               "subtype": "rule",
               "freeResponse": true
             }
           ],
           "sourceBlockId": "N178",
-          "number": 220
+          "number": 250
         },
         {
           "id": "179",
@@ -7002,7 +8128,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "Rule: term n = 2n \u2212 5. Find terms 1, 2, 3, 4.",
+              "prompt": "Rule: value = 2n \u2212 5, where n is the position. Find the first four values using n = 1, 2, 3, 4.",
               "answer": "\u22123, \u22121, 1, 3",
               "value": [
                 -3,
@@ -7013,9 +8139,9 @@
               "unit": "",
               "accept": [],
               "steps": [
-                "Substitute n = 1: 2(1) \u2212 5 = \u22123; n = 2: \u22121.",
-                "For n = 3 and 4, obtain 1 and 3.",
-                "The table is \u22123, \u22121, 1, 3."
+                "The position is n. Substitute n = 1: 2(1) \u2212 5 = \u22123; n = 2 gives \u22121.",
+                "For n = 3 and n = 4, obtain 1 and 3.",
+                "The first four values are \u22123, \u22121, 1, 3."
               ],
               "input": "number",
               "visual": null,
@@ -7023,13 +8149,14 @@
               "sequence": {
                 "kind": "arithmetic",
                 "first": -3,
-                "difference": 2
+                "difference": 2,
+                "task": "evaluate"
               },
               "subtype": "table"
             }
           ],
           "sourceBlockId": "N179",
-          "number": 221
+          "number": 251
         },
         {
           "id": "180",
@@ -7040,7 +8167,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "Plot (n, term n) for 1, 2, 3, 4, \u2026 using n = 1, 2, 3, 4.",
+              "prompt": "Sequence: 1, 2, 3, 4, \u2026 Use positions 1, 2, 3, 4 as x and the number at that position as y. Plot four separate points; do not connect them.",
               "answer": "(1, 1), (2, 2), (3, 3), (4, 4)",
               "value": [
                 1,
@@ -7055,9 +8182,9 @@
               "unit": "",
               "accept": [],
               "steps": [
-                "The first four terms are 1, 2, 3, 4.",
-                "Pair each position with its term: (1,1), (2,2), (3,3), (4,4).",
-                "Plot discrete points; sequence positions are whole numbers."
+                "The positions are 1, 2, 3, 4; the corresponding values are 1, 2, 3, 4.",
+                "Use (position, value): (1,1), (2,2), (3,3), (4,4).",
+                "Plot the four points separately; do not connect them."
               ],
               "input": "plot",
               "visual": {
@@ -7088,20 +8215,22 @@
                     "label": "D"
                   }
                 ],
-                "xLabel": "n",
-                "yLabel": "term"
+                "xLabel": "x",
+                "yLabel": "y",
+                "alt": "Sequence: 1, 2, 3, 4, \u2026 Use positions 1, 2, 3, 4 as x and the number at that position as y. Plot four separate points; do not connect them."
               },
               "family": "arithmetic-sequence",
               "sequence": {
                 "kind": "arithmetic",
                 "first": 1,
-                "difference": 1
+                "difference": 1,
+                "task": "plot"
               },
               "subtype": "plot"
             }
           ],
           "sourceBlockId": "N180",
-          "number": 222
+          "number": 252
         }
       ],
       "originalSection": 30,
@@ -7123,7 +8252,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "3, 6, 12, \u2026 Find the next two terms and the ratio.",
+              "prompt": "3, 6, 12, \u2026 Write the next two numbers and the common ratio. The ratio is the multiplier between consecutive numbers.",
               "answer": "24, 48; ratio 2",
               "value": [
                 24,
@@ -7142,14 +8271,15 @@
               "sequence": {
                 "kind": "geometric",
                 "first": 3,
-                "ratio": 2
+                "ratio": 2,
+                "task": "continue"
               },
               "subtype": "next-terms",
               "askRatio": true
             }
           ],
           "sourceBlockId": "N181",
-          "number": 223
+          "number": 253
         },
         {
           "id": "182",
@@ -7160,7 +8290,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "81, 27, 9, \u2026 Find the next two terms and the ratio.",
+              "prompt": "81, 27, 9, \u2026 Write the next two numbers and the common ratio. The ratio is the multiplier between consecutive numbers.",
               "answer": "3, 1; ratio 1/3",
               "value": [
                 3,
@@ -7179,14 +8309,15 @@
               "sequence": {
                 "kind": "geometric",
                 "first": 81,
-                "ratio": 0.3333333333333333
+                "ratio": 0.3333333333333333,
+                "task": "continue"
               },
               "subtype": "next-terms",
               "askRatio": true
             }
           ],
           "sourceBlockId": "N182",
-          "number": 224
+          "number": 254
         },
         {
           "id": "183",
@@ -7197,7 +8328,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "2, \u22126, 18, \u2026 Find the next two terms.",
+              "prompt": "2, \u22126, 18, \u2026 Write the next two numbers in this sequence.",
               "answer": "\u221254, 162",
               "value": [
                 -54,
@@ -7216,13 +8347,14 @@
               "sequence": {
                 "kind": "geometric",
                 "first": 2,
-                "ratio": -3
+                "ratio": -3,
+                "task": "continue"
               },
               "subtype": "next-terms"
             }
           ],
           "sourceBlockId": "N183",
-          "number": 225
+          "number": 255
         },
         {
           "id": "184",
@@ -7233,7 +8365,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "80, 40, 20, \u2026 Write term n, beginning with n = 1.",
+              "prompt": "80, 40, 20, \u2026 Write a formula in n for the value at position n. Position 1 is the first number, position 2 the second, and so on.",
               "answer": "80(1/2)^(n \u2212 1)",
               "value": null,
               "unit": "",
@@ -7241,8 +8373,9 @@
                 "80*(1/2)^(n-1)"
               ],
               "steps": [
-                "The first term is 80 and the common ratio is 1/2.",
-                "After n \u2212 1 multiplications, term n = 80(1/2)^(n \u2212 1)."
+                "The first value is 80; multiply by 1/2 to get each next value.",
+                "Position 1 requires zero multiplications, position 2 requires one, and position n requires n \u2212 1.",
+                "The value at position n is 80(1/2)^(n \u2212 1)."
               ],
               "input": "text",
               "visual": null,
@@ -7250,14 +8383,15 @@
               "sequence": {
                 "kind": "geometric",
                 "first": 80,
-                "ratio": 0.5
+                "ratio": 0.5,
+                "task": "rule"
               },
               "subtype": "rule",
               "freeResponse": true
             }
           ],
           "sourceBlockId": "N184",
-          "number": 226
+          "number": 256
         },
         {
           "id": "185",
@@ -7268,7 +8402,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "Rule: term n = 5 \u00d7 2^(n \u2212 1). Find terms 1, 2, 3, 4.",
+              "prompt": "Rule: value = 5 \u00d7 2^(n \u2212 1), where n is the position. Find the first four values using n = 1, 2, 3, 4.",
               "answer": "5, 10, 20, 40",
               "value": [
                 5,
@@ -7279,9 +8413,9 @@
               "unit": "",
               "accept": [],
               "steps": [
-                "The exponents are 0, 1, 2, 3.",
+                "Use n = 1, 2, 3, 4, so the exponents n \u2212 1 are 0, 1, 2, 3.",
                 "Compute 5 \u00d7 1, 5 \u00d7 2, 5 \u00d7 4, 5 \u00d7 8.",
-                "The terms are 5, 10, 20, 40."
+                "The first four values are 5, 10, 20, 40."
               ],
               "input": "number",
               "visual": null,
@@ -7289,13 +8423,14 @@
               "sequence": {
                 "kind": "geometric",
                 "first": 5,
-                "ratio": 2
+                "ratio": 2,
+                "task": "evaluate"
               },
               "subtype": "table"
             }
           ],
           "sourceBlockId": "N185",
-          "number": 227
+          "number": 257
         },
         {
           "id": "186",
@@ -7306,7 +8441,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "Plot (n, term n) for 1, 2, 4, 8, \u2026 using n = 1, 2, 3, 4.",
+              "prompt": "Sequence: 1, 2, 4, 8, \u2026 Use positions 1, 2, 3, 4 as x and the number at that position as y. Plot four separate points; do not connect them.",
               "answer": "(1, 1), (2, 2), (3, 4), (4, 8)",
               "value": [
                 1,
@@ -7321,9 +8456,9 @@
               "unit": "",
               "accept": [],
               "steps": [
-                "The positions are 1, 2, 3, 4; the terms are 1, 2, 4, 8.",
-                "Pair them: (1,1), (2,2), (3,4), (4,8).",
-                "Plot separate points; these values do not lie on one straight line."
+                "The positions are 1, 2, 3, 4; the corresponding values are 1, 2, 4, 8.",
+                "Use (position, value): (1,1), (2,2), (3,4), (4,8).",
+                "Plot the four points separately; do not connect them."
               ],
               "input": "plot",
               "visual": {
@@ -7354,20 +8489,22 @@
                     "label": "D"
                   }
                 ],
-                "xLabel": "n",
-                "yLabel": "term"
+                "xLabel": "x",
+                "yLabel": "y",
+                "alt": "Sequence: 1, 2, 4, 8, \u2026 Use positions 1, 2, 3, 4 as x and the number at that position as y. Plot four separate points; do not connect them."
               },
               "family": "geometric-sequence",
               "sequence": {
                 "kind": "geometric",
                 "first": 1,
-                "ratio": 2
+                "ratio": 2,
+                "task": "plot"
               },
               "subtype": "plot"
             }
           ],
           "sourceBlockId": "N186",
-          "number": 228
+          "number": 258
         }
       ],
       "originalSection": 31,
@@ -7389,7 +8526,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "Name the horizontal axis, the vertical axis, and the coordinates of A.",
+              "prompt": "Name the horizontal axis and the vertical axis. Write the ordered pair (x, y) for point A.",
               "answer": "x-axis; y-axis; (0, 0)",
               "value": null,
               "unit": "",
@@ -7412,7 +8549,8 @@
                     "label": "A"
                   }
                 ],
-                "targets": []
+                "targets": [],
+                "alt": "Name the horizontal axis and the vertical axis. Write the ordered pair (x, y) for point A."
               },
               "family": "coordinate-read",
               "freeResponse": true,
@@ -7420,7 +8558,7 @@
             }
           ],
           "sourceBlockId": "N187",
-          "number": 229
+          "number": 259
         },
         {
           "id": "188",
@@ -7431,13 +8569,13 @@
           "parts": [
             {
               "id": "",
-              "prompt": "Read A and B. Name each point\u2019s quadrant.",
+              "prompt": "Write the ordered pair (x, y) for each labeled point, A and B. Name the quadrant containing each point.",
               "answer": "A(\u22123, 2), II; B(4, \u22121), IV",
               "value": null,
               "unit": "",
               "accept": [],
               "steps": [
-                "Read horizontal position before vertical position.",
+                "Write x first (horizontal position), then y (vertical position).",
                 "A is 3 left and 2 up: (\u22123, 2), quadrant II.",
                 "B is 4 right and 1 down: (4, \u22121), quadrant IV."
               ],
@@ -7459,7 +8597,8 @@
                     "label": "B"
                   }
                 ],
-                "targets": []
+                "targets": [],
+                "alt": "Write the ordered pair (x, y) for each labeled point, A and B. Name the quadrant containing each point."
               },
               "family": "coordinate-read",
               "freeResponse": true,
@@ -7467,7 +8606,7 @@
             }
           ],
           "sourceBlockId": "N188",
-          "number": 230
+          "number": 260
         },
         {
           "id": "189",
@@ -7478,7 +8617,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "Read A and B. Name each point\u2019s quadrant.",
+              "prompt": "Write the ordered pair (x, y) for each labeled point, A and B. Name the quadrant containing each point.",
               "answer": "A(2, 4), I; B(\u22124, \u22123), III",
               "value": null,
               "unit": "",
@@ -7505,7 +8644,8 @@
                     "label": "B"
                   }
                 ],
-                "targets": []
+                "targets": [],
+                "alt": "Write the ordered pair (x, y) for each labeled point, A and B. Name the quadrant containing each point."
               },
               "family": "coordinate-read",
               "freeResponse": true,
@@ -7513,7 +8653,7 @@
             }
           ],
           "sourceBlockId": "N189",
-          "number": 231
+          "number": 261
         },
         {
           "id": "190",
@@ -7524,7 +8664,7 @@
           "parts": [
             {
               "id": "",
-              "prompt": "Read A and B. Each small interval is 1 unit; A lies halfway between ticks.",
+              "prompt": "Write the ordered pair (x, y) for A and for B. Each interval is 1 unit; A lies halfway between ticks.",
               "answer": "A(1.5, \u22122.5); B(0, 3)",
               "value": [
                 1.5,
@@ -7556,14 +8696,15 @@
                     "label": "B"
                   }
                 ],
-                "targets": []
+                "targets": [],
+                "alt": "Write the ordered pair (x, y) for A and for B. Each interval is 1 unit; A lies halfway between ticks."
               },
               "family": "coordinate-read",
               "subtype": "read"
             }
           ],
           "sourceBlockId": "N190",
-          "number": 232
+          "number": 262
         }
       ],
       "originalSection": 32,
@@ -7623,7 +8764,7 @@
             }
           ],
           "sourceBlockId": "N191",
-          "number": 233
+          "number": 263
         },
         {
           "id": "192",
@@ -7672,7 +8813,7 @@
             }
           ],
           "sourceBlockId": "N192",
-          "number": 234
+          "number": 264
         },
         {
           "id": "193",
@@ -7721,7 +8862,7 @@
             }
           ],
           "sourceBlockId": "N193",
-          "number": 235
+          "number": 265
         },
         {
           "id": "194",
@@ -7770,7 +8911,7 @@
             }
           ],
           "sourceBlockId": "N194",
-          "number": 236
+          "number": 266
         }
       ],
       "originalSection": 33,
@@ -7807,7 +8948,7 @@
             }
           ],
           "sourceBlockId": "N195",
-          "number": 237
+          "number": 267
         },
         {
           "id": "196",
@@ -7837,7 +8978,7 @@
             }
           ],
           "sourceBlockId": "N196",
-          "number": 238
+          "number": 268
         },
         {
           "id": "197",
@@ -7868,7 +9009,7 @@
             }
           ],
           "sourceBlockId": "N197",
-          "number": 239
+          "number": 269
         },
         {
           "id": "198",
@@ -7899,7 +9040,7 @@
             }
           ],
           "sourceBlockId": "N198",
-          "number": 240
+          "number": 270
         },
         {
           "id": "199",
@@ -7928,7 +9069,7 @@
             }
           ],
           "sourceBlockId": "N199",
-          "number": 241
+          "number": 271
         },
         {
           "id": "200",
@@ -7955,7 +9096,7 @@
             }
           ],
           "sourceBlockId": "N200",
-          "number": 242
+          "number": 272
         },
         {
           "id": "P16-1",
@@ -7982,7 +9123,7 @@
               "sourceSection": 34
             }
           ],
-          "number": 243
+          "number": 273
         },
         {
           "id": "P16-2",
@@ -8013,7 +9154,7 @@
               "sourceSection": 34
             }
           ],
-          "number": 244
+          "number": 274
         },
         {
           "id": "P16-3",
@@ -8055,7 +9196,7 @@
               "sourceSection": 34
             }
           ],
-          "number": 245
+          "number": 275
         },
         {
           "id": "P16-4",
@@ -8097,7 +9238,7 @@
               "sourceSection": 34
             }
           ],
-          "number": 246
+          "number": 276
         },
         {
           "id": "P16-5",
@@ -8126,7 +9267,7 @@
               "sourceSection": 34
             }
           ],
-          "number": 247
+          "number": 277
         },
         {
           "id": "P16-6",
@@ -8154,7 +9295,7 @@
               "sourceSection": 34
             }
           ],
-          "number": 248
+          "number": 278
         }
       ],
       "originalSection": 34,
@@ -8236,7 +9377,7 @@
             }
           ],
           "sourceBlockId": "N201",
-          "number": 249
+          "number": 279
         },
         {
           "id": "202",
@@ -8307,7 +9448,7 @@
             }
           ],
           "sourceBlockId": "N202",
-          "number": 250
+          "number": 280
         },
         {
           "id": "203",
@@ -8357,7 +9498,7 @@
             }
           ],
           "sourceBlockId": "N203",
-          "number": 251
+          "number": 281
         },
         {
           "id": "204",
@@ -8409,7 +9550,7 @@
             }
           ],
           "sourceBlockId": "N204",
-          "number": 252
+          "number": 282
         }
       ],
       "originalSection": 35,
@@ -8448,7 +9589,7 @@
             }
           ],
           "sourceBlockId": "N205",
-          "number": 253
+          "number": 283
         },
         {
           "id": "206",
@@ -8476,7 +9617,7 @@
             }
           ],
           "sourceBlockId": "N206",
-          "number": 254
+          "number": 284
         },
         {
           "id": "207",
@@ -8504,7 +9645,7 @@
             }
           ],
           "sourceBlockId": "N207",
-          "number": 255
+          "number": 285
         },
         {
           "id": "208",
@@ -8532,7 +9673,7 @@
             }
           ],
           "sourceBlockId": "N208",
-          "number": 256
+          "number": 286
         },
         {
           "id": "209",
@@ -8562,7 +9703,7 @@
             }
           ],
           "sourceBlockId": "N209",
-          "number": 257
+          "number": 287
         },
         {
           "id": "210",
@@ -8592,7 +9733,7 @@
             }
           ],
           "sourceBlockId": "N210",
-          "number": 258
+          "number": 288
         }
       ],
       "originalSection": 36,
@@ -8631,7 +9772,7 @@
             }
           ],
           "sourceBlockId": "N211",
-          "number": 259
+          "number": 289
         },
         {
           "id": "212",
@@ -8659,7 +9800,7 @@
             }
           ],
           "sourceBlockId": "N212",
-          "number": 260
+          "number": 290
         },
         {
           "id": "213",
@@ -8686,7 +9827,7 @@
             }
           ],
           "sourceBlockId": "N213",
-          "number": 261
+          "number": 291
         },
         {
           "id": "214",
@@ -8713,7 +9854,7 @@
             }
           ],
           "sourceBlockId": "N214",
-          "number": 262
+          "number": 292
         },
         {
           "id": "215",
@@ -8741,7 +9882,7 @@
             }
           ],
           "sourceBlockId": "N215",
-          "number": 263
+          "number": 293
         },
         {
           "id": "216",
@@ -8769,7 +9910,7 @@
             }
           ],
           "sourceBlockId": "N216",
-          "number": 264
+          "number": 294
         }
       ],
       "originalSection": 37,
@@ -8807,7 +9948,7 @@
             }
           ],
           "sourceBlockId": "N217",
-          "number": 265
+          "number": 295
         },
         {
           "id": "218",
@@ -8834,7 +9975,7 @@
             }
           ],
           "sourceBlockId": "N218",
-          "number": 266
+          "number": 296
         },
         {
           "id": "219",
@@ -8861,7 +10002,7 @@
             }
           ],
           "sourceBlockId": "N219",
-          "number": 267
+          "number": 297
         },
         {
           "id": "220",
@@ -8888,7 +10029,7 @@
             }
           ],
           "sourceBlockId": "N220",
-          "number": 268
+          "number": 298
         },
         {
           "id": "221",
@@ -8915,7 +10056,7 @@
             }
           ],
           "sourceBlockId": "N221",
-          "number": 269
+          "number": 299
         },
         {
           "id": "222",
@@ -8942,7 +10083,7 @@
             }
           ],
           "sourceBlockId": "N222",
-          "number": 270
+          "number": 300
         }
       ],
       "originalSection": 38,
@@ -8985,7 +10126,7 @@
             }
           ],
           "sourceBlockId": "N223",
-          "number": 271
+          "number": 301
         },
         {
           "id": "224",
@@ -9017,7 +10158,7 @@
             }
           ],
           "sourceBlockId": "N224",
-          "number": 272
+          "number": 302
         },
         {
           "id": "225",
@@ -9046,7 +10187,7 @@
             }
           ],
           "sourceBlockId": "N225",
-          "number": 273
+          "number": 303
         },
         {
           "id": "226",
@@ -9075,7 +10216,7 @@
             }
           ],
           "sourceBlockId": "N226",
-          "number": 274
+          "number": 304
         },
         {
           "id": "227",
@@ -9104,7 +10245,7 @@
             }
           ],
           "sourceBlockId": "N227",
-          "number": 275
+          "number": 305
         },
         {
           "id": "228",
@@ -9133,7 +10274,7 @@
             }
           ],
           "sourceBlockId": "N228",
-          "number": 276
+          "number": 306
         },
         {
           "id": "P19-1",
@@ -9165,7 +10306,7 @@
               "sourceSection": 39
             }
           ],
-          "number": 277
+          "number": 307
         },
         {
           "id": "P19-2",
@@ -9197,7 +10338,7 @@
               "sourceSection": 39
             }
           ],
-          "number": 278
+          "number": 308
         },
         {
           "id": "P19-3",
@@ -9225,7 +10366,7 @@
               "sourceSection": 39
             }
           ],
-          "number": 279
+          "number": 309
         },
         {
           "id": "P19-4",
@@ -9253,7 +10394,7 @@
               "sourceSection": 39
             }
           ],
-          "number": 280
+          "number": 310
         }
       ],
       "originalSection": 39,
@@ -9297,7 +10438,7 @@
             }
           ],
           "sourceBlockId": "N229",
-          "number": 281
+          "number": 311
         },
         {
           "id": "230",
@@ -9330,7 +10471,7 @@
             }
           ],
           "sourceBlockId": "N230",
-          "number": 282
+          "number": 312
         },
         {
           "id": "231",
@@ -9363,7 +10504,7 @@
             }
           ],
           "sourceBlockId": "N231",
-          "number": 283
+          "number": 313
         },
         {
           "id": "232",
@@ -9391,7 +10532,7 @@
             }
           ],
           "sourceBlockId": "N232",
-          "number": 284
+          "number": 314
         },
         {
           "id": "233",
@@ -9419,7 +10560,7 @@
             }
           ],
           "sourceBlockId": "N233",
-          "number": 285
+          "number": 315
         },
         {
           "id": "234",
@@ -9447,7 +10588,7 @@
             }
           ],
           "sourceBlockId": "N234",
-          "number": 286
+          "number": 316
         }
       ],
       "originalSection": 40,
@@ -9485,7 +10626,7 @@
             }
           ],
           "sourceBlockId": "N235",
-          "number": 287
+          "number": 317
         },
         {
           "id": "236",
@@ -9512,7 +10653,7 @@
             }
           ],
           "sourceBlockId": "N236",
-          "number": 288
+          "number": 318
         },
         {
           "id": "237",
@@ -9539,7 +10680,7 @@
             }
           ],
           "sourceBlockId": "N237",
-          "number": 289
+          "number": 319
         },
         {
           "id": "238",
@@ -9566,7 +10707,7 @@
             }
           ],
           "sourceBlockId": "N238",
-          "number": 290
+          "number": 320
         }
       ],
       "originalSection": 41,
@@ -9604,7 +10745,7 @@
             }
           ],
           "sourceBlockId": "N239",
-          "number": 291
+          "number": 321
         },
         {
           "id": "240",
@@ -9632,7 +10773,7 @@
             }
           ],
           "sourceBlockId": "N240",
-          "number": 292
+          "number": 322
         },
         {
           "id": "P20-1",
@@ -9659,7 +10800,7 @@
               "sourceSection": 41
             }
           ],
-          "number": 293
+          "number": 323
         },
         {
           "id": "P20-2",
@@ -9686,7 +10827,7 @@
               "sourceSection": 41
             }
           ],
-          "number": 294
+          "number": 324
         }
       ],
       "originalSection": 41,
@@ -9725,7 +10866,7 @@
             }
           ],
           "sourceBlockId": "N241",
-          "number": 295
+          "number": 325
         },
         {
           "id": "242",
@@ -9752,7 +10893,7 @@
             }
           ],
           "sourceBlockId": "N242",
-          "number": 296
+          "number": 326
         },
         {
           "id": "243",
@@ -9779,7 +10920,7 @@
             }
           ],
           "sourceBlockId": "N243",
-          "number": 297
+          "number": 327
         },
         {
           "id": "244",
@@ -9807,7 +10948,7 @@
             }
           ],
           "sourceBlockId": "N244",
-          "number": 298
+          "number": 328
         },
         {
           "id": "245",
@@ -9837,7 +10978,7 @@
             }
           ],
           "sourceBlockId": "N245",
-          "number": 299
+          "number": 329
         },
         {
           "id": "246",
@@ -9866,7 +11007,7 @@
             }
           ],
           "sourceBlockId": "N246",
-          "number": 300
+          "number": 330
         },
         {
           "id": "P21-1",
@@ -9893,7 +11034,7 @@
               "sourceSection": 42
             }
           ],
-          "number": 301
+          "number": 331
         },
         {
           "id": "P21-2",
@@ -9919,7 +11060,7 @@
               "sourceSection": 42
             }
           ],
-          "number": 302
+          "number": 332
         },
         {
           "id": "P21-3",
@@ -9946,7 +11087,7 @@
               "sourceSection": 42
             }
           ],
-          "number": 303
+          "number": 333
         },
         {
           "id": "P21-4",
@@ -9973,7 +11114,7 @@
               "sourceSection": 42
             }
           ],
-          "number": 304
+          "number": 334
         },
         {
           "id": "P21-5",
@@ -10005,7 +11146,7 @@
               "sourceSection": 42
             }
           ],
-          "number": 305
+          "number": 335
         },
         {
           "id": "P21-6",
@@ -10033,7 +11174,7 @@
               "sourceSection": 42
             }
           ],
-          "number": 306
+          "number": 336
         },
         {
           "id": "P21-7",
@@ -10060,7 +11201,7 @@
               "sourceSection": 42
             }
           ],
-          "number": 307
+          "number": 337
         },
         {
           "id": "P21-8",
@@ -10086,7 +11227,7 @@
               "sourceSection": 42
             }
           ],
-          "number": 308
+          "number": 338
         },
         {
           "id": "P21-9",
@@ -10113,7 +11254,7 @@
               "sourceSection": 42
             }
           ],
-          "number": 309
+          "number": 339
         },
         {
           "id": "P21-10",
@@ -10140,7 +11281,7 @@
               "sourceSection": 42
             }
           ],
-          "number": 310
+          "number": 340
         }
       ],
       "originalSection": 42,
@@ -10255,7 +11396,7 @@
             }
           ],
           "sourceBlockId": "G1",
-          "number": 311
+          "number": 341
         },
         {
           "id": "248",
@@ -10379,7 +11520,7 @@
             }
           ],
           "sourceBlockId": "G2",
-          "number": 312
+          "number": 342
         },
         {
           "id": "249",
@@ -10445,7 +11586,7 @@
             }
           ],
           "sourceBlockId": "G3",
-          "number": 313
+          "number": 343
         },
         {
           "id": "250",
@@ -10511,7 +11652,7 @@
             }
           ],
           "sourceBlockId": "G4",
-          "number": 314
+          "number": 344
         },
         {
           "id": "251",
@@ -10577,7 +11718,7 @@
             }
           ],
           "sourceBlockId": "G5",
-          "number": 315
+          "number": 345
         },
         {
           "id": "252",
@@ -10643,7 +11784,7 @@
             }
           ],
           "sourceBlockId": "G6",
-          "number": 316
+          "number": 346
         }
       ],
       "originalSection": 43,
@@ -10782,7 +11923,7 @@
             }
           ],
           "sourceBlockId": "G7",
-          "number": 317
+          "number": 347
         },
         {
           "id": "254",
@@ -10934,7 +12075,7 @@
             }
           ],
           "sourceBlockId": "G8",
-          "number": 318
+          "number": 348
         },
         {
           "id": "255",
@@ -11000,7 +12141,7 @@
             }
           ],
           "sourceBlockId": "G9",
-          "number": 319
+          "number": 349
         },
         {
           "id": "256",
@@ -11066,7 +12207,7 @@
             }
           ],
           "sourceBlockId": "G10",
-          "number": 320
+          "number": 350
         },
         {
           "id": "257",
@@ -11132,7 +12273,7 @@
             }
           ],
           "sourceBlockId": "G11",
-          "number": 321
+          "number": 351
         },
         {
           "id": "258",
@@ -11198,7 +12339,7 @@
             }
           ],
           "sourceBlockId": "G12",
-          "number": 322
+          "number": 352
         }
       ],
       "originalSection": 44,
@@ -11322,7 +12463,7 @@
             }
           ],
           "sourceBlockId": "G13",
-          "number": 323
+          "number": 353
         },
         {
           "id": "260",
@@ -11435,7 +12576,7 @@
             }
           ],
           "sourceBlockId": "G14",
-          "number": 324
+          "number": 354
         },
         {
           "id": "261",
@@ -11548,7 +12689,7 @@
             }
           ],
           "sourceBlockId": "G15",
-          "number": 325
+          "number": 355
         },
         {
           "id": "262",
@@ -11661,7 +12802,7 @@
             }
           ],
           "sourceBlockId": "G16",
-          "number": 326
+          "number": 356
         },
         {
           "id": "263",
@@ -11774,7 +12915,7 @@
             }
           ],
           "sourceBlockId": "G17",
-          "number": 327
+          "number": 357
         },
         {
           "id": "264",
@@ -11887,7 +13028,7 @@
             }
           ],
           "sourceBlockId": "G18",
-          "number": 328
+          "number": 358
         }
       ],
       "originalSection": 45,
@@ -11985,7 +13126,7 @@
             }
           ],
           "sourceBlockId": "G19",
-          "number": 329
+          "number": 359
         },
         {
           "id": "266",
@@ -12072,7 +13213,7 @@
             }
           ],
           "sourceBlockId": "G20",
-          "number": 330
+          "number": 360
         },
         {
           "id": "267",
@@ -12159,7 +13300,7 @@
             }
           ],
           "sourceBlockId": "G21",
-          "number": 331
+          "number": 361
         },
         {
           "id": "268",
@@ -12246,7 +13387,7 @@
             }
           ],
           "sourceBlockId": "G22",
-          "number": 332
+          "number": 362
         },
         {
           "id": "269",
@@ -12333,7 +13474,7 @@
             }
           ],
           "sourceBlockId": "G23",
-          "number": 333
+          "number": 363
         },
         {
           "id": "270",
@@ -12420,7 +13561,7 @@
             }
           ],
           "sourceBlockId": "G24",
-          "number": 334
+          "number": 364
         }
       ],
       "originalSection": 46,
@@ -12524,7 +13665,7 @@
             }
           ],
           "sourceBlockId": "G25",
-          "number": 335
+          "number": 365
         },
         {
           "id": "272",
@@ -12617,7 +13758,7 @@
             }
           ],
           "sourceBlockId": "G26",
-          "number": 336
+          "number": 366
         },
         {
           "id": "273",
@@ -12710,7 +13851,7 @@
             }
           ],
           "sourceBlockId": "G27",
-          "number": 337
+          "number": 367
         },
         {
           "id": "274",
@@ -12803,7 +13944,7 @@
             }
           ],
           "sourceBlockId": "G28",
-          "number": 338
+          "number": 368
         },
         {
           "id": "275",
@@ -12896,7 +14037,7 @@
             }
           ],
           "sourceBlockId": "G29",
-          "number": 339
+          "number": 369
         },
         {
           "id": "276",
@@ -12989,7 +14130,7 @@
             }
           ],
           "sourceBlockId": "G30",
-          "number": 340
+          "number": 370
         }
       ],
       "originalSection": 47,
@@ -13097,7 +14238,7 @@
             }
           ],
           "sourceBlockId": "G31",
-          "number": 341
+          "number": 371
         },
         {
           "id": "278",
@@ -13194,7 +14335,7 @@
             }
           ],
           "sourceBlockId": "G32",
-          "number": 342
+          "number": 372
         },
         {
           "id": "279",
@@ -13291,7 +14432,7 @@
             }
           ],
           "sourceBlockId": "G33",
-          "number": 343
+          "number": 373
         },
         {
           "id": "280",
@@ -13388,7 +14529,7 @@
             }
           ],
           "sourceBlockId": "G34",
-          "number": 344
+          "number": 374
         },
         {
           "id": "281",
@@ -13485,7 +14626,7 @@
             }
           ],
           "sourceBlockId": "G35",
-          "number": 345
+          "number": 375
         },
         {
           "id": "282",
@@ -13582,7 +14723,7 @@
             }
           ],
           "sourceBlockId": "G36",
-          "number": 346
+          "number": 376
         }
       ],
       "originalSection": 48,
@@ -13627,7 +14768,7 @@
             }
           ],
           "sourceBlockId": "G37",
-          "number": 347
+          "number": 377
         },
         {
           "id": "284",
@@ -13661,7 +14802,7 @@
             }
           ],
           "sourceBlockId": "G38",
-          "number": 348
+          "number": 378
         },
         {
           "id": "285",
@@ -13695,7 +14836,7 @@
             }
           ],
           "sourceBlockId": "G39",
-          "number": 349
+          "number": 379
         },
         {
           "id": "286",
@@ -13729,7 +14870,7 @@
             }
           ],
           "sourceBlockId": "G40",
-          "number": 350
+          "number": 380
         },
         {
           "id": "287",
@@ -13763,7 +14904,7 @@
             }
           ],
           "sourceBlockId": "G41",
-          "number": 351
+          "number": 381
         },
         {
           "id": "288",
@@ -13797,7 +14938,7 @@
             }
           ],
           "sourceBlockId": "G42",
-          "number": 352
+          "number": 382
         }
       ],
       "originalSection": 49,
@@ -13842,7 +14983,7 @@
             }
           ],
           "sourceBlockId": "G43",
-          "number": 353
+          "number": 383
         },
         {
           "id": "290",
@@ -13876,7 +15017,7 @@
             }
           ],
           "sourceBlockId": "G44",
-          "number": 354
+          "number": 384
         },
         {
           "id": "291",
@@ -13910,7 +15051,7 @@
             }
           ],
           "sourceBlockId": "G45",
-          "number": 355
+          "number": 385
         },
         {
           "id": "292",
@@ -13944,7 +15085,7 @@
             }
           ],
           "sourceBlockId": "G46",
-          "number": 356
+          "number": 386
         },
         {
           "id": "293",
@@ -13978,7 +15119,7 @@
             }
           ],
           "sourceBlockId": "G47",
-          "number": 357
+          "number": 387
         },
         {
           "id": "294",
@@ -14012,7 +15153,7 @@
             }
           ],
           "sourceBlockId": "G48",
-          "number": 358
+          "number": 388
         }
       ],
       "originalSection": 50,
@@ -14057,7 +15198,7 @@
             }
           ],
           "sourceBlockId": "G49",
-          "number": 359
+          "number": 389
         },
         {
           "id": "296",
@@ -14091,7 +15232,7 @@
             }
           ],
           "sourceBlockId": "G50",
-          "number": 360
+          "number": 390
         },
         {
           "id": "297",
@@ -14125,7 +15266,7 @@
             }
           ],
           "sourceBlockId": "G51",
-          "number": 361
+          "number": 391
         },
         {
           "id": "298",
@@ -14160,7 +15301,7 @@
             }
           ],
           "sourceBlockId": "G52",
-          "number": 362
+          "number": 392
         },
         {
           "id": "299",
@@ -14195,7 +15336,7 @@
             }
           ],
           "sourceBlockId": "G53",
-          "number": 363
+          "number": 393
         },
         {
           "id": "300",
@@ -14230,7 +15371,7 @@
             }
           ],
           "sourceBlockId": "G54",
-          "number": 364
+          "number": 394
         }
       ],
       "originalSection": 51,
@@ -14278,7 +15419,7 @@
             }
           ],
           "sourceBlockId": "G55",
-          "number": 365
+          "number": 395
         },
         {
           "id": "302",
@@ -14315,7 +15456,7 @@
             }
           ],
           "sourceBlockId": "G56",
-          "number": 366
+          "number": 396
         },
         {
           "id": "303",
@@ -14352,7 +15493,7 @@
             }
           ],
           "sourceBlockId": "G57",
-          "number": 367
+          "number": 397
         },
         {
           "id": "304",
@@ -14387,7 +15528,7 @@
             }
           ],
           "sourceBlockId": "G58",
-          "number": 368
+          "number": 398
         },
         {
           "id": "305",
@@ -14422,7 +15563,7 @@
             }
           ],
           "sourceBlockId": "G59",
-          "number": 369
+          "number": 399
         },
         {
           "id": "306",
@@ -14457,7 +15598,7 @@
             }
           ],
           "sourceBlockId": "G60",
-          "number": 370
+          "number": 400
         }
       ],
       "originalSection": 52,
@@ -14517,7 +15658,7 @@
             }
           ],
           "sourceBlockId": "G61",
-          "number": 371
+          "number": 401
         },
         {
           "id": "308",
@@ -14566,7 +15707,7 @@
             }
           ],
           "sourceBlockId": "G62",
-          "number": 372
+          "number": 402
         },
         {
           "id": "309",
@@ -14615,7 +15756,7 @@
             }
           ],
           "sourceBlockId": "G63",
-          "number": 373
+          "number": 403
         },
         {
           "id": "310",
@@ -14664,7 +15805,7 @@
             }
           ],
           "sourceBlockId": "G64",
-          "number": 374
+          "number": 404
         },
         {
           "id": "311",
@@ -14712,7 +15853,7 @@
             }
           ],
           "sourceBlockId": "G65",
-          "number": 375
+          "number": 405
         },
         {
           "id": "312",
@@ -14760,7 +15901,7 @@
             }
           ],
           "sourceBlockId": "G66",
-          "number": 376
+          "number": 406
         }
       ],
       "originalSection": 53,
@@ -14821,7 +15962,7 @@
             }
           ],
           "sourceBlockId": "G67",
-          "number": 377
+          "number": 407
         },
         {
           "id": "314",
@@ -14871,7 +16012,7 @@
             }
           ],
           "sourceBlockId": "G68",
-          "number": 378
+          "number": 408
         },
         {
           "id": "315",
@@ -14921,7 +16062,7 @@
             }
           ],
           "sourceBlockId": "G69",
-          "number": 379
+          "number": 409
         },
         {
           "id": "316",
@@ -14971,7 +16112,7 @@
             }
           ],
           "sourceBlockId": "G70",
-          "number": 380
+          "number": 410
         },
         {
           "id": "317",
@@ -15020,7 +16161,7 @@
             }
           ],
           "sourceBlockId": "G71",
-          "number": 381
+          "number": 411
         },
         {
           "id": "318",
@@ -15069,7 +16210,7 @@
             }
           ],
           "sourceBlockId": "G72",
-          "number": 382
+          "number": 412
         }
       ],
       "originalSection": 54,
@@ -15128,7 +16269,7 @@
             }
           ],
           "sourceBlockId": "G73",
-          "number": 383
+          "number": 413
         },
         {
           "id": "320",
@@ -15176,7 +16317,7 @@
             }
           ],
           "sourceBlockId": "G74",
-          "number": 384
+          "number": 414
         },
         {
           "id": "321",
@@ -15224,7 +16365,7 @@
             }
           ],
           "sourceBlockId": "G75",
-          "number": 385
+          "number": 415
         },
         {
           "id": "322",
@@ -15272,7 +16413,7 @@
             }
           ],
           "sourceBlockId": "G76",
-          "number": 386
+          "number": 416
         },
         {
           "id": "323",
@@ -15322,7 +16463,7 @@
             }
           ],
           "sourceBlockId": "G77",
-          "number": 387
+          "number": 417
         },
         {
           "id": "324",
@@ -15389,7 +16530,7 @@
             }
           ],
           "sourceBlockId": "G78",
-          "number": 388
+          "number": 418
         }
       ],
       "originalSection": 55,
@@ -15470,7 +16611,7 @@
             }
           ],
           "sourceBlockId": "G83",
-          "number": 389
+          "number": 419
         },
         {
           "id": "330",
@@ -15540,7 +16681,7 @@
             }
           ],
           "sourceBlockId": "G84",
-          "number": 390
+          "number": 420
         },
         {
           "id": "331",
@@ -15610,7 +16751,7 @@
             }
           ],
           "sourceBlockId": "G85",
-          "number": 391
+          "number": 421
         },
         {
           "id": "332",
@@ -15680,7 +16821,7 @@
             }
           ],
           "sourceBlockId": "G86",
-          "number": 392
+          "number": 422
         },
         {
           "id": "333",
@@ -15750,7 +16891,7 @@
             }
           ],
           "sourceBlockId": "G87",
-          "number": 393
+          "number": 423
         },
         {
           "id": "334",
@@ -15820,7 +16961,7 @@
             }
           ],
           "sourceBlockId": "G88",
-          "number": 394
+          "number": 424
         }
       ],
       "originalSection": 57,
@@ -15909,7 +17050,7 @@
             }
           ],
           "sourceBlockId": "G89",
-          "number": 395
+          "number": 425
         },
         {
           "id": "336",
@@ -15987,7 +17128,7 @@
             }
           ],
           "sourceBlockId": "G90",
-          "number": 396
+          "number": 426
         },
         {
           "id": "337",
@@ -16065,7 +17206,7 @@
             }
           ],
           "sourceBlockId": "G91",
-          "number": 397
+          "number": 427
         },
         {
           "id": "338",
@@ -16143,7 +17284,7 @@
             }
           ],
           "sourceBlockId": "G92",
-          "number": 398
+          "number": 428
         }
       ],
       "originalSection": 58,
@@ -16332,7 +17473,7 @@
             }
           ],
           "sourceBlockId": "G93",
-          "number": 399
+          "number": 429
         },
         {
           "id": "340",
@@ -16505,7 +17646,7 @@
             }
           ],
           "sourceBlockId": "G94",
-          "number": 400
+          "number": 430
         },
         {
           "id": "341",
@@ -16678,7 +17819,7 @@
             }
           ],
           "sourceBlockId": "G95",
-          "number": 401
+          "number": 431
         },
         {
           "id": "342",
@@ -16851,7 +17992,7 @@
             }
           ],
           "sourceBlockId": "G96",
-          "number": 402
+          "number": 432
         },
         {
           "id": "343",
@@ -17024,7 +18165,7 @@
             }
           ],
           "sourceBlockId": "G97",
-          "number": 403
+          "number": 433
         },
         {
           "id": "344",
@@ -17197,7 +18338,7 @@
             }
           ],
           "sourceBlockId": "G98",
-          "number": 404
+          "number": 434
         }
       ],
       "originalSection": 59,
@@ -17289,7 +18430,7 @@
             }
           ],
           "sourceBlockId": "G99",
-          "number": 405
+          "number": 435
         },
         {
           "id": "346",
@@ -17370,7 +18511,7 @@
             }
           ],
           "sourceBlockId": "G100",
-          "number": 406
+          "number": 436
         },
         {
           "id": "347",
@@ -17451,7 +18592,7 @@
             }
           ],
           "sourceBlockId": "G101",
-          "number": 407
+          "number": 437
         },
         {
           "id": "348",
@@ -17534,7 +18675,7 @@
             }
           ],
           "sourceBlockId": "G102",
-          "number": 408
+          "number": 438
         },
         {
           "id": "349",
@@ -17617,7 +18758,7 @@
             }
           ],
           "sourceBlockId": "G103",
-          "number": 409
+          "number": 439
         },
         {
           "id": "350",
@@ -17700,7 +18841,7 @@
             }
           ],
           "sourceBlockId": "G104",
-          "number": 410
+          "number": 440
         }
       ],
       "originalSection": 60,
@@ -17792,7 +18933,7 @@
             }
           ],
           "sourceBlockId": "G129",
-          "number": 411
+          "number": 441
         },
         {
           "id": "376",
@@ -17873,7 +19014,7 @@
             }
           ],
           "sourceBlockId": "G130",
-          "number": 412
+          "number": 442
         },
         {
           "id": "377",
@@ -17954,7 +19095,7 @@
             }
           ],
           "sourceBlockId": "G131",
-          "number": 413
+          "number": 443
         },
         {
           "id": "378",
@@ -18035,7 +19176,7 @@
             }
           ],
           "sourceBlockId": "G132",
-          "number": 414
+          "number": 444
         },
         {
           "id": "379",
@@ -18116,7 +19257,7 @@
             }
           ],
           "sourceBlockId": "G133",
-          "number": 415
+          "number": 445
         },
         {
           "id": "380",
@@ -18197,7 +19338,7 @@
             }
           ],
           "sourceBlockId": "G134",
-          "number": 416
+          "number": 446
         }
       ],
       "originalSection": 68,
@@ -18289,7 +19430,7 @@
             }
           ],
           "sourceBlockId": "G135",
-          "number": 417
+          "number": 447
         },
         {
           "id": "382",
@@ -18370,7 +19511,7 @@
             }
           ],
           "sourceBlockId": "G136",
-          "number": 418
+          "number": 448
         },
         {
           "id": "383",
@@ -18451,7 +19592,7 @@
             }
           ],
           "sourceBlockId": "G137",
-          "number": 419
+          "number": 449
         },
         {
           "id": "384",
@@ -18532,7 +19673,7 @@
             }
           ],
           "sourceBlockId": "G138",
-          "number": 420
+          "number": 450
         },
         {
           "id": "385",
@@ -18613,7 +19754,7 @@
             }
           ],
           "sourceBlockId": "G139",
-          "number": 421
+          "number": 451
         },
         {
           "id": "386",
@@ -18694,7 +19835,7 @@
             }
           ],
           "sourceBlockId": "G140",
-          "number": 422
+          "number": 452
         }
       ],
       "originalSection": 69,
@@ -18807,7 +19948,7 @@
             }
           ],
           "sourceBlockId": "G141",
-          "number": 423
+          "number": 453
         },
         {
           "id": "388",
@@ -18909,7 +20050,7 @@
             }
           ],
           "sourceBlockId": "G142",
-          "number": 424
+          "number": 454
         },
         {
           "id": "389",
@@ -19012,7 +20153,7 @@
             }
           ],
           "sourceBlockId": "G143",
-          "number": 425
+          "number": 455
         },
         {
           "id": "390",
@@ -19115,7 +20256,7 @@
             }
           ],
           "sourceBlockId": "G144",
-          "number": 426
+          "number": 456
         },
         {
           "id": "391",
@@ -19218,7 +20359,7 @@
             }
           ],
           "sourceBlockId": "G145",
-          "number": 427
+          "number": 457
         },
         {
           "id": "392",
@@ -19321,7 +20462,7 @@
             }
           ],
           "sourceBlockId": "G146",
-          "number": 428
+          "number": 458
         }
       ],
       "originalSection": 70,
@@ -19438,7 +20579,7 @@
             }
           ],
           "sourceBlockId": "G147",
-          "number": 429
+          "number": 459
         },
         {
           "id": "394",
@@ -19544,7 +20685,7 @@
             }
           ],
           "sourceBlockId": "G148",
-          "number": 430
+          "number": 460
         },
         {
           "id": "395",
@@ -19651,7 +20792,7 @@
             }
           ],
           "sourceBlockId": "G149",
-          "number": 431
+          "number": 461
         },
         {
           "id": "396",
@@ -19758,7 +20899,7 @@
             }
           ],
           "sourceBlockId": "G150",
-          "number": 432
+          "number": 462
         },
         {
           "id": "397",
@@ -19865,7 +21006,7 @@
             }
           ],
           "sourceBlockId": "G151",
-          "number": 433
+          "number": 463
         },
         {
           "id": "398",
@@ -19972,7 +21113,7 @@
             }
           ],
           "sourceBlockId": "G152",
-          "number": 434
+          "number": 464
         }
       ],
       "originalSection": 71,
@@ -20064,7 +21205,7 @@
             }
           ],
           "sourceBlockId": "G153",
-          "number": 435
+          "number": 465
         },
         {
           "id": "400",
@@ -20145,7 +21286,7 @@
             }
           ],
           "sourceBlockId": "G154",
-          "number": 436
+          "number": 466
         },
         {
           "id": "401",
@@ -20248,7 +21389,7 @@
             }
           ],
           "sourceBlockId": "G155",
-          "number": 437
+          "number": 467
         },
         {
           "id": "402",
@@ -20351,7 +21492,7 @@
             }
           ],
           "sourceBlockId": "G156",
-          "number": 438
+          "number": 468
         },
         {
           "id": "403",
@@ -20458,7 +21599,7 @@
             }
           ],
           "sourceBlockId": "G157",
-          "number": 439
+          "number": 469
         },
         {
           "id": "404",
@@ -20565,7 +21706,7 @@
             }
           ],
           "sourceBlockId": "G158",
-          "number": 440
+          "number": 470
         }
       ],
       "originalSection": 72,

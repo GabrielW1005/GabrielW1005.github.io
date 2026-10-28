@@ -1,7 +1,7 @@
-import { renderDiagram } from './diagrams.js?v=numbering-6';
-import {createNetModel,renderNet} from './net-unfold.js?v=numbering-6';
+import { renderDiagram } from './diagrams.js?v=packets-7';
+import {createNetModel,renderNet} from './net-unfold.js?v=packets-7';
 import {mathHTML} from './math-format.js?v=learning-4';
-import {guidanceFor} from './guidance.js?v=learning-4';
+import {guidanceFor} from './guidance.js?v=packets-7';
 
 // All lab state is local to the selected problem. No canonical problem is mutated.
 const NS='http://www.w3.org/2000/svg';
@@ -56,6 +56,7 @@ export function mountLab(host,problem,onChange=()=>{}){
     else if(['proportion-constant','proportion-equation','proportion-check','proportion-table'].includes(p.family)) proportionLab(ctx);
     else if(!p.visual&&p.block?.parts?.some(q=>q.visual?.type==='grid')) referenceGridLab(ctx);
     else if(/expression|combine like|expand|factor/i.test(p.description)&&!/[=<>≤≥]/.test(p.prompt)) expressionLab(ctx);
+    else if(p.family==='equation-division-position') fallbackLab(ctx);
     else if(/equation|expression|combine like|expand|factor|solve.*[=<>≤≥]|[xyn]\s*[+−\-÷×*/].*[=<>]/i.test(p.description)||/[=<>≤≥]/.test(p.prompt)&&/[a-z]/i.test(p.prompt)) algebraLab(ctx);
     else if(['integer-multiply','integer-divide'].includes(p.family)||/integer multiplication|integer division/i.test(p.description)) multiplyLab(ctx);
     else if(p.family==='decimal-multiply'||p.family==='decimal-divide') decimalLab(ctx);
@@ -273,8 +274,8 @@ function numberLab(ctx){const {p,stage,readout,controls,caption}=ctx;const raw=S
 
 function sequenceLab(ctx){
   const {p,stage,readout,controls,caption}=ctx,prefix=String(p.prompt).split(/…|\.\.\.|:/)[0];
-  if(!p.allowSolutions&&/^Rule:/i.test(String(p.prompt))){fallbackLab(ctx);return;}
-  const given=[...prefix.replace(/−/g,'-').matchAll(/-?\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?/g)].map(m=>num(m[0]));
+  if(!p.allowSolutions&&(p.subtype==='table'||/^Rule:/i.test(String(p.prompt)))){fallbackLab(ctx);return;}
+  const given=p.sequence?Array.from({length:3},(_,i)=>p.sequence.kind==='geometric'?p.sequence.first*Math.pow(p.sequence.ratio,i):p.sequence.first+i*p.sequence.difference):[...prefix.replace(/−/g,'-').matchAll(/-?\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?/g)].map(m=>num(m[0]));
   const ns=!p.allowSolutions?given:p.sequence?Array.from({length:6},(_,i)=>p.sequence.kind==='geometric'?p.sequence.first*Math.pow(p.sequence.ratio,i):p.sequence.first+i*p.sequence.difference):Array.isArray(p.terms)?p.terms:[...prefix.replace(/−/g,'-').matchAll(/-?\d+(?:\.\d+)?/g)].map(m=>Number(m[0])).slice(0,6);let count=Math.min(2,ns.length);
   function draw(){if(count>given.length)ctx.assist();const shown=ns.slice(0,count),negative=shown.some(n=>n<0),positive=shown.some(n=>n>0),baseline=negative?(positive?150:65):230,max=Math.max(1,...shown.map(Math.abs)),height=negative&&positive?90:155;let s=header(600,330);s+=path(`M50 ${baseline}H550`,GRAY,1.2)+text(36,baseline+4,'0',12);shown.forEach((n,i)=>{const h=Math.abs(n)/max*height,y=n<0?baseline:baseline-h;s+=`<rect x="${65+i*78}" y="${y}" width="48" height="${h}" rx="3" fill="${n<0?CORAL:BLUE}" fill-opacity=".45"/>`+text(89+i*78,298,String(i+1),12)+text(89+i*78,n<0?y+h+19:y-10,fmt(n),16);});s+=text(300,320,'Position in the sequence',12);stage.innerHTML=s+'</svg>';readout.textContent='Look for the repeated change';caption.textContent=p.allowSolutions?'Reveal one term at a time. Compare adding with multiplying.':'Compare the given terms. Use their repeated change to predict the next term.';}
   controls.append(btn(p.allowSolutions?'Next term':'Inspect next given term',()=>{count=Math.min(ns.length,count+1);draw();}),btn('Reset',()=>{count=Math.min(2,ns.length);draw();}));draw();

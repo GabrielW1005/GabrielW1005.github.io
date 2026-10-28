@@ -1,11 +1,11 @@
-import {renderDiagram} from './diagrams.js?v=numbering-6';
-import {mountLab} from './labs.js?v=numbering-6';
-import {generateVariant,checkAnswer,supportsDifficulty} from './practice.js?v=numbering-6';
-import {mathHTML as math,escapeHTML as esc} from './math-format.js?v=numbering-6';
+import {renderDiagram} from './diagrams.js?v=packets-7';
+import {mountLab} from './labs.js?v=packets-7';
+import {generateVariant,checkAnswer,supportsDifficulty,clarifyPracticeWording} from './practice.js?v=packets-7';
+import {mathHTML as math,escapeHTML as esc} from './math-format.js?v=packets-7';
 
-import {answerEntryHTML,bindAnswerEntry,updateAnswerPreview} from './answer-entry.js?v=numbering-6';
-import {guidanceFor} from './guidance.js?v=numbering-6';
-import {recordAttempt,markAssisted,readSharedReport,mountProgress} from './progress.js?v=numbering-6';
+import {answerEntryHTML,bindAnswerEntry,updateAnswerPreview} from './answer-entry.js?v=packets-7';
+import {guidanceFor} from './guidance.js?v=packets-7';
+import {recordAttempt,markAssisted,readSharedReport,mountProgress} from './progress.js?v=packets-7';
 
 const $=s=>document.querySelector(s);
 const KEY='grade8-math-review1-v2';
@@ -13,7 +13,7 @@ let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{}
 const state={page:1,view:'packet',selected:null,answers:{},checked:{},help:{},labState:{},extra:[],difficulty:'same',theme:'light',practice:false,collapsed:false,chapterOpen:null,lessonClosed:{},...saved};
 for(const k of ['answers','checked','help','labState','lessonClosed'])if(!state[k]||typeof state[k]!=='object')state[k]={};
 if(!Array.isArray(state.extra))state.extra=[];
-let pages=[],all=[],chapters=[],byKey=new Map(),cleanupLab=null,cleanupProgress=null,sharedProgress=null,toastTimer;
+let pages=[],packetSets=[],all=[],chapters=[],byKey=new Map(),cleanupLab=null,cleanupProgress=null,sharedProgress=null,toastTimer;
 state.attempts=state.attempts&&typeof state.attempts==='object'&&!Array.isArray(state.attempts)?state.attempts:{};
 state.assisted=state.assisted&&typeof state.assisted==='object'?state.assisted:{};
 const save=()=>{if(sharedProgress)return;try{state.updatedAt=new Date().toISOString();localStorage.setItem(KEY,JSON.stringify(state));if($('#save-status'))$('#save-status').textContent='Saved automatically on this device';}catch{if($('#save-status'))$('#save-status').textContent='Save failed — download a progress backup';toast('Device storage is full. Open Progress to download a backup.')}};
@@ -21,6 +21,8 @@ function toast(t){clearTimeout(toastTimer);$('#toast').textContent=t;$('#toast')
 const activeExtras=()=>state.extra.filter(p=>byKey.has(String(p.originalKey)));
 const getProblem=k=>byKey.get(String(k))||activeExtras().find(p=>p.key===String(k));
 const currentPage=()=>pages.find(p=>p.number===state.page)||pages[0];
+const packetForPage=n=>packetSets.find(p=>n>=p.startPage&&n<=p.endPage)||{number:1,startPage:1,endPage:pages.length};
+const packetLocation=page=>{const p=packetForPage(page.number);return `Packet ${p.number} of ${packetSets.length||1} · Page ${page.number-p.startPage+1} of ${p.endPage-p.startPage+1}`;};
 const packetPageTitle=page=>page.sections?.length>2?(page.chapters||[page.chapter||'Practice']).join(' / '):page.title;
 const current=()=>getProblem(state.selected)||all.find(p=>p.page.number===state.page)||all[0];
 const problemNumber=p=>{const original=p.originalKey?byKey.get(String(p.originalKey)):p;const number=original?.displayNumber??original?.block?.number??p.displayNumber??p.key;return p.originalKey?`${number} · extra`:String(number)};
@@ -35,7 +37,7 @@ function navigation(){
 }
 function setPage(n){const page=pages.find(p=>p.number===+n);if(!page)return;if(state.view==='progress')state.view='packet';state.page=page.number;state.practice=false;state.selected=all.find(p=>p.page.number===page.number)?.key;state.chapterOpen=page.chapter||'Review';save();render();document.body.classList.remove('nav-open');window.scrollTo({top:0,behavior:'smooth'})}
 function movePage(direction){const i=pages.findIndex(p=>p.number===state.page);if(pages[i+direction])setPage(pages[i+direction].number)}
-function pageControls(){const page=currentPage(),i=pages.indexOf(page);return `<div class="page-controls"><button data-action="prev-page" aria-label="Previous page" ${i===0?'disabled':''}>←</button><label><span>Page</span><select class="page-selector" aria-label="Go to packet page">${pages.map(p=>`<option value="${p.number}" ${p.number===state.page?'selected':''}>${p.number} · ${esc(p.title)}</option>`).join('')}</select><span class="page-total">of ${pages.length}</span></label><button data-action="next-page" aria-label="Next page" ${i===pages.length-1?'disabled':''}>→</button></div>`}
+function pageControls(){const page=currentPage(),i=pages.indexOf(page);return `<div class="page-controls"><button data-action="prev-page" aria-label="Previous page" ${i===0?'disabled':''}>←</button><label><span>Review page</span><select class="page-selector" aria-label="Go to packet page">${packetSets.map(set=>`<optgroup label="Packet ${set.number} · Review pages ${set.startPage}–${set.endPage}">${pages.filter(p=>p.number>=set.startPage&&p.number<=set.endPage).map(p=>`<option value="${p.number}" ${p.number===state.page?'selected':''}>${p.number} · ${esc(p.title)}</option>`).join('')}</optgroup>`).join('')}</select><span class="page-total">of ${pages.length}</span></label><button data-action="next-page" aria-label="Next page" ${i===pages.length-1?'disabled':''}>→</button></div>`}
 function helpHTML(p){
   const h=state.help[p.key];if(!h)return '';
   if(!p.originalKey){const guide=guidanceFor(p);return `<div class="help-panel concept-help"><strong>${esc(guide.title)}</strong><ol>${guide.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><p>${esc(guide.practicePrompt)}</p><div class="help-actions"><button data-action="more" data-key="${esc(p.key)}">Practice another with steps</button><button data-action="hide-help" data-key="${esc(p.key)}">Hide guide</button></div></div>`;}
@@ -48,7 +50,7 @@ function modelHTML(model){if(!model)return '';return `<div class="model"><strong
 function blockHTML(block,pageTitle){const parts=block.parts.map(p=>getProblem(`${block.id}${p.id||''}`)).filter(Boolean);return `<article class="problem-card ${parts.some(p=>p.key===state.selected)?'active':''}" id="block-${esc(block.id)}"><div class="block-heading ${block.title===pageTitle?'number-only':''}"><span class="block-id">${esc(block.number??block.id)}.</span>${block.title===pageTitle?(block.stage&&block.stage!=='Single skill'?`<div class="stage">${esc(block.stage)}</div>`:''):`<div><h3>${esc(block.title)}</h3><div class="stage">${esc(block.stage||'')}</div></div>`}</div>${block.prompt?`<p class="block-prompt math-copy">${math(block.prompt)}</p>`:''}${modelHTML(block.model)}${parts.map(p=>partHTML(p)).join('')}</article>`}
 function renderPacket(){
   if(state.practice){const extras=activeExtras().reverse();$('#main').innerHTML=`<div class="page-head"><div><p class="eyebrow">YOUR SAVED PRACTICE</p><h1>Extra practice</h1><p class="page-description">Every variation has matching steps and a visual lab.</p></div><button class="subtle" data-action="back-original">Back to packet</button></div>${extras.length?`<div class="packet-sheet"><div class="packet-grid">${extras.map(p=>`<article class="problem-card ${p.key===state.selected?'active':''}"><span class="extra-badge">Based on problem ${esc(problemNumber(byKey.get(String(p.originalKey))||p))}</span><h3>${esc(p.blockTitle||p.block?.title||'Practice')}</h3>${partHTML(p)}</article>`).join('')}</div></div>`:`<div class="empty"><h2>Build fluency with another version.</h2><p>Choose “More like this” beside any packet problem. Your original work stays saved.</p><button class="primary" data-action="back-original">Open the packet</button></div>`}`;return}
-  const page=currentPage(),i=pages.indexOf(page),sections=page.sections||[page];$('#main').innerHTML=`<div class="page-head"><div><p class="eyebrow">${esc(page.chapter||'REVIEW')} / PAGE ${page.number} OF ${pages.length}</p><h1>${esc(packetPageTitle(page))}</h1></div></div>${pageControls()}<section class="packet-sheet" aria-label="Packet page ${page.number}">${sections.map(section=>`<section class="packet-topic">${sections.length>1?`<h2 class="packet-topic-title">${esc(section.title)}</h2>`:''}<div class="packet-grid">${section.blocks.map(b=>blockHTML(b,section.originalTitle||section.title.replace(/ \(continued\)$/,''))).join('')}</div></section>`).join('')}</section><div class="page-footer"><span>Page ${page.number} · Same exercises as your printed packet.</span>${i<pages.length-1?'<button data-action="next-page">Next page →</button>':'<button data-action="downloads">Download PDFs ↓</button>'}</div>`;
+  const page=currentPage(),i=pages.indexOf(page),sections=page.sections||[page];$('#main').innerHTML=`<div class="page-head"><div><p class="eyebrow">${esc(packetLocation(page))} / ${esc(page.chapter||'REVIEW')}</p><h1>${esc(packetPageTitle(page))}</h1></div></div>${pageControls()}<section class="packet-sheet" aria-label="Packet page ${page.number}">${sections.map(section=>`<section class="packet-topic">${sections.length>1?`<h2 class="packet-topic-title">${esc(section.title)}</h2>`:''}<div class="packet-grid">${section.blocks.map(b=>blockHTML(b,section.originalTitle||section.title.replace(/ \(continued\)$/,''))).join('')}</div></section>`).join('')}</section><div class="page-footer"><span>${esc(packetLocation(page))} · Review page ${page.number}.</span>${i<pages.length-1?'<button data-action="next-page">Next page →</button>':'<button data-action="downloads">Download PDFs ↓</button>'}</div>`;
 }
 function labProblemControls(p){const list=state.practice?activeExtras():all;const i=list.findIndex(q=>q.key===p.key);return `<div class="problem-controls"><button data-action="prev-problem" aria-label="Previous problem" ${i<=0?'disabled':''}>←</button><label><span>Problem</span><select id="problem-selector" aria-label="Select problem">${list.map(q=>`<option value="${esc(q.key)}" ${q.key===p.key?'selected':''}>${esc(problemNumber(q))} · ${esc(q.blockTitle||q.block?.title||'Practice')}</option>`).join('')}</select></label><button data-action="next-problem" aria-label="Next problem" ${i>=list.length-1?'disabled':''}>→</button></div>`}
 function renderLab(){const p=current();if(!p)return;$('#main').innerHTML=`<div class="page-head"><div><p class="eyebrow">${p.originalKey?'EXTRA PRACTICE':esc(p.page.chapter||currentPage()?.chapter||'VISUAL LAB')}</p><h1>${esc(p.blockTitle||p.block?.title||'Visual lab')}</h1><p class="page-description">Move the model. Connect the ideas. Your answer stays with this problem.</p></div></div>${labProblemControls(p)}<div class="lab-layout"><section class="lab-canvas"><div class="lab-top"><span>Problem ${esc(problemNumber(p))}</span><button data-action="reset-lab">Reset visual ↺</button></div><div id="lab-host"></div></section><section class="lab-side"><article class="problem-card">${p.originalKey?'<span class="extra-badge">Extra practice</span>':''}<div class="block-heading"><span class="block-id">${esc(problemNumber(p))}</span><div><h3>${esc(p.blockTitle||p.block?.title||'Practice')}</h3><div class="stage">${esc(p.stage||p.block?.stage||'')}</div></div></div>${p.block?.prompt?`<p class="block-prompt math-copy">${math(p.block.prompt)}</p>`:''}${partHTML(p,{lab:true})}<div class="practice-bar">${supportsDifficulty(p)?`<label><span>Practice level</span><select id="difficulty" aria-label="Practice difficulty"><option value="single" ${state.difficulty==='single'?'selected':''}>One skill</option><option value="pair" ${state.difficulty==='pair'?'selected':''}>Two skills</option><option value="mixed" ${state.difficulty==='mixed'?'selected':''}>Mixed skills</option><option value="same" ${state.difficulty==='same'?'selected':''}>Similar level</option></select></label>`:''}<button class="primary" data-action="more" data-key="${p.key}">New practice problem</button></div></article><button class="return-packet" data-action="packet">Go To Packet →</button></section></div>`;
@@ -98,22 +100,24 @@ $('#practice-nav').onclick=()=>{state.practice=true;state.view='packet';if(activ
 $('#progress-open').onclick=()=>{state.view='progress';save();render();window.scrollTo({top:0});};
 $('.brand').onclick=e=>{e.preventDefault();state.view='packet';setPage(pages[0].number)};
 async function init(){try{
-  const responses=await Promise.all([fetch('data/packet.json?v=numbering-6'),fetch('data/print-layout.json?v=numbering-6'),fetch('data/packet-supplement.json?v=numbering-6')]);
+  const responses=await Promise.all([fetch('data/packet.json?v=packets-7'),fetch('data/print-layout.json?v=packets-7'),fetch('data/packet-supplement.json?v=packets-7')]);
   if(responses.slice(0,2).some(r=>!r.ok))throw Error('Packet content could not load');
   const [data,plan,supplement]=await Promise.all(responses.map((r,i)=>i===2&&!r.ok?{pages:[]}:r.json()));
   const sections=(Array.isArray(data)?data:data.pages).sort((a,b)=>a.number-b.number),sectionMap=new Map(sections.map(s=>[s.number,s])),blockChapters=new Map(sections.flatMap(s=>s.blocks.map(b=>[b.id,s.chapter])));
   pages=plan.pages.map(p=>{const topicSections=p.sections.map(n=>sectionMap.get(n));if(topicSections.some(s=>!s))throw Error('Missing packet section');const extra=(supplement.pages||[]).find(s=>s.page===p.number);if(extra?.blocks?.length)topicSections.push({number:'supplement-'+p.number,title:'More practice',chapter:p.chapter,blocks:extra.blocks});return {...p,sections:topicSections,blocks:topicSections.flatMap(s=>s.blocks),subtitle:topicSections.length===1?topicSections[0].subtitle:''};});
   if(!pages.length)throw Error('Empty packet');
+  packetSets=plan.packets?.length?plan.packets:[{number:1,startPage:1,endPage:pages.length}];
   const layoutChanged=state.layoutVersion!==plan.version;if(!state.layoutVersion)state.page=plan.sectionToPage[String(state.page)]||1;state.layoutVersion=plan.version;
   all=pages.flatMap(page=>page.blocks.flatMap(block=>block.parts.map(part=>({...part,isPrinted:true,displayNumber:`${block.number??block.id}${part.id||''}`,key:`${block.id}${part.id||''}`,blockTitle:block.title,stage:block.stage,category:block.title,block,page:{number:page.number,title:page.title,chapter:blockChapters.get(block.id)||sectionMap.get(part.sourceSection||block.sourceSection)?.chapter||page.chapter||'Review'}}))));
   byKey=new Map(all.map(p=>[p.key,p]));
+  state.extra=state.extra.map(extra=>byKey.has(String(extra.originalKey))?clarifyPracticeWording(extra):extra);
   for(const extra of state.extra){const original=byKey.get(String(extra.originalKey));if(original){extra.page=original.page;extra.displayNumber=original.displayNumber;}}
   const groups=new Map();for(const p of pages){for(const name of p.chapters||[p.chapter||'Review']){if(!groups.has(name))groups.set(name,[]);groups.get(name).push(p)}}chapters=[...groups].map(([title,pages])=>({title,pages}));
   if(!getProblem(state.selected)){state.selected=all.find(p=>p.page.number===state.page)?.key||all[0].key;state.practice=false;}
   if(!pages.some(p=>p.number===state.page))state.page=pages[0].number;
   if((state.view==='lab'||layoutChanged)&&getProblem(state.selected))state.page=getProblem(state.selected).page.number;
   if(!['lab','packet','progress'].includes(state.view))state.view='packet';
-  $('#packet-download-detail').textContent=`${pages.length} pages · practice problems · workspace`;
+  $('#packet-download-detail').textContent=`${pages.length} pages · all five packets together`;
   try{sharedProgress=await readSharedReport(location.hash);}catch(error){toast(error.message||'This shared report could not be opened.');}
   save();render();
 }catch(e){console.error(e);$('#main').innerHTML='<div class="empty"><h1>We couldn’t open the review.</h1><p>Please reload the page. Your saved answers are still on this device.</p><button class="primary" onclick="location.reload()">Reload</button></div>'}}

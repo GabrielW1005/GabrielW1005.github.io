@@ -3,16 +3,18 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Download PDF · 8th Grade - Math Review 1</title>
-<link rel="stylesheet" href="styles.css?v=numbering-6">
+<link rel="stylesheet" href="styles.css?v=packets-7">
 <style>main.download-page{max-width:620px;margin:10vh auto;padding:32px;background:var(--paper);border:1px solid var(--line);border-radius:14px}h1{font-family:var(--serif);font-weight:400;font-size:30px}#download-status{min-height:3em;color:var(--muted);font-size:14px;line-height:1.6}.back-link{display:inline-block;margin-top:20px;color:var(--accent);font-size:14px}@media(max-width:650px){main.download-page{margin:30px 18px}}</style>
 </head>
-<body><main class="download-page"><p class="eyebrow">8TH GRADE · MATH REVIEW 1</p><h1 id="download-title">Review packet</h1><p id="download-description">39 pages with 440 practice problems and space for calculations and drawings.</p><button id="download-pdf" class="primary" data-pdf="packet" aria-describedby="download-status">Download PDF</button><p id="download-status" role="status" aria-live="polite">Select Download PDF to save your copy.</p><a class="back-link" href="index.html">← Go To Packet</a><noscript><p>Enable JavaScript to download the PDF.</p></noscript></main>
+<body><main class="download-page"><p class="eyebrow">8TH GRADE · MATH REVIEW 1</p><h1 id="download-title">Review packet</h1><p id="download-description">40 pages with 470 practice problems and space for calculations and drawings.</p><button id="download-pdf" class="primary" data-pdf="packet" aria-describedby="download-status">Download PDF</button><p id="download-status" role="status" aria-live="polite">Select Download PDF to save your copy.</p><a class="back-link" href="index.html">← Go To Packet</a><noscript><p>Enable JavaScript to download the PDF.</p></noscript></main>
 <script type="module">
-const key = new URLSearchParams(location.search).get('file') === 'key' ? 'key' : 'packet';
+const requested = new URLSearchParams(location.search).get('file') || 'packet';
+const key = /^(?:packet|key)(?:-[1-5])?$/.test(requested) ? requested : 'packet';
+const isAnswerKey = key.startsWith('key'), part = Number(key.split('-')[1]) || 0;
 document.getElementById('download-pdf').dataset.pdf = key;
-if (key === 'key') {
-  document.getElementById('download-title').textContent = 'Answer key';
-  document.getElementById('download-description').textContent = '39 matching pages with answers and worked solutions in red beside the practice problems.';
-}
-await import('./pdf-download.js?v=numbering-6');
+document.getElementById('download-title').textContent = part ? `Packet ${part} of 5${isAnswerKey ? ' — Answer key' : ''}` : (isAnswerKey ? 'Complete answer key' : 'Complete review');
+document.getElementById('download-description').textContent = part
+  ? `8 pages · review pages ${(part-1)*8+1}–${part*8}. ${isAnswerKey ? 'Answers and worked solutions in red on the matching practice sheets.' : 'The same problem numbers and exercises as the app.'}`
+  : (isAnswerKey ? '40 matching pages with answers and worked solutions in red beside the practice problems.' : 'All five packets together: 40 pages with 470 practice problems.');
+await import('./pdf-download.js?v=packets-7');
 </script></body></html>

@@ -1,10 +1,10 @@
 # 8th Grade - Math Review 1
 
-A traditional printable review and matching interactive app for eighth graders reviewing foundational and seventh-grade mathematics. The packet has **440 practice problems on 39 pages**: 376 retained core problems and 64 additional problems integrated into the appropriate skill sections. The **39-page answer key uses the same sheets**, with answers and worked solutions in red beside the exercises.
+A traditional printable review and matching interactive app for eighth graders reviewing foundational and seventh-grade mathematics. The packet has **470 practice problems on 40 pages**, including 30 new division equations on review page 8. The review is available as **five 8-page packets**, each with a matching red answer key, as well as complete 40-page student and answer-key PDFs. Problem numbers remain consecutive across all five packets.
 
 The packet and app contain concise topic headings and practice problems, without the former page-top explanations or worked examples. Triangular-pyramid and cross-section sections have been removed, along with triangle construction on grids and the surface-area sections for triangular prisms, square pyramids, and composite prisms. Cartesian coordinates, one-step equations, and triangular-prism volume remain.
 
-The app follows the printed packet's pages, numbering, and order. All exercises use consecutive visible numbers 1–440; stable internal IDs preserve previously saved answers. Triangle angle labels sit inside their respective interior angles. Printed exercises offer optional general method guidance; their specific steps and solutions are not revealed in the app. Students can generate additional versions of any exercise, with matching step-by-step help, solutions, and visual labs. Numbers vary while the requested skill is preserved; supported arithmetic families also offer single-skill, two-skill, and mixed practice.
+The app follows the printed packet's pages, numbering, and order. All exercises use consecutive visible numbers 1–470; stable internal IDs preserve previously saved answers. Triangle angle labels sit inside their respective interior angles. Sequence directions define n as the term position and explicitly distinguish finding a rule from plotting (position, value) points. Coordinate-reading directions ask for each labeled point’s ordered pair (x, y). Printed exercises offer optional general method guidance; their specific steps and solutions are not revealed in the app. Students can generate additional versions of any exercise, with matching step-by-step help, solutions, and visual labs. Numbers vary while the requested skill is preserved; supported arithmetic families also offer single-skill, two-skill, and mixed practice.
 
 L-shaped diagrams use clear outer boundaries, readable dimensions, and restrained construction lines. L-shaped solids have an upright front face and clearly visible notch. Net animations unfold faces around shared edges, with consistent face colors and controls for playback and scrubbing.
 
@@ -14,11 +14,13 @@ Answers, checks, generated practice, plotted points, and the selected problem sa
 
 Saved work for retained problems keeps its original identifiers when pages change. Work from removed topics remains in backups but is omitted from the current packet, extra-practice list, and mastery totals.
 
+The new division page varies the position of x between quotient, numerator, and denominator and puts the fraction on either side of the equality. It progresses from positive whole numbers to signed and rational values. Generated practice preserves the selected equation form and provides corresponding steps.
+
 ## Source
 
 - `dist/`: static app and downloadable PDFs.
-- `dist/data/packet.json`: 440 problems across 69 section fragments from 64 retained topics, including the 64 integrated additions.
-- `dist/data/print-layout.json`: version-3 mapping from retained section numbers to 39 printed pages.
+- `dist/data/packet.json`: 470 problems across 70 section fragments from 65 topics, including the 64 integrated additions and 30 division equations.
+- `dist/data/print-layout.json`: version-4 mapping from section numbers to 40 review pages, with five groups of eight pages.
 - `dist/data/packet-supplement.json`: empty compatibility manifest with `integrated: true`; its former exercises now live in `packet.json`. Legacy `P<page>-<index>` IDs remain internal only; visible numbering comes from `block.number`.
 - `dist/practice.js`: deterministic generation and restricted mathematical answer parsing.
 - `dist/progress.js`: local progress records, readiness summaries, backups, CSV reports, and shareable snapshots.

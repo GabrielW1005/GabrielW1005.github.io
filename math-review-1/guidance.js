@@ -55,6 +55,10 @@ export function guidanceFor(problem = {}) {
   if (f === 'percent-expression') return guide('Combine a percent expression',
     'Treat the original quantity as one whole of itself.',
     'Combine like terms to write one coefficient multiplying the original quantity.');
+  if (f === 'equation-division-position') return guide('Connect division and multiplication',
+    'Find which part is missing: the numerator (dividend), denominator (divisor), or quotient.',
+    'Use dividend = divisor × quotient. To find the dividend, multiply; to find either other part, divide.',
+    'The equality may be written in either direction. Substitute your value for x to check it; a divisor cannot be zero.');
   if (/^equation-/.test(f)) return guide('Keep the equation balanced',
     'Simplify each side if needed, then undo operations in reverse order.',
     'Apply the same operation to both sides until the variable is isolated.',
@@ -65,10 +69,12 @@ export function guidanceFor(problem = {}) {
     'Shade the values that make the original inequality true.');
   if (f === 'arithmetic-sequence') return guide('Look for a constant difference',
     'Subtract consecutive terms to find the repeated change.',
-    'Apply that change to extend the sequence. When graphing, use term number as the horizontal coordinate.');
+    'A term is a value in the list. The position n counts from 1 for the first term, 2 for the second, and so on.',
+    'A formula gives the value at any position n. For a graph, plot (position, value): horizontal x is the position, vertical y is the value.');
   if (f === 'geometric-sequence') return guide('Look for a constant ratio',
     'Divide a term by the preceding term to find the repeated multiplier.',
-    'Apply that multiplier to extend the sequence. Keep track of signs and fractions.');
+    'A term is a value in the list. The position n counts from 1 for the first term, 2 for the second, and so on.',
+    'Use the repeated multiplier to extend the list or write a formula for the value at position n. For a graph, plot (position, value), with position on the horizontal x-axis.');
   if (/^coordinate-/.test(f)) return guide('Use ordered pairs',
     'Read or move horizontally first for x, then vertically for y.',
     'Start from the origin and follow the axis signs and scale. Write each pair as (x, y).');

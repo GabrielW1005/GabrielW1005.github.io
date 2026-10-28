@@ -170,6 +170,50 @@ function specialized(p,seed,R,F,level,unit){
     const a=I(2,6),b=I(2,7),c=I(1,5),answer=`${a+c}x − ${b}`;
     return F(f,{prompt:`Expand and simplify: (1/2)(${2*a}x − ${2*b}) + ${c}x`,value:null,answer,input:'text',algebraic:true,steps:[`Distribute 1/2: ${a}x − ${b} + ${c}x.`,`Combine variable terms: ${answer}.`],visual:null});
   }
+  if(f==='equation-division-position'){
+    const source=p.division||{},position=source.position||'numerator',orientation=source.orientation||'fraction-left';
+    const fractionAnswer=source.answerKind==='fraction',decimal=source.numberKind==='decimal';
+    let quotient,numerator,denominator;
+    if(fractionAnswer){
+      const d=P(decimal?[2,4,5,8,10]:[2,3,4,5,6,8]),a=I(1,19)*d+P(Array.from({length:d-1},(_,i)=>i+1)),x=frac(a,d);
+      if(position==='quotient'){quotient=x;denominator=frac(d*I(1,9));numerator=mul(quotient,denominator);}
+      else if(position==='numerator'){quotient=frac(a);denominator=frac(1,d);numerator=x;}
+      else{denominator=x;quotient=frac(d*I(1,9));numerator=mul(quotient,denominator);}
+    }else if(decimal){
+      const x=frac(I(2,36));
+      if(position==='quotient'){quotient=x;denominator=frac(I(3,39),10);numerator=mul(quotient,denominator);}
+      else if(position==='numerator'){numerator=x;denominator=P([frac(1,2),frac(1,4),frac(5,4),frac(5,2)]);quotient=frac(numerator.n*denominator.d,numerator.d*denominator.n);}
+      else{denominator=x;quotient=frac(I(3,49),10);numerator=mul(quotient,denominator);}
+    }else{quotient=frac(I(2,24));denominator=frac(I(2,19));numerator=mul(quotient,denominator);}
+    if(decimal){
+      // Keep decimal prototypes visibly decimal without changing the unknown value.
+      const known=()=>Object.entries({quotient,numerator,denominator}).filter(([key])=>key!==position).map(([,q])=>q);
+      while(known().every(q=>q.d===1)){
+        if(position==='quotient'){numerator=mul(numerator,frac(1,10));denominator=mul(denominator,frac(1,10));}
+        else if(position==='numerator'){quotient=mul(quotient,frac(1,10));denominator=mul(denominator,frac(10));}
+        else{numerator=mul(numerator,frac(1,10));quotient=mul(quotient,frac(1,10));}
+      }
+    }
+    if(source.signed){
+      // A negative numerator ensures that a sign remains visible whichever role is x.
+      if(R.bool())quotient=frac(-quotient.n,quotient.d);else denominator=frac(-denominator.n,denominator.d);
+      numerator=mul(quotient,denominator);
+    }
+    const parts={quotient,numerator,denominator},solution=parts[position];
+    const numeric=q=>decimal?String(rnd(num(q),8)):fs(q),knownText=key=>numeric(parts[key]);
+    const token=key=>key===position?'x':knownText(key),divisor=token('denominator');
+    const fraction=`${token('numerator')}/${divisor.startsWith('-')||divisor.includes('/')?`(${divisor})`:divisor}`;
+    const equation=orientation==='fraction-left'?`${fraction} = ${token('quotient')}`:`${token('quotient')} = ${fraction}`;
+    const q=knownText('quotient'),n=knownText('numerator'),d=knownText('denominator'),answer=fs(solution);
+    let steps;
+    if(position==='quotient')steps=[`Divide the numerator by the denominator: x = ${n} ÷ (${d}) = ${answer}.`];
+    else if(position==='numerator')steps=[`Multiply both sides by ${d}.`,`x = (${q}) × (${d}) = ${answer}.`];
+    else steps=[`Use dividend = quotient × divisor: ${n} = (${q})x.`,`Divide both sides by ${q}: x = ${n} ÷ (${q}) = ${answer}.`];
+    steps.push(`Check: (${n}) ÷ (${d}) = ${q}.`);
+    const division={...source,position,orientation,numberKind:decimal?'decimal':'integer',signed:!!source.signed,
+      quotient:position==='quotient'?null:num(quotient),numerator:position==='numerator'?null:num(numerator),denominator:position==='denominator'?null:num(denominator)};
+    return F(f,{prompt:`Solve for x: ${equation}`,equation,value:num(solution),answer:`x = ${answer}`,steps,visual:null,division});
+  }
   if(f==='equation-arithmetic'){
     const x=I(3,15),a=I(2,8),b=I(1,9),rhs=a*x+b;
     return F(f,{prompt:`For ${a}x + ${b} = ${rhs}, write an arithmetic expression for x; then find x.`,value:x,answer:`(${rhs} − ${b}) ÷ ${a} = ${x}`,steps:[`Undo addition: subtract ${b} from ${rhs}.`,`Undo multiplication: divide by ${a}.`,`(${rhs} − ${b}) ÷ ${a} = ${x}.`],visual:null});
@@ -205,25 +249,25 @@ function specialized(p,seed,R,F,level,unit){
     const method=geometric?`Multiply by ${ds} each time.`:`Add ${ds} each time.`;
     if(sub==='plot'){
       const pts=vals.slice(0,4).map((y,i)=>({x:i+1,y,label:String.fromCharCode(65+i)}));
-      return F(f,{prompt:`Plot (n, term n) for ${vals.slice(0,4).map(fmt).join(', ')}, … using n = 1, 2, 3, 4.`,value:pts.flatMap(q=>[q.x,q.y]),answer:pts.map(q=>`(${q.x}, ${fmt(q.y)})`).join('; '),input:'plot',sequence,steps:[method,`Pair each position with its term: ${pts.map(q=>`(${q.x}, ${fmt(q.y)})`).join('; ')}.`,`Plot separate points at whole-number positions.`],visual:{type:'grid',xMin:0,xMax:5,yMin:Math.min(0,Math.floor(Math.min(...vals.slice(0,4))-1)),yMax:Math.ceil(Math.max(...vals.slice(0,4))+1),step:1,points:[],targets:pts,xLabel:'n',yLabel:'term'}});
+      return F(f,{prompt:`Sequence: ${vals.slice(0,4).map(fmt).join(', ')}. Use positions 1, 2, 3, 4 as x and the number at that position as y. Plot four separate points; do not connect them.`,value:pts.flatMap(q=>[q.x,q.y]),answer:pts.map(q=>`(${q.x}, ${fmt(q.y)})`).join('; '),input:'plot',sequence,steps:[method,`Pair each position with its term: ${pts.map(q=>`(${q.x}, ${fmt(q.y)})`).join('; ')}.`,`Plot separate points at whole-number positions.`],visual:{type:'grid',xMin:0,xMax:5,yMin:Math.min(0,Math.floor(Math.min(...vals.slice(0,4))-1)),yMax:Math.ceil(Math.max(...vals.slice(0,4))+1),step:1,points:[],targets:pts,xLabel:'x',yLabel:'y'}});
     }
-    if(sub==='table')return F(f,{prompt:`Rule: term n = ${rule}. Find terms 1, 2, 3, 4.`,value:vals.slice(0,4),answer:vals.slice(0,4).map(fmt).join(', '),sequence,steps:[`Substitute n = 1, 2, 3, 4 into ${rule}.`,method,`The terms are ${vals.slice(0,4).map(fmt).join(', ')}.`],visual:null});
-    if(sub==='rule')return F(f,{prompt:`${vals.slice(0,3).map(fmt).join(', ')}, … Write term n, beginning with n = 1.`,value:null,answer:rule,accept:[geometric?`${as}*(${ds})^(n-1)`:`${as}+(${ds})(n-1)`],sequence,algebraic:!geometric,freeResponse:geometric,steps:[`The first term is ${as}. ${method}`,`Beginning at n = 1 gives ${rule}.`],visual:null});
+    if(sub==='table')return F(f,{prompt:`Rule: term value = ${rule}. Here n is the position: 1 means first, 2 means second, and so on. Find the first four term values by substituting n = 1, 2, 3, 4.`,value:vals.slice(0,4),answer:vals.slice(0,4).map(fmt).join(', '),sequence,steps:[`Substitute n = 1, 2, 3, 4 into ${rule}.`,method,`The terms are ${vals.slice(0,4).map(fmt).join(', ')}.`],visual:null});
+    if(sub==='rule')return F(f,{prompt:`Sequence: ${vals.slice(0,3).map(fmt).join(', ')}, … Write a formula in n for the value at position n. Position 1 is the first number, position 2 the second, and so on.`,value:null,answer:rule,accept:[geometric?`${as}*(${ds})^(n-1)`:`${as}+(${ds})(n-1)`],sequence,algebraic:!geometric,freeResponse:geometric,steps:[`The first term is ${as}. ${method}`,`At position n, the term value is ${rule}. Substitute n = 1 to check that the formula gives ${as}.`],visual:null});
     if(sub==='next'||sub==='next-terms'||sub==='next-ratio'){
       const ratio=sub==='next-ratio'||!!p.askRatio,value=ratio?[...vals.slice(3),d]:vals.slice(3);
       return F(f,{prompt:`${vals.slice(0,3).map(fmt).join(', ')}, … Find the next two terms${ratio?' and the ratio':''}.`,value,answer:`${vals.slice(3).map(fmt).join(', ')}${ratio?`; ratio ${ds}`:''}`,sequence,steps:[method,`Next terms: ${vals.slice(3).map(fmt).join(', ')}.`,...(ratio?[`The common ratio is ${ds}.`]:[])],visual:null});
     }
-    return F(f,{prompt:`${vals.slice(0,3).map(fmt).join(', ')}, … : find the next two terms and a rule for term n, starting at n = 1.`,value:null,answer:`${vals.slice(3).map(fmt).join(', ')}; ${rule}`,input:'text',freeResponse:true,sequence,steps:[method,`Next terms: ${vals.slice(3).map(fmt).join(', ')}.`,`Term n: ${rule}.`],visual:null});
+    return F(f,{prompt:`Sequence: ${vals.slice(0,3).map(fmt).join(', ')}, … Find the next two terms. Then write a formula for the value at position n, where n = 1 means first, n = 2 means second, and so on.`,value:null,answer:`${vals.slice(3).map(fmt).join(', ')}; ${rule}`,input:'text',freeResponse:true,sequence,steps:[method,`Next terms: ${vals.slice(3).map(fmt).join(', ')}.`,`Term value at position n: ${rule}.`],visual:null});
   }
   if(f==='coordinate-read'){
     const point=(label,old)=>{let x=I(-5,5),y=I(-5,5);if(old?.x===0)x=0;else if(old&&!Number.isInteger(old.x))x=(x||2)-.5;if(old?.y===0)y=0;else if(old&&!Number.isInteger(old.y))y=(y||2)-.5;return{x,y,label};};
     const pts=[point('A',p.visual?.points?.[0]),point('B',p.visual?.points?.[1])],visual={type:'grid',min:-6,max:6,step:1,points:pts,targets:[]};
-    if(p.subtype==='axes'){visual.points=[{x:I(-4,4),y:I(-4,4),label:'A'}];const a=visual.points[0];return F(f,{prompt:'Name the horizontal axis, the vertical axis, and the coordinates of A.',value:null,answer:`x-axis; y-axis; (${a.x}, ${a.y})`,freeResponse:true,steps:['The horizontal axis is the x-axis; the vertical axis is the y-axis.',`Read horizontal position first: A = (${a.x}, ${a.y}).`],visual});}
+    if(p.subtype==='axes'){visual.points=[{x:I(-4,4),y:I(-4,4),label:'A'}];const a=visual.points[0];return F(f,{prompt:'Name the horizontal and vertical axes. Write the ordered pair (x, y) for point A.',value:null,answer:`x-axis; y-axis; (${a.x}, ${a.y})`,freeResponse:true,steps:['The horizontal axis is the x-axis; the vertical axis is the y-axis.',`Read horizontal position first: A = (${a.x}, ${a.y}).`],visual});}
     if(p.subtype==='read-quadrant'){
       const q=p=>p.x>0?(p.y>0?'I':'IV'):(p.y>0?'II':'III');for(const pt of pts){if(!pt.x)pt.x=-2;if(!pt.y)pt.y=3;}
-      return F(f,{prompt:'Read A and B. Name each point’s quadrant.',value:null,answer:pts.map(pt=>`${pt.label}(${pt.x}, ${pt.y}), ${q(pt)}`).join('; '),freeResponse:true,steps:pts.map(pt=>`${pt.label}: x = ${pt.x}, y = ${pt.y}; quadrant ${q(pt)}.`),visual});
+      return F(f,{prompt:'Write the ordered pair (x, y) for each labeled point A and B. Also name the quadrant containing each point.',value:null,answer:pts.map(pt=>`${pt.label}(${pt.x}, ${pt.y}), ${q(pt)}`).join('; '),freeResponse:true,steps:pts.map(pt=>`${pt.label}: x = ${pt.x}, y = ${pt.y}; quadrant ${q(pt)}.`),visual});
     }
-    return F(f,{prompt:'Read the coordinates of A and B, in that order.',value:pts.flatMap(pt=>[pt.x,pt.y]),answer:pts.map(pt=>`(${pt.x}, ${pt.y})`).join('; '),steps:pts.map(pt=>`${pt.label}: x = ${pt.x}, y = ${pt.y}.`),visual});
+    return F(f,{prompt:'Write the ordered pair (x, y) for point A, then for point B.',value:pts.flatMap(pt=>[pt.x,pt.y]),answer:pts.map(pt=>`(${pt.x}, ${pt.y})`).join('; '),steps:pts.map(pt=>`${pt.label}: x = ${pt.x}, y = ${pt.y}.`),visual});
   }
   if(f==='proportion-constant'||f==='proportion-interpret'){
     if(f==='proportion-interpret'&&p.visual?.type==='grid'){
@@ -362,6 +406,24 @@ function specialized(p,seed,R,F,level,unit){
     if(value!==undefined)return F(f,{prompt,value:Array.isArray(value)?value:rnd(value,6),answer:answer||`${rnd(value,4)} ${unitOut}`,unit:unitOut,steps,visual:v,tolerance:.00011});
   }
   return null;
+}
+
+// Upgrade the wording of saved extra practice without changing its mathematics or identity.
+export function clarifyPracticeWording(problem){
+  const result={...problem};let prompt=String(problem.prompt||'');
+  if(problem.family==='arithmetic-sequence'||problem.family==='geometric-sequence'){
+    prompt=prompt.replace(/Write term n, beginning with n = 1\./i,'Write a formula in n for the value at position n. Position 1 is the first number, position 2 the second, and so on.');
+    prompt=prompt.replace(/a rule for term n, starting at n = 1\./i,'a formula for the value at position n, where n = 1 means first, n = 2 means second, and so on.');
+    prompt=prompt.replace(/Plot \(n, term n\) for (.*?) using n = 1, 2, 3, 4\./i,(_,values)=>`Sequence: ${values.replace(/,?\s*(?:…|\.\.\.)$/,'')}. Use positions 1, 2, 3, 4 as x and the number at that position as y. Plot four separate points; do not connect them.`);
+    prompt=prompt.replace(/Rule: term n = (.*?)\. Find terms 1, 2, 3, 4\./i,(_,rule)=>`Rule: term value = ${rule}. Here n is the position: 1 means first, 2 means second, and so on. Find the first four term values by substituting n = 1, 2, 3, 4.`);
+    if(result.visual?.type==='grid'&&(result.subtype==='plot'||/Plot \(n, term n\)/i.test(problem.prompt||'')))result.visual={...result.visual,xLabel:'x',yLabel:'y'};
+  }
+  if(problem.family==='coordinate-read'){
+    prompt=prompt.replace(/Read A and B\./i,'Write the ordered pair (x, y) for each labeled point A and B.');
+    prompt=prompt.replace(/Read the coordinates of A and B, in that order\./i,'Write the ordered pair (x, y) for point A, then for point B.');
+    prompt=prompt.replace(/Name the horizontal axis, the vertical axis, and the coordinates of A\./i,'Name the horizontal and vertical axes. Write the ordered pair (x, y) for point A.');
+  }
+  result.prompt=prompt;return result;
 }
 
 export function generateVariant(problem,seed=Date.now(),difficulty='same'){
@@ -654,9 +716,9 @@ export function checkAnswer(problem,raw){
   if(problem.sequence&&typeof problem.value!=='number'&&!Array.isArray(problem.value)){
     try{
       const bits=clean(raw).split(';'),sequence=problem.sequence,term=n=>sequence.kind==='geometric'?sequence.first*sequence.ratio**(n-1):sequence.first+sequence.difference*(n-1);
-      const rule=bits.at(-1).trim().replace(/^(?:term\s*n|a_?n|a\(n\))\s*=\s*/i,'');
+      const rule=bits.at(-1).trim().replace(/^(?:term\s*n|a_?n|a\(n\)|term\s*value|value|y)\s*=\s*/i,'');
       const rulesMatch=[1,2,3,4,7].every(n=>close(arithmetic(rule,n),term(n)));
-      const asksTerms=problem.subtype==='next-rule'||/next two terms.+rule/i.test(problem.prompt||'');
+      const asksTerms=problem.subtype==='next-rule'||/next two terms.+(?:rule|formula)/i.test(problem.prompt||'');
       const entered=asksTerms?numbers(bits.slice(0,-1).join(';')):[];
       const termsMatch=!asksTerms||(entered.length===2&&entered.every((v,i)=>close(v,term(i+4))));
       return {...output,correct:rulesMatch&&termsMatch};
@@ -682,4 +744,4 @@ export function checkAnswer(problem,raw){
   return {...output,...(isExplanation?{needsReview:true}:{} )};
 }
 export const isCorrect=(problem,raw)=>checkAnswer(problem,raw).correct;
-export const practiceFamilies=['integer-add','integer-subtract','integer-multiply','integer-divide','absolute','compare','fraction-add','fraction-multiply','fraction-divide','decimal','convert','mixed-order','combine-terms','expand','factor','equation-one','equation-two','equation-multi','inequality','arithmetic-sequence','geometric-sequence','plot','proportion-graph','proportion-table','unit-rate','percent','percent-change','percent-error','simple-interest','angle-complement','angle-supplement','angle-vertical','triangle-possible','triangle-construct','scale','perimeter','area-rectangle','area-triangle','area-parallelogram','area-trapezoid','area-composite','composite-volume','circle-radius-diameter','circle-reverse','circle-circumference','circle-area','circle-explain','rectangular-volume','rectangular-surface','triangular-volume','triangular-surface','pyramid-surface','cross-section'];
+export const practiceFamilies=['integer-add','integer-subtract','integer-multiply','integer-divide','absolute','compare','fraction-add','fraction-multiply','fraction-divide','decimal','convert','mixed-order','combine-terms','expand','factor','equation-one','equation-two','equation-multi','equation-division-position','inequality','arithmetic-sequence','geometric-sequence','plot','proportion-graph','proportion-table','unit-rate','percent','percent-change','percent-error','simple-interest','angle-complement','angle-supplement','angle-vertical','triangle-possible','triangle-construct','scale','perimeter','area-rectangle','area-triangle','area-parallelogram','area-trapezoid','area-composite','composite-volume','circle-radius-diameter','circle-reverse','circle-circumference','circle-area','circle-explain','rectangular-volume','rectangular-surface','triangular-volume','triangular-surface','pyramid-surface','cross-section'];

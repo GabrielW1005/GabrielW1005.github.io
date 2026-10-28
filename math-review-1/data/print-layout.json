@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "pageCount": 39,
+  "version": 4,
+  "pageCount": 40,
   "sectionToPage": {
     "1": 1,
     "2": 1,
@@ -29,48 +29,49 @@
     "23": 7,
     "24": 7,
     "25": 7,
-    "25.01": 8,
-    "26": 8,
-    "27": 8,
-    "27.01": 9,
-    "28": 9,
-    "29": 9,
-    "30": 10,
-    "31": 10,
-    "32": 11,
-    "33": 12,
-    "34": 13,
-    "35": 14,
-    "36": 15,
-    "37": 15,
-    "38": 15,
-    "39": 16,
-    "40": 16,
-    "41": 16,
-    "41.01": 17,
-    "42": 17,
-    "43": 18,
-    "44": 19,
-    "45": 20,
-    "46": 21,
-    "47": 22,
-    "48": 23,
-    "49": 24,
-    "50": 25,
-    "51": 26,
-    "52": 27,
-    "53": 28,
-    "54": 29,
-    "55": 30,
-    "57": 31,
-    "58": 32,
-    "59": 33,
-    "60": 34,
-    "68": 35,
-    "69": 36,
-    "70": 37,
-    "71": 38,
-    "72": 39
+    "25.005": 8,
+    "25.01": 9,
+    "26": 9,
+    "27": 9,
+    "27.01": 10,
+    "28": 10,
+    "29": 10,
+    "30": 11,
+    "31": 11,
+    "32": 12,
+    "33": 13,
+    "34": 14,
+    "35": 15,
+    "36": 16,
+    "37": 16,
+    "38": 16,
+    "39": 17,
+    "40": 17,
+    "41": 17,
+    "41.01": 18,
+    "42": 18,
+    "43": 19,
+    "44": 20,
+    "45": 21,
+    "46": 22,
+    "47": 23,
+    "48": 24,
+    "49": 25,
+    "50": 26,
+    "51": 27,
+    "52": 28,
+    "53": 29,
+    "54": 30,
+    "55": 31,
+    "57": 32,
+    "58": 33,
+    "59": 34,
+    "60": 35,
+    "68": 36,
+    "69": 37,
+    "70": 38,
+    "71": 39,
+    "72": 40
   },
   "pages": [
     {
@@ -174,6 +175,17 @@
     },
     {
       "number": 8,
+      "title": "Division equations: find x",
+      "chapter": "Equations & inequalities",
+      "chapters": [
+        "Equations & inequalities"
+      ],
+      "sections": [
+        25.005
+      ]
+    },
+    {
+      "number": 9,
       "title": "One-step equations with rational numbers (continued) / Two-step equations / Multi-step equations and inverse reasoning",
       "chapter": "Equations & inequalities",
       "chapters": [
@@ -186,7 +198,7 @@
       ]
     },
     {
-      "number": 9,
+      "number": 10,
       "title": "Multi-step equations and inverse reasoning (continued) / One-step inequalities / Two-step inequalities and boundary checks",
       "chapter": "Equations & inequalities",
       "chapters": [
@@ -199,7 +211,7 @@
       ]
     },
     {
-      "number": 10,
+      "number": 11,
       "title": "Arithmetic sequences: a constant difference / Geometric sequences: a constant ratio",
       "chapter": "Patterns & coordinates",
       "chapters": [
@@ -211,7 +223,7 @@
       ]
     },
     {
-      "number": 11,
+      "number": 12,
       "title": "Read the Cartesian plane",
       "chapter": "Patterns & coordinates",
       "chapters": [
@@ -222,7 +234,7 @@
       ]
     },
     {
-      "number": 12,
+      "number": 13,
       "title": "Plot points in every quadrant",
       "chapter": "Patterns & coordinates",
       "chapters": [
@@ -233,7 +245,7 @@
       ]
     },
     {
-      "number": 13,
+      "number": 14,
       "title": "Proportional tables and equations",
       "chapter": "Proportional reasoning",
       "chapters": [
@@ -244,7 +256,7 @@
       ]
     },
     {
-      "number": 14,
+      "number": 15,
       "title": "Proportional graphs",
       "chapter": "Proportional reasoning",
       "chapters": [
@@ -255,7 +267,7 @@
       ]
     },
     {
-      "number": 15,
+      "number": 16,
       "title": "Unit rates, including fractional quantities / Solve proportions / Percent: find the part, whole, or rate",
       "chapter": "Proportional reasoning",
       "chapters": [
@@ -269,7 +281,7 @@
       ]
     },
     {
-      "number": 16,
+      "number": 17,
       "title": "Percent increase and decrease / Reverse percents and percent error / Financial percents one step at a time",
       "chapter": "Percents",
       "chapters": [
@@ -282,7 +294,7 @@
       ]
     },
     {
-      "number": 17,
+      "number": 18,
       "title": "Financial percents one step at a time (continued) / Combine financial percent methods",
       "chapter": "Percents",
       "chapters": [
@@ -294,7 +306,7 @@
       ]
     },
     {
-      "number": 18,
+      "number": 19,
       "title": "Length and perimeter",
       "chapter": "Length & area",
       "chapters": [
@@ -305,7 +317,7 @@
       ]
     },
     {
-      "number": 19,
+      "number": 20,
       "title": "Area: counting square units",
       "chapter": "Length & area",
       "chapters": [
@@ -316,7 +328,7 @@
       ]
     },
     {
-      "number": 20,
+      "number": 21,
       "title": "Area of a triangle",
       "chapter": "Length & area",
       "chapters": [
@@ -327,7 +339,7 @@
       ]
     },
     {
-      "number": 21,
+      "number": 22,
       "title": "Area of a parallelogram",
       "chapter": "Length & area",
       "chapters": [
@@ -338,7 +350,7 @@
       ]
     },
     {
-      "number": 22,
+      "number": 23,
       "title": "Area of a trapezoid",
       "chapter": "Length & area",
       "chapters": [
@@ -349,7 +361,7 @@
       ]
     },
     {
-      "number": 23,
+      "number": 24,
       "title": "Area of composite figures",
       "chapter": "Length & area",
       "chapters": [
@@ -360,7 +372,7 @@
       ]
     },
     {
-      "number": 24,
+      "number": 25,
       "title": "Radius and diameter",
       "chapter": "Circles",
       "chapters": [
@@ -371,7 +383,7 @@
       ]
     },
     {
-      "number": 25,
+      "number": 26,
       "title": "Circumference: distance around a circle",
       "chapter": "Circles",
       "chapters": [
@@ -382,7 +394,7 @@
       ]
     },
     {
-      "number": 26,
+      "number": 27,
       "title": "Area of a circle",
       "chapter": "Circles",
       "chapters": [
@@ -393,7 +405,7 @@
       ]
     },
     {
-      "number": 27,
+      "number": 28,
       "title": "Circle calculations in reverse",
       "chapter": "Circles",
       "chapters": [
@@ -404,7 +416,7 @@
       ]
     },
     {
-      "number": 28,
+      "number": 29,
       "title": "Angle facts",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -415,7 +427,7 @@
       ]
     },
     {
-      "number": 29,
+      "number": 30,
       "title": "Angle facts and equations",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -426,7 +438,7 @@
       ]
     },
     {
-      "number": 30,
+      "number": 31,
       "title": "Which triangles are possible?",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -437,7 +449,7 @@
       ]
     },
     {
-      "number": 31,
+      "number": 32,
       "title": "Scale factors and lengths",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -448,7 +460,7 @@
       ]
     },
     {
-      "number": 32,
+      "number": 33,
       "title": "Scale drawings and area",
       "chapter": "Angles, triangles & scale",
       "chapters": [
@@ -459,7 +471,7 @@
       ]
     },
     {
-      "number": 33,
+      "number": 34,
       "title": "Nets and surface area",
       "chapter": "Surface area",
       "chapters": [
@@ -470,7 +482,7 @@
       ]
     },
     {
-      "number": 34,
+      "number": 35,
       "title": "Surface area of rectangular prisms",
       "chapter": "Surface area",
       "chapters": [
@@ -481,7 +493,7 @@
       ]
     },
     {
-      "number": 35,
+      "number": 36,
       "title": "Volume: counting cubic units",
       "chapter": "Volume",
       "chapters": [
@@ -492,7 +504,7 @@
       ]
     },
     {
-      "number": 36,
+      "number": 37,
       "title": "Volume with fractional dimensions",
       "chapter": "Volume",
       "chapters": [
@@ -503,7 +515,7 @@
       ]
     },
     {
-      "number": 37,
+      "number": 38,
       "title": "Volume of triangular prisms",
       "chapter": "Volume",
       "chapters": [
@@ -514,7 +526,7 @@
       ]
     },
     {
-      "number": 38,
+      "number": 39,
       "title": "Volume of irregular prisms",
       "chapter": "Volume",
       "chapters": [
@@ -525,7 +537,7 @@
       ]
     },
     {
-      "number": 39,
+      "number": 40,
       "title": "Find a missing prism height",
       "chapter": "Volume",
       "chapters": [
@@ -534,6 +546,38 @@
       "sections": [
         72
       ]
+    }
+  ],
+  "packets": [
+    {
+      "number": 1,
+      "title": "Packet 1",
+      "startPage": 1,
+      "endPage": 8
+    },
+    {
+      "number": 2,
+      "title": "Packet 2",
+      "startPage": 9,
+      "endPage": 16
+    },
+    {
+      "number": 3,
+      "title": "Packet 3",
+      "startPage": 17,
+      "endPage": 24
+    },
+    {
+      "number": 4,
+      "title": "Packet 4",
+      "startPage": 25,
+      "endPage": 32
+    },
+    {
+      "number": 5,
+      "title": "Packet 5",
+      "startPage": 33,
+      "endPage": 40
     }
   ]
 }

@@ -1,24 +1,108 @@
 {
   "packet": {
     "filename": "8th_Grade_Math_Review_1_Packet.pdf",
-    "bytes": 2728246,
-    "sha256": "74cd8f15904e05b19c754bf825f3cab08a8b509d8493902c69533c6e7e2b8a21",
+    "bytes": 2733155,
+    "sha256": "32131dd48a4a269859b62914dc42780a4c714529ccd0a10b311f2de83ff1d6f5",
     "parts": [
-      "downloads/parts/packet-numbering6-00.bin",
-      "downloads/parts/packet-numbering6-01.bin",
-      "downloads/parts/packet-numbering6-02.bin",
-      "downloads/parts/packet-numbering6-03.bin"
+      "downloads/parts/packet-packets7-00.bin",
+      "downloads/parts/packet-packets7-01.bin",
+      "downloads/parts/packet-packets7-02.bin",
+      "downloads/parts/packet-packets7-03.bin"
     ]
   },
   "key": {
     "filename": "8th_Grade_Math_Review_1_Answer_Key.pdf",
-    "bytes": 3106853,
-    "sha256": "6b1366473449c3ff773636a592295f1fc313806975af0dd6935d6abde25ae337",
+    "bytes": 3120910,
+    "sha256": "6d3033a3ffb2c9dc581395273f7ddcb6602cdb99ba993969e7572fd6eeb044bf",
     "parts": [
-      "downloads/parts/key-numbering6-00.bin",
-      "downloads/parts/key-numbering6-01.bin",
-      "downloads/parts/key-numbering6-02.bin",
-      "downloads/parts/key-numbering6-03.bin"
+      "downloads/parts/key-packets7-00.bin",
+      "downloads/parts/key-packets7-01.bin",
+      "downloads/parts/key-packets7-02.bin",
+      "downloads/parts/key-packets7-03.bin"
+    ]
+  },
+  "packet-1": {
+    "filename": "8th_Grade_Math_Review_1_Part_1_Packet.pdf",
+    "bytes": 77807,
+    "sha256": "1a2bffbec80d6b15426fd1d350a62c65aea82b86b36cbcb563483164d1ea2bf8",
+    "parts": [
+      "downloads/parts/packet-1-packets7-00.bin"
+    ]
+  },
+  "key-1": {
+    "filename": "8th_Grade_Math_Review_1_Part_1_Answer_Key.pdf",
+    "bytes": 150754,
+    "sha256": "4ef5bc1610c34d40ad72b5c8855c85b3b8f775b6fef8ea5679565cafa61c0114",
+    "parts": [
+      "downloads/parts/key-1-packets7-00.bin"
+    ]
+  },
+  "packet-2": {
+    "filename": "8th_Grade_Math_Review_1_Part_2_Packet.pdf",
+    "bytes": 337146,
+    "sha256": "5e6c9acb70285654738e8a1a6068956074817e26c9a4871f0e3c60749d04d9d7",
+    "parts": [
+      "downloads/parts/packet-2-packets7-00.bin"
+    ]
+  },
+  "key-2": {
+    "filename": "8th_Grade_Math_Review_1_Part_2_Answer_Key.pdf",
+    "bytes": 529553,
+    "sha256": "349c0d744f77119ad568ffbad868fd5a5a3f89e487ccdd191f7ff62a1ba573b8",
+    "parts": [
+      "downloads/parts/key-2-packets7-00.bin"
+    ]
+  },
+  "packet-3": {
+    "filename": "8th_Grade_Math_Review_1_Part_3_Packet.pdf",
+    "bytes": 478532,
+    "sha256": "8fef1f87e091e8a4483acadc69b6f143911501e14ddb1f83b4c9581b9d56d6ac",
+    "parts": [
+      "downloads/parts/packet-3-packets7-00.bin"
+    ]
+  },
+  "key-3": {
+    "filename": "8th_Grade_Math_Review_1_Part_3_Answer_Key.pdf",
+    "bytes": 504219,
+    "sha256": "8e47f7044373b8f43cc9d4b9c13ab9c90e3f46f20b7cf7aedf24f8e441c1ba4d",
+    "parts": [
+      "downloads/parts/key-3-packets7-00.bin"
+    ]
+  },
+  "packet-4": {
+    "filename": "8th_Grade_Math_Review_1_Part_4_Packet.pdf",
+    "bytes": 797276,
+    "sha256": "904e014648a482ad5bf1cd63e938c2082d725912bcf1c431ccbd318388542f44",
+    "parts": [
+      "downloads/parts/packet-4-packets7-00.bin",
+      "downloads/parts/packet-4-packets7-01.bin"
+    ]
+  },
+  "key-4": {
+    "filename": "8th_Grade_Math_Review_1_Part_4_Answer_Key.pdf",
+    "bytes": 813562,
+    "sha256": "a947bee46a7cdf50930b36a24876a502bf97c568a19a0a14cb351ed50f78bb21",
+    "parts": [
+      "downloads/parts/key-4-packets7-00.bin",
+      "downloads/parts/key-4-packets7-01.bin"
+    ]
+  },
+  "packet-5": {
+    "filename": "8th_Grade_Math_Review_1_Part_5_Packet.pdf",
+    "bytes": 1172877,
+    "sha256": "a6b0c0a8e8c17f81aa35899411800fe442ade7415d0b1c72ebb3e4ed3304a2d9",
+    "parts": [
+      "downloads/parts/packet-5-packets7-00.bin",
+      "downloads/parts/packet-5-packets7-01.bin"
+    ]
+  },
+  "key-5": {
+    "filename": "8th_Grade_Math_Review_1_Part_5_Answer_Key.pdf",
+    "bytes": 1199720,
+    "sha256": "cbc2da3fb3d5b29920586d3c2e54af11d4ebfc1718157a3d1739b489e9ba6009",
+    "parts": [
+      "downloads/parts/key-5-packets7-00.bin",
+      "downloads/parts/key-5-packets7-01.bin"
     ]
   }
 }

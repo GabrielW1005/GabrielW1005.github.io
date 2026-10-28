@@ -15,7 +15,7 @@ async function getManifest() {
 
 /** Reassemble and verify the unchanged print PDF; cache only verified results. */
 export async function preparePDF(key, onProgress = () => {}) {
-  if (key !== 'packet' && key !== 'key') throw new Error('Choose the packet or answer key.');
+  if (!/^(?:packet|key)(?:-[1-5])?$/.test(key)) throw new Error('Choose a review packet or answer key.');
   if (completed.has(key)) { onProgress(100); return completed.get(key); }
   if (pending.has(key)) return pending.get(key);
   const task = (async () => {

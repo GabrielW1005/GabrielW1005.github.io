@@ -13,3 +13,5 @@
 .save-status{font-size:11px;line-height:1.45;color:var(--muted);padding:10px;margin:10px 0 0}.concept-help ol{font-size:15px;line-height:1.65}.concept-help p{font-size:13px;line-height:1.6}#progress-open.active{background:var(--accent-soft);color:var(--accent)}body.ui-collapsed #progress-open{display:none}body.dark dialog::backdrop{background:#07090e99}
 
 body.shared-report aside,body.shared-report .view-switch,body.shared-report .top-actions,body.shared-report #menu{display:none}body.shared-report .brand{pointer-events:none}body.shared-report main{max-width:1120px}
+
+#download-dialog{max-height:calc(100dvh - 40px);overflow-y:auto}#download-dialog .download-card{padding:13px 16px;margin-top:10px}.page-controls label>span:first-child{white-space:nowrap}
