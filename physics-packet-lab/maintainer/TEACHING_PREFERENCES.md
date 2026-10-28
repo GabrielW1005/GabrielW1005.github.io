@@ -32,3 +32,7 @@ Numerical-answer preferences (October 27, 2026):
 - Never choose 1 or -1 as the final answer to a generated calculation problem. Avoid answers of 2 or 3 wherever practical; do not make the exercise harder merely by using awkward or unrealistic measurements.
 - Check the full set of calculated answers before finalizing a worksheet, test, or practice set, and revise repetitive or overly simple results.
 - These rules apply to numerical calculation answers, not conceptual relationships such as acceleration doubling or being halved.
+
+Test formatting preference (October 28, 2026):
+- Never print a time limit, test duration, or allotted completion time on tests. Timing may guide planning, but must not appear on the student test.
+
