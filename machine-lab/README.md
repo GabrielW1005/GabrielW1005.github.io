@@ -1,43 +1,60 @@
-# Machine Lab — Physics Playground
+# Machine Lab — Work, Force & Motion
 
-An original grade-8 playground for work, force, mechanical advantage and balance. Static GitHub Pages app at `/machine-lab/`; no dependencies, accounts, tracking or student data uploads.
+A static grade-8 physics app deployed at `/machine-lab/`. No accounts, dependencies, tracking or student-data uploads. The two-page `worksheet.pdf` is independent of the larger app curriculum; its worked teacher key is provided separately.
 
-## Activities
+## Use
 
-- **Challenges:** find one force or balancing mass plus mechanical advantage. Each machine progresses from MA = 1 to greater advantage. New practice generates different values. Hints give algebra and substitution, leaving the final arithmetic to students.
-- **Free play:** drag weights onto either side, transfer weights, and drag geometry handles or use exact controls. Masses are labelled in kg and their drawn area scales with mass. Output retains a 1 kg base load.
-- **Auto balance:** change masses or geometry and keep an exact balance. Animate a sequence of balanced configurations to see the tradeoff; this changes setups, rather than depicting an unpowered machine changing shape.
+- **Practice:** solve one force, balancing mass, work distance or acceleration, plus ideal mechanical advantage. Mixed practice develops all four skills. Each correct answer advances that skill through the machine's stages; two misses generate another problem at the same or an easier stage. Complete all four skills to advance to the next machine. Automatic advancement can be switched off.
+- **Auto balance:** resizing a mass or changing geometry adjusts its counterpart to balance. Run to test, or apply a live pull. The comparison animation changes between separately balanced setups; it does not model a machine changing shape without external work.
+- **Manipulation:** drag a mass face to grip/pull it. Drag its sides or corners to change mass, or type an exact value. Drawn square area is proportional to mass. Mass changes and geometry edits start a fresh energy experiment. Edits that change a challenge's givens must be restored to earn progress.
+- **View:** wheel/pinch or buttons zoom; dragging the background pans. Independently toggle trajectories, force vectors, mass/acceleration, comparisons and plots. Compare actual path length, work displacement, or forces. Plot work displacement, cumulative path length, acceleration, or force against its corresponding work displacement.
 
-Input/output paths, force arrows, distance bars and a motion graph are independently switchable. Dark mode covers the entire stage. Quarter-speed, half-speed and real-time playback are available. Progress is saved locally on the current browser.
+Progress and theme are saved on the current browser. Both the stage and interface support light and dark themes. Free play and loose weight tokens have been removed.
 
-`worksheet.pdf` is a standalone two-page student sheet with eight diagrams and short value-finding questions. It intentionally contains fewer problems than the app. The teacher key is supplied separately. Run `source/build_worksheet.py` after installing `source/requirements.txt` to regenerate both PDFs.
+## Newtonian simulation
 
-## Physics
+`physics.js` numerically integrates a single generalized coordinate constrained by each machine. Newton's second law, or its rotational equivalent, determines acceleration from the actual connected mass inertia and applied forces. Velocity-Verlet substeps are at most 1/240 s (1/1200 s for levers). Frame dt is bounded, and travel-stop collisions account for lost kinetic energy. This is a constrained ideal-machine simulator, not a general collision sandbox.
 
-`physics.js` integrates constrained Newtonian motion with velocity-Verlet substeps of at most 1/240 second. Connected mass inertia and machine geometry determine acceleration. A weak input lets the load descend; an exact balance remains still from rest. A force just above the threshold lifts the load. Correct threshold answers unlock a clearly labelled 2% extra-force test.
+Gravity is rounded to g = 10 m/s². Machine parts and ropes are massless; ropes are inextensible; friction is absent. Lever endpoint loads are secured and do not swing independently. Hydraulic fluid inertia and hydrostatic pressure-height differences are neglected.
 
-All mechanisms are ideal: no friction, massless machine parts and inextensible ropes, with rounded Earth gravity g = 10 N/kg. At balance or steady speed, F1*d1 = F2*d2 and MA = F2/F1 = d1/d2. During acceleration, net work changes kinetic energy. Travel stops absorb remaining kinetic energy and the energy display accounts for this loss.
+At balance or steady motion, F1*d1 = F2*d2. Weight is m*g; the shared g cancels from the balancing equation m1*g*d1 = m2*g*d2. Actual moving-body acceleration a does not generally cancel. During acceleration:
 
-- Lever: vertical forces and constrained endpoint loads; gravitational torque varies with the beam angle. Work distance is vertical rise/fall, distinct from the endpoint's circular path. Loads do not swing independently.
-- Ramp: the box and counterweight have equal rope travel. The relevant output work distance against gravity is vertical rise, not distance along the ramp.
-- Pulley: one fixed pulley or one movable pulley with two supporting rope segments.
-- Wheel/axle and geared winch: separate rope travel and circular rim trajectories. Gear MA includes both tooth ratio and input/output drum radii.
-- Screw: axially fixed rotating screw and nonrotating translating load; ideal effort is represented by an input drum/handle.
-- Wedge: ideal constrained horizontal input and vertical load; its rise/run determines the ratio.
-- Syringes: incompressible hydraulic connection; area ratio sets displacement and force ratios. Fluid inertia and pressure-height differences are neglected.
+`input work + pointer work − load gravitational energy = change in kinetic energy + energy absorbed at stops`.
 
-Forces are bounded from 0–1000 N and each mass is capped at 200 kg. Geometry bounds keep mechanisms finite. Changing masses or geometry resets motion and energy bookkeeping; these edits are not treated as physical motion.
+The ratio shown is **ideal mechanical advantage from geometry**, not a claim that instantaneous dynamic force gain equals the equilibrium ratio.
 
-## Development and checks
+### Live grip
 
-Serve the folder over HTTP and open `index.html`. `app.js` coordinates the UI, `challenges.js` generates practice, `scene.js` renders vector mechanisms, and `physics.js` advances their dynamics.
+Pointer dragging applies a bounded active grip: a force that supports the load plus a spring and relative-velocity damping term. It never teleports or directly imposes a body position. The resulting signed tangential force is mapped through the correct path Jacobian into the Newtonian equation. Lever tangent forces act through arc distance, distinct from the vertical forces and work distances used by the textbook balance problem.
 
-Engine validation covers exact balance, under/overpowered motion, geometry ratios, finite states, travel limits, energy accounting and generated challenges. Browser checks cover all eight machines, force/balance answers, drag/drop, auto balance, paths, bars, graph and theme. Both worksheet pages and worked-key pages were visually inspected.
+Forces are capped at 1000 N; each mass is capped at 200 kg. The engine further scales pointer forces when needed to prevent negative rope tension or loss of supported contact. Its actual applied forces, not the requested values, enter both dynamics and pointer-work accounting. This keeps the model within its stated taut-rope/contact assumptions; it does not simulate slack ropes.
+
+### Distance and acceleration distinctions
+
+- Lever: path lengths are circular arcs r*dθ; vertical work distances are r*d(sin θ). Initial vertical-acceleration problems start horizontal and at rest.
+- Ramp: the input weight and box have equal actual path travel. The output work against gravity uses the smaller vertical rise. Acceleration questions ask along the slope.
+- Pulley: one or two supporting strands, with the corresponding rope-travel ratio.
+- Wheel and geared winch: rim paths and hanging-mass paths are separate. Gear MA includes tooth count and input/output drum radius.
+- Screw: the screw rotates without axial translation; its guided load cannot rotate. Input drum circumference and thread lead set the ratio.
+- Wedge: horizontal input and guided vertical load, with an ideal supported contact.
+- Syringes: incompressible volume conservation determines displacement; piston areas determine force ratio.
+
+Distance demonstrations begin with a known nonzero speed and account for their initial kinetic energy. They pause at the exact target rise. No collision energy is fabricated at that paused snapshot.
+
+## Performance and validation
+
+Physics runs only while needed. Hidden tabs pause motion and comparisons. SVG rendering is limited to 30 frames/s, graph history is bounded to 360 samples, and canvases cap device-pixel ratio at 2. Static gear geometry is cached with a size limit. Input events are batched through animation frames; only one advance timer and one active physical animation are retained.
+
+`source/test-challenges.mjs` checks generated ratios, balance, motion limits, initial accelerations, determinism and value variety. Physics tests cover signed pointer forces, spring-driven motion, reversals, contact/tension limits and energy accounting. Browser QA covers answer feedback, adaptive progression, zoom, resizing, pulling, numerical controls, all machines and display toggles.
+
+Serve this folder over HTTP. `app.js` owns interaction/adaptation, `challenges.js` owns problem generation, `scene.js` renders SVG, and `physics.js` advances the model. `source/build_worksheet.py` regenerates the unchanged student PDF and worked key after installing `source/requirements.txt`.
 
 ## References
 
 - https://openstax.org/books/physics/pages/9-3-simple-machines
+- https://openstax.org/books/university-physics-volume-1/pages/5-3-newtons-second-law
+- https://openstax.org/books/university-physics-volume-1/pages/7-3-work-energy-theorem
+- https://openstax.org/books/university-physics-volume-1/pages/10-7-newtons-second-law-for-rotation
 - https://openstax.org/books/university-physics-volume-1/pages/14-3-pascals-principle-and-hydraulics
-- https://fab.cba.mit.edu/classes/863.15/doc/tutorials/mechanical_design/index.html
 
-Uploaded lessons informed grade-level content and terminology only. Problems, layout and app are original.
+Original problems and graphics. Uploaded lessons informed grade-level content and terminology only.
