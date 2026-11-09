@@ -1,11 +1,12 @@
-import {defaultConfig,normalizeConfig,ratio,makeState,step,readout,changeConfig,limits,MAX_FORCE,MAX_MASS,bodyJacobian,initialOutputAcceleration,isAngularMachine,generalizedDrive} from './physics.js?v=balance-v1';
-import {machineCatalog,taskCatalog,createChallenge} from './challenges.js?v=balance-v1';
-import {createBalanceChallenge} from './balance-challenges.js?v=balance-v1';
-import {horizontalRun,setupValue,editSetup,setupEntry as entryValue} from './machine-edits.js?v=balance-v1';
-import {renderScene} from './scene.js?v=balance-v1';
-import {renderComparison} from './comparison.js?v=balance-v1';
-import {initPanels} from './panels.js?v=balance-v1';
-import {snapValue,answerRounding,displayValue,matchesRoundedAnswer} from './value-steps.js?v=balance-v1';
+import {defaultConfig,normalizeConfig,ratio,makeState,step,readout,changeConfig,limits,MAX_FORCE,MAX_MASS,bodyJacobian,initialOutputAcceleration,isAngularMachine,generalizedDrive} from './physics.js?v=progress-v1';
+import {machineCatalog,taskCatalog,createChallenge} from './challenges.js?v=progress-v1';
+import {createBalanceChallenge} from './balance-challenges.js?v=progress-v1';
+import {horizontalRun,setupValue,editSetup,setupEntry as entryValue} from './machine-edits.js?v=progress-v1';
+import {renderScene} from './scene.js?v=progress-v1';
+import {renderComparison} from './comparison.js?v=progress-v1';
+import {initPanels} from './panels.js?v=progress-v1';
+import {snapValue,answerRounding,displayValue,matchesRoundedAnswer} from './value-steps.js?v=progress-v1';
+import {normalizeProgress,serializeProgress,parseProgress,encodeProgress,decodeProgress,recordAttempt} from './progress.js?v=progress-v1';
 const $=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>Number.isFinite(n)?(Math.abs(n)<1e-8?'0':Number(n.toPrecision(4)).toString()):'—';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -17,19 +18,21 @@ let type='lever',task='balance',topic='mixed',mode='balance',level=0,challenge,c
 let custom=false,attempts=0,credited=false,forceCorrect=false,playing=false,frame=0,lastTime=0,lastDraw=0,drawFrame=0,editFrame=0;
 let history=[],bodyInfo={},drag=null,pull=null,pointers=new Map(),pinch=null,pendingResize=null,advanceTimer=0;
 let autoAnimating=false,autoFrame=0,autoStart=0,autoNotice='',distanceDemo=false;
-let camera={zoom:1,cx:450,cy:270};
+let camera={zoom:1,cx:450,cy:270},rampView=null;
+const PROGRESS_KEY='machine-lab-progress-v1',RELEASE='progress-v1';
+let progressReady=false,saveTimer=0,student='',progressStats={},sharedPreview=null;
 let testedEntry='',movementTest=null,comparisonSnapshot=null,comparisonPhase=0;
 const machine=()=>machineCatalog.find(m=>m.type===type);
 const editable=key=>mode!=='balance'||key===challenge?.key;
 const balanceVariant=()=>saved.balanceVariants?.[type]||0;
 function nextBalance(){saved.balanceVariants={...saved.balanceVariants,[type]:balanceVariant()+1};save();loadChallenge();}
 
-function save(){try{localStorage.setItem('machine-lab-adaptive-v3',JSON.stringify(saved));}catch{$('saveStatus').textContent='Progress saving unavailable.';}}
+function save(){queueAutoSave();}
 function skills(){if(!saved.skills[type])saved.skills[type]={force:0,balance:0,distance:0,acceleration:0};return saved.skills[type];}
 function maxStage(){return machine().levels.length;}
 function totalScore(){return Object.values(skills()).reduce((a,b)=>a+Math.min(b,maxStage()),0);}
 function cancelAdvance(){clearTimeout(advanceTimer);advanceTimer=0;$('advanceNotice').textContent='';}
-function stopAuto(){autoAnimating=false;cancelAnimationFrame(autoFrame);$('autoAnimate').textContent='▶ Compare balanced setups';}
+function stopAuto(){const changed=autoAnimating;autoAnimating=false;cancelAnimationFrame(autoFrame);$('autoAnimate').textContent='▶ Compare balanced setups';if(changed)queueAutoSave();}
 function stop(){playing=false;cancelAnimationFrame(frame);lastTime=0;$('playBtn').textContent='▶ Run';queueDraw();}
 function external(){
  if(pull)return pull.force;
@@ -72,9 +75,9 @@ function setConfig(next,{edited='',mark=true}={}){
  if(mode==='auto')balanceAuto(edited);
  const oldBounds=limits(old),fraction=(state.q-oldBounds.min)/oldBounds.range;changeConfig(state,old,config);if(old.force!==config.force)state=makeState(config,fraction);history=[];
  if(mode==='challenge'&&mark){custom=true;forceCorrect=false;$('nudgeBtn').hidden=true;$('setupNotice').hidden=false;$('testBtn').textContent='Test edited machine →';}
- $('feedback').textContent='';syncControls();if(mode==='balance'){$('answerValue').value=entryValue(setupValue(config,challenge.key));}if(custom)renderQuestion();queueDraw();if(resume&&!drag)start();
+ $('feedback').textContent='';syncControls();if(mode==='balance'){$('answerValue').value=entryValue(setupValue(config,challenge.key));}if(custom)renderQuestion();queueDraw();queueAutoSave();if(resume&&!drag)start();
 }
-function resetCamera(){camera={zoom:1,cx:450,cy:270};queueDraw();}
+function resetCamera(){camera={zoom:1,cx:450,cy:270};rampView=null;queueDraw();queueAutoSave();}
 function rampRun(c=config){return horizontalRun(c);}
 function lengthForRun(run,height){const lo=Math.sqrt(Math.max(0,.3**2-height**2)),hi=Math.sqrt(Math.max(0,5**2-height**2));return Math.hypot(clamp(run,lo,hi),height);}
 function snapGeometry(key,value){const f=machine().geometry.find(f=>f.key===key);if(!f)return value;if(f.values)return f.values.reduce((best,n)=>Math.abs(n-value)<Math.abs(best-value)?n:best,f.values[0]);let max=f.max;if(type==='ramp'&&key==='height')max=Math.min(max,Math.sqrt(Math.max(0,25-rampRun()**2)));return snapValue(value,f.step,f.min,max);}
@@ -102,7 +105,7 @@ function loadChallenge({newNumbers=false}={}){
  if(mode==='auto'){config={...defaultConfig(type),damping:resistance};balanceAuto();}else config.damping=resistance;
  syncResistance();
  state=makeState(config,challenge.startFraction??.25);$('answerValue').value='';$('feedback').textContent='';$('steps').hidden=true;$('stepsBtn').textContent='Show steps';$('setupNotice').hidden=true;$('nudgeBtn').hidden=true;$('testBtn').textContent='Check & run →';
- buildControls();syncControls();renderQuestion();renderTabs();if(mode==='balance')$('answerValue').value=entryValue(setupValue(config,challenge.key));resetCamera();draw();
+ buildControls();syncControls();renderQuestion();renderTabs();if(mode==='balance')$('answerValue').value=entryValue(setupValue(config,challenge.key));resetCamera();draw();queueAutoSave();
 }
 function factValues(){
  if(!custom)return challenge.given;
@@ -139,7 +142,8 @@ function draw(){
  if(!state)return;const r=readout(state,config,external());
  const targetInput=task==='distance'?challenge.motionDistance*ratio(config):0,targetQ=mode==='challenge'&&task==='distance'?(type==='lever'?Math.asin(clamp(Math.sin(state.q0)+targetInput/config.rIn,-1,1)):state.q0+targetInput):null;
  const pullView=pull?{side:pull.side,force:pull.side==='input'?r.externalInputForce:r.externalOutputForce,cursor:pull.cursor}:null;
- $('scene').innerHTML=renderScene(config,state,r,{dark:saved.dark,rampScale:drag&&(drag.kind==='rampRun'||(type==='ramp'&&drag.key==='height'))?drag.scale:undefined,editableKey:mode==='balance'?challenge.key:null,paths:$('paths').checked,forces:$('forces').checked,accelerations:$('accelerations').checked,pathWidth:Number($('pathWidth').value),pull:pullView,actuatorForce:movementTest?r.externalInputForce:0,targetQ,targetRise:challenge.motionDistance});
+ $('scene').innerHTML=renderScene(config,state,r,{dark:saved.dark,rampView,rampScale:drag&&(drag.kind==='rampRun'||(type==='ramp'&&drag.key==='height'))?drag.scale:undefined,editableKey:mode==='balance'?challenge.key:null,paths:$('paths').checked,forces:$('forces').checked,accelerations:$('accelerations').checked,pathWidth:Number($('pathWidth').value),pull:pullView,actuatorForce:movementTest?r.externalInputForce:0,targetQ,targetRise:challenge.motionDistance});
+ if(type==='ramp'&&!rampView){const d=$('scene').querySelector('[data-geo="rampRun"]')?.dataset;if(d&&Number(d.scale)>0)rampView={scale:Number(d.scale),x0:Number(d.baseX),baseY:Number(d.baseY)};}
  const svg=$('scene').firstElementChild;if(svg)svg.setAttribute('viewBox',`${camera.cx-450/camera.zoom} ${camera.cy-270/camera.zoom} ${900/camera.zoom} ${540/camera.zoom}`);
  $('zoomReset').textContent=Math.round(camera.zoom*100)+'%';cacheBodyInfo();
  updateCompare(r);if($('graphToggle').checked)drawGraph();
@@ -227,7 +231,7 @@ function applyTest(e){
   if(attempts===2&&!custom){skills()[task]=Math.max(0,(skills()[task]||0)-1);save();}
   $('advanceNotice').textContent='Correction stays visible. Choose Next problem when ready.';
  }
- draw();if(task==='distance')demonstrateDistance(valueOK?target:value);else start();
+ recordCurrentTest(valueOK);draw();if(task==='distance')demonstrateDistance(valueOK?target:value);else start();
 }
 function applyBalanceTest(){
  cancelAdvance();stopAuto();pull=null;movementTest=null;distanceDemo=false;
@@ -239,7 +243,7 @@ function applyBalanceTest(){
  state=makeState(config,challenge.startFraction??.5);history=[];testedEntry=$('answerValue').value;
  const r=readout(state,config),balanced=r.balanced;
  feedback(balanced?(type==='gearArms'?'✓ Balanced at horizontal. Run continues; you can pull an arm to explore.':'✓ Balanced. Neither side starts moving.'):`Not balanced. The output ${r.balanceError>0?'rises':'lowers'}. Adjust ${challenge.label.toLowerCase()} and try again.`,balanced);
- syncControls();$('answerValue').value=entryValue(setupValue(config,challenge.key));draw();start();
+ syncControls();$('answerValue').value=entryValue(setupValue(config,challenge.key));recordCurrentTest(balanced);draw();start();
 }
 function feedback(text,good,correctValue){
  $('feedback').className=good?'good':'bad';
@@ -253,7 +257,7 @@ function zoomBy(factor,anchor){
  const old=screenPoint(anchor?.x??($('scene').getBoundingClientRect().left+$('scene').clientWidth/2),anchor?.y??($('scene').getBoundingClientRect().top+$('scene').clientHeight/2));
  camera.zoom=clamp(camera.zoom*factor,.6,3.5);
  if(anchor){const after=screenPoint(anchor.x,anchor.y);camera.cx+=old.x-after.x;camera.cy+=old.y-after.y;}
- camera.cx=clamp(camera.cx,80,820);camera.cy=clamp(camera.cy,30,510);queueDraw();
+ camera.cx=clamp(camera.cx,80,820);camera.cy=clamp(camera.cy,30,510);queueDraw();queueAutoSave();
 }
 function effectiveMass(side){
  const J=bodyJacobian(config),M=config.inputMass*J.input**2+config.outputMass*J.output**2;
@@ -304,9 +308,9 @@ function movePointer(e){
 }
 function applyPendingEdit(){cancelAnimationFrame(editFrame);editFrame=0;if(!pendingResize)return;const update=pendingResize;pendingResize=null;if(Object.entries(update.next).every(([key,value])=>value===config[key]))return;const isGuess=mode==='challenge'&&task==='balance'&&update.edited==='inputMass';setConfig(update.next,{edited:update.edited,mark:!isGuess});if(isGuess)$('answerValue').value=fmt(config.inputMass);}
 function endPointer(e){
- pointers.delete(e.pointerId);if(pinch){if(pointers.size<2)pinch=null;return;}
+ pointers.delete(e.pointerId);if(pinch){if(pointers.size<2)pinch=null;queueAutoSave();return;}
  if(pendingResize)applyPendingEdit();if(pull){pull=null;queueDraw();}const resume=drag?.resume;drag=null;if(resume)start();
- try{$('scene').releasePointerCapture(e.pointerId);}catch{}
+ try{$('scene').releasePointerCapture(e.pointerId);}catch{}queueAutoSave();
 }
 $('machines').innerHTML=machineCatalog.map(m=>`<button data-machine="${m.type}">${esc(m.label)}</button>`).join('');
 $('machines').onclick=e=>{const b=e.target.closest('[data-machine]');if(!b)return;type=b.dataset.machine;if(machine().balanceOnly)mode='balance';task=mode==='balance'?'balance':topic==='mixed'?'force':topic;level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();};
@@ -338,7 +342,7 @@ $('fullscreenBtn').onclick=async()=>{try{document.fullscreenElement?await docume
 function renderComparisonStep(){
  if(!comparisonSnapshot)return;
  $('comparisonStage').innerHTML=renderComparison({...comparisonSnapshot,phase:comparisonPhase,dark:saved.dark,pathWidth:Number($('pathWidth').value),reducedMotion:true});
- $('comparisonStep').textContent=['1 / 3 · Compare paths','2 / 3 · Compare masses','3 / 3 · Compare products'][comparisonPhase];
+ $('comparisonStep').textContent=['1 / 3 · Compare distances','2 / 3 · Compare masses','3 / 3 · Compare areas'][comparisonPhase];
  $('comparisonPrev').disabled=comparisonPhase===0;$('comparisonNext').disabled=comparisonPhase===2;
 }
 function playComparison(){comparisonPhase=0;renderComparisonStep();}
@@ -355,4 +359,95 @@ function syncResistance(){
 }
 $('resistance').oninput=()=>{const old={...config};resistance=clamp(Number($('resistance').value)||0,0,3);config={...config,damping:resistance};changeConfig(state,old,config);syncResistance();queueDraw();};
 
-const hash=location.hash.match(/machine=(\w+)/);if(hash&&machineCatalog.some(m=>m.type===hash[1]))type=hash[1];level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();theme();initPanels();
+const checkViews=['paths','forces','accelerations','charts','graphToggle','pullTool','autoAdvance'];
+const selectViews=['compareKind','plotKind','speed','autoTarget'];
+function progressSnapshot(){
+ const view=Object.fromEntries([...checkViews.map(id=>[id,$(id).checked]),...selectViews.map(id=>[id,$(id).value])]);
+ return normalizeProgress({schema:'machine-lab-progress',version:1,savedAt:new Date().toISOString(),student,saved,
+  session:{mode,type,task,topic,level,variant:mode==='balance'?balanceVariant():saved.serial,config,answer:$('answerValue').value,custom,attempts,credited,forceCorrect,resistance,camera,rampView,view},stats:progressStats});
+}
+function progressStatus(message,bad=false){$('progressStatus').textContent=message;$('progressStatus').classList.toggle('save-error',bad);$('saveStatus').textContent=message;}
+function queueAutoSave(){
+ if(!progressReady||!config)return;
+ clearTimeout(saveTimer);progressStatus('Saving…');saveTimer=setTimeout(()=>saveProgressNow(),350);
+}
+function saveProgressNow(manual=false){
+ clearTimeout(saveTimer);saveTimer=0;if(!progressReady||!config)return false;
+ try{const snapshot=progressSnapshot();localStorage.setItem(PROGRESS_KEY,serializeProgress(snapshot));localStorage.setItem('machine-lab-adaptive-v3',JSON.stringify(snapshot.saved));progressStatus((manual?'Saved':'Autosaved')+' on this device · '+new Date(snapshot.savedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}));return true;}
+ catch{progressStatus('Unable to save on this device. Use Share or Download backup.',true);return false;}
+}
+function recordCurrentTest(correct){
+ const entry=$('answerValue').value,source=JSON.stringify([mode,type,task,level,mode==='balance'?balanceVariant():saved.serial,config,entry]);
+ let h=2166136261;for(const char of source)h=Math.imul(h^char.charCodeAt(0),16777619);
+ progressStats=recordAttempt(progressStats,{type,mode,task,level,custom,variable:mode==='balance'?challenge.key:task,variant:mode==='balance'?balanceVariant():saved.serial,correct,entry,at:new Date().toISOString(),signature:(h>>>0).toString(36)});
+ queueAutoSave();
+}
+function restoreProgress(snapshot,persist=true){
+ const p=normalizeProgress(snapshot),a=p.session,wasReady=progressReady;progressReady=false;clearTimeout(saveTimer);saveTimer=0;
+ cancelAdvance();stopAuto();stop();if($('comparisonDialog').open)$('comparisonDialog').close();
+ saved=p.saved;student=p.student;progressStats=p.stats;mode=a.mode;type=a.type;task=a.task;topic=a.topic;level=a.level;resistance=a.resistance;
+ if(machine().balanceOnly){mode='balance';task='balance';}
+ if(mode==='balance')saved.balanceVariants={...saved.balanceVariants,[type]:a.variant};else saved.serial=a.variant;
+ for(const id of checkViews)$(id).checked=a.view[id];for(const id of selectViews)$(id).value=a.view[id];
+ loadChallenge();
+ if(mode==='balance')config=editSetup(challenge.config,challenge.key,setupValue(a.config,challenge.key));
+ else if(mode==='auto'||a.custom)config=normalizeConfig(a.config);
+ else {config={...challenge.config};if(task==='force')config.force=a.config.force;if(task==='balance')config.inputMass=a.config.inputMass;}
+ config.damping=resistance;if(mode==='balance')config.force=0;if(mode==='auto')balanceAuto();
+ custom=mode==='challenge'&&a.custom;attempts=a.attempts;credited=a.credited;forceCorrect=a.forceCorrect;
+ state=makeState(config,challenge.startFraction??.5);history=[];testedEntry='';camera={...a.camera};rampView=a.rampView;
+ $('answerValue').value=a.answer;$('feedback').textContent='';$('pathWidth').value=saved.pathWidth;$('pathWidthValue').textContent=saved.pathWidth;
+ $('comparePanel').hidden=!$('charts').checked;$('plotPanel').hidden=!$('graphToggle').checked;$('accelerationWindow').hidden=!$('accelerations').checked;
+ buildControls();syncControls();syncResistance();renderQuestion();renderTabs();theme();draw();
+ progressReady=wasReady;if(persist){progressReady=true;saveProgressNow(true);}return p;
+}
+function renderProgressReport(snapshot){
+ const p=normalizeProgress(snapshot),recent=p.stats.recent||[];
+ $('studentName').value=p.student;
+ const successful=p.stats.correct||0,total=p.stats.attempts||0;
+ $('progressSummary').innerHTML=`<div><strong>${total}</strong><span>Tests</span></div><div><strong>${successful}</strong><span>Successful tests</span></div><div><strong>${total?Math.round(100*successful/total):0}%</strong><span>Success rate</span></div>`;
+ const machineName=key=>machineCatalog.find(m=>m.type===key)?.label||key;
+ const variableName=key=>({inputMass:'Input mass',outputMass:'Output mass',rampRun:'Ramp base',rIn:'Input arm/radius',rOut:'Output arm/radius',teethIn:'Input teeth',teethOut:'Output teeth',areaIn:'Input area',areaOut:'Output area',height:'Height',length:'Length',lead:'Rise per turn',balance:'Input mass',force:'Force',distance:'Distance',acceleration:'Acceleration'}[key]||key);
+ $('progressHistory').innerHTML=recent.length?`<table><caption>Recent tests · newest first</caption><thead><tr><th>Machine</th><th>Your entry</th><th>Result</th></tr></thead><tbody>${[...recent].reverse().map(row=>`<tr><td>${esc(machineName(row.type))}<small>${esc(row.mode==='balance'?'Balance':row.custom?'Edited practice':'Practice')} · ${esc(variableName(row.variable||row.task))}</small></td><td>${esc(row.entry)}</td><td class="${row.correct?'test-success':'test-retry'}">${row.correct?'Successful':'Try again'}</td></tr>`).join('')}</tbody></table>`:'<p>No tests recorded yet. Run a test to start your progress.</p>';
+ const current=machineName(p.session.type),date=new Date(p.savedAt).toLocaleString();
+ $('progressMessage').textContent=`${current} · ${p.session.mode==='balance'?'Balance':p.session.mode==='auto'?'Auto balance':'Practice'} · saved ${date}. Progress links are snapshots, not live updates.`;
+}
+function openProgress(snapshot=progressSnapshot(),preview=false){
+ stop();stopAuto();cancelAdvance();sharedPreview=preview?normalizeProgress(snapshot):null;
+ $('progressTitle').textContent=preview?'Shared progress':'Save & share progress';$('sharedNotice').hidden=!preview;
+ $('resumeShared').hidden=!preview;$('keepMyProgress').hidden=!preview;$('studentName').disabled=preview;
+ for(const id of ['copyProgressLink','downloadProgress','loadProgress'])$(id).hidden=preview;
+ $('shareLinkBox').hidden=true;renderProgressReport(snapshot);if(!$('progressDialog').open)$('progressDialog').showModal();
+}
+function clearSharedLink(){if(new URLSearchParams(location.hash.slice(1)).has('progress'))historyReplaceWithoutShare();}
+function historyReplaceWithoutShare(){const url=new URL(location.href);url.hash='';window.history.replaceState(null,'',url.toString());}
+$('saveProgressBtn').onclick=()=>saveProgressNow(true);
+$('shareProgressBtn').onclick=()=>{saveProgressNow();openProgress();};
+$('closeProgress').onclick=()=>$('progressDialog').close();
+$('progressDialog').addEventListener('close',()=>{sharedPreview=null;clearSharedLink();});
+$('studentName').oninput=()=>{if(sharedPreview)return;student=$('studentName').value.slice(0,80);queueAutoSave();};
+$('copyProgressLink').onclick=async()=>{
+ try{saveProgressNow();const token=encodeProgress(progressSnapshot()),url=new URL(location.href);url.searchParams.set('v',RELEASE);url.hash='progress='+token;const link=url.toString();$('progressLink').value=link;
+  try{await navigator.clipboard.writeText(link);$('progressMessage').textContent='Progress link copied. Paste it into Classroom, a message, or a document.';}
+  catch{$('shareLinkBox').hidden=false;$('progressLink').focus();$('progressLink').select();$('progressMessage').textContent='Copy the selected progress link below.';}
+ }catch{$('progressMessage').textContent='Could not create this link. Use Download backup instead.';}
+};
+$('downloadProgress').onclick=()=>{try{saveProgressNow();const blob=new Blob([serializeProgress(progressSnapshot())],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='machine-lab-progress.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('progressMessage').textContent='Backup download requested. You can reopen it with Open saved file.';}catch{$('progressMessage').textContent='Could not create the backup. Try copying a progress link.';}};
+$('loadProgress').onclick=()=>$('progressFile').click();
+$('progressFile').onchange=async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;try{if(file.size>128000)throw Error('size');const p=parseProgress(await file.text());openProgress(p,true);}catch{$('progressMessage').textContent='That file is not a valid Machine Lab progress backup.';}};
+$('resumeShared').onclick=()=>{if(!sharedPreview)return;const p=sharedPreview;restoreProgress(p,false);$('progressDialog').close();if(saveProgressNow(true))progressStatus('Shared progress saved on this device. Run starts from rest.');};
+$('keepMyProgress').onclick=()=>$('progressDialog').close();
+document.addEventListener('input',e=>{if(e.target.closest('.app')&&e.target.id!=='progressFile')queueAutoSave();});
+document.addEventListener('change',e=>{if(e.target.closest('.app'))queueAutoSave();});
+window.addEventListener('pagehide',()=>saveProgressNow());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveProgressNow();});
+let storedProgress=null;try{const raw=localStorage.getItem(PROGRESS_KEY);if(raw)storedProgress=parseProgress(raw);}catch{}
+if(storedProgress)restoreProgress(storedProgress,false);else{const hash=location.hash.match(/machine=(\w+)/);if(hash&&machineCatalog.some(m=>m.type===hash[1]))type=hash[1];level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();theme();}
+initPanels();progressReady=true;
+if(storedProgress)progressStatus('Progress restored on this device. Run starts from rest.');else queueAutoSave();
+function openSharedLink(){
+ const sharedToken=new URLSearchParams(location.hash.slice(1)).get('progress');
+ if(sharedToken){try{openProgress(decodeProgress(sharedToken),true);}catch{openProgress();$('progressMessage').textContent='This progress link is invalid or incomplete. Your saved work is unchanged.';}}
+}
+window.addEventListener('hashchange',openSharedLink);openSharedLink();
+

@@ -1,26 +1,26 @@
-import { ratio, limits } from './physics.js?v=balance-v1';
-import {displayValue} from './value-steps.js?v=balance-v1';
+import { ratio, limits } from './physics.js?v=progress-v1';
+import {displayValue} from './value-steps.js?v=progress-v1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=n=>Number.isFinite(n)?Number(n.toPrecision(4)).toString():'0';
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const TAU=Math.PI*2;
 const gearCache=new Map();
 const rampLayoutCache=new Map();
-// The floor and pixel scale do not depend on current height. Reserve the
-// full editable height range so raising the ramp never shrinks its base.
+// Fit this ramp and its complete rope stroke, not every possible future height.
+// The app retains this view while editing so height changes keep the same base.
 function rampLayout(c,run){
- const physicalRun=Number(run.toFixed(10)),key=`${physicalRun}:${c.inputMass}:${c.outputMass}`;
+ const physicalRun=Number(run.toFixed(10)),key=`${physicalRun}:${c.height}:${c.inputMass}:${c.outputMass}`;
  if(rampLayoutCache.has(key))return rampLayoutCache.get(key);
- const baseY=260,halfIn=5*Math.sqrt(c.inputMass),halfOut=5*Math.sqrt(c.outputMass),x0=Math.max(110,2*halfOut+30),heightMax=Math.max(.1,Math.min(2,Math.sqrt(Math.max(0,25-physicalRun*physicalRun))));
- let scale=physicalRun>1e-9?360/physicalRun:500;
- for(let i=0;i<=80;i++){
-  const height=.1+(heightMax-.1)*i/80,length=Math.hypot(physicalRun,height),tx=physicalRun/length,sin=height/length,pad=Math.max(45,150*tx),r=Math.max(23,(halfOut+halfIn+26-pad*tx)/(1+sin)),offset=-pad*sin+(r-halfOut-2)*tx;
-  const topExtent=Math.max(r-offset,(halfOut+2)*tx+halfOut*(tx+sin));
-  scale=Math.min(scale,(baseY-35-topExtent)/height);
-  if(length-height>1e-9)scale=Math.min(scale,(500-baseY-offset-r-2*halfIn-18)/(length-height));
-  if(physicalRun>1e-9){const tail=pad*tx-halfOut*sin-2*sin+r*sin+r+halfIn;scale=Math.min(scale,(850-x0-tail)/physicalRun);}
- }
- const result={scale:Math.max(5,scale*.98),baseY,x0};
+ const halfIn=5*Math.sqrt(c.inputMass),halfOut=5*Math.sqrt(c.outputMass),tx=physicalRun/c.length,sin=c.height/c.length,extent=halfOut*(tx+sin),pad=Math.max(45,150*tx),r=Math.max(23,(halfOut+halfIn+26-pad*tx)/(1+sin)),offset=-pad*sin+(r-halfOut-2)*tx;
+ const minX=Math.min(0,-sin*(halfOut+2)-extent),tail=pad*tx+(r-halfOut-2)*sin;
+ const maxTail=Math.max(0,-sin*(halfOut+2)+extent,tail+r,tail+r+halfIn);
+ const widthScale=physicalRun>1e-9?(760-maxTail+minX)/physicalRun:2000;
+ const lowY=Math.min(0,-tx*(halfOut+2)-extent,offset-r,offset+r+18);
+ const highY=scale=>Math.max(0,-tx*(halfOut+2)+extent,(c.length-c.height)*scale+offset+r+2*halfIn+18);
+ let lo=0,hi=Math.max(1,Math.min(2000,widthScale));
+ for(let i=0;i<45;i++){const mid=(lo+hi)/2,span=highY(mid)+c.height*mid-lowY;if(span<=400)lo=mid;else hi=mid;}
+ const scale=Math.max(5,lo*.98),width=physicalRun*scale+maxTail-minX,minY=-c.height*scale+lowY,maxY=highY(scale);
+ const result={scale,x0:(900-width)/2-minX,baseY:64+(400-(maxY-minY))/2-minY};
  if(rampLayoutCache.size>128)rampLayoutCache.clear();rampLayoutCache.set(key,result);return result;
 }
 
@@ -49,7 +49,7 @@ export function renderScene(c,state,readout={},options={}){
  const rect=(x,y,w,h,fill=P.fill,stroke=P.ink,r=5)=>`<rect x="${x}" y="${y}" width="${Math.max(0,w)}" height="${Math.max(0,h)}" rx="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
  const text=(x,y,str,color=P.ink,size=18,anchor='middle',extra='')=>{foregroundLabels.push(`<text x="${x}" y="${y}" fill="${color}" font-size="${size}" text-anchor="${anchor}" ${sAttr} style="paint-order:stroke;stroke:${P.bg};stroke-width:3;stroke-linejoin:round" pointer-events="none" ${extra}>${esc(str)}</text>`);return '';};
  function arrow(x1,y1,x2,y2,col=P.ink,w=2.5){const a=Math.atan2(y2-y1,x2-x1),l=Math.min(8,Math.hypot(x2-x1,y2-y1)*.35);return line(x1,y1,x2,y2,col,w)+path(`M${x2-l*Math.cos(a-.45)},${y2-l*Math.sin(a-.45)} L${x2},${y2} L${x2-l*Math.cos(a+.45)},${y2-l*Math.sin(a+.45)}`,col,w);}
- function geometrySurface(markup,param,units,label,axis='x',extra=''){if(!editable(param))return markup;return `<g data-drag="geometry" data-param="${param}" data-units-per-px="${units}" data-axis="${axis}" data-name="${esc(label)}" role="button" aria-label="Drag to change ${esc(label)}" tabindex="0" style="cursor:${axis==='y'?'ns':'ew'}-resize" ${extra}>${markup}</g>`;}
+ function geometrySurface(markup,param,units,label,axis='x',extra=''){if(!editable(param))return extra?`<g ${extra}>${markup}</g>`:markup;return `<g data-drag="geometry" data-param="${param}" data-units-per-px="${units}" data-axis="${axis}" data-name="${esc(label)}" role="button" aria-label="Drag to change ${esc(label)}" tabindex="0" style="cursor:${axis==='y'?'ns':'ew'}-resize" ${extra}>${markup}</g>`;}
  function handle(x,y,param,units,label,axis='x'){if(!editable(param))return '';foregroundHandles.push(geometrySurface(`${circle(x,y,21,'transparent','transparent',0)}${circle(x,y,10,P.bg,P.muted,2)}${axis==='y'?path(`M${x-4},${y-3} L${x},${y-7} L${x+4},${y-3} M${x-4},${y+3} L${x},${y+7} L${x+4},${y+3}`,P.muted,1.6):path(`M${x-3},${y-4} L${x-7},${y} L${x-3},${y+4} M${x+3},${y-4} L${x+7},${y} L${x+3},${y+4}`,P.muted,1.6)}`,param,units,label,axis));return '';}
  function dim(x1,y1,x2,y2,label,col,tx=(x1+x2)/2,ty=(y1+y2)/2-10){return arrow(x1,y1,x2,y2,col,1.4)+arrow(x2,y2,x1,y1,col,1.4)+text(tx,ty,label,col,17);}
  function trace(fn,col,key){
@@ -104,7 +104,7 @@ export function renderScene(c,state,readout={},options={}){
   z+=text(cx,483,'fulcrum',P.muted,14);
   if(paths){const a=ip(lim.min),b=ip(lim.max),d=op(lim.min),e=op(lim.max);z+=dim(105,a[1],105,b[1],'vertical d₁',P.blue,100,(a[1]+b[1])/2-20)+dim(795,d[1],795,e[1],'vertical d₂',P.orange,795,(d[1]+e[1])/2-20);}
  } else if(c.type==='ramp'){
-  const runMeters=Math.sqrt(Math.max(0,c.length*c.length-c.height*c.height)),angle=Math.atan2(c.height,runMeters),tx=Math.cos(angle),ty=-Math.sin(angle),nx=-Math.sin(angle),ny=-Math.cos(angle),loadHalf=5*Math.sqrt(c.outputMass),inputHalf=5*Math.sqrt(c.inputMass),pad=Math.max(45,150*tx),r=Math.max(23,(loadHalf+inputHalf+26-pad*tx)/(1-ty)),layout=rampLayout(c,runMeters);
+  const runMeters=Math.sqrt(Math.max(0,c.length*c.length-c.height*c.height)),angle=Math.atan2(c.height,runMeters),tx=Math.cos(angle),ty=-Math.sin(angle),nx=-Math.sin(angle),ny=-Math.cos(angle),loadHalf=5*Math.sqrt(c.outputMass),inputHalf=5*Math.sqrt(c.inputMass),pad=Math.max(45,150*tx),r=Math.max(23,(loadHalf+inputHalf+26-pad*tx)/(1-ty)),layout=options.rampView&&Number(options.rampView.scale)>0?options.rampView:rampLayout(c,runMeters);
   // A single top guide redirects the sloping rope into a vertical hanging end.
   // Its entry and exit are exact circle tangents, so rope length stays fixed.
   const scale=Number(options.rampScale)>0?Number(options.rampScale):layout.scale,run=runMeters*scale,rise=c.height*scale,x0=layout.x0,y0=layout.baseY;
@@ -117,7 +117,7 @@ export function renderScene(c,state,readout={},options={}){
   const rope=`M${B[0]},${B[1]} L${contact[0]},${contact[1]} A${r},${r} 0 0 1 ${inputX},${guide[1]} V${inputTop}`;
   z+=`<g data-ramp-rope="single-guide" data-rope-length="${ropeLength/scale}" data-ramp-scale="${scale}" data-entry-x="${contact[0]}" data-entry-y="${contact[1]}" data-guide-x="${guide[0]}" data-guide-y="${guide[1]}" data-guide-radius="${r}">`+path(rope,P.ink,3)+`<g data-ramp-guide="fixed">`+pulleyWheel(...guide,r*.96,q*scale/r)+'</g></g>';
   z+=trace(wi,P.blue,'input')+trace(point,P.orange,'output')+weight(...B,c.outputMass,'output',{angle:-angle,tangent:[tx,ty]})+weight(...I,c.inputMass,'input');
-  z+=text(Math.min(810,inputX+65),guide[1]-r-14,'fixed pulley',P.muted,16)+text(260,477,c.height===c.length?'vertical lift':`slope ${num(c.length)} m`,P.ink,20)+text(560,477,`height ${num(c.height)} m`,P.orange,20);
+  z+=text(Math.min(810,inputX+65),guide[1]+8,'fixed pulley',P.muted,16)+text(230,21,c.height===c.length?'vertical lift':`slope ${num(c.length)} m`,P.ink,19)+text(650,21,`height ${num(c.height)} m`,P.orange,19);
   const footX=x0+run,gripX=footX+29,gripY=y0+22;
   if(editable('rampRun')){const baseGrip=line(footX,y0,gripX,gripY,P.blue,1.7)+rect(gripX-24,gripY-15,48,30,P.bg,P.blue,8)+arrow(gripX-15,gripY,gripX+15,gripY,P.blue,2)+arrow(gripX+15,gripY,gripX-15,gripY,P.blue,2);foregroundHandles.push(geometrySurface(baseGrip,'rampRun',1/scale,'horizontal ramp run','x',runMetadata));z+=text(gripX+8,gripY+39,'extend base',P.blue,14);}
   z+=handle(x0+run,y0-rise,'height',-1/scale,'ramp height','y');
@@ -184,18 +184,18 @@ export function renderScene(c,state,readout={},options={}){
   z+=text(450,437,`input radius ${num(c.rIn)} m`,P.blue,20)+text(450,466,`output radius ${num(c.rOut)} m`,P.orange,20)+handle(cx-ri,cy-14,'rIn',-.002,'input radius')+handle(cx+ro,cy+16,'rOut',.002,'output radius');
   z+=text(450,531,paths?'Rim arcs = rope travel · fixed guides only redirect':'Wheel and axle rotate together.',P.muted,17);
  } else if(c.type==='gearArms'){
-  // Both bars point left. Opposite gear rotations then move the two loads in
-  // opposite vertical directions; outward-pointing bars could not balance.
-  const k=c.teethIn/c.teethOut,toothModule=190/(c.teethIn+c.teethOut),r1=c.teethIn*toothModule,r2=c.teethOut*toothModule,c1=[575,260-r2],c2=[575,260+r1],halfIn=5*Math.sqrt(c.inputMass),halfOut=5*Math.sqrt(c.outputMass),swingIn=c.rIn*Math.sin(lim.max),swingOut=c.rOut*Math.sin(k*lim.max),scale=Math.min(180/Math.max(c.rIn,c.rOut),Math.max(10,190-halfIn-halfOut-28)/Math.max(.001,swingIn+swingOut),Math.max(5,c1[1]-halfIn-10)/Math.max(.001,swingIn),Math.max(5,510-c2[1]-halfOut)/Math.max(.001,swingOut)),hangIn=0,hangOut=0;
+  // Both bars point left and sit in front of the gear faces. Opposite gear
+  // rotations then move the two secured loads in opposite vertical directions.
+  const k=c.teethIn/c.teethOut,toothModule=180/(c.teethIn+c.teethOut),r1=c.teethIn*toothModule,r2=c.teethOut*toothModule,c1=[510-r2,270],c2=[510+r1,270],halfIn=5*Math.sqrt(c.inputMass),halfOut=5*Math.sqrt(c.outputMass),armDifference=Math.max(0,c.rOut-c.rIn*Math.cos(lim.max)),scale=Math.min(95/Math.max(c.rIn,c.rOut),armDifference>0?Math.max(12,180-halfIn-halfOut-26)/armDifference:Infinity);
   bodyScale=scale;
-  const ip=u=>[c1[0]-c.rIn*scale*Math.cos(u),c1[1]+c.rIn*scale*Math.sin(u)+hangIn],op=u=>[c2[0]-c.rOut*scale*Math.cos(k*u),c2[1]-c.rOut*scale*Math.sin(k*u)+hangOut],I=ip(q),O=op(q),ib=[I[0],I[1]-hangIn],ob=[O[0],O[1]-hangOut];
-  z+=text(210,c1[1]-17,'INPUT',P.blue,16,'middle','font-weight="750" letter-spacing="2"')+text(210,c2[1]-17,'OUTPUT',P.orange,16,'middle','font-weight="750" letter-spacing="2"')+line(575,34,575,440,P.line,9);
+  const ip=u=>[c1[0]-c.rIn*scale*Math.cos(u),c1[1]+c.rIn*scale*Math.sin(u)],op=u=>[c2[0]-c.rOut*scale*Math.cos(k*u),c2[1]-c.rOut*scale*Math.sin(k*u)],I=ip(q),O=op(q);
+  z+=sectionLabels(c1[0]-75,c2[0]+75)+line(c1[0],270,c1[0],450,P.line,8)+line(c2[0],270,c2[0],450,P.line,8)+base(450,c1[0]-35,c2[0]+35);
   z+=gear(...c1,r1,c.teethIn,-q,'teethIn')+gear(...c2,r2,c.teethOut,k*q+Math.PI/c.teethOut,'teethOut');
-  z+=line(...c1,...ib,P.blue,12,'stroke-linecap="round"')+line(...c2,...ob,P.orange,12,'stroke-linecap="round"')+circle(...c1,9,P.bg,P.blue,3)+circle(...c2,9,P.bg,P.orange,3);
+  z+=line(...c1,...I,P.bg,18,'stroke-linecap="round"')+line(...c2,...O,P.bg,18,'stroke-linecap="round"')+line(...c1,...I,P.blue,10,'stroke-linecap="round"')+line(...c2,...O,P.orange,10,'stroke-linecap="round"')+circle(...c1,9,P.bg,P.blue,3)+circle(...c2,9,P.bg,P.orange,3);
   z+=trace(ip,P.blue,'input')+trace(op,P.orange,'output');
-  z+=weight(...I,c.inputMass,'input',{tangent:[Math.sin(q),Math.cos(q)],labelLeft:true})+weight(...O,c.outputMass,'output',{tangent:[Math.sin(k*q),-Math.cos(k*q)],labelLeft:true});
-  z+=text(800,c1[1],`${c.teethIn} teeth`,P.blue,21,'end')+text(800,c2[1],`${c.teethOut} teeth`,P.orange,21,'end')+text(220,c1[1]+22,`${num(c.rIn)} m arm`,P.blue,20)+text(220,c2[1]+22,`${num(c.rOut)} m arm`,P.orange,20);
-  z+=handle(c2[0]+r2+16,c2[1],'teethOut',.5,'output gear teeth')+text(450,480,'Masses are secured to the bars · gears turn oppositely',P.muted,18)+text(450,518,'Both bars point left. Test balance while horizontal.',P.muted,18);
+  z+=weight(...I,c.inputMass,'input',{tangent:[Math.sin(q),Math.cos(q)]})+weight(...O,c.outputMass,'output',{tangent:[Math.sin(k*q),-Math.cos(k*q)]});
+  z+=text(c1[0],c1[1]-r1-22,`${c.teethIn} teeth`,P.blue,21)+text(c2[0],c2[1]-r2-22,`${c.teethOut} teeth`,P.orange,21)+text(c1[0]-50,410,`${num(c.rIn)} m arm`,P.blue,20)+text(c2[0]+50,410,`${num(c.rOut)} m arm`,P.orange,20);
+  z+=handle(c2[0]+r2+16,c2[1],'teethOut',.5,'output gear teeth')+text(450,486,'Bars are fixed to the axles, in front of the gears',P.muted,18)+text(450,518,'Both bars point left. Test balance while horizontal.',P.muted,18);
  } else if(c.type==='gears'){
   const scale=Math.min(170/lim.max,170/(lim.max/R),70/Math.max(c.crankRadius,c.drumRadius)),module=Math.min(1.7,115/Math.max(c.teethIn,c.teethOut)),r1=c.teethIn*module,r2=c.teethOut*module,c1=[440-r2,185],c2=[440+r1,185],rh=c.crankRadius*scale,rd=c.drumRadius*scale,a1=-q/c.crankRadius,a2=q/c.crankRadius*c.teethIn/c.teethOut;
   bodyScale=scale;

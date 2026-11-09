@@ -62,19 +62,21 @@ c={...defaultConfig('lever'),inputMass:5,outputMass:20};
 m=buildComparisonModel({config:c,state:{q0:0,q:.2},readout:{pointerWork:3,dampingEnergyLoss:1}});assert.ok(m.equal&&m.extraDynamics&&m.hadPull);near(m.dissipation,1);checks++;
 const rendered=renderComparison({config:c,state:{q0:0,q:.2},readout:{pointerWork:3,dampingEnergyLoss:1},phase:2});assert.ok(rendered.includes('accounted for separately'));checks++;
 // Manual step changes must keep the same physical scale, line positions and
-// viewport. The work projection is a separate line, never a replacement path.
+// viewport. Exactly two force-aligned lines are shown; no second path pair.
 for(const type of ['lever','ramp','gears','gearArms','pulley']){
  const conf=normalizeConfig({...defaultConfig(type),inputMass:5,outputMass:20});
  const lim=limits(conf),snapshot={q0:lim.min+.2*lim.range,q:lim.min+.7*lim.range};
  const model=buildComparisonModel({config:conf,state:snapshot});
  const views=[0,1,2].map(phase=>renderComparison({config:conf,state:snapshot,phase}));
- const paths=html=>html.match(/<line[^>]*data-comparison-path="[^"]+"[^>]*\/>/g);
+ const distances=html=>html.match(/<line[^>]*data-comparison-distance="[^"]+"[^>]*\/>/g);
  const work=html=>html.match(/<line[^>]*data-comparison-work="[^"]+"[^>]*\/>/g);
- assert.equal(paths(views[0]).length,2);assert.equal(work(views[0]).length,2);checks+=2;
+ assert.equal(distances(views[0]).length,2);assert.equal(work(views[0]).length,2);assert.ok(!views[0].includes('data-comparison-path'));checks+=3;
  for(const view of views){
   assert.ok(view.includes('viewBox="0 0 900 400"'));assert.ok(!view.includes('<animate'));assert.ok(!/stroke-dasharray|[Dd]ashed|[Dd]otted/.test(view));checks++;
-  assert.deepEqual(paths(view),paths(views[0]));assert.deepEqual(work(view),work(views[0]));checks+=4;
+  assert.deepEqual(distances(view),distances(views[0]));assert.deepEqual(work(view),work(views[0]));assert.equal(distances(view).length,2);checks+=5;
  }
+ const widthOf=(side)=>Number(distances(views[0]).find(line=>line.includes(`data-comparison-distance="${side}"`)).match(/data-pixel-length="([^"]+)"/)[1]);
+ near(widthOf('input'),model.productDrawIn.width);near(widthOf('output'),model.productDrawOut.width);
  near(model.productDrawIn.width,model.workDrawIn.width);
  near(model.productDrawOut.width,model.workDrawOut.width);
  near(model.pathDrawIn.width/model.pathIn,model.distanceScale);

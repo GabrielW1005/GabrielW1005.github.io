@@ -1,5 +1,5 @@
 /** Original short challenges. Worked hints stop before evaluating either answer. */
-import { defaultConfig, normalizeConfig, ratio, GRAVITY, limits } from './physics.js?v=balance-v1';
+import { defaultConfig, normalizeConfig, ratio, GRAVITY, limits } from './physics.js?v=progress-v1';
 
 const field=(key,label,min,max,step,unit)=>({key,label,min,max,step,unit});
 export const machineCatalog=[

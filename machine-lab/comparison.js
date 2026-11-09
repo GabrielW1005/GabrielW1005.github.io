@@ -1,6 +1,6 @@
 /** Snapshot comparison of real paths, force-aligned distances and work products. */
-import {normalizeConfig, ratio, limits, GRAVITY, isAngularMachine, verticalCoordinates, bodyJacobian} from './physics.js?v=balance-v1';
-import {trajectoryGeometry} from './scene.js?v=balance-v1';
+import {normalizeConfig, ratio, limits, GRAVITY, isAngularMachine, verticalCoordinates, bodyJacobian} from './physics.js?v=progress-v1';
+import {trajectoryGeometry} from './scene.js?v=progress-v1';
 
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const finite=(n,fallback=0)=>Number.isFinite(Number(n))?Number(n):fallback;
@@ -28,7 +28,7 @@ export function buildComparisonModel({config,state={},readout={}}={}) {
  const dissipation=positive(readout.dampingEnergyLoss)+positive(readout.stopEnergyLoss);
  const extraDynamics=hadPull||dissipation>1e-8;
  const geometry=trajectoryGeometry(c,{...state,q0,q},readout);
- const factorScale=66/Math.max(1,factorIn,factorOut),distanceScale=560/Math.max(pathIn,pathOut,distanceIn,distanceOut,1e-12);
+ const factorScale=66/Math.max(1,factorIn,factorOut),distanceScale=560/Math.max(distanceIn,distanceOut,1e-12);
  const massAreaScale=84**2/Math.max(c.inputMass,c.outputMass,1);
  return {config:c,R,q0,q,reference,geometry,pathIn,pathOut,distanceIn,distanceOut,
   signedIn,signedOut,forceIn,forceOut,massMode,factorIn,factorOut,productIn,productOut,equal,
@@ -50,39 +50,30 @@ const VIEWBOX='0 0 900 400';
 const BAR_X=280;
 function svg(body,p,label){return `<svg class="mc-visual" viewBox="${VIEWBOX}" role="img" aria-label="${esc(label)}" xmlns="http://www.w3.org/2000/svg" style="background:${p.bg}"><g font-family="system-ui,-apple-system,Segoe UI,sans-serif">${body}</g></svg>`;}
 
-/** Identical path/work bars, coordinates and scale in every manually selected step. */
+/** Exactly one input line and one output line, unchanged in every manual step.
+ * These are distances along the weights/forces, so the product areas are work.
+ * The live simulator separately displays each body's full geometric trajectory.
+ */
 function commonDistances(m,p,pathWidth){
- let z=txt(28,27,'Same distance scale in every step',p.ink,22);
- z+=txt(28,48,'Actual path length and distance along the force',p.muted,16);
- for(const [side,pathY,workY,col,pathLength,workLength]of[
-  ['input',77,106,p.blue,m.pathIn,m.distanceIn],['output',143,172,p.orange,m.pathOut,m.distanceOut]]){
-  const name=side==='input'?'Input':'Output',sub=side==='input'?'₁':'₂',pathEnd=BAR_X+pathLength*m.distanceScale,workEnd=BAR_X+workLength*m.distanceScale;
-  z+=txt(28,pathY+5,`${name} path: ${fmt(pathLength)} m`,col,18,'start','font-weight="700"');
-  z+=txt(28,workY+5,`Work distance d${sub}: ${fmt(workLength)} m`,col,17);
-  z+=line(BAR_X,pathY,BAR_X+560,pathY,p.grid,1)+line(BAR_X,workY,BAR_X+560,workY,p.grid,1);
-  z+=line(BAR_X,pathY,pathEnd,pathY,col,pathWidth,`stroke-linecap="round" data-comparison-path="${side}" data-distance-m="${pathLength}" data-pixel-length="${pathLength*m.distanceScale}"`);
-  z+=line(BAR_X,workY,workEnd,workY,col,Math.max(1.5,pathWidth*.65),`stroke-linecap="butt" data-comparison-work="${side}" data-distance-m="${workLength}" data-pixel-length="${workLength*m.distanceScale}"`);
-  z+=line(BAR_X,pathY-8,BAR_X,pathY+8,col,1.5)+line(pathEnd,pathY-8,pathEnd,pathY+8,col,1.5);
-  z+=line(BAR_X,workY-6,BAR_X,workY+6,col,1.2)+line(workEnd,workY-6,workEnd,workY+6,col,1.2);
+ let z=txt(28,29,'Compare input and output',p.ink,23);
+ const note=m.config.type==='ramp'?'Input along the ramp · output vertical rise':
+  isAngularMachine(m.config)?'Vertical fall and rise of the masses':'Distance along each force';
+ z+=txt(28,54,note,p.muted,18);
+ for(const [side,y,col,distance]of[
+  ['input',99,p.blue,m.distanceIn],['output',158,p.orange,m.distanceOut]]){
+  const name=side==='input'?'Input d₁':'Output d₂',end=BAR_X+distance*m.distanceScale;
+  z+=txt(28,y+7,`${name}: ${fmt(distance)} m`,col,22,'start','font-weight="700"');
+  z+=line(BAR_X,y,end,y,col,Math.max(3,pathWidth),`stroke-linecap="round" data-comparison-distance="${side}" data-comparison-work="${side}" data-distance-m="${distance}" data-pixel-length="${distance*m.distanceScale}"`);
+  z+=line(BAR_X,y-9,BAR_X,y+9,col,1.5)+line(end,y-9,end,y+9,col,1.5);
  }
  return z+line(28,194,872,194,p.grid,1);
 }
 function pathPanel(m,p,pathWidth){
  let z=commonDistances(m,p,pathWidth);
- const different=!eq(m.pathIn,m.distanceIn)||!eq(m.pathOut,m.distanceOut);
- z+=txt(28,236,different?'Path length and work distance are different here.':'Here, path length and work distance are equal.',p.ink,23,'start','font-weight="700"');
- if(m.config.type==='ramp'){
-  z+=txt(28,274,'The input rope and box travel the same distance.',p.muted,20);
-  z+=txt(28,306,'The box’s weight acts vertically: output work uses its vertical rise.',p.muted,20);
- }else if(isAngularMachine(m.config)){
-  z+=txt(28,274,'Arm ends follow arcs. The weights act vertically.',p.muted,20);
-  z+=txt(28,306,'Work uses vertical rise or fall, not the curved path length.',p.muted,20);
- }else{
-  z+=txt(28,274,'The attached masses move along the direction of the driving forces.',p.muted,20);
-  z+=txt(28,306,'Compare their path lengths from the same starting line.',p.muted,20);
- }
- z+=txt(28,360,'Next adds mass squares. These four distance bars stay exactly the same.',p.ink,19);
- return {visual:svg(z,p,`Input path ${fmt(m.pathIn)} metres and work distance ${fmt(m.distanceIn)} metres; output path ${fmt(m.pathOut)} metres and work distance ${fmt(m.distanceOut)} metres. The scale stays fixed across steps.`),caption:m.config.type==='wheel'||m.config.type==='gears'||m.config.type==='screw'?'These are the attached masses’ paths. Unwound rope length equals the corresponding drum-rim arc length.':'Choose each step yourself. The same measured or reference movement is used throughout.'};
+ z+=txt(28,249,'Longer input distance → less input force at balance',p.ink,24,'start','font-weight="700"');
+ z+=txt(28,291,'Next adds the masses.',p.muted,23);
+ z+=txt(28,338,'These two lines keep the same length in every step.',p.muted,21);
+ return {visual:svg(z,p,`Input distance ${fmt(m.distanceIn)} metres; output distance ${fmt(m.distanceOut)} metres. These two force-aligned distances stay unchanged across steps.`),caption:m.config.type==='gearArms'?'Gear arms: the two distances follow the actual change in each arm’s angle.':'Choose Back or Next. The snapshot stays fixed.'};
 }
 function factorsPanel(m,p,pathWidth){
  let z=commonDistances(m,p,pathWidth);
@@ -94,9 +85,9 @@ function factorsPanel(m,p,pathWidth){
   if(!mass)z+=txt(cx,cy+7,'0',col,22,'middle');
   z+=txt(cx,355,`${fmt(mass)} kg`,col,23,'middle','font-weight="750"');
  }
- z+=txt(28,389,'Twice the mass → twice the square area. Distance bars above have not changed.',p.muted,17);
- const caption=m.massMode?'Next multiplies mass by the work distance. The same gravitational acceleration g appears on both sides.':`There is also ${fmt(m.config.force)} N of applied input force. Next uses total input force × work distance, rather than mass alone.`;
- return {visual:svg(z,p,'Mass squares with proportional areas, beneath the unchanged path and work-distance bars.'),caption};
+ z+=txt(28,389,'Twice the mass → twice the square area.',p.muted,17);
+ const caption=m.massMode?'Next: mass × distance. The same g cancels on both sides.':`Applied input force: ${fmt(m.config.force)} N. Next compares total force × distance.`;
+ return {visual:svg(z,p,'Mass squares with proportional areas, beneath the same input and output distance lines.'),caption};
 }
 function productPanel(m,p,pathWidth){
  const unit=m.massMode?'kg':'N',productUnit=m.massMode?'kg·m':'J',word=m.massMode?'Mass × work distance':'Force × work distance';
@@ -119,7 +110,7 @@ function productPanel(m,p,pathWidth){
 /** All phases are manual and static. A captured snapshot keeps dimensions fixed. */
 export function renderComparison({config,state={},readout={},phase=0,dark=true,pathWidth=4,reducedMotion=false}={}) {
  const m=buildComparisonModel({config,state,readout}),p=palette(dark),step=clamp(Math.trunc(finite(phase)),0,2),width=clamp(finite(pathWidth,4),1,12);
- const labels=['1. Compare paths','2. Add masses','3. Compare products'];
+ const labels=['1. Compare distances','2. Add masses','3. Compare areas'];
  const panel=step===0?pathPanel(m,p,width):step===1?factorsPanel(m,p,width):productPanel(m,p,width);
  return `<section class="mc-comparison ${dark?'mc-dark':'mc-light'}" data-comparison-phase="${step}"><div class="mc-step-title">${labels.map((label,i)=>`<span class="${i===step?'mc-active':''}">${label}</span>`).join('')}</div><p class="mc-source">${esc(m.sourceLabel)}</p>${panel.visual}<p class="mc-caption ${panel.equal?'mc-equal':''}">${esc(panel.caption)}</p></section>`;
 }

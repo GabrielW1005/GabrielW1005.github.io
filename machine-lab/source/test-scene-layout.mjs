@@ -73,7 +73,7 @@ for(const teethIn of [8,24,96])for(const teethOut of [8,24,96])for(const mass of
  const c=normalizeConfig({...defaultConfig('gearArms'),teethIn,teethOut,inputMass:mass,outputMass:mass}),k=teethIn/teethOut;
  for(const fraction of [0,.25,.5,.75,1]){
   const state=makeState(c,fraction);state.q0=0;const svg=renderScene(c,state),capture=trajectoryGeometry(c,state),gears=[...svg.matchAll(/<g data-gear="(?:input|output)"[^>]+>/g)].map(m=>attrs(m[0]));
-  assert.equal(gears.length,2);near(Math.hypot(gears[1]['center-x']-gears[0]['center-x'],gears[1]['center-y']-gears[0]['center-y']),gears[0]['pitch-radius']+gears[1]['pitch-radius']);
+  assert.equal(gears.length,2);near(gears[0]['center-y'],gears[1]['center-y']);assert.ok(gears[0]['center-x']<gears[1]['center-x'],'Gears sit horizontally beside each other');near(Math.hypot(gears[1]['center-x']-gears[0]['center-x'],gears[1]['center-y']-gears[0]['center-y']),gears[0]['pitch-radius']+gears[1]['pitch-radius']);
   near(gears[0]['pitch-radius']/teethIn,gears[1]['pitch-radius']/teethOut);
   near(capture.input.pathDistance,c.rIn*Math.abs(state.q));near(capture.output.pathDistance,c.rOut*k*Math.abs(state.q));
   near(capture.input.signedWorkDistance,c.rIn*Math.sin(state.q));near(capture.output.signedWorkDistance,c.rOut*Math.sin(k*state.q));
@@ -91,17 +91,19 @@ for(const type of ['lever','ramp','pulley','wheel','gears','gearArms','screw','w
  assert.ok(!locked.includes('data-drag="geometry"'),`${type}: geometry locked`);
  assert.equal((locked.match(/data-drag="resize"/g)||[]).length,6,`${type}: one mass has resize handles`);
  assert.ok(!/data-drag="resize" data-side="output"/.test(locked));
+ if(type==='ramp')assert.ok(locked.includes('data-geo="rampRun"'),'Read-only ramp still exposes stable view metadata');
 }
 const gears=defaultConfig('gears'),gearSvg=renderScene(gears,makeState(gears));assert.ok(!/data-param="(?:crankRadius|drumRadius)"/.test(gearSvg),'Drums have no resize handles');
 const pulley=defaultConfig('pulley'),pulleySvg=renderScene(pulley,makeState(pulley));assert.ok(!pulleySvg.includes('data-param="strands"'),'Supporting strands have no separate scene slider');
 const arm=defaultConfig('gearArms'),armSvg=renderScene(arm,makeState(arm,.5),{}, {editableKey:'teethOut'});assert.equal((armSvg.match(/data-param="teethOut"/g)||[]).length,2);assert.ok(!armSvg.includes('data-drag="resize"'));
 console.log(`Scene checks passed: ${pulleyStates} pulley states,42 hydraulic pairs,${rampStates} single-guide ramp states,${gearStates} geared-arm states,and balance handle restrictions.`);
-// Height edits preserve the horizontal base's anchor and pixel scale.
+// Each problem fits its own full stroke. Retaining that view during edits keeps
+// the horizontal base anchor and scale stable; Fit can recompute the view.
 for(const run of [0,.5,1.5,3,4.8])for(const mass of [1,20,200]){
- let initial;
+ let initial,view;
  for(const height of [.1,.35,.6,1,1.5,2].filter(h=>Math.hypot(run,h)>=.3&&Math.hypot(run,h)<=5)){
-  const c=normalizeConfig({...defaultConfig('ramp'),length:Math.hypot(run,height),height,inputMass:mass,outputMass:mass}),svg=renderScene(c,makeState(c,.5)),grip=attrs(svg.match(/<g[^>]*data-geo="rampRun"[^>]*>/)[0]);
-  initial??=grip;near(grip.scale,initial.scale);near(grip['base-x'],initial['base-x']);near(grip['base-y'],initial['base-y']);near(grip.run,run);
+  const c=normalizeConfig({...defaultConfig('ramp'),length:Math.hypot(run,height),height,inputMass:mass,outputMass:mass}),svg=renderScene(c,makeState(c,.5),{},view?{rampView:view}:{}),grip=attrs(svg.match(/<g[^>]*data-geo="rampRun"[^>]*>/)[0]);
+  initial??=grip;view??={scale:grip.scale,x0:grip['base-x'],baseY:grip['base-y']};near(grip.scale,initial.scale);near(grip['base-x'],initial['base-x']);near(grip['base-y'],initial['base-y']);near(grip.run,run);
   const capture=trajectoryGeometry(c,makeState(c,.5));
   for(const [side,body] of Object.entries({input:capture.input,output:capture.output})){
    const half=5*Math.sqrt(mass),angle=Math.atan2(height,run),extent=side==='input'?half:half*(Math.cos(angle)+Math.sin(angle));
@@ -110,3 +112,18 @@ for(const run of [0,.5,1.5,3,4.8])for(const mass of [1,20,200]){
  }
 }
 console.log('Ramp height edits retain the base anchor and scale across 15 run/mass combinations.');
+
+// A standard 3-4-5 classroom ramp fills the scene instead of reserving every
+// possible future height. Its slope and the hanging rope use one metre scale.
+for(const [inputMass,outputMass] of [[6,10],[12,20]]){
+ const c=normalizeConfig({...defaultConfig('ramp'),length:.5,height:.3,inputMass,outputMass}),svg=renderScene(c,makeState(c,.5)),grip=attrs(svg.match(/<g[^>]*data-geo="rampRun"[^>]*>/)[0]);
+ assert.ok(grip.run*grip.scale>=200,'Standard ramp base is at least 200 scene units wide');
+}
+console.log('Standard ramps are large and full-stroke geometry remains visible.');
+
+// The initial steep 3-4-5 ramp also uses the enlarged fitting window.
+{
+ const c=normalizeConfig({...defaultConfig('ramp'),length:.5,height:.4,inputMass:5,outputMass:5}),svg=renderScene(c,makeState(c,.5)),grip=attrs(svg.match(/<g[^>]*data-geo="rampRun"[^>]*>/)[0]);
+ assert.ok(c.length*grip.scale>=300,'Initial steep ramp has at least 300 scene units of slope');
+ assert.ok(svg.includes('y="21"'),'Ramp dimension labels sit above the motion area');
+}
