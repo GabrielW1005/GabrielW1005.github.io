@@ -330,3 +330,11 @@ dialog h2 { margin: 3px 0 18px; font-size: 27px; line-height: 1.2; letter-spacin
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+
+/* Machine comparisons and live settling controls */
+.experiment-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:7px 18px;background:var(--panel);border-bottom:1px solid var(--line);flex:0 0 auto;font-size:12px;position:relative;z-index:4}
+.experiment-tools label{display:flex;align-items:center;gap:6px;white-space:nowrap}.experiment-tools button{font-size:12px;padding:7px 10px;min-height:32px}.path-width input{width:90px;accent-color:#72afff}.path-width output{min-width:19px;font-variant-numeric:tabular-nums}.experiment-tools input[type=checkbox]{accent-color:#72afff}
+.goal-badge{display:inline-block;font-size:12px;font-weight:750;letter-spacing:.04em;text-transform:uppercase;padding:5px 9px;border-radius:5px;background:rgba(72,135,236,.13);color:#3279dc;margin:3px 0 8px}.dark .goal-badge{color:#92beff}
+#comparisonDialog{width:min(960px,calc(100vw - 30px));max-width:none;max-height:calc(100dvh - 30px);padding:22px;border-radius:15px;border:1px solid #9aabc0;color:#172333;background:#f7faff;overflow:auto}.dark #comparisonDialog{background:#111c2c;color:#e8effa;border-color:#42516a}
+#comparisonDialog::backdrop{background:rgba(2,8,18,.7)}.comparison-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.comparison-dialog-head h2{margin:0;font-size:24px}.comparison-dialog-head button{font-size:26px;line-height:1;padding:7px 13px}.comparison-snapshot-note{font-size:12px;opacity:.7;margin:8px 0 12px}.comparison-actions{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;border-top:1px solid #72829b44;padding-top:15px;margin-top:10px}.comparison-actions span{font-size:13px;font-weight:650;min-width:160px;text-align:center}.comparison-actions button{padding:9px 14px}.levels{grid-template-columns:repeat(auto-fit,minmax(75px,1fr))}
+@media(max-width:760px){.experiment-tools{padding:5px 9px;gap:6px;font-size:11px}.experiment-tools button{font-size:11px;padding:5px 8px}.path-width input{width:65px}#comparisonDialog{padding:12px}.comparison-dialog-head h2{font-size:20px}.comparison-actions span{min-width:125px}}

@@ -1,17 +1,19 @@
 import {defaultConfig,normalizeConfig,ratio,makeState,step,readout,changeConfig,limits,MAX_FORCE,MAX_MASS,bodyJacobian,initialOutputAcceleration} from './physics.js';
 import {machineCatalog,taskCatalog,createChallenge} from './challenges.js';
 import {renderScene} from './scene.js';
+import {renderComparison} from './comparison.js';
 const $=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>Number.isFinite(n)?(Math.abs(n)<1e-8?'0':Number(n.toPrecision(4)).toString()):'—';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const parse=s=>{const t=String(s).trim(),m=t.match(/^([-+]?\d*\.?\d+)\s*\/\s*([-+]?\d*\.?\d+)$/);return m?(+m[2]?+m[1]/+m[2]:NaN):/^[-+]?\d*\.?\d+(?:e[-+]?\d+)?$/i.test(t)?Number(t):NaN;};
 const taskIds=['force','balance','distance','acceleration'];
-let saved={dark:true,skills:{},serial:0};try{saved={...saved,...JSON.parse(localStorage.getItem('machine-lab-adaptive-v3')||'{}')};}catch{}
+let saved={dark:true,skills:{},serial:0,pathWidth:3};try{saved={...saved,...JSON.parse(localStorage.getItem('machine-lab-adaptive-v3')||'{}')};}catch{}
 let type='lever',task='force',topic='mixed',mode='challenge',level=0,challenge,config,state;
 let custom=false,attempts=0,credited=false,forceCorrect=false,playing=false,frame=0,lastTime=0,lastDraw=0,drawFrame=0,editFrame=0;
 let history=[],bodyInfo={},drag=null,pull=null,pointers=new Map(),pinch=null,pendingResize=null,advanceTimer=0;
 let autoAnimating=false,autoFrame=0,autoStart=0,autoNotice='',distanceDemo=false;
 let camera={zoom:1,cx:450,cy:270};
+let testedEntry='',movementTest=null,comparisonSnapshot=null,comparisonPhase=0,comparisonTimer=0;
 const machine=()=>machineCatalog.find(m=>m.type===type);
 function save(){try{localStorage.setItem('machine-lab-adaptive-v3',JSON.stringify(saved));}catch{$('saveStatus').textContent='Progress saving unavailable.';}}
 function skills(){if(!saved.skills[type])saved.skills[type]={force:0,balance:0,distance:0,acceleration:0};return saved.skills[type];}
@@ -20,20 +22,26 @@ function totalScore(){return Object.values(skills()).reduce((a,b)=>a+Math.min(b,
 function cancelAdvance(){clearTimeout(advanceTimer);advanceTimer=0;$('advanceNotice').textContent='';}
 function stopAuto(){autoAnimating=false;cancelAnimationFrame(autoFrame);$('autoAnimate').textContent='▶ Compare balanced setups';}
 function stop(){playing=false;cancelAnimationFrame(frame);lastTime=0;$('playBtn').textContent='▶ Run';queueDraw();}
-function external(){return pull?pull.force:{input:0,output:0};}
+function external(){
+ if(pull)return pull.force;
+ if(!movementTest)return {input:0,output:0};
+ const J=bodyJacobian(config).input,mass=effectiveMass('input'),k=Math.min(700,36*mass),d=2*Math.sqrt(k*mass);
+ const error=(movementTest.targetQ-state.q)*J,speed=state.v*J;
+ const Qbase=type==='lever'?((config.inputMass*10+config.force)*config.rIn-config.outputMass*10*config.rOut)*Math.cos(state.q):config.inputMass*10+config.force-config.outputMass*10/ratio(config);
+ return {input:clamp(-Qbase/J+k*error-d*speed,-MAX_FORCE,MAX_FORCE),output:0};
+}
 function start(){if(playing)return;stopAuto();playing=true;lastTime=0;$('playBtn').textContent='Ⅱ Pause';frame=requestAnimationFrame(tick);}
 function tick(t){if(!playing)return;const dt=lastTime?Math.min((t-lastTime)/1000,.05):0;lastTime=t;
  if(pull)updatePull();
- const speed=Number($('speed').value);let simDt=dt*speed;if(distanceDemo&&challenge?.motion&&state.v>0)simDt=Math.min(simDt,Math.max(0,(challenge.motion.targetQ-state.q)/state.v));step(state,config,simDt,external());
+ const speed=Number($('speed').value);step(state,config,dt*speed,external());
  const r=readout(state,config,external());
  if(!history.length||r.time-history.at(-1).t>=.04){history.push({t:r.time,i:r.displacementIn,o:r.displacementOut,fi:r.inputForce,fo:r.outputWeight,ai:r.inputPathAcceleration,ao:r.outputPathAcceleration,pi:r.pathDistanceIn,po:r.pathDistanceOut});if(history.length>360)history.shift();}
- if(distanceDemo&&challenge?.motion&&state.q>=challenge.motion.targetQ-1e-10){distanceDemo=false;stop();$('feedback').textContent+=' Target rise reached; motion paused.';}
+ if(movementTest&&!movementTest.reported&&Math.abs((state.q-movementTest.targetQ)*bodyJacobian(config).input)<.0002&&Math.abs(r.inputPathSpeed)<.0005){movementTest.reported=true;const measured=Math.abs(r.displacementOut);$('feedback').textContent+=` Measured output rise: ${fmt(measured)} m; target: ${fmt(challenge.motionDistance)} m. The actuator holds the new position.`;}
  if(t-lastDraw>=1000/30||!playing){draw();lastDraw=t;}
- if(!pull&&((r.atLimit&&Math.abs(r.velocity)<1e-7)||(r.balanced&&Math.abs(r.velocity)<1e-7))){stop();draw();return;}
  if(playing)frame=requestAnimationFrame(tick);
 }
 function queueDraw(){if(drawFrame)return;drawFrame=requestAnimationFrame(()=>{drawFrame=0;draw();});}
-function restart(){stop();pull=null;distanceDemo=false;state=makeState(config,challenge?.startFraction??.25);history=[];draw();}
+function restart(){stop();pull=null;distanceDemo=false;movementTest=null;testedEntry='';state=makeState(config,challenge?.startFraction??.25);history=[];draw();}
 function balanceAuto(edited=''){
  autoNotice='';config.force=0;
  let R=ratio(config);
@@ -50,20 +58,20 @@ function balanceAuto(edited=''){
  config=normalizeConfig(config);
 }
 function setConfig(next,{edited='',mark=true}={}){
- stopAuto();stop();pull=null;distanceDemo=false;cancelAdvance();const old=config;config=normalizeConfig(next);
+ const resume=playing;stopAuto();stop();pull=null;distanceDemo=false;movementTest=null;testedEntry='';cancelAdvance();const old=config;config=normalizeConfig(next);
  if(mode==='auto')balanceAuto(edited);
  const oldBounds=limits(old),fraction=(state.q-oldBounds.min)/oldBounds.range;changeConfig(state,old,config);if(old.force!==config.force)state=makeState(config,fraction);history=[];
  if(mode==='challenge'&&mark){custom=true;forceCorrect=false;$('nudgeBtn').hidden=true;$('setupNotice').hidden=false;$('testBtn').textContent='Test edited machine →';}
- $('feedback').textContent='';syncControls();if(custom)renderQuestion();queueDraw();
+ $('feedback').textContent='';syncControls();if(custom)renderQuestion();queueDraw();if(resume&&!drag)start();
 }
 function resetCamera(){camera={zoom:1,cx:450,cy:270};queueDraw();}
 function buildControls(){
- $('geometryControls').innerHTML=machine().geometry.map(f=>`<label class="geometry-row"><span>${esc(f.label)}${f.unit?' ('+esc(f.unit)+')':''}</span><input type="number" data-geometry="${f.key}" min="${f.min}" max="${f.max}" step="${f.step}" aria-label="${esc(f.label)}"></label>`).join('');
+ $('geometryControls').innerHTML=machine().geometry.map(f=>`<label class="geometry-row"><span>${esc(f.label)}${f.unit?' ('+esc(f.unit)+')':''}</span>${f.values?`<select data-geometry="${f.key}" aria-label="${esc(f.label)}">${f.values.map(v=>`<option value="${v}">${v}</option>`).join('')}</select>`:`<input type="number" data-geometry="${f.key}" min="${f.min}" max="${f.max}" step="${f.step}" aria-label="${esc(f.label)}">`}</label>`).join('');
 }
 function syncControls(){
- if(!config)return;for(const[id,key]of[['inputMass','inputMass'],['outputMass','outputMass'],['appliedForce','force']])if(document.activeElement!==$(id))$(id).value=fmt(config[key]);
+ if(!config)return;for(const[id,key]of[['inputMass','inputMass'],['outputMass','outputMass'],['appliedForce','force']])if(document.activeElement!==$(id)){$(id).value=fmt(config[key]);$(id).dataset.renderedValue=$(id).value;}
  $('appliedForce').disabled=mode==='auto';
- for(const f of machine().geometry){const el=document.querySelector(`[data-geometry="${f.key}"]`);if(el&&document.activeElement!==el)el.value=fmt(config[f.key]);}
+ for(const f of machine().geometry){const el=document.querySelector(`[data-geometry="${f.key}"]`);if(el&&document.activeElement!==el){el.value=fmt(config[f.key]);el.dataset.renderedValue=el.value;}}
  $('autoNotice').textContent=autoNotice;
 }
 function chooseAdaptive(preferAfter=task){
@@ -74,12 +82,13 @@ function chooseAdaptive(preferAfter=task){
  task=order.find(k=>remaining.includes(k)&&(s[k]||0)===min)||remaining[0];level=Math.min(s[task]||0,maxStage()-1);
 }
 function loadChallenge({newNumbers=false}={}){
- cancelAdvance();stopAuto();stop();pull=null;drag=null;distanceDemo=false;pointers.clear();pinch=null;pendingResize=null;cancelAnimationFrame(editFrame);editFrame=0;
+ cancelAdvance();stopAuto();stop();pull=null;drag=null;distanceDemo=false;movementTest=null;pointers.clear();pinch=null;pendingResize=null;cancelAnimationFrame(editFrame);editFrame=0;
  if(newNumbers)saved.serial++;save();
  challenge=createChallenge(type,task,level,saved.serial);level=challenge.level;config={...challenge.config};
- custom=false;attempts=0;credited=false;forceCorrect=false;history=[];
- if(mode==='auto'){config={...defaultConfig(type)};balanceAuto();}
- state=makeState(config,challenge.startFraction??.25);$('answerValue').value='';$('maValue').value='';$('feedback').textContent='';$('steps').hidden=true;$('stepsBtn').textContent='Show steps';$('setupNotice').hidden=true;$('nudgeBtn').hidden=true;$('testBtn').textContent='Test my answer →';
+ custom=false;attempts=0;credited=false;forceCorrect=false;history=[];testedEntry='';
+ if(mode==='auto'){config={...defaultConfig(type),damping:2.2};balanceAuto();}else config.damping=0;
+ $('settling').checked=config.damping>0;
+ state=makeState(config,challenge.startFraction??.25);$('answerValue').value='';$('maValue').value='';$('feedback').textContent='';$('steps').hidden=true;$('stepsBtn').textContent='Show steps';$('setupNotice').hidden=true;$('nudgeBtn').hidden=true;$('testBtn').textContent='Check & run →';
  buildControls();syncControls();renderQuestion();renderTabs();resetCamera();draw();
 }
 function factValues(){
@@ -92,10 +101,10 @@ function renderQuestion(){
  $('taskChoices').innerHTML=[{id:'mixed',label:'Mixed'},...taskCatalog].map(t=>`<button data-topic="${t.id}" class="${topic===t.id?'selected':''}">${esc(({mixed:'Mixed',force:'Force',balance:'Mass',distance:'Distance',acceleration:'Acceleration'})[t.id]||t.label)}</button>`).join('');
  $('mastery').innerHTML=taskIds.map(k=>`<div class="mastery-skill"><span>${{force:'Force',balance:'Mass',distance:'Distance',acceleration:'Acceleration'}[k]}</span><progress max="${maxStage()}" value="${skills()[k]||0}" aria-label="${k} mastery"></progress></div>`).join('');
  $('levels').innerHTML=machine().levels.map((name,i)=>`<button data-level="${i}" class="${i===level?'selected':''}">${i+1}. ${esc(name)}</button>`).join('');
- $('challengeTitle').textContent=challenge.title;
+ $('challengeTitle').textContent=challenge.title;$('challengeGoal').textContent=custom?'Test edited setup':challenge.goalLabel||({force:'Start lifting',balance:'Find balance',distance:'Make a specified movement',acceleration:'Predict initial motion'}[task]);
  $('question').textContent=custom?'Machine edited. Test your value, or restore the original problem to continue practice.':challenge.prompt;
  $('challengeFacts').innerHTML=factValues().map(s=>`<span>${esc(s)}</span>`).join('');
- $('answerName').textContent={force:'Input force (N)',balance:'Input mass (kg)',distance:'Input work distance d₁ (m)',acceleration:type==='ramp'?'Acceleration along ramp (m/s²)':'Initial output acceleration (m/s²)'}[task];
+ $('answerName').textContent={force:'Smallest whole-number force (N)',balance:'Input mass (kg)',distance:'Input work distance d₁ (m)',acceleration:type==='ramp'?'Acceleration along ramp (m/s²)':'Initial output acceleration (m/s²)'}[task];
  $('machineNote').textContent=machine().shortNote;
 }
 function renderTabs(){
@@ -110,17 +119,18 @@ function cacheBodyInfo(){
 }
 function draw(){
  if(!state)return;const r=readout(state,config,external());
+ const targetInput=task==='distance'?challenge.motionDistance*ratio(config):0,targetQ=mode==='challenge'&&task==='distance'?(type==='lever'?Math.asin(clamp(Math.sin(state.q0)+targetInput/config.rIn,-1,1)):state.q0+targetInput):null;
  const pullView=pull?{side:pull.side,force:pull.side==='input'?r.externalInputForce:r.externalOutputForce,cursor:pull.cursor}:null;
- $('scene').innerHTML=renderScene(config,state,r,{dark:saved.dark,paths:$('paths').checked,forces:$('forces').checked,accelerations:$('accelerations').checked,pull:pullView});
+ $('scene').innerHTML=renderScene(config,state,r,{dark:saved.dark,paths:$('paths').checked,forces:$('forces').checked,accelerations:$('accelerations').checked,pathWidth:Number($('pathWidth').value),pull:pullView,actuatorForce:movementTest?r.externalInputForce:0,targetQ,targetRise:challenge.motionDistance});
  const svg=$('scene').firstElementChild;if(svg)svg.setAttribute('viewBox',`${camera.cx-450/camera.zoom} ${camera.cy-270/camera.zoom} ${900/camera.zoom} ${540/camera.zoom}`);
  $('zoomReset').textContent=Math.round(camera.zoom*100)+'%';cacheBodyInfo();
  updateCompare(r);if($('graphToggle').checked)drawGraph();
  $('accelerationReadout').hidden=!$('accelerations').checked;
  if($('accelerations').checked)$('accelerationReadout').innerHTML=`<b>Mass and motion</b><div class="blue">Input: ${fmt(config.inputMass)} kg · path a = ${fmt(r.inputPathAcceleration)} m/s²</div><div class="orange">Output: ${fmt(config.outputMass)} kg · path a = ${fmt(r.outputPathAcceleration)} m/s²</div><small>Signed acceleration along each path. Lever arrows also include acceleration toward the pivot. Gravity g = 10 m/s² is different from actual acceleration a.</small>`;
  if(mode==='auto'){$('autoExplanation').innerHTML=`<span class="blue">${fmt(config.inputMass)} kg</span> ↔ <span class="orange">${fmt(config.outputMass)} kg</span><br><b>Ideal MA = ${fmt(r.ma)}</b><br><small>m₁g d₁ = m₂g d₂<br>g cancels → m₁d₁ = m₂d₂</small>`;$('autoNotice').textContent=autoNotice;}
- let status=r.atLimit?'Travel stop · reset or pull back':Math.abs(r.outputPathSpeed)>.0001?(r.outputPathSpeed>0?'Output moving up ↑':'Output moving down ↓'):r.balanced?'Balanced · no acceleration':r.balanceError>0?'Input can lift the load':'Input cannot hold the load';
+ let status=r.atLimit?'Resting at travel stop · pull back to move':Math.abs(r.outputPathSpeed)>.0001?(r.outputPathSpeed>0?'Output moving up ↑':'Output moving down ↓'):r.balanced?(config.damping?'Balanced · at rest · pull to disturb':'Balanced · no acceleration'):r.balanceError>0?'Input can lift the load':'Input cannot hold the load';
  if(mode==='challenge'&&!playing&&state.time===0&&!r.balanced&&!forceCorrect)status='Ready · calculate, resize, or pull';
- if(!playing&&state.time>0&&!r.atLimit&&Math.abs(r.velocity)>1e-7)status='Paused · '+status.toLowerCase();if(autoAnimating)status='Comparing balanced setups';
+ if(!playing&&state.time>0&&!r.atLimit&&Math.abs(r.velocity)>1e-7)status='Paused · '+status.toLowerCase();if(autoAnimating)status='Comparing balanced setups';else if(playing&&Math.abs(r.outputPathSpeed)<.0001)status='Running · '+status.toLowerCase();
  $('motionStatus').textContent=status;
  $('pullStatus').textContent=pull?`${fmt(Math.abs(pull.side==='input'?r.externalInputForce:r.externalOutputForce))} N pull${r.forceLimited?' · limited to keep contact':''}`:'';
 }
@@ -130,16 +140,17 @@ function updateCompare(r){
  else if(kind==='force'){a=r.inputForce;b=r.outputWeight;u='N';li='Input weight + applied';lo='Output weight';}
  else{a=Math.abs(r.displacementIn);b=Math.abs(r.displacementOut);u='m';li='Input work distance d₁';lo='Output work distance d₂';}
  const scale=Math.max(a,b,.00001);$('inputCompareLabel').textContent=li;$('outputCompareLabel').textContent=lo;$('inputCompareValue').textContent=fmt(a)+' '+u;$('outputCompareValue').textContent=fmt(b)+' '+u;$('inputBar').style.width=100*a/scale+'%';$('outputBar').style.width=100*b/scale+'%';
- const equal=r.balanced&&!pull;const lhs=`${fmt(r.inputForce)} N × ${fmt(r.displacementIn)} m`,rhs=`${fmt(r.outputWeight)} N × ${fmt(r.displacementOut)} m`;
- $('workEquation').innerHTML=`<span class="blue">${lhs}</span> ${equal?'=':'vs.'} <span class="orange">${rhs}</span>`;
+ const equal=r.balanced&&!pull,roundedIn=Number(fmt(r.inputForce))*Number(fmt(r.displacementIn)),roundedOut=Number(fmt(r.outputWeight))*Number(fmt(r.displacementOut)),equalMark=Math.abs(roundedIn-roundedOut)<1e-8*Math.max(1,Math.abs(roundedIn),Math.abs(roundedOut))?'=':'≈';const lhs=`${fmt(r.inputForce)} N × ${fmt(r.displacementIn)} m`,rhs=`${fmt(r.outputWeight)} N × ${fmt(r.displacementOut)} m`;
+ $('workEquation').innerHTML=`<span class="blue">${lhs}</span> ${equal?equalMark:'vs.'} <span class="orange">${rhs}</span>`;
  const deltaK=r.kineticEnergy-(state.initialKineticEnergy||0);
- $('energyText').textContent=`Work: ${fmt(r.workIn)} J + pull ${fmt(r.pointerWork)} J − load ${fmt(r.workOut)} J = ΔK ${fmt(deltaK)} J${r.stopEnergyLoss>.0001?' + stop '+fmt(r.stopEnergyLoss)+' J':''}`;
+ $('energyText').textContent=`Work: ${fmt(r.workIn)} J + extra ${fmt(r.pointerWork)} J − load ${fmt(r.workOut)} J ≈ ΔK ${fmt(deltaK)} J${r.dampingEnergyLoss>.0001?' + heat '+fmt(r.dampingEnergyLoss)+' J':''}${r.stopEnergyLoss>.0001?' + stop '+fmt(r.stopEnergyLoss)+' J':''}`;
 }
 function drawGraph(){
  const canvas=$('graph'),w=canvas.clientWidth||280,h=canvas.clientHeight||115,dpr=Math.min(devicePixelRatio||1,2);
  if(canvas.width!==w*dpr||canvas.height!==h*dpr){canvas.width=w*dpr;canvas.height=h*dpr;}
  const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
- const kind=$('plotKind').value,data=history.length?history:[{t:0,i:0,o:0,fi:config.force,fo:config.outputMass*10,ai:0,ao:0}];
+ const live=readout(state,config,external()),last={t:live.time,i:live.displacementIn,o:live.displacementOut,fi:live.inputForce,fo:live.outputWeight,ai:live.inputPathAcceleration,ao:live.outputPathAcceleration,pi:live.pathDistanceIn,po:live.pathDistanceOut};
+ const kind=$('plotKind').value,data=history.length?[...history,last]:[last];
  const keys=kind==='acceleration'?['ai','ao']:kind==='force'?['fi','fo']:kind==='path'?['pi','po']:['i','o'];
  const xvals=data.flatMap(d=>kind==='force'?[d.i,d.o]:[d.t]),xmin=Math.min(0,...xvals),xmax=Math.max(xmin+.01,...xvals),ys=data.flatMap(d=>keys.map(k=>d[k]||0));
  const ymin=Math.min(0,...ys),ymax=Math.max(ymin+.01,...ys),L=35,T=13,B=h-22,W=w-L-7,H=B-T;
@@ -150,7 +161,7 @@ function drawGraph(){
 }
 function currentAnswer(){
  if(!custom)return challenge.answer;
- const R=ratio(config);if(task==='force')return config.outputMass*10/R;if(task==='balance')return config.outputMass/R;if(task==='distance')return challenge.motionDistance*R;return initialOutputAcceleration(config);
+ const R=ratio(config);if(task==='force')return Math.floor(config.outputMass*10/R+1e-9)+1;if(task==='balance')return config.outputMass/R;if(task==='distance')return challenge.motionDistance*R;return initialOutputAcceleration(config);
 }
 function markCorrect(){
  if(credited||custom)return;credited=true;
@@ -163,22 +174,26 @@ function scheduleAdvance(correct){
  const seconds=correct?6:7;$('advanceNotice').textContent=correct?`Correct. Next adaptive problem in ${seconds} seconds; turn off adaptation to stay.`:`A new ${task==='balance'?'mass':task} problem at the same or easier stage follows in ${seconds} seconds.`;
  advanceTimer=setTimeout(()=>{advanceTimer=0;if(correct)nextProblem();else{skills()[task]=Math.max(0,(skills()[task]||0)-1);level=Math.min(skills()[task],maxStage()-1);loadChallenge({newNumbers:true});}},seconds*1000);
 }
-function demonstrateDistance(){
- state=makeState(config,challenge.startFraction);state.v=(challenge.motion.targetQ-state.q)/(2.8*Number($('speed').value));state.v0=state.v;state.initialKineticEnergy=readout(state,config).kineticEnergy;history=[];distanceDemo=!custom;start();
+function demonstrateDistance(value){
+ state=makeState(config,challenge.startFraction);history=[];
+ const bound=limits(config),raw=type==='lever'?Math.asin(clamp(Math.sin(state.q)+value/config.rIn,-1,1)):state.q+value;
+ movementTest={targetQ:clamp(raw,bound.min,bound.max),reported:false};distanceDemo=true;
+ if(raw<bound.min||raw>bound.max)$('feedback').textContent+=' Your entered distance exceeds the available travel; the actuator stops at the limit.';
+ start();
 }
 function applyTest(e){
- e.preventDefault();cancelAdvance();stopAuto();pull=null;const value=parse($('answerValue').value),ma=parse($('maValue').value);
+ e?.preventDefault();cancelAdvance();stopAuto();pull=null;movementTest=null;const value=parse($('answerValue').value),ma=parse($('maValue').value);
  if(!Number.isFinite(value)||value<0){feedback('Enter a positive value or fraction, such as 25/2.',false);return;}
  const cap=task==='force'?MAX_FORCE:task==='balance'?MAX_MASS:task==='distance'?100:100;
  if(value>cap){feedback(`Keep this value at or below ${cap} ${challenge.unit}.`,false);return;}
- stop();distanceDemo=false;const target=currentAnswer(),valueOK=Math.abs(value-target)<=Math.max(task==='distance'?.000001:.005,Math.abs(target)*.001),maOK=Number.isFinite(ma)&&Math.abs(ma-ratio(config))<=Math.max(.005,ratio(config)*.001);
- if(task==='force'){config.force=valueOK?target:value;config.inputMass=0;}
+ testedEntry=$('answerValue').value+'|'+$('maValue').value;stop();distanceDemo=false;const target=currentAnswer(),valueOK=task==='force'?(Number.isInteger(value)&&value===target):Math.abs(value-target)<=Math.max(task==='distance'?.000001:.005,Math.abs(target)*.001),maOK=Number.isFinite(ma)&&Math.abs(ma-ratio(config))<=Math.max(.005,ratio(config)*.001);
+ if(task==='force'){config.force=value;config.inputMass=0;}
  else if(task==='balance'){config.inputMass=valueOK?target:value;config.force=0;}
  state=makeState(config,challenge.startFraction);history=[];syncControls();
  if(custom)feedback('Testing the edited machine. Restore the original problem to earn progress.',false);
- else if(valueOK&&maOK){markCorrect();feedback(task==='force'?'✓ Correct balance threshold. Add 2% to start lifting.':task==='balance'?'✓ Correct. The machine balances.':task==='distance'?'✓ Correct. Watch the two work distances change together.':'✓ Correct initial acceleration. Watch the load speed up.',true);forceCorrect=task==='force';$('nudgeBtn').hidden=!forceCorrect;scheduleAdvance(true);}
- else{attempts++;forceCorrect=false;$('nudgeBtn').hidden=true;let message=valueOK?'Your value is correct. Recheck ideal MA.':task==='force'||task==='balance'?(value<target?'Too small to hold the load. Watch it lower.':'Too large for exact balance. Watch it rise.'):task==='distance'?'Recheck d₁ = d₂ × ideal MA.':'Use net force divided by mass; distinguish weight mg from net force.';feedback(message,false);if(attempts>=2)scheduleAdvance(false);}
- draw();if(task==='distance'){if(valueOK)demonstrateDistance();}else start();
+ else if(valueOK&&maOK){markCorrect();feedback(task==='force'?'✓ Correct. This is the smallest whole-number force that starts lifting from rest.':task==='balance'?'✓ Correct. The machine balances.':task==='distance'?'✓ Correct. The actuator moves the input through your distance.':'✓ Correct initial acceleration. Watch the load speed up.',true);forceCorrect=task==='force';$('nudgeBtn').hidden=true;scheduleAdvance(true);}
+ else{attempts++;forceCorrect=false;$('nudgeBtn').hidden=true;let message=valueOK?'Your value is correct. Recheck ideal MA.':task==='force'?(value>config.outputMass*10/ratio(config)+1e-9?(!Number.isInteger(value)?'This force lifts, but the answer must be a whole number of newtons.':'It lifts, but this is not the smallest whole-number force.'):Math.abs(value-config.outputMass*10/ratio(config))<1e-9?'This force exactly balances. Choose the next larger whole number to start lifting.':'Too small to start lifting. Watch the load lower.'):task==='balance'?(value<target?'Too little mass to balance. Watch the load lower.':'Too much mass for balance. Watch the load rise.'):task==='distance'?'The input distance is not correct. Watch the output rise produced by your value.':'Use net force divided by mass; distinguish weight mg from net force.';feedback(message,false);if(attempts>=2)scheduleAdvance(false);}
+ draw();if(task==='distance')demonstrateDistance(value);else start();
 }
 function feedback(text,good){$('feedback').className=good?'good':'bad';$('feedback').textContent=text;}
 function screenPoint(x,y){
@@ -210,13 +225,13 @@ function beginPointer(e){
  if(e.button!==undefined&&e.button!==0)return;
  const scene=e.target.closest('#scene');if(!scene)return;e.preventDefault();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
  if(pointers.size===2){pull=null;drag=null;const pts=[...pointers.values()];pinch={dist:Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y),zoom:camera.zoom};return;}
- const handle=e.target.closest('[data-drag]'),p=screenPoint(e.clientX,e.clientY);stopAuto();cancelAdvance();
+ const handle=e.target.closest('[data-drag]'),p=screenPoint(e.clientX,e.clientY),resume=playing;stopAuto();cancelAdvance();
  if(handle?.dataset.drag==='resize'){
-  stop();const d=handle.dataset;drag={kind:'resize',side:d.side,size:Number(d.baseSize||d.size)||bodyInfo[d.side]?.size||0,axis:d.axis||'xy',sx:Number(d.signx??d.signX??1),sy:Number(d.signy??d.signY??1),angle:Number(d.angle)||0,p};
+  stop();const d=handle.dataset;drag={kind:'resize',resume,side:d.side,size:Number(d.baseSize||d.size)||bodyInfo[d.side]?.size||0,axis:d.axis||'xy',sx:Number(d.signx??d.signX??1),sy:Number(d.signy??d.signY??1),angle:Number(d.angle)||0,p};
  }else if(handle?.dataset.drag==='geometry'){
-  stop();const d=handle.dataset;drag={kind:'geometry',key:d.param,axis:d.axis||'x',units:Number(d.unitsPerPx)||.01,value:config[d.param],p};
+  stop();const d=handle.dataset;drag={kind:'geometry',resume,key:d.param,axis:d.axis||'x',units:Number(d.unitsPerPx)||.01,value:config[d.param],p};
  }else if(handle?.dataset.drag==='pull'&&$('pullTool').checked){
-  const side=handle.dataset.side;if(!bodyInfo[side])return;const offset={x:p.x-bodyInfo[side].x,y:p.y-bodyInfo[side].y},target={x:p.x-offset.x,y:p.y-offset.y};pull={side,cursor:target,offset,velocity:{x:0,y:0},previous:target,time:performance.now(),force:{input:0,output:0}};distanceDemo=false;start();
+  const side=handle.dataset.side;if(!bodyInfo[side])return;const offset={x:p.x-bodyInfo[side].x,y:p.y-bodyInfo[side].y},target={x:p.x-offset.x,y:p.y-offset.y};pull={side,cursor:target,offset,velocity:{x:0,y:0},previous:target,time:performance.now(),force:{input:0,output:0}};distanceDemo=false;movementTest=null;start();
  }else drag={kind:'pan',p:{x:e.clientX,y:e.clientY},camera:{...camera}};
  try{$('scene').setPointerCapture(e.pointerId);}catch{}
 }
@@ -239,7 +254,7 @@ function movePointer(e){
 function applyPendingEdit(){cancelAnimationFrame(editFrame);editFrame=0;if(!pendingResize)return;const update=pendingResize;pendingResize=null;const isGuess=mode==='challenge'&&task==='balance'&&update.edited==='inputMass';setConfig(update.next,{edited:update.edited,mark:!isGuess});if(isGuess)$('answerValue').value=fmt(config.inputMass);}
 function endPointer(e){
  pointers.delete(e.pointerId);if(pinch){if(pointers.size<2)pinch=null;return;}
- if(pendingResize)applyPendingEdit();if(pull){pull=null;queueDraw();}drag=null;
+ if(pendingResize)applyPendingEdit();if(pull){pull=null;queueDraw();}const resume=drag?.resume;drag=null;if(resume)start();
  try{$('scene').releasePointerCapture(e.pointerId);}catch{}
 }
 $('machines').innerHTML=machineCatalog.map(m=>`<button data-machine="${m.type}">${esc(m.label)}</button>`).join('');
@@ -249,16 +264,16 @@ $('taskChoices').onclick=e=>{const b=e.target.closest('[data-topic]');if(!b)retu
 $('levels').onclick=e=>{const b=e.target.closest('[data-level]');if(b){level=+b.dataset.level;loadChallenge();}};
 $('answerForm').onsubmit=applyTest;$('nextBtn').onclick=nextProblem;$('practiceBtn').onclick=()=>loadChallenge({newNumbers:true});$('autoAdvance').onchange=cancelAdvance;
 $('stepsBtn').onclick=()=>{$('steps').hidden=!$('steps').hidden;$('stepsBtn').textContent=$('steps').hidden?'Show steps':'Hide steps';$('steps').innerHTML=(custom?['F₁d₁ = F₂d₂ at balance or steady speed.','MA = d₁/d₂ from the current machine geometry.','For acceleration, calculate the net force and divide by the mass.','Restore the original problem for its numerical setup.']:challenge.steps).map((s,i)=>`<p><b>${i+1}.</b> ${esc(s)}</p>`).join('');};
-$('playBtn').onclick=()=>{cancelAdvance();if(playing)stop();else{if(readout(state,config).atLimit)restart();start();}};
+$('playBtn').onclick=()=>{cancelAdvance();if(playing)stop();else if(mode==='challenge'&&$('answerValue').value.trim()&&testedEntry!==$('answerValue').value+'|'+$('maValue').value){applyTest();}else start();};
 $('resetBtn').onclick=()=>{cancelAdvance();stopAuto();restart();};$('nudgeBtn').onclick=()=>{cancelAdvance();config.force=clamp(currentAnswer()*1.02,0,MAX_FORCE);config.inputMass=0;restart();syncControls();feedback('Testing 2% above the balance threshold. Extra work becomes kinetic energy.',true);start();};
 $('restoreBtn').onclick=()=>loadChallenge();
-for(const id of ['inputMass','outputMass','appliedForce']){const commit=e=>{const key=id==='appliedForce'?'force':id,value=parse(e.target.value),isGuess=mode==='challenge'&&((task==='balance'&&key==='inputMass')||(task==='force'&&key==='force'));if(Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key,mark:!isGuess});e.target.value=fmt(config[key]);if(isGuess)$('answerValue').value=fmt(config[key]);};$(id).onchange=commit;$(id).onblur=commit;$(id).onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit(e);}};}
-function commitGeometry(e){const key=e.target.dataset.geometry;if(!key)return;const value=parse(e.target.value);if(Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key});e.target.value=fmt(config[key]);}
+for(const id of ['inputMass','outputMass','appliedForce']){const commit=e=>{const key=id==='appliedForce'?'force':id,value=parse(e.target.value),isGuess=mode==='challenge'&&((task==='balance'&&key==='inputMass')||(task==='force'&&key==='force'));if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key,mark:!isGuess});e.target.value=fmt(config[key]);e.target.dataset.renderedValue=e.target.value;if(isGuess)$('answerValue').value=fmt(config[key]);};$(id).onchange=commit;$(id).onblur=commit;$(id).onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit(e);}};}
+function commitGeometry(e){const key=e.target.dataset.geometry;if(!key)return;const value=parse(e.target.value);if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key});e.target.value=fmt(config[key]);e.target.dataset.renderedValue=e.target.value;}
 $('geometryControls').onchange=commitGeometry;$('geometryControls').addEventListener('blur',commitGeometry,true);$('geometryControls').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commitGeometry(e);}};
 $('autoTarget').onchange=()=>setConfig({...config},{mark:false});
 $('autoAnimate').onclick=()=>{
  if(autoAnimating){stopAuto();return;}stop();pull=null;$('autoTarget').value='mass';autoAnimating=true;autoStart=0;$('autoAnimate').textContent='Ⅱ Pause comparison';
- const animate=t=>{if(!autoAnimating||mode!=='auto')return;if(!autoStart)autoStart=t;const wave=(1-Math.cos((t-autoStart)/2400))/2,R=type==='screw'?10+30*wave:type==='ramp'?2+4*wave:1+3*wave;let c={...config,force:0};switch(type){case'lever':case'wheel':c.rIn=c.rOut*R;break;case'ramp':case'wedge':c.length=c.height*R;break;case'pulley':c.strands=wave<.5?1:2;break;case'gears':c.crankRadius=c.drumRadius*R*c.teethIn/c.teethOut;break;case'screw':c.handleRadius=c.lead*R/(2*Math.PI);break;case'hydraulic':c.areaOut=c.areaIn*R;break;}config=normalizeConfig(c);balanceAuto();state=makeState(config,.3);history=[];if(t-lastDraw>1000/30){syncControls();draw();lastDraw=t;}autoFrame=requestAnimationFrame(animate);};autoFrame=requestAnimationFrame(animate);
+ const animate=t=>{if(!autoAnimating||mode!=='auto')return;if(!autoStart)autoStart=t;const wave=(1-Math.cos((t-autoStart)/2400))/2,R=type==='screw'?10+30*wave:type==='ramp'?2+4*wave:1+3*wave;let c={...config,force:0};switch(type){case'lever':case'wheel':c.rIn=c.rOut*R;break;case'ramp':case'wedge':c.length=c.height*R;break;case'pulley':c.strands=[1,2,4,6][Math.min(3,Math.floor(wave*4))];break;case'gears':c.crankRadius=c.drumRadius*R*c.teethIn/c.teethOut;break;case'screw':c.handleRadius=c.lead*R/(2*Math.PI);break;case'hydraulic':c.areaOut=c.areaIn*R;break;}config=normalizeConfig(c);balanceAuto();state=makeState(config,.3);history=[];if(t-lastDraw>1000/30){syncControls();draw();lastDraw=t;}autoFrame=requestAnimationFrame(animate);};autoFrame=requestAnimationFrame(animate);
 };
 for(const id of ['paths','forces','accelerations','compareKind','plotKind'])$(id).onchange=queueDraw;
 $('charts').onchange=()=>{$('comparePanel').hidden=!$('charts').checked;queueDraw();};$('graphToggle').onchange=()=>{$('plotPanel').hidden=!$('graphToggle').checked;queueDraw();};
@@ -268,4 +283,20 @@ $('scene').addEventListener('pointerdown',beginPointer);$('scene').addEventListe
 window.addEventListener('blur',()=>{pull=null;drag=null;pointers.clear();stop();stopAuto();});document.addEventListener('visibilitychange',()=>{if(document.hidden){stop();stopAuto();cancelAdvance();pull=null;}});window.addEventListener('resize',queueDraw);
 function theme(){document.body.classList.toggle('dark',saved.dark);$('themeBtn').textContent=saved.dark?'☀':'☾';queueDraw();}$('themeBtn').onclick=()=>{saved.dark=!saved.dark;save();theme();};
 $('fullscreenBtn').onclick=async()=>{try{document.fullscreenElement?await document.exitFullscreen():await document.documentElement.requestFullscreen();}catch{}};$('helpBtn').onclick=()=>$('help').showModal();$('closeHelp').onclick=()=>$('help').close();
+
+function renderComparisonStep(){
+ if(!comparisonSnapshot)return;
+ $('comparisonStage').innerHTML=renderComparison({...comparisonSnapshot,phase:comparisonPhase,dark:saved.dark,pathWidth:Number($('pathWidth').value),reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});
+ $('comparisonStep').textContent=['1 / 3 · Align paths','2 / 3 · Compare masses','3 / 3 · Compare products'][comparisonPhase];
+ $('comparisonPrev').disabled=comparisonPhase===0;$('comparisonNext').disabled=comparisonPhase===2;
+}
+function playComparison(){clearTimeout(comparisonTimer);comparisonPhase=0;renderComparisonStep();const advance=()=>{if(!$('comparisonDialog').open)return;if(comparisonPhase<2){comparisonPhase++;renderComparisonStep();comparisonTimer=setTimeout(advance,3000);}};comparisonTimer=setTimeout(advance,3000);}
+$('comparePathsBtn').onclick=()=>{comparisonSnapshot={config:{...config},state:{...state},readout:readout(state,config,external())};$('comparisonDialog').showModal();playComparison();};
+$('comparisonPrev').onclick=()=>{clearTimeout(comparisonTimer);comparisonPhase=Math.max(0,comparisonPhase-1);renderComparisonStep();};
+$('comparisonNext').onclick=()=>{clearTimeout(comparisonTimer);comparisonPhase=Math.min(2,comparisonPhase+1);renderComparisonStep();};
+$('comparisonReplay').onclick=playComparison;$('closeComparison').onclick=()=>$('comparisonDialog').close();$('comparisonDialog').onclose=()=>{clearTimeout(comparisonTimer);comparisonSnapshot=null;};
+$('pathWidth').value=clamp(Number(saved.pathWidth)||3,1,10);$('pathWidthValue').textContent=$('pathWidth').value;
+$('pathWidth').oninput=()=>{$('pathWidthValue').textContent=$('pathWidth').value;saved.pathWidth=Number($('pathWidth').value);save();queueDraw();};
+$('settling').onchange=()=>{const old={...config};config={...config,damping:$('settling').checked?2.2:0};changeConfig(state,old,config);queueDraw();};
+
 const hash=location.hash.match(/machine=(\w+)/);if(hash&&machineCatalog.some(m=>m.type===hash[1]))type=hash[1];level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();theme();

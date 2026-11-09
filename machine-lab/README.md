@@ -5,21 +5,25 @@ A static grade-8 physics app deployed at `/machine-lab/`. No accounts, dependenc
 ## Use
 
 - **Practice:** solve one force, balancing mass, work distance or acceleration, plus ideal mechanical advantage. Mixed practice develops all four skills. Each correct answer advances that skill through the machine's stages; two misses generate another problem at the same or an easier stage. Complete all four skills to advance to the next machine. Automatic advancement can be switched off.
-- **Auto balance:** resizing a mass or changing geometry adjusts its counterpart to balance. Run to test, or apply a live pull. The comparison animation changes between separately balanced setups; it does not model a machine changing shape without external work.
+- **Goals:** exact balancing mass; smallest whole-number input force that starts lifting from rest; input distance for a specified rise; or initial acceleration. The exact force threshold only balances—the minimum whole-number force is the next larger integer. Next/Different setup varies dimensions, ramp slope, gear teeth/drum radii, and pulley systems, not just load mass.
+- **Auto balance:** resizing a mass or changing geometry adjusts its counterpart to balance. Run stays active at equilibrium or a travel stop, ready for another live pull. Settling resistance is enabled by default in this mode. The comparison animation changes between separately balanced setups; it does not model a machine changing shape without external work.
 - **Manipulation:** drag a mass face to grip/pull it. Drag its sides or corners to change mass, or type an exact value. Drawn square area is proportional to mass. Mass changes and geometry edits start a fresh energy experiment. Edits that change a challenge's givens must be restored to earn progress.
+- **Comparison:** foreground trajectories have adjustable thickness. Compare paths & weights captures a snapshot and animates three stages: real paths aligned on one scale, mass-square areas beside force-aligned work distances, and common-scale product rectangles. Products are only labeled equal when they actually match. At rest, a clearly labeled reference movement avoids claiming that any work has been done. Applied-force setups use force products rather than mass alone.
 - **View:** wheel/pinch or buttons zoom; dragging the background pans. Independently toggle trajectories, force vectors, mass/acceleration, comparisons and plots. Compare actual path length, work displacement, or forces. Plot work displacement, cumulative path length, acceleration, or force against its corresponding work displacement.
 
 Progress and theme are saved on the current browser. Both the stage and interface support light and dark themes. Free play and loose weight tokens have been removed.
 
 ## Newtonian simulation
 
-`physics.js` numerically integrates a single generalized coordinate constrained by each machine. Newton's second law, or its rotational equivalent, determines acceleration from the actual connected mass inertia and applied forces. Velocity-Verlet substeps are at most 1/240 s (1/1200 s for levers). Frame dt is bounded, and travel-stop collisions account for lost kinetic energy. This is a constrained ideal-machine simulator, not a general collision sandbox.
+`physics.js` numerically integrates a single generalized coordinate constrained by each machine. Newton's second law, or its rotational equivalent, determines acceleration from the actual connected mass inertia and applied forces. Undamped motion uses velocity-Verlet substeps at most 1/240 s (1/1200 s for levers). With viscous settling, linear machines use the exact piecewise exponential solution and levers use fourth-order Runge–Kutta at 1/1200 s or smaller. Frame dt is bounded, and travel-stop collisions account for lost kinetic energy. This is a constrained ideal-machine simulator, not a general collision sandbox.
 
-Gravity is rounded to g = 10 m/s². Machine parts and ropes are massless; ropes are inextensible; friction is absent. Lever endpoint loads are secured and do not swing independently. Hydraulic fluid inertia and hydrostatic pressure-height differences are neglected.
+Gravity is rounded to g = 10 m/s². Machine parts and ropes are massless; ropes are inextensible; friction is absent when Settling resistance is off. Enabling it applies an output-side viscous force with decay rate 2.2 s⁻¹, reduced if needed to keep the rope taut. Lever endpoint loads are secured and do not swing independently. Hydraulic fluid inertia and hydrostatic pressure-height differences are neglected.
 
 At balance or steady motion, F1*d1 = F2*d2. Weight is m*g; the shared g cancels from the balancing equation m1*g*d1 = m2*g*d2. Actual moving-body acceleration a does not generally cancel. During acceleration:
 
-`input work + pointer work − load gravitational energy = change in kinetic energy + energy absorbed at stops`.
+`input work + extra actuator/pointer work − load gravitational energy = change in kinetic energy + heat from settling + energy absorbed at stops`.
+
+A balanced system is neutrally stable: after a disturbance, resistance brings it to rest at its displaced position. There is no invisible centering spring. An unbalanced system continues toward a physical travel stop.
 
 The ratio shown is **ideal mechanical advantage from geometry**, not a claim that instantaneous dynamic force gain equals the equilibrium ratio.
 
@@ -33,21 +37,21 @@ Forces are capped at 1000 N; each mass is capped at 200 kg. The engine further s
 
 - Lever: path lengths are circular arcs r*dθ; vertical work distances are r*d(sin θ). Initial vertical-acceleration problems start horizontal and at rest.
 - Ramp: the input weight and box have equal actual path travel. The output work against gravity uses the smaller vertical rise. Acceleration questions ask along the slope.
-- Pulley: one or two supporting strands, with the corresponding rope-travel ratio.
+- Pulley: 1, 2, 4 or 6 supporting strands, with the corresponding rope-travel ratio. Radius and stroke vary independently; rope count is a discrete control.
 - Wheel and geared winch: rim paths and hanging-mass paths are separate. Gear MA includes tooth count and input/output drum radius.
 - Screw: the screw rotates without axial translation; its guided load cannot rotate. Input drum circumference and thread lead set the ratio.
 - Wedge: horizontal input and guided vertical load, with an ideal supported contact.
 - Syringes: incompressible volume conservation determines displacement; piston areas determine force ratio.
 
-Distance demonstrations begin with a known nonzero speed and account for their initial kinetic energy. They pause at the exact target rise. No collision energy is fabricated at that paused snapshot.
+Distance tests use a force-limited, critically damped position actuator. The entered input work distance sets its target; a wrong answer therefore causes the wrong output rise. Its actual accepted force enters the same Newtonian model and extra-work accounting as pointer forces. The actuator holds the new position while the simulation remains running.
 
 ## Performance and validation
 
-Physics runs only while needed. Hidden tabs pause motion and comparisons. SVG rendering is limited to 30 frames/s, graph history is bounded to 360 samples, and canvases cap device-pixel ratio at 2. Static gear geometry is cached with a size limit. Input events are batched through animation frames; only one advance timer and one active physical animation are retained.
+Physics advances while Run is active, including at equilibrium and travel stops. Hidden tabs pause motion and comparisons. SVG rendering is limited to 30 frames/s, graph history is bounded to 360 samples, and canvases cap device-pixel ratio at 2. Static gear geometry is cached with a size limit. Input events are batched through animation frames; only one advance timer and one active physical animation are retained.
 
-`source/test-challenges.mjs` checks generated ratios, balance, motion limits, initial accelerations, determinism and value variety. Physics tests cover signed pointer forces, spring-driven motion, reversals, contact/tension limits and energy accounting. Browser QA covers answer feedback, adaptive progression, zoom, resizing, pulling, numerical controls, all machines and display toggles.
+`source/test-challenges.mjs` checks generated ratios, balance, motion limits, initial accelerations, determinism geometry diversity and value variety. `source/test-actuator.mjs` checks correct and wrong distance entries with both damping settings. `source/test-comparison.mjs` checks path measurements, reference movements, product scaling, inequality and rendering. Physics tests cover signed pointer forces, spring-driven motion, reversals, contact/tension limits and energy accounting. Browser QA covers answer feedback, adaptive progression, zoom, resizing, pulling, numerical controls, all machines and display toggles.
 
-Serve this folder over HTTP. `app.js` owns interaction/adaptation, `challenges.js` owns problem generation, `scene.js` renders SVG, and `physics.js` advances the model. `source/build_worksheet.py` regenerates the unchanged student PDF and worked key after installing `source/requirements.txt`.
+Serve this folder over HTTP. `app.js` owns interaction/adaptation, `challenges.js` owns problem generation, `scene.js` renders SVG, `comparison.js` produces animated snapshot comparisons, and `physics.js` advances the model. `source/build_worksheet.py` regenerates the unchanged student PDF and worked key after installing `source/requirements.txt`.
 
 ## References
 

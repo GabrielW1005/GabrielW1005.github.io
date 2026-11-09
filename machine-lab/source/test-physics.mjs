@@ -190,3 +190,189 @@ for(const scenario of scenarios)for(const side of ['input','output'])for(const t
 }
 console.log(JSON.stringify({activeGripRuns:runs,activeGripSamples:samples,maxNormalizedEnergyError,maxTrackingError,maxActualForceN:maxForce,maxPhysicalKineticEnergyJ:maxKinetic}));
 }
+
+// Optional settling is a real output-side viscous damper, not a spring or an
+// animation pause. Verify neutral equilibrium, heat, stops and continuous play.
+{
+const types=['lever','ramp','pulley','wheel','gears','screw','wedge','hydraulic'];
+const effectiveMass=c=>c.type==='lever'?c.inputMass*c.rIn**2+c.outputMass*c.rOut**2:
+  c.type==='ramp'?c.inputMass+c.outputMass:c.inputMass+c.outputMass/ratio(c)**2;
+const near=(a,b,tolerance=1e-9)=>assert(Math.abs(a-b)<=tolerance,`${a} != ${b}`);
+let settlingRuns=0,dampedSamples=0,maxDampedEnergyError=0;
+function seededState(c,v,fraction=.5) {
+  const s=makeState(c,fraction);s.v=v;s.v0=v;
+  s.initialKineticEnergy=.5*effectiveMass(c)*v*v;
+  return s;
+}
+function check(s,c,previousLoss=-1) {
+  const r=readout(s,c),b=limits(c);
+  assert(Number.isFinite(r.q)&&Number.isFinite(r.velocity)&&Number.isFinite(r.energyResidual));
+  assert(r.q>=b.min-1e-12&&r.q<=b.max+1e-12,'Damped motion stays inside the real stroke');
+  assert(r.dampingEnergyLoss>=previousLoss-1e-12,'Dissipated energy cannot decrease');
+  assert(r.dampingGeneralizedForce*s.v<=1e-9,'Resistance must oppose motion');
+  if(c.type!=='lever')assert(r.inputTension>=-1e-7,'Damping cannot make a rope push');
+  const relative=Math.abs(r.energyResidual)/(1+Math.abs(r.workIn)+Math.abs(r.workOut)+Math.abs(r.pointerWork)+r.kineticEnergy+r.stopEnergyLoss+r.dampingEnergyLoss+s.initialKineticEnergy);
+  maxDampedEnergyError=Math.max(maxDampedEnergyError,relative);
+  assert(relative<1e-6,`${c.type}: damping energy residual ${relative}`);
+  dampedSamples++;return r;
+}
+for(const type of types) {
+  const c=normalizeConfig({...defaultConfig(type),force:0,damping:2.2});
+  c.inputMass=balancedInputMass(c);
+  const b=limits(c),neutral=makeState(c,.43),stationary=neutral.q;
+  for(let i=0;i<120;i++)step(neutral,c,1/60);
+  near(neutral.q,stationary);near(neutral.v,0);near(neutral.dampingEnergyLoss,0);
+  for(const sign of [-1,1]) {
+    const initialV=sign*.1*b.range,s=seededState(c,initialV),q0=s.q;
+    let previousLoss=0;
+    for(let i=0;i<360;i++) {
+      step(s,c,1/60);const r=check(s,c,previousLoss);previousLoss=r.dampingEnergyLoss;
+    }
+    const elapsed=6,decay=Math.exp(-c.damping*elapsed);
+    near(s.v,initialV*decay,1e-10);
+    near(s.q,q0+initialV*(1-decay)/c.damping,1e-10);
+    assert(Math.abs(s.q-q0)>.04*b.range,'A balanced machine rests at its displaced position');
+    assert(s.impactCount===0,'Neutral settling does not need an end stop');
+    near(s.dampingEnergyLoss,s.initialKineticEnergy-.5*effectiveMass(c)*s.v*s.v,1e-8);
+    settlingRuns++;
+  }
+  // Switching resistance off preserves momentum, accumulated heat and origin.
+  const on=seededState(c,.03*b.range),q0=on.q0;
+  step(on,c,.1);const speed=on.v,heat=on.dampingEnergyLoss;
+  const off={...c,damping:0};changeConfig(on,c,off);
+  near(on.v,speed);near(on.dampingEnergyLoss,heat);near(on.q0,q0);
+  for(let i=0;i<60;i++)step(on,off,1/60);
+  near(on.v,speed);near(on.dampingEnergyLoss,heat);check(on,off);
+  changeConfig(on,off,c);step(on,c,.1);
+  assert(on.v<speed&&on.dampingEnergyLoss>heat,'Re-enabling damping resumes physical settling');
+  check(on,c);
+
+  // Unequal forces reach a physical stop. A new force then releases that stop
+  // without a reset, unpausing trick, or clearing the accumulated energy.
+  const moving={...c,inputMass:0};const required=equilibriumForce(moving);
+  moving.force=.7*required;
+  const run=makeState(moving,.5);
+  for(let i=0;i<3000&&!readout(run,moving).atLimit;i++){step(run,moving,1/60);check(run,moving);}
+  near(run.q,b.min);assert(run.impactCount>0&&run.stopEnergyLoss>0);
+  const beforeTime=run.time,beforeHeat=run.dampingEnergyLoss,origin=run.q0;
+  const reversed={...moving,force:1.3*required};changeConfig(run,moving,reversed);
+  step(run,reversed,1/240);
+  assert(run.q>b.min&&run.v>0,`${type}: an inward force releases the lower stop`);
+  assert(run.time>beforeTime&&run.dampingEnergyLoss>=beforeHeat);near(run.q0,origin);
+  for(let i=0;i<3000&&!readout(run,reversed).atLimit;i++){step(run,reversed,1/60);check(run,reversed);}
+  near(run.q,b.max);assert(run.impactCount>=2);
+  const stoppedHeat=run.dampingEnergyLoss;
+  step(run,reversed,.1);near(run.v,0);near(run.dampingEnergyLoss,stoppedHeat);check(run,reversed);
+}
+
+// Very strong output resistance on a descending, heavy input can otherwise
+// require negative input-rope tension. The saturated segment has constant
+// acceleration and its heat is -Dcap*delta(q), not M*lambda*integral(v^2).
+const capped=normalizeConfig({...defaultConfig('wheel'),inputMass:200,outputMass:1,force:0,damping:2.2,rIn:.5,rOut:.015});
+const falling=seededState(capped,-1),start=falling.q,initial=readout(falling,capped);
+assert(initial.dampingLimited&&initial.dampingGeneralizedForce>0);
+near(initial.inputTension,0,1e-10);
+step(falling,capped,.01);
+near(falling.v,-.9,1e-10);near(falling.q,start-.0095,1e-10);
+near(falling.dampingEnergyLoss,initial.dampingGeneralizedForce*.0095,1e-10);
+check(falling,capped);
+for(let i=0;i<120;i++){step(falling,capped,1/60);check(falling,capped);}
+
+// Initial acceleration is unchanged by viscous drag because v=0. Very small
+// damping must approach the ideal solution without cancellation or resetting.
+for(const type of types) {
+  const ideal={...defaultConfig(type),inputMass:0,force:0,damping:0};
+  const tiny={...ideal,damping:1e-14},strong={...ideal,damping:10};
+  near(initialOutputAcceleration(ideal),initialOutputAcceleration(strong));
+  const a=makeState(ideal,.5),b=makeState(tiny,.5);
+  for(let i=0;i<10;i++){step(a,ideal,1/240);step(b,tiny,1/240);}
+  near(a.q,b.q,type==='lever'?1e-7:1e-10);near(a.v,b.v,type==='lever'?1e-6:1e-10);check(b,tiny);
+}
+
+// Drag, release, then re-grip under damping on every machine and both bodies.
+for(const type of types)for(const side of ['input','output']) {
+  const c=normalizeConfig({...defaultConfig(type),inputMass:0,force:0,damping:2.2});
+  const s=makeState(c,.5),b=limits(c),target=s.q+.08*b.range,J=bodyJacobian(c)[side];
+  const mass=effectiveMass(c)/(J*J),k=Math.min(800,25*mass),d=1.6*Math.sqrt(k*mass);
+  let loss=0;
+  for(let frame=0;frame<480;frame++) {
+    let external={};
+    if(frame<180||frame>=240) {
+      const r=readout(s,c),speed=side==='input'?r.inputPathSpeed:r.outputPathSpeed;
+      const base=c.type==='lever'?((c.inputMass*10+c.force)*c.rIn-c.outputMass*10*c.rOut)*Math.cos(s.q):c.inputMass*10+c.force-c.outputMass*10/ratio(c);
+      const stretch=c.type==='lever'?J*Math.sin(target-s.q):J*(target-s.q);
+      external[side]=Math.max(-1000,Math.min(1000,-base/J+k*stretch-d*speed));
+    }
+    step(s,c,1/60,external);const r=check(s,c,loss);loss=r.dampingEnergyLoss;
+  }
+}
+const pulley=normalizeConfig({...defaultConfig('pulley'),pulleyTravel:1.7,pulleyRadius:.1});
+near(limits(pulley).max,1.7);near(ratio(pulley),2);
+near(normalizeConfig({...pulley,pulleyTravel:9,pulleyRadius:9}).pulleyTravel,1.8);
+near(normalizeConfig({...pulley,pulleyTravel:0,pulleyRadius:0}).pulleyRadius,.04);
+near(normalizeConfig({...pulley,strands:3}).strands,2);
+near(normalizeConfig({...pulley,strands:5}).strands,4);
+let dampedExtremeRuns=0;
+for(const type of types)for(const highRatio of [false,true])for(const damping of [2.2,10]) {
+  const c=normalizeConfig({...defaultConfig(type),damping,inputMass:highRatio?0:200,
+    outputMass:highRatio?1:200,force:highRatio?1000:0,
+    rIn:highRatio?3:.015,rOut:highRatio?.015:3,
+    length:highRatio?5:.06,height:highRatio?.01:5,
+    teethIn:highRatio?8:96,teethOut:highRatio?96:8,
+    crankRadius:highRatio?.3:.03,drumRadius:highRatio?.03:.3,
+    handleRadius:highRatio?.15:.015,lead:highRatio?.003:.6,
+    strands:highRatio?6:1,areaIn:highRatio?.25:10,areaOut:highRatio?20:.25});
+  const s=seededState(c,(highRatio?-1:1)*2*limits(c).range);let loss=0;
+  for(let i=0;i<240;i++) {
+    step(s,c,1/60,{input:1000*Math.sin(i*.7),output:1000*Math.cos(i*.4)});
+    const r=check(s,c,loss);loss=r.dampingEnergyLoss;
+  }
+  dampedExtremeRuns++;
+}
+console.log(JSON.stringify({neutralSettlingRuns:settlingRuns,dampedExtremeRuns,dampedSamples,maxDampedEnergyError}));
+}
+
+// Damping saturation transitions: compare full substeps with independently
+// calculated branch solutions and finely divided execution. Accepted input
+// pull can exceed input weight, so saturation may be entered in either direction.
+{
+const c={...defaultConfig('pulley'),strands:2,inputMass:10,outputMass:20,force:0,damping:2.2};
+const M=15,h=1/240,near=(a,b,t=1e-11)=>assert(Math.abs(a-b)<=t,`${a} != ${b}`);
+function seeded(v) {
+  const s=makeState(c,.5);s.v=s.v0=v;s.initialKineticEnergy=.5*M*v*v;return s;
+}
+function verify(input,v0,expectedQDelta,expectedV,expectedHeat) {
+  const s=seeded(v0),fine=seeded(v0),q0=s.q,external={input};
+  step(s,c,h,external);
+  for(let i=0;i<100;i++)step(fine,c,h/100,external);
+  near(s.q,q0+expectedQDelta);near(s.v,expectedV);
+  near(s.dampingEnergyLoss,expectedHeat,1e-10);
+  near(s.q,fine.q);near(s.v,fine.v);near(s.dampingEnergyLoss,fine.dampingEnergyLoss,1e-10);
+  const r=readout(s,c);near(r.energyResidual,0,1e-10);
+  assert(r.inputTension>=-1e-9&&r.dampingEnergyLoss>=0);
+  return r;
+}
+const input=-101,cap=99.5,threshold=-cap/(M*c.damping),v0=threshold+1e-5;
+const A=input/M,terminal=A/c.damping,aSat=-.1;
+const crossing=Math.log((v0-terminal)/(threshold-terminal))/c.damping;
+assert(crossing>0&&crossing<h);
+const before=terminal*crossing+(v0-terminal)*(1-Math.exp(-c.damping*crossing))/c.damping;
+const afterTime=h-crossing,dq=before+threshold*afterTime+.5*aSat*afterTime**2;
+const v1=threshold+aSat*afterTime;
+const heat=.5*M*(v0*v0-v1*v1)+input*dq;
+assert(verify(input,v0,dq,v1,heat).dampingLimited);
+
+// With zero allowed positive resistance, descending from rest stays on the
+// constant-acceleration branch immediately and dissipates no fictitious heat.
+const zeroCapInput=-300,zeroCapA=zeroCapInput/M;
+assert(verify(zeroCapInput,0,.5*zeroCapA*h*h,zeroCapA*h,0).dampingLimited);
+
+// The opposite transition remains correct: positive saturated acceleration
+// takes a descending body back into ordinary exponential viscous settling.
+const upperCap=150,upperThreshold=-upperCap/(M*c.damping),upperV0=upperThreshold-1e-5;
+const upTime=(upperThreshold-upperV0)/10,remaining=h-upTime;
+const upDQ=upperV0*upTime+5*upTime*upTime+upperThreshold*(1-Math.exp(-c.damping*remaining))/c.damping;
+const upV=upperThreshold*Math.exp(-c.damping*remaining);
+verify(0,upperV0,upDQ,upV,.5*M*(upperV0*upperV0-upV*upV));
+console.log('3 exact damping-transition regressions passed (including both crossing directions and zero cap).');
+}

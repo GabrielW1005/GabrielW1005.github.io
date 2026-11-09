@@ -1,0 +1,14 @@
+/* Snapshot comparison is independent of the simulation's theme and layout. */
+.mc-comparison{font:17px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--mc-ink);background:var(--mc-bg);width:100%;max-width:1000px;margin:auto;}
+.mc-dark{--mc-bg:#111b2c;--mc-ink:#edf3ff;--mc-muted:#a8b8cf;--mc-border:#35455f;--mc-active:#1e3a60;}
+.mc-light{--mc-bg:#fff;--mc-ink:#22334b;--mc-muted:#5b6d85;--mc-border:#c8d2df;--mc-active:#e1edff;}
+.mc-step-title{display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px 0;font-size:15px;font-weight:700;}
+.mc-step-title span{padding:7px 10px;border:1px solid var(--mc-border);border-radius:8px;color:var(--mc-muted);}
+.mc-step-title .mc-active{background:var(--mc-active);color:var(--mc-ink);}
+.mc-source{margin:12px 22px 0;color:var(--mc-muted);font-size:15px;}
+.mc-visual{display:block;width:100%;height:auto;max-height:65vh;}
+.mc-note{margin:2px 24px 18px;color:var(--mc-muted);font-size:16px;}
+.mc-result{margin:4px 24px 10px;font-size:20px;font-weight:750;color:var(--mc-ink);}
+.mc-result.mc-equal{color:#45ad7c;}
+@media(max-width:600px){.mc-comparison{font-size:15px;}.mc-step-title{gap:4px;padding:8px;}.mc-step-title span{font-size:12px;padding:5px;}.mc-note,.mc-source,.mc-result{margin-left:12px;margin-right:12px;}.mc-visual{min-width:580px;}.mc-comparison{overflow-x:auto;}}
+@media(prefers-reduced-motion:reduce){.mc-comparison *{animation:none!important;transition:none!important;}}
