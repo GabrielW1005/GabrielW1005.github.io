@@ -98,24 +98,96 @@ export function parseProgress(source){
  if(!plain(value)||own(value,'schema')!==PROGRESS_SCHEMA||own(value,'version')!==PROGRESS_VERSION)throw new Error('This is not a supported Machine Lab progress file.');
  return normalizeProgress(value);
 }
-function base64url(source){
- const bytes=new TextEncoder().encode(source);let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);
+// Version 2 wire tables are deliberately fixed: new fields need a new wire version.
+const WIRE_TYPES=['lever','ramp','pulley','wheel','gears','gearArms','screw','wedge','hydraulic'];
+const WIRE_TASKS=['force','balance','distance','acceleration'],WIRE_MODES=['balance','challenge','auto'];
+const WIRE_TOPICS=['mixed',...WIRE_TASKS];
+const WIRE_CONFIG=['inputMass','outputMass','force','damping','rIn','rOut','length','height','teethIn','teethOut','crankRadius','drumRadius','handleRadius','lead','strands','pulleyTravel','pulleyRadius','areaIn','areaOut'];
+const WIRE_VARIABLES=['',...WIRE_CONFIG,'rampRun','distance','acceleration'];
+const WIRE_CHECKS=['paths','forces','accelerations','charts','graphToggle','pullTool','autoAdvance'];
+const WIRE_COMPARE=['work','path','force'],WIRE_PLOT=['distance','path','force','acceleration'],WIRE_TARGET=['mass','geometry'],WIRE_SPEED=[.25,.5,1];
+function compactProgress(p){
+ const a=p.session,s=p.saved,stats=p.stats,time=Date.parse(p.savedAt);
+ const machineRows=WIRE_TYPES.flatMap((type,i)=>{
+  const row=[...WIRE_TASKS.map(task=>s.skills[type][task]),s.balanceVariants[type]];
+  return row.some(Boolean)?[[i,...row]]:[];
+ });
+ const totals=WIRE_TYPES.flatMap((type,i)=>{const row=stats.byMachine[type];return row.attempts||row.correct?[[i,row.attempts,row.correct]]:[];});
+ const v=a.view,view=[WIRE_CHECKS.reduce((bits,key,i)=>bits|(Number(v[key])<<i),0),WIRE_COMPARE.indexOf(v.compareKind),WIRE_PLOT.indexOf(v.plotKind),WIRE_TARGET.indexOf(v.autoTarget),WIRE_SPEED.indexOf(v.speed)];
+ return [time,p.student,[Number(s.dark),s.serial,s.pathWidth,machineRows],
+  [WIRE_TYPES.indexOf(a.type),WIRE_MODES.indexOf(a.mode),WIRE_TASKS.indexOf(a.task),WIRE_TOPICS.indexOf(a.topic),a.level,a.variant,WIRE_CONFIG.map(key=>a.config[key]),a.answer,Number(a.custom)|(Number(a.credited)<<1)|(Number(a.forceCorrect)<<2),a.attempts,a.resistance,[a.camera.zoom,a.camera.cx,a.camera.cy],a.rampView?[a.rampView.scale,a.rampView.baseY,a.rampView.x0]:null,view],
+  [stats.attempts,stats.correct,totals,stats.recent.map(row=>[time-row.at,WIRE_TYPES.indexOf(row.type),WIRE_MODES.indexOf(row.mode),WIRE_TASKS.indexOf(row.task),row.level,row.variant,WIRE_VARIABLES.indexOf(row.variable),row.entry,Number(row.correct)|(Number(row.custom)<<1),row.signature])]];
+}
+const invalidLink=()=>new Error('This progress link is incomplete or invalid.');
+function tuple(value,length){if(!Array.isArray(value)||value.length!==length)throw invalidLink();return value;}
+function list(value,max){if(!Array.isArray(value)||value.length>max)throw invalidLink();return value;}
+function finite(value){if(typeof value!=='number'||!Number.isFinite(value))throw invalidLink();return value;}
+function whole(value,min,max){if(!Number.isInteger(value)||value<min||value>max)throw invalidLink();return value;}
+function wireText(value,max){if(typeof value!=='string'||Array.from(value).length>max)throw invalidLink();return value;}
+function lookup(table,index){return table[whole(index,0,table.length-1)];}
+function expandProgress(value){
+ const [time,student,s,a,t]=tuple(value,5);whole(time,0,Date.UTC(2200,0,1));wireText(student,80);tuple(s,4);tuple(a,14);tuple(t,4);
+ const saved={dark:!!whole(s[0],0,1),serial:whole(s[1],0,1000000000),pathWidth:finite(s[2]),skills:{},balanceVariants:{}},seen=new Set();
+ for(const row of list(s[3],WIRE_TYPES.length)){
+  tuple(row,6);const type=lookup(WIRE_TYPES,row[0]);if(seen.has(type))throw invalidLink();seen.add(type);
+  saved.skills[type]=Object.fromEntries(WIRE_TASKS.map((task,i)=>[task,whole(row[i+1],0,4)]));saved.balanceVariants[type]=whole(row[5],0,1000000000);
+ }
+ const type=lookup(WIRE_TYPES,a[0]),flags=whole(a[8],0,7),c=tuple(a[6],WIRE_CONFIG.length),camera=tuple(a[11],3),ramp=a[12]===null?null:tuple(a[12],3),view=tuple(a[13],5),bits=whole(view[0],0,127);
+ const session={type,mode:lookup(WIRE_MODES,a[1]),task:lookup(WIRE_TASKS,a[2]),topic:lookup(WIRE_TOPICS,a[3]),level:whole(a[4],0,3),variant:whole(a[5],0,1000000000),
+  config:{type,...Object.fromEntries(WIRE_CONFIG.map((key,i)=>[key,finite(c[i])]))},answer:wireText(a[7],48),custom:!!(flags&1),credited:!!(flags&2),forceCorrect:!!(flags&4),attempts:whole(a[9],0,MAX_COUNTER),resistance:finite(a[10]),
+  camera:{zoom:finite(camera[0]),cx:finite(camera[1]),cy:finite(camera[2])},rampView:ramp?{scale:finite(ramp[0]),baseY:finite(ramp[1]),x0:finite(ramp[2])}:null,
+  view:{...Object.fromEntries(WIRE_CHECKS.map((key,i)=>[key,!!(bits&(1<<i))])),compareKind:lookup(WIRE_COMPARE,view[1]),plotKind:lookup(WIRE_PLOT,view[2]),autoTarget:lookup(WIRE_TARGET,view[3]),speed:lookup(WIRE_SPEED,view[4])}};
+ const stats={attempts:whole(t[0],0,MAX_COUNTER*WIRE_TYPES.length),correct:whole(t[1],0,MAX_COUNTER*WIRE_TYPES.length),byMachine:{},recent:[]};seen.clear();
+ for(const row of list(t[2],WIRE_TYPES.length)){
+  tuple(row,3);const key=lookup(WIRE_TYPES,row[0]);if(seen.has(key))throw invalidLink();seen.add(key);
+  stats.byMachine[key]={attempts:whole(row[1],0,MAX_COUNTER),correct:whole(row[2],0,MAX_COUNTER)};
+ }
+ for(const row of list(t[3],MAX_RECENT)){
+  tuple(row,10);const at=time-finite(row[0]);whole(at,0,Date.UTC(2200,0,1));const flags=whole(row[8],0,3);
+  stats.recent.push({at,type:lookup(WIRE_TYPES,row[1]),mode:lookup(WIRE_MODES,row[2]),task:lookup(WIRE_TASKS,row[3]),level:whole(row[4],0,3),variant:whole(row[5],0,1000000000),variable:lookup(WIRE_VARIABLES,row[6]),entry:wireText(row[7],48),correct:!!(flags&1),custom:!!(flags&2),signature:wireText(row[9],80)});
+ }
+ return normalizeProgress({schema:PROGRESS_SCHEMA,version:PROGRESS_VERSION,savedAt:time,student,saved,session,stats});
+}
+function base64url(bytes){
+ let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);
  return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
-/** Keep all totals and current work; trim only oldest recent rows to fit a share link. */
-export function encodeProgress(snapshot){
- const clean=normalizeProgress(snapshot);let encoded=base64url(JSON.stringify(clean));
- while(encoded.length>MAX_SHARE_LENGTH&&clean.stats.recent.length){clean.stats.recent.shift();encoded=base64url(JSON.stringify(clean));}
+function fromBase64url(token){
+ if(!token.length||token.length%4===1||!/^[A-Za-z0-9_-]+$/.test(token))throw invalidLink();
+ const binary=atob(token.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(token.length/4)*4,'='));
+ return Uint8Array.from(binary,c=>c.charCodeAt(0));
+}
+async function collectBounded(stream,maxBytes=MAX_JSON_BYTES){
+ const reader=stream.getReader(),parts=[];let length=0;
+ try{
+  while(true){const {done,value}=await reader.read();if(done)break;length+=value.byteLength;if(length>maxBytes)throw invalidLink();parts.push(value);}
+ }catch(error){await reader.cancel().catch(()=>{});throw error;}finally{reader.releaseLock();}
+ const result=new Uint8Array(length);let offset=0;for(const part of parts){result.set(part,offset);offset+=part.byteLength;}return result;
+}
+/** Compact and compress the entire normalized snapshot, including all recent tests. */
+export async function encodeProgress(snapshot,{compress=true}={}){
+ const clean=normalizeProgress(snapshot),bytes=new TextEncoder().encode(JSON.stringify(compactProgress(clean)));
+ if(bytes.byteLength>MAX_JSON_BYTES)throw new Error('Progress is too large to share as a link. Save a progress file instead.');
+ let encoded='c2.'+base64url(bytes);
+ if(compress&&typeof CompressionStream==='function'&&typeof DecompressionStream==='function'){
+  const packed=await collectBounded(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate')));
+  const candidate='z2.'+base64url(packed);if(candidate.length<encoded.length)encoded=candidate;
+ }
  if(encoded.length>MAX_SHARE_LENGTH)throw new Error('Progress is too large to share as a link. Save a progress file instead.');
  return encoded;
 }
-export function decodeProgress(token){
- if(typeof token!=='string'||!token.length||token.length>MAX_SHARE_LENGTH||token.length%4===1||!/^[A-Za-z0-9_-]+$/.test(token))throw new Error('This progress link is incomplete or invalid.');
+/** Supports both compact v2 links and every valid original v1 progress link. */
+export async function decodeProgress(token){
+ if(typeof token!=='string'||!token.length||token.length>MAX_SHARE_LENGTH)throw invalidLink();
+ if(token.startsWith('z2.')&&typeof DecompressionStream!=='function')throw new Error('Open this compressed progress link in a current browser, or use a progress backup file.');
  try{
-  const binary=atob(token.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(token.length/4)*4,'='));
-  const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
-  return parseProgress(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
- }catch{throw new Error('This progress link is incomplete or invalid.');}
+  const compressed=token.startsWith('z2.'),compact=compressed||token.startsWith('c2.');
+  let bytes=fromBase64url(compact?token.slice(3):token);
+  if(compressed)bytes=await collectBounded(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate')));
+  if(bytes.byteLength>MAX_JSON_BYTES)throw invalidLink();
+  const source=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+  return compact?expandProgress(JSON.parse(source)):parseProgress(source);
+ }catch{throw invalidLink();}
 }
 /** A test is counted once when an identical setup is run repeatedly in a row. */
 export function recordAttempt(stats,attempt){

@@ -6,7 +6,7 @@ import {renderScene} from './scene.js?v=progress-v1';
 import {renderComparison} from './comparison.js?v=progress-v1';
 import {initPanels} from './panels.js?v=progress-v1';
 import {snapValue,answerRounding,displayValue,matchesRoundedAnswer} from './value-steps.js?v=progress-v1';
-import {normalizeProgress,serializeProgress,parseProgress,encodeProgress,decodeProgress,recordAttempt} from './progress.js?v=progress-v1';
+import {normalizeProgress,serializeProgress,parseProgress,encodeProgress,decodeProgress,recordAttempt} from './progress.js?v=s2';
 const $=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>Number.isFinite(n)?(Math.abs(n)<1e-8?'0':Number(n.toPrecision(4)).toString()):'—';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -19,8 +19,9 @@ let custom=false,attempts=0,credited=false,forceCorrect=false,playing=false,fram
 let history=[],bodyInfo={},drag=null,pull=null,pointers=new Map(),pinch=null,pendingResize=null,advanceTimer=0;
 let autoAnimating=false,autoFrame=0,autoStart=0,autoNotice='',distanceDemo=false;
 let camera={zoom:1,cx:450,cy:270},rampView=null;
-const PROGRESS_KEY='machine-lab-progress-v1',RELEASE='controls-v1';
+const PROGRESS_KEY='machine-lab-progress-v1',RELEASE='s2';
 let progressReady=false,saveTimer=0,student='',progressStats={},sharedPreview=null;
+let progressDialogVersion=0,sharedDecodeVersion=0;
 let testedEntry='',movementTest=null,comparisonSnapshot=null,comparisonPhase=0;
 const machine=()=>machineCatalog.find(m=>m.type===type);
 const editable=key=>mode!=='balance'||key===challenge?.key;
@@ -421,24 +422,29 @@ function renderProgressReport(snapshot){
  $('progressMessage').textContent=`${current} · ${p.session.mode==='balance'?'Balance':p.session.mode==='auto'?'Auto balance':'Practice'} · saved ${date}. Progress links are snapshots, not live updates.`;
 }
 function openProgress(snapshot=progressSnapshot(),preview=false){
+ progressDialogVersion++;sharedDecodeVersion++;$('copyProgressLink').disabled=false;$('copyProgressLink').textContent='Copy progress link';
  stop();stopAuto();cancelAdvance();sharedPreview=preview?normalizeProgress(snapshot):null;
  $('progressTitle').textContent=preview?'Shared progress':'Save & share progress';$('sharedNotice').hidden=!preview;
  $('resumeShared').hidden=!preview;$('keepMyProgress').hidden=!preview;$('studentName').disabled=preview;
  for(const id of ['copyProgressLink','downloadProgress','loadProgress'])$(id).hidden=preview;
  $('shareLinkBox').hidden=true;renderProgressReport(snapshot);if(!$('progressDialog').open)$('progressDialog').showModal();
 }
-function clearSharedLink(){if(new URLSearchParams(location.hash.slice(1)).has('progress'))historyReplaceWithoutShare();}
+function clearSharedLink(){const params=new URLSearchParams(location.hash.slice(1));if(params.has('p')||params.has('progress'))historyReplaceWithoutShare();}
 function historyReplaceWithoutShare(){const url=new URL(location.href);url.hash='';window.history.replaceState(null,'',url.toString());}
 $('saveProgressBtn').onclick=()=>saveProgressNow(true);
 $('shareProgressBtn').onclick=()=>{saveProgressNow();openProgress();};
 $('closeProgress').onclick=()=>$('progressDialog').close();
-$('progressDialog').addEventListener('close',()=>{sharedPreview=null;clearSharedLink();});
+$('progressDialog').addEventListener('close',()=>{progressDialogVersion++;sharedDecodeVersion++;sharedPreview=null;clearSharedLink();});
 $('studentName').oninput=()=>{if(sharedPreview)return;student=$('studentName').value.slice(0,80);queueAutoSave();};
 $('copyProgressLink').onclick=async()=>{
- try{saveProgressNow();const token=encodeProgress(progressSnapshot()),url=new URL(location.href);url.searchParams.set('v',RELEASE);url.hash='progress='+token;const link=url.toString();$('progressLink').value=link;
-  try{await navigator.clipboard.writeText(link);$('progressMessage').textContent='Progress link copied. Paste it into Classroom, a message, or a document.';}
-  catch{$('shareLinkBox').hidden=false;$('progressLink').focus();$('progressLink').select();$('progressMessage').textContent='Copy the selected progress link below.';}
- }catch{$('progressMessage').textContent='Could not create this link. Use Download backup instead.';}
+ const version=progressDialogVersion,button=$('copyProgressLink'),current=()=>version===progressDialogVersion&&$('progressDialog').open&&!sharedPreview;
+ button.disabled=true;button.textContent='Preparing link…';
+ try{saveProgressNow();const snapshot=progressSnapshot(),token=await encodeProgress(snapshot);if(!current())return;
+  const url=new URL(location.href);url.search='?v='+RELEASE;url.hash='p='+token;const link=url.toString();$('progressLink').value=link;
+  try{await navigator.clipboard.writeText(link);if(current())$('progressMessage').textContent='Progress link copied. Paste it into Classroom, a message, or a document.';}
+  catch{if(current()){$('shareLinkBox').hidden=false;$('progressLink').focus();$('progressLink').select();$('progressMessage').textContent='Copy the selected progress link below.';}}
+ }catch{if(current())$('progressMessage').textContent='Could not create this link. Use Download backup instead.';}
+ finally{if(version===progressDialogVersion){button.disabled=false;button.textContent='Copy progress link';}}
 };
 $('downloadProgress').onclick=()=>{try{saveProgressNow();const blob=new Blob([serializeProgress(progressSnapshot())],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='machine-lab-progress.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('progressMessage').textContent='Backup download requested. You can reopen it with Open saved file.';}catch{$('progressMessage').textContent='Could not create the backup. Try copying a progress link.';}};
 $('loadProgress').onclick=()=>$('progressFile').click();
@@ -454,9 +460,10 @@ const defaultedToBalance=storedProgress&&storedProgress.session.mode!=='balance'
 if(storedProgress){restoreProgress(storedProgress,false);if(defaultedToBalance){mode='balance';task='balance';level=0;loadChallenge();}}else{const hash=location.hash.match(/machine=(\w+)/);if(hash&&machineCatalog.some(m=>m.type===hash[1]))type=hash[1];level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();theme();}
 initPanels();progressReady=true;
 if(storedProgress&&!defaultedToBalance)progressStatus('Progress restored on this device. Run starts from rest.');else queueAutoSave();
-function openSharedLink(){
- const sharedToken=new URLSearchParams(location.hash.slice(1)).get('progress');
- if(sharedToken){try{openProgress(decodeProgress(sharedToken),true);}catch{openProgress();$('progressMessage').textContent='This progress link is invalid or incomplete. Your saved work is unchanged.';}}
+async function openSharedLink(){
+ const request=++sharedDecodeVersion,hash=location.hash,params=new URLSearchParams(hash.slice(1)),sharedToken=params.get('p')??params.get('progress');
+ const current=()=>request===sharedDecodeVersion&&location.hash===hash;
+ if(sharedToken){try{const snapshot=await decodeProgress(sharedToken);if(current())openProgress(snapshot,true);}catch{if(current()){openProgress();$('progressMessage').textContent='This progress link is invalid or incomplete. Your saved work is unchanged.';}}}
 }
 window.addEventListener('hashchange',openSharedLink);openSharedLink();
 
