@@ -5,6 +5,24 @@ const num=n=>Number.isFinite(n)?Number(n.toPrecision(4)).toString():'0';
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const TAU=Math.PI*2;
 const gearCache=new Map();
+const rampLayoutCache=new Map();
+// The floor and pixel scale do not depend on current height. Reserve the
+// full editable height range so raising the ramp never shrinks its base.
+function rampLayout(c,run){
+ const physicalRun=Number(run.toFixed(10)),key=`${physicalRun}:${c.inputMass}:${c.outputMass}`;
+ if(rampLayoutCache.has(key))return rampLayoutCache.get(key);
+ const baseY=260,halfIn=5*Math.sqrt(c.inputMass),halfOut=5*Math.sqrt(c.outputMass),x0=Math.max(110,2*halfOut+30),heightMax=Math.max(.1,Math.min(2,Math.sqrt(Math.max(0,25-physicalRun*physicalRun))));
+ let scale=physicalRun>1e-9?360/physicalRun:500;
+ for(let i=0;i<=80;i++){
+  const height=.1+(heightMax-.1)*i/80,length=Math.hypot(physicalRun,height),tx=physicalRun/length,sin=height/length,pad=Math.max(45,150*tx),r=Math.max(23,(halfOut+halfIn+26-pad*tx)/(1+sin)),offset=-pad*sin+(r-halfOut-2)*tx;
+  const topExtent=Math.max(r-offset,(halfOut+2)*tx+halfOut*(tx+sin));
+  scale=Math.min(scale,(baseY-35-topExtent)/height);
+  if(length-height>1e-9)scale=Math.min(scale,(500-baseY-offset-r-2*halfIn-18)/(length-height));
+  if(physicalRun>1e-9){const tail=pad*tx-halfOut*sin-2*sin+r*sin+r+halfIn;scale=Math.min(scale,(850-x0-tail)/physicalRun);}
+ }
+ const result={scale:Math.max(5,scale*.98),baseY,x0};
+ if(rampLayoutCache.size>128)rampLayoutCache.clear();rampLayoutCache.set(key,result);return result;
+}
 
 /** DOM-free comparison geometry, in the same 900 × 540 SVG coordinates. */
 export function trajectoryGeometry(config,state,readout={}){
@@ -15,6 +33,7 @@ export function trajectoryGeometry(config,state,readout={}){
 
 export function renderScene(c,state,readout={},options={}){
  const dark=!!options.dark, paths=options.paths!==false, forces=!!options.forces;
+ const editable=key=>options.editableKey==null||options.editableKey===key;
  const P={bg:dark?'#111b2c':'#ffffff',ink:dark?'#e3eaf6':'#27364c',muted:dark?'#a1b1c8':'#66758a',line:dark?'#74859d':'#b8c3d2',fill:dark?'#28384f':'#e7edf5',metal:dark?'#445a77':'#ccd8e6',blue:dark?'#72afff':'#2563eb',orange:dark?'#ffb16f':'#c65b17',water:dark?'#1f6488':'#bfe6fa'};
  const q=Number(state?.q)||0,q0=Number(state?.q0)||0,lim=limits(c),R=ratio(c),G=10;
  const visibleForces=forces?[c.inputMass*G,c.outputMass*G,c.force,readout.dampingOutputForce,options.actuatorForce]:[];
@@ -30,8 +49,8 @@ export function renderScene(c,state,readout={},options={}){
  const rect=(x,y,w,h,fill=P.fill,stroke=P.ink,r=5)=>`<rect x="${x}" y="${y}" width="${Math.max(0,w)}" height="${Math.max(0,h)}" rx="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
  const text=(x,y,str,color=P.ink,size=18,anchor='middle',extra='')=>{foregroundLabels.push(`<text x="${x}" y="${y}" fill="${color}" font-size="${size}" text-anchor="${anchor}" ${sAttr} style="paint-order:stroke;stroke:${P.bg};stroke-width:3;stroke-linejoin:round" pointer-events="none" ${extra}>${esc(str)}</text>`);return '';};
  function arrow(x1,y1,x2,y2,col=P.ink,w=2.5){const a=Math.atan2(y2-y1,x2-x1),l=Math.min(8,Math.hypot(x2-x1,y2-y1)*.35);return line(x1,y1,x2,y2,col,w)+path(`M${x2-l*Math.cos(a-.45)},${y2-l*Math.sin(a-.45)} L${x2},${y2} L${x2-l*Math.cos(a+.45)},${y2-l*Math.sin(a+.45)}`,col,w);}
- function geometrySurface(markup,param,units,label,axis='x',extra=''){return `<g data-drag="geometry" data-param="${param}" data-units-per-px="${units}" data-axis="${axis}" data-name="${esc(label)}" role="button" aria-label="Drag to change ${esc(label)}" tabindex="0" style="cursor:${axis==='y'?'ns':'ew'}-resize" ${extra}>${markup}</g>`;}
- function handle(x,y,param,units,label,axis='x'){foregroundHandles.push(geometrySurface(`${circle(x,y,21,'transparent','transparent',0)}${circle(x,y,10,P.bg,P.muted,2)}${axis==='y'?path(`M${x-4},${y-3} L${x},${y-7} L${x+4},${y-3} M${x-4},${y+3} L${x},${y+7} L${x+4},${y+3}`,P.muted,1.6):path(`M${x-3},${y-4} L${x-7},${y} L${x-3},${y+4} M${x+3},${y-4} L${x+7},${y} L${x+3},${y+4}`,P.muted,1.6)}`,param,units,label,axis));return '';}
+ function geometrySurface(markup,param,units,label,axis='x',extra=''){if(!editable(param))return markup;return `<g data-drag="geometry" data-param="${param}" data-units-per-px="${units}" data-axis="${axis}" data-name="${esc(label)}" role="button" aria-label="Drag to change ${esc(label)}" tabindex="0" style="cursor:${axis==='y'?'ns':'ew'}-resize" ${extra}>${markup}</g>`;}
+ function handle(x,y,param,units,label,axis='x'){if(!editable(param))return '';foregroundHandles.push(geometrySurface(`${circle(x,y,21,'transparent','transparent',0)}${circle(x,y,10,P.bg,P.muted,2)}${axis==='y'?path(`M${x-4},${y-3} L${x},${y-7} L${x+4},${y-3} M${x-4},${y+3} L${x},${y+7} L${x+4},${y+3}`,P.muted,1.6):path(`M${x-3},${y-4} L${x-7},${y} L${x-3},${y+4} M${x+3},${y-4} L${x+7},${y} L${x+3},${y+4}`,P.muted,1.6)}`,param,units,label,axis));return '';}
  function dim(x1,y1,x2,y2,label,col,tx=(x1+x2)/2,ty=(y1+y2)/2-10){return arrow(x1,y1,x2,y2,col,1.4)+arrow(x2,y2,x1,y1,col,1.4)+text(tx,ty,label,col,17);}
  function trace(fn,col,key){
   const samples=(a,b)=>Array.from({length:33},(_,i)=>fn(a+(b-a)*i/32)),points=samples(lim.min,lim.max),livePoints=samples(q0,q);
@@ -42,19 +61,19 @@ export function renderScene(c,state,readout={},options={}){
  }
  // Body metadata always uses world SVG coordinates and meters along the actual
  // constrained path. Work-distance projections are intentionally separate.
- function weight(x,y,m,side,{ropeTop=null,angle=0,tangent=side==='input'?[0,1]:[0,-1]}={}){
+ function weight(x,y,m,side,{ropeTop=null,angle=0,tangent=side==='input'?[0,1]:[0,-1],labelLeft=false}={}){
   const col=side==='input'?P.blue:P.orange,sz=10*Math.sqrt(Math.max(0,m)),half=sz/2,frame=Math.max(40,sz),edge=frame/2,extent=half*(Math.abs(Math.cos(angle))+Math.abs(Math.sin(angle))),fill=dark?(side==='input'?'#244c7e':'#744b2c'):(side==='input'?'#d8e8ff':'#fae1cb');
   bodies[side]={x,y,size:sz,pxPerMeter:bodyScale,tangent,angle,extent};
   let z='';if(ropeTop!==null)z+=line(x,ropeTop,x,y-half,P.ink,3);
   z+=`<g data-body="${side}" data-drop="${side}" data-side="${side}" data-body-center-x="${x}" data-body-center-y="${y}" data-scale="${bodyScale}" data-tangent-x="${tangent[0]}" data-tangent-y="${tangent[1]}" data-size="${sz}" data-angle="${angle}">`;
-  z+=`<g data-drag="pull" data-side="${side}" data-name="${side} mass" role="button" aria-label="${side} mass ${num(m)} kilograms. Drag to pull; resize with the handles." tabindex="0" style="cursor:grab"><g transform="rotate(${angle*180/Math.PI} ${x} ${y})">${rect(x-edge-9,y-edge-9,frame+18,frame+18,'transparent','transparent',4)}${m>0?rect(x-half,y-half,sz,sz,fill,col,3):rect(x-edge,y-edge,frame,frame,'none',col,3)}</g>`;
-  z+=text(x,Math.min(526,y+extent+30),`${displayValue(m)} kg`,col,21,'middle','font-weight="750"')+'</g>';
+  z+=`<g data-drag="pull" data-side="${side}" data-name="${side} mass" role="button" aria-label="${side} mass ${num(m)} kilograms. Drag to pull${editable(side+'Mass')?'; resize with the handles':''}." tabindex="0" style="cursor:grab"><g transform="rotate(${angle*180/Math.PI} ${x} ${y})">${rect(x-edge-9,y-edge-9,frame+18,frame+18,'transparent','transparent',4)}${m>0?rect(x-half,y-half,sz,sz,fill,col,3):rect(x-edge,y-edge,frame,frame,'none',col,3)}</g>`;
+  z+=text(labelLeft?x-extent-22:x,labelLeft?y+7:Math.min(526,y+extent+30),`${displayValue(m)} kg`,col,21,labelLeft?'end':'middle','font-weight="750"')+'</g>';
   let handles=`<g transform="rotate(${angle*180/Math.PI} ${x} ${y})">`;
   for(const [sx,sy,axis] of [[-1,-1,'xy'],[1,-1,'xy'],[-1,1,'xy'],[1,1,'xy'],[1,0,'x'],[0,1,'y']]){
    const hx=x+sx*edge,hy=y+sy*edge;
    handles+=`<g data-drag="resize" data-side="${side}" data-base-size="${sz}" data-axis="${axis}" data-signx="${sx}" data-signy="${sy}" data-angle="${angle}" data-name="${side} mass resize" role="button" aria-label="Resize ${side} mass" tabindex="0" style="cursor:${axis==='x'?'ew-resize':axis==='y'?'ns-resize':sx===sy?'nwse-resize':'nesw-resize'}">${circle(hx,hy,10,'transparent','transparent',0)}${rect(hx-3.5,hy-3.5,7,7,P.bg,col,1)}</g>`;
   }
-  foregroundHandles.push(handles+'</g>');return z+'</g>';
+  if(editable(side+'Mass'))foregroundHandles.push(handles+'</g>');return z+'</g>';
  }
  // Every visible force shares one scale, preserving relative magnitudes.
  function forceVector(x,y,dx,dy,magnitude,label,col,labelAnchor=null,labelDy=-8){
@@ -69,6 +88,7 @@ export function renderScene(c,state,readout={},options={}){
   const input=side==='input',inner=input?230:670,outer=input?130:770,band=input?335:355,top=85,r=Math.min(12,Math.abs(inner-x)/3),dir=input?-1:1,col=input?P.blue:P.orange,travel=q*scale/(input?1:R),center=(inner+outer)/2;
   return path(`M${x},${shaftY} V${band-r} Q${x},${band} ${x+dir*r},${band} H${inner-dir*r} Q${inner},${band} ${inner},${band-r} V${top} A50,50 0 0 ${input?0:1} ${outer},${top} V${bodyY-5*Math.sqrt(mass)}`,col,2.6)+pulleyWheel(x+dir*r,band-r,r-2,travel/r)+pulleyWheel(inner-dir*r,band-r,r-2,travel/r)+pulleyWheel(center,top,48,-travel/50);
  }
+ function gear(x,y,r,n,a,param){const key=`${r}:${n}`;let pts=gearCache.get(key);if(!pts){pts=Array.from({length:n*4},(_,i)=>{const th=i*TAU/(n*4),rr=r+(i%4===1||i%4===2?3:-3);return `${rr*Math.cos(th)},${rr*Math.sin(th)}`;}).join(' ');if(gearCache.size>64)gearCache.clear();gearCache.set(key,pts);}return geometrySurface(`<g data-gear="${param==='teethIn'?'input':'output'}" data-teeth="${n}" data-center-x="${x}" data-center-y="${y}" data-pitch-radius="${r}"><polygon points="${pts}" transform="translate(${x} ${y}) rotate(${a*180/Math.PI})" fill="${P.fill}" stroke="${P.ink}" stroke-width="2"/></g>`+circle(x,y,r,'none','transparent',24),param,.5,param==='teethIn'?'input gear teeth':'output gear teeth');}
  function base(y=470,x1=90,x2=810){return line(x1,y,x2,y,P.line,3);}
  function sectionLabels(ix,ox){return text(ix,47,'INPUT',P.blue,15,'middle','font-weight="750" letter-spacing="2"')+text(ox,47,'OUTPUT',P.orange,15,'middle','font-weight="750" letter-spacing="2"');}
  let z='';
@@ -84,28 +104,24 @@ export function renderScene(c,state,readout={},options={}){
   z+=text(cx,483,'fulcrum',P.muted,14);
   if(paths){const a=ip(lim.min),b=ip(lim.max),d=op(lim.min),e=op(lim.max);z+=dim(105,a[1],105,b[1],'vertical d₁',P.blue,100,(a[1]+b[1])/2-20)+dim(795,d[1],795,e[1],'vertical d₂',P.orange,795,(d[1]+e[1])/2-20);}
  } else if(c.type==='ramp'){
-  const scale=Number(options.rampScale)>0?Number(options.rampScale):Math.min(260/c.length,220/c.height),runMeters=Math.sqrt(Math.max(0,c.length*c.length-c.height*c.height)),run=runMeters*scale,rise=c.height*scale,angle=Math.atan2(c.height,runMeters),tx=Math.cos(angle),ty=-Math.sin(angle),nx=-Math.sin(angle),ny=-Math.cos(angle),x0=155,y0=410;
+  const runMeters=Math.sqrt(Math.max(0,c.length*c.length-c.height*c.height)),angle=Math.atan2(c.height,runMeters),tx=Math.cos(angle),ty=-Math.sin(angle),nx=-Math.sin(angle),ny=-Math.cos(angle),loadHalf=5*Math.sqrt(c.outputMass),inputHalf=5*Math.sqrt(c.inputMass),pad=Math.max(45,150*tx),r=Math.max(23,(loadHalf+inputHalf+26-pad*tx)/(1-ty)),layout=rampLayout(c,runMeters);
+  // A single top guide redirects the sloping rope into a vertical hanging end.
+  // Its entry and exit are exact circle tangents, so rope length stays fixed.
+  const scale=Number(options.rampScale)>0?Number(options.rampScale):layout.scale,run=runMeters*scale,rise=c.height*scale,x0=layout.x0,y0=layout.baseY;
   bodyScale=scale;
-  const loadHalf=5*Math.sqrt(c.outputMass),point=u=>[x0+u*scale*tx+nx*(loadHalf+2),y0+u*scale*ty+ny*(loadHalf+2)];
-  const B=point(q),contact=point(c.length+Math.max(44,loadHalf+28)/scale),upper=[722,90],r1=18,r2=23,wi=u=>[upper[0]+r2,175+u*scale],I=wi(q);
-  // The first guide turns the rope along a genuine circle tangent. Steep
-  // inclines turn clockwise; shallow ones use the opposite wrap direction.
-  const turn=tx*(upper[1]-contact[1])-ty*(upper[0]-contact[0])>=0?1:-1;
-  const guide=[contact[0]-turn*nx*r1,contact[1]-turn*ny*r1],dx=upper[0]-guide[0],dy=upper[1]-guide[1],d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,k=(r1-(turn===1?r2:-r2))/d,h=Math.sqrt(Math.max(0,1-k*k)),wx=k*ux+turn*h*uy,wy=k*uy-turn*h*ux;
-  const first=[guide[0]+r1*wx,guide[1]+r1*wy],second=[upper[0]+turn*r2*wx,upper[1]+turn*r2*wy];
-  const arc=(center,r,a,b,sweep)=>{const aa=Math.atan2(a[1]-center[1],a[0]-center[0]),bb=Math.atan2(b[1]-center[1],b[0]-center[0]),delta=((sweep?bb-aa:aa-bb)%TAU+TAU)%TAU;return `A${r},${r} 0 ${delta>Math.PI?1:0} ${sweep} ${b[0]},${b[1]}`;};
-  z+=sectionLabels(780,270)+base(430,100,820)+geometrySurface(`<path d="M${x0},${y0} h${run} v${-rise} Z" fill="${P.fill}" stroke="${P.line}" stroke-width="2"/>`+line(x0,y0,x0+run,y0-rise,'transparent',26)+line(x0,y0,x0+run,y0-rise,P.metal,6),'height',-1/scale,'ramp height','y');
-  const runMetadata=`data-geo="rampRun" data-run="${runMeters}" data-height="${c.height}" data-scale="${scale}"`;
-  z+=geometrySurface(line(x0,y0,x0+Math.max(60,run),y0,'transparent',24)+line(x0,y0,x0+run,y0,P.line,3),'length',1/scale,'horizontal ramp run','x',runMetadata);
-  z+=path(`M${B[0]},${B[1]} L${contact[0]},${contact[1]} ${arc(guide,r1,contact,first,turn===1?1:0)} L${second[0]},${second[1]} ${arc(upper,r2,second,[upper[0]+r2,upper[1]],1)} V${I[1]-5*Math.sqrt(c.inputMass)}`,P.ink,3);
-  z+=pulleyWheel(...guide,r1-2,turn*q*scale/r1)+pulleyWheel(...upper,r2-2,q*scale/r2)+trace(wi,P.blue,'input')+trace(point,P.orange,'output');
-  z+=weight(...B,c.outputMass,'output',{pan:false,angle:-angle,tangent:[tx,ty]})+weight(...I,c.inputMass,'input');
-  z+=text(555,82,'fixed guides',P.muted,17)+text(x0+Math.max(run/2,45),465,c.height===c.length?'vertical lift':`length ${num(c.length)} m`,P.ink,20)+text(545,370,`height ${num(c.height)} m`,P.orange,20);
+  const point=u=>[x0+u*scale*tx+nx*(loadHalf+2),y0+u*scale*ty+ny*(loadHalf+2)],B=point(q),contact=point(c.length+pad/scale),guide=[contact[0]-r*nx,contact[1]-r*ny],inputX=guide[0]+r,wi=u=>[inputX,guide[1]+r+inputHalf+18+u*scale],I=wi(q),inputTop=I[1]-inputHalf;
+  const arcLength=r*(Math.PI/2+angle),ropeLength=(c.length-q)*scale+pad+arcLength+inputTop-guide[1];
+  z+=sectionLabels(inputX,x0+run/2)+base(y0+18,80,x0+run+25)+geometrySurface(`<path d="M${x0},${y0} h${run} v${-rise} Z" fill="${P.fill}" stroke="${P.line}" stroke-width="2"/>`+line(x0,y0,x0+run,y0-rise,'transparent',26)+line(x0,y0,x0+run,y0-rise,P.metal,6),'height',-1/scale,'ramp height','y');
+  const runMetadata=`data-geo="rampRun" data-run="${runMeters}" data-height="${c.height}" data-scale="${scale}" data-base-x="${x0}" data-base-y="${y0}"`;
+  z+=geometrySurface(line(x0,y0,x0+Math.max(60,run),y0,'transparent',24)+line(x0,y0,x0+run,y0,P.line,3),'rampRun',1/scale,'horizontal ramp run','x',runMetadata);
+  const rope=`M${B[0]},${B[1]} L${contact[0]},${contact[1]} A${r},${r} 0 0 1 ${inputX},${guide[1]} V${inputTop}`;
+  z+=`<g data-ramp-rope="single-guide" data-rope-length="${ropeLength/scale}" data-ramp-scale="${scale}" data-entry-x="${contact[0]}" data-entry-y="${contact[1]}" data-guide-x="${guide[0]}" data-guide-y="${guide[1]}" data-guide-radius="${r}">`+path(rope,P.ink,3)+`<g data-ramp-guide="fixed">`+pulleyWheel(...guide,r*.96,q*scale/r)+'</g></g>';
+  z+=trace(wi,P.blue,'input')+trace(point,P.orange,'output')+weight(...B,c.outputMass,'output',{angle:-angle,tangent:[tx,ty]})+weight(...I,c.inputMass,'input');
+  z+=text(Math.min(810,inputX+65),guide[1]-r-14,'fixed pulley',P.muted,16)+text(260,477,c.height===c.length?'vertical lift':`slope ${num(c.length)} m`,P.ink,20)+text(560,477,`height ${num(c.height)} m`,P.orange,20);
   const footX=x0+run,gripX=footX+29,gripY=y0+22;
-  const baseGrip=line(footX,y0,gripX,gripY,P.blue,1.7)+rect(gripX-24,gripY-15,48,30,P.bg,P.blue,8)+arrow(gripX-15,gripY,gripX+15,gripY,P.blue,2)+arrow(gripX+15,gripY,gripX-15,gripY,P.blue,2);
-  foregroundHandles.push(geometrySurface(baseGrip,'length',1/scale,'horizontal ramp run','x',runMetadata));
-  z+=text(gripX+8,gripY+39,'extend base',P.blue,14)+handle(x0+run,y0-rise,'height',-1/scale,'ramp height','y');
-  if(paths){z+=text(825,265,'rope d₁',P.blue,17)+text(330,505,'Box path = rope travel',P.orange,17)+dim(x0+run+44,y0,x0+run+44,y0-rise,'',P.orange)+text(550,398,'vertical work d₂',P.orange,17);}
+  if(editable('rampRun')){const baseGrip=line(footX,y0,gripX,gripY,P.blue,1.7)+rect(gripX-24,gripY-15,48,30,P.bg,P.blue,8)+arrow(gripX-15,gripY,gripX+15,gripY,P.blue,2)+arrow(gripX+15,gripY,gripX-15,gripY,P.blue,2);foregroundHandles.push(geometrySurface(baseGrip,'rampRun',1/scale,'horizontal ramp run','x',runMetadata));z+=text(gripX+8,gripY+39,'extend base',P.blue,14);}
+  z+=handle(x0+run,y0-rise,'height',-1/scale,'ramp height','y');
+  if(paths){z+=text(Math.min(845,inputX+75),Math.min(445,I[1]+55),'rope d₁',P.blue,17)+text(450,514,'Box path = rope travel · output work uses vertical rise',P.muted,17)+dim(x0+run+28,y0,x0+run+28,y0-rise,'',P.orange);}
   if(forces&&!readout.atLimit){const T=Math.max(0,Number(readout.inputTension)||0),N=c.outputMass*G*Math.sqrt(Math.max(0,1-(c.height/c.length)**2));z+=forceVector(B[0]+nx*(loadHalf+16),B[1]+ny*(loadHalf+16),tx,ty,T,'T',P.orange)+forceVector(B[0],B[1],nx,ny,N,'N',P.muted);}
  } else if(c.type==='pulley'){
   const n=[1,2,4,6].includes(c.strands)?c.strands:2,radius=c.pulleyRadius||.18,top=125,anchorY=36,inputX=730,outputX=340,lowerBase=275;
@@ -153,13 +169,9 @@ export function renderScene(c,state,readout={},options={}){
    z+=text(first-r-18,barY+5,`${count} moving`,P.muted,16,'end');
   }
   z+=`<g data-pulley-assembly="${n}" data-rope-length="${ropeLength/scale}" data-radius-px="${r}" data-pulley-scale="${scale}">`+path(rope,P.ink,2.6)+wheels+supports+'</g>'+trace(ip,P.blue,'input')+trace(op,P.orange,'output')+weight(...I,c.inputMass,'input')+weight(...O,c.outputMass,'output');
-  foregroundHandles.push(geometrySurface(circle(...radiusGrab,Math.max(24,r+10),'transparent','transparent',0),'pulleyRadius',1/scale,'pulley radius'));
+  if(editable('pulleyRadius'))foregroundHandles.push(geometrySurface(circle(...radiusGrab,Math.max(24,r+10),'transparent','transparent',0),'pulleyRadius',1/scale,'pulley radius'));
   z+=handle(radiusGrab[0]+r+17,top,'pulleyRadius',1/scale,'pulley radius');
-  let strandControl=rect(30,460,220,63,'transparent','transparent',6)+line(60,485,220,485,P.line,5);
-  for(const value of [1,2,4,6]){const x=60+(value-1)*32;strandControl+=line(x,479,x,491,P.muted,2);z+=text(x,516,String(value),value===n?P.blue:P.muted,18);}
-  strandControl+=circle(60+(n-1)*32,485,13,P.bg,P.blue,3);
-  foregroundHandles.push(geometrySurface(strandControl,'strands',1/32,'supporting strands','x','data-values="1,2,4,6"'));
-  z+=text(140,451,'supporting strands',P.ink,19)+text(515,531,n===1?'1 numbered strand supports the load':`${n} numbered strands support the moving block`,P.muted,17);
+  z+=text(450,501,n===1?'1 numbered strand supports the load':`${n} numbered strands support the moving block`,P.muted,17);
  } else if(c.type==='wheel'){
   const scale=Math.min(112/Math.max(c.rIn,c.rOut),165/lim.max,165/(lim.max/R)),ri=c.rIn*scale,ro=c.rOut*scale,cx=450,cy=190,theta=-q/c.rIn;
   bodyScale=scale;
@@ -171,15 +183,28 @@ export function renderScene(c,state,readout={},options={}){
   z+=trace(fi,P.blue,'input-rim')+trace(fo,P.orange,'output-rim')+circle(...fi(q),5,P.blue,P.bg,1)+circle(...fo(q),5,P.orange,P.bg,1);
   z+=text(450,437,`input radius ${num(c.rIn)} m`,P.blue,20)+text(450,466,`output radius ${num(c.rOut)} m`,P.orange,20)+handle(cx-ri,cy-14,'rIn',-.002,'input radius')+handle(cx+ro,cy+16,'rOut',.002,'output radius');
   z+=text(450,531,paths?'Rim arcs = rope travel · fixed guides only redirect':'Wheel and axle rotate together.',P.muted,17);
+ } else if(c.type==='gearArms'){
+  // Both bars point left. Opposite gear rotations then move the two loads in
+  // opposite vertical directions; outward-pointing bars could not balance.
+  const k=c.teethIn/c.teethOut,toothModule=190/(c.teethIn+c.teethOut),r1=c.teethIn*toothModule,r2=c.teethOut*toothModule,c1=[575,260-r2],c2=[575,260+r1],halfIn=5*Math.sqrt(c.inputMass),halfOut=5*Math.sqrt(c.outputMass),swingIn=c.rIn*Math.sin(lim.max),swingOut=c.rOut*Math.sin(k*lim.max),scale=Math.min(180/Math.max(c.rIn,c.rOut),Math.max(10,190-halfIn-halfOut-28)/Math.max(.001,swingIn+swingOut),Math.max(5,c1[1]-halfIn-10)/Math.max(.001,swingIn),Math.max(5,510-c2[1]-halfOut)/Math.max(.001,swingOut)),hangIn=0,hangOut=0;
+  bodyScale=scale;
+  const ip=u=>[c1[0]-c.rIn*scale*Math.cos(u),c1[1]+c.rIn*scale*Math.sin(u)+hangIn],op=u=>[c2[0]-c.rOut*scale*Math.cos(k*u),c2[1]-c.rOut*scale*Math.sin(k*u)+hangOut],I=ip(q),O=op(q),ib=[I[0],I[1]-hangIn],ob=[O[0],O[1]-hangOut];
+  z+=text(210,c1[1]-17,'INPUT',P.blue,16,'middle','font-weight="750" letter-spacing="2"')+text(210,c2[1]-17,'OUTPUT',P.orange,16,'middle','font-weight="750" letter-spacing="2"')+line(575,34,575,440,P.line,9);
+  z+=gear(...c1,r1,c.teethIn,-q,'teethIn')+gear(...c2,r2,c.teethOut,k*q+Math.PI/c.teethOut,'teethOut');
+  z+=line(...c1,...ib,P.blue,12,'stroke-linecap="round"')+line(...c2,...ob,P.orange,12,'stroke-linecap="round"')+circle(...c1,9,P.bg,P.blue,3)+circle(...c2,9,P.bg,P.orange,3);
+  z+=trace(ip,P.blue,'input')+trace(op,P.orange,'output');
+  z+=weight(...I,c.inputMass,'input',{tangent:[Math.sin(q),Math.cos(q)],labelLeft:true})+weight(...O,c.outputMass,'output',{tangent:[Math.sin(k*q),-Math.cos(k*q)],labelLeft:true});
+  z+=text(800,c1[1],`${c.teethIn} teeth`,P.blue,21,'end')+text(800,c2[1],`${c.teethOut} teeth`,P.orange,21,'end')+text(220,c1[1]+22,`${num(c.rIn)} m arm`,P.blue,20)+text(220,c2[1]+22,`${num(c.rOut)} m arm`,P.orange,20);
+  z+=handle(c2[0]+r2+16,c2[1],'teethOut',.5,'output gear teeth')+text(450,480,'Masses are secured to the bars · gears turn oppositely',P.muted,18)+text(450,518,'Both bars point left. Test balance while horizontal.',P.muted,18);
  } else if(c.type==='gears'){
   const scale=Math.min(170/lim.max,170/(lim.max/R),70/Math.max(c.crankRadius,c.drumRadius)),module=Math.min(1.7,115/Math.max(c.teethIn,c.teethOut)),r1=c.teethIn*module,r2=c.teethOut*module,c1=[440-r2,185],c2=[440+r1,185],rh=c.crankRadius*scale,rd=c.drumRadius*scale,a1=-q/c.crankRadius,a2=q/c.crankRadius*c.teethIn/c.teethOut;
   bodyScale=scale;
-  const gear=(x,y,r,n,a,param)=>{const key=`${r}:${n}`;let pts=gearCache.get(key);if(!pts){pts=Array.from({length:n*4},(_,i)=>{const th=i*TAU/(n*4),rr=r+(i%4===1||i%4===2?3:-3);return `${rr*Math.cos(th)},${rr*Math.sin(th)}`;}).join(' ');if(gearCache.size>64)gearCache.clear();gearCache.set(key,pts);}return geometrySurface(`<polygon points="${pts}" transform="translate(${x} ${y}) rotate(${a*180/Math.PI})" fill="${P.fill}" stroke="${P.ink}" stroke-width="2"/>`+circle(x,y,r,'none','transparent',24),param,.5,param==='teethIn'?'input gear teeth':'output gear teeth');};
+
   const ip=u=>[130,245+u*scale],op=u=>[770,410-u*scale/R],I=ip(q),O=op(q);
-  z+=sectionLabels(100,800)+gear(...c1,r1,c.teethIn,a1,'teethIn')+gear(...c2,r2,c.teethOut,a2+Math.PI/c.teethOut,'teethOut')+geometrySurface(circle(...c1,rh,'none',P.blue,3)+circle(...c1,rh,'none','transparent',18),'crankRadius',1/scale,'input drum radius')+geometrySurface(circle(...c2,rd,P.metal,P.orange,3)+circle(...c2,rd,'none','transparent',18),'drumRadius',1/scale,'output drum radius');
+  z+=sectionLabels(100,800)+gear(...c1,r1,c.teethIn,a1,'teethIn')+gear(...c2,r2,c.teethOut,a2+Math.PI/c.teethOut,'teethOut')+circle(...c1,rh,'none',P.blue,3)+circle(...c2,rd,P.metal,P.orange,3);
   const fi=u=>[c1[0]+rh*Math.cos(-u/c.crankRadius),c1[1]+rh*Math.sin(-u/c.crankRadius)],fo=u=>[c2[0]+rd*Math.cos(u/c.crankRadius*c.teethIn/c.teethOut),c2[1]+rd*Math.sin(u/c.crankRadius*c.teethIn/c.teethOut)];
   z+=trace(fi,P.blue,'input-rim')+trace(fo,P.orange,'output-rim')+line(...c1,...fi(q),P.blue,4)+line(...c2,...fo(q),P.orange,4)+circle(...fi(q),5,P.blue,P.bg,1)+circle(...fo(q),5,P.orange,P.bg,1)+routedRope(c1[0]-rh,c1[1],'input',I[1],c.inputMass,scale)+routedRope(c2[0]-rd,c2[1],'output',O[1],c.outputMass,scale)+trace(ip,P.blue,'input')+trace(op,P.orange,'output')+weight(...I,c.inputMass,'input')+weight(...O,c.outputMass,'output');
-  z+=text(c1[0],c1[1]-r1-22,`${c.teethIn} teeth`,P.blue,20)+text(c2[0],c2[1]-r2-22,`${c.teethOut} teeth`,P.orange,20)+handle(c2[0]+r2+15,c2[1],'teethOut',.5,'output gear teeth')+text(450,437,`input drum r = ${num(c.crankRadius)} m`,P.blue,20)+text(450,466,`output drum r = ${num(c.drumRadius)} m`,P.orange,20);
+  z+=text(c1[0],c1[1]-r1-22,`${c.teethIn} teeth`,P.blue,20)+text(c2[0],c2[1]-r2-22,`${c.teethOut} teeth`,P.orange,20)+handle(c2[0]+r2+15,c2[1],'teethOut',.5,'output gear teeth')+text(450,452,`Equal fixed drums: r = ${num(c.crankRadius)} m`,P.muted,19);
   z+=text(450,531,'Gears turn oppositely · fixed guides only redirect',P.muted,17);
  } else if(c.type==='screw'){
   // Rotation is a true top view, while weight travel and screw are shown in side view.
@@ -221,8 +246,8 @@ export function renderScene(c,state,readout={},options={}){
  if(options._trajectoryCapture){
   const data={viewBox:[0,0,900,540],input:null,output:null,extras:{}};
   for(const [key,shape] of Object.entries(trajectories)){
-   const side=key.startsWith('output')?'output':'input',body=key==='input'||key==='output',jacobian=c.type==='lever'?(side==='input'?c.rIn:c.rOut):(side==='input'||c.type==='ramp'?1:1/R),J=body?jacobian:(side==='output'?1/R:1),delta=q-q0;
-   const signedWorkDistance=body?(c.type==='lever'?(side==='input'?c.rIn:c.rOut)*(Math.sin(q)-Math.sin(q0)):delta/(side==='input'?1:R)):delta*J;
+   const side=key.startsWith('output')?'output':'input',body=key==='input'||key==='output',angular=c.type==='lever'||c.type==='gearArms',k=c.type==='gearArms'?c.teethIn/c.teethOut:1,angleRate=side==='output'?k:1,jacobian=angular?(side==='input'?c.rIn:c.rOut*k):(side==='input'||c.type==='ramp'?1:1/R),J=body?jacobian:(side==='output'?1/R:1),delta=q-q0;
+   const signedWorkDistance=body?(angular?(side==='input'?c.rIn:c.rOut)*(Math.sin(angleRate*q)-Math.sin(angleRate*q0)):delta/(side==='input'?1:R)):delta*J;
    const direction=key==='wedge-path'?[1,0]:(side==='input'?[0,1]:[0,-1]);
    const item={...shape,pathDistance:Math.abs(delta)*J,fullPathDistance:lim.range*J,workDistance:Math.abs(signedWorkDistance),signedWorkDistance,workDirection:direction,workPoints:body?[shape.start,[shape.start[0],shape.start[1]+direction[1]*signedWorkDistance*shape.pxPerMeter]]:shape.livePoints};
    if(body)data[side]=item;else data.extras[key]=item;
@@ -232,7 +257,7 @@ export function renderScene(c,state,readout={},options={}){
  const accelerationVectors={};
  for(const side of ['input','output']){
   const b=bodies[side];if(!b)continue;const a=Number(readout.acceleration)||0,v=Number(state?.v)||0;
-  if(c.type==='lever'){const r=side==='input'?c.rIn:-c.rOut;accelerationVectors[side]=[r*(Math.sin(q)*a+Math.cos(q)*v*v),r*(Math.cos(q)*a-Math.sin(q)*v*v)];}
+  if(c.type==='lever'||c.type==='gearArms'){const rate=c.type==='gearArms'&&side==='output'?c.teethIn/c.teethOut:1,theta=q*rate,omega=v*rate,alpha=a*rate,r=side==='input'?c.rIn:-c.rOut,xr=c.type==='gearArms'&&side==='output'?c.rOut:r;accelerationVectors[side]=[xr*(Math.sin(theta)*alpha+Math.cos(theta)*omega*omega),r*(Math.cos(theta)*alpha-Math.sin(theta)*omega*omega)];}
   else {const pa=Number(readout[side==='input'?'inputPathAcceleration':'outputPathAcceleration'])||(side==='input'||c.type==='ramp'?a:a/R);accelerationVectors[side]=[b.tangent[0]*pa,b.tangent[1]*pa];}
  }
  const accelerationScale=80/(Math.max(0,...Object.values(accelerationVectors).map(a=>Math.hypot(...a)))||1);
@@ -249,7 +274,7 @@ export function renderScene(c,state,readout={},options={}){
   if(options.accelerations){
    const [ax,ay]=accelerationVectors[side];
    const mag=Math.hypot(ax,ay),acol=dark?'#c4a4ff':'#7643b6';
-   if(mag>1e-5){const length=mag*accelerationScale,start=[b.x,b.y-b.extent-35-Math.max(0,ay/mag*length)],end=[start[0]+ax/mag*length,start[1]+ay/mag*length],anchor=end[0]>730?'end':'start';overlays+=`<g pointer-events="none">${arrow(...start,...end,acol,3.5)}${text(clamp(end[0]+(anchor==='end'?-12:12),70,850),clamp(Math.min(start[1],end[1])-18,78,510),`${c.type==='lever'?'a total':'a'} ${num(mag)} m/s²`,acol,17,anchor)}</g>`;}
+   if(mag>1e-5){const length=mag*accelerationScale,start=[b.x,b.y-b.extent-35-Math.max(0,ay/mag*length)],end=[start[0]+ax/mag*length,start[1]+ay/mag*length],anchor=end[0]>730?'end':'start';overlays+=`<g pointer-events="none">${arrow(...start,...end,acol,3.5)}${text(clamp(end[0]+(anchor==='end'?-12:12),70,850),clamp(Math.min(start[1],end[1])-18,78,510),`${c.type==='lever'||c.type==='gearArms'?'a total':'a'} ${num(mag)} m/s²`,acol,17,anchor)}</g>`;}
   }
  }
  const pull=options.pull,b=pull&&bodies[pull.side];

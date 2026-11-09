@@ -5,9 +5,10 @@ const field=(key,label,min,max,step,unit)=>({key,label,min,max,step,unit});
 export const machineCatalog=[
   {type:'lever',label:'Lever',shortNote:'A longer input arm travels farther and needs less force; a shorter input arm gives more output travel but needs more force. Use vertical rise/fall for work. Loads stay at the arm endpoints.',levels:['Shorter input arm','Equal arms','Longer input arm','Much longer input arm'],geometry:[field('rIn','Input arm',.15,3,.05,'m'),field('rOut','Output arm',.15,3,.05,'m')]},
   {type:'ramp',label:'Ramp',shortNote:'The input rope travels along the ramp distance. The output work is weight × vertical rise. Acceleration questions measure motion along the slope.',levels:['Short ramp','Gentler slope','Long ramp'],geometry:[field('length','Ramp length',.3,5,.1,'m'),field('height','Ramp height',.1,2,.05,'m')]},
-  {type:'pulley',label:'Pulley',shortNote:'Count the rope segments supporting the moving load. A fixed pulley changes direction; more supporting segments reduce the balance force and increase input travel. Pulley diameter does not change this ratio.',levels:['Fixed guides · 1 strand','One moving pulley · 2 strands','Two moving pulleys · 4 strands','Three moving pulleys · 6 strands'],geometry:[{...field('strands','Supporting ropes',1,6,1,''),values:[1,2,4,6]},field('pulleyTravel','Input travel span',.6,1.8,.1,'m'),field('pulleyRadius','Pulley radius',.08,.32,.01,'m')]},
+  {type:'pulley',label:'Pulley',shortNote:'Count the rope segments supporting the moving load. A fixed pulley changes direction; more supporting segments reduce the balance force and increase input travel. Pulley diameter does not change this ratio.',levels:['Fixed guides · 1 strand','One moving pulley · 2 strands','Two moving pulleys · 4 strands','Three moving pulleys · 6 strands'],geometry:[field('pulleyTravel','Input travel span',.6,1.8,.1,'m'),field('pulleyRadius','Pulley radius',.08,.32,.01,'m')]},
   {type:'wheel',label:'Wheel & axle',shortNote:'The wheel and axle turn together. Rope travel equals radius × angle. A larger input radius gives a force advantage; a smaller one gives more output travel.',levels:['Smaller input radius','Equal radii','Larger input radius','Much larger input radius'],geometry:[field('rIn','Input radius',.015,.5,.005,'m'),field('rOut','Output radius',.015,.5,.005,'m')]},
-  {type:'gears',label:'Gears',shortNote:'Gear teeth change torque and rotation speed. The drum radii determine the forces; tooth-contact forces are equal.',levels:['More output travel','Equal overall ratio','More output force','High force advantage'],geometry:[field('teethIn','Input teeth',8,96,1,''),field('teethOut','Output teeth',8,96,1,''),field('crankRadius','Input drum radius',.03,.3,.01,'m'),field('drumRadius','Output drum radius',.03,.3,.01,'m')]},
+  {type:'gears',label:'Gears',shortNote:'The two drum radii stay equal and fixed. The output/input tooth ratio determines the ideal force and travel advantage.',levels:['More output travel','Equal overall ratio','More output force','High force advantage'],geometry:[field('teethIn','Input teeth',8,96,1,''),field('teethOut','Output teeth',8,96,1,'')]},
+  {type:'gearArms',label:'Gear arms',balanceOnly:true,shortNote:'Equal arms attach to the gear axles. At the horizontal position, the tooth ratio determines the balancing masses. Unequal gears turn the arms through different angles, so balance can change when displaced.',levels:['Horizontal balance'],geometry:[field('teethIn','Input teeth',8,96,1,''),field('teethOut','Output teeth',8,96,1,'')]},
   {type:'screw',label:'Screw',shortNote:'One turn moves the input rim through a circumference and raises the guided platform by one lead. The screw does not move up or down.',levels:['Coarse lead','Smaller lead','Smallest lead'],geometry:[field('handleRadius','Input drum radius',.015,.15,.005,'m'),field('lead','Rise per turn',.003,.6,.001,'m')]},
   {type:'wedge',label:'Wedge',shortNote:'A horizontal push on the moving wedge raises the guided load. Compare horizontal advance with vertical rise.',levels:['Steep wedges','Gentler wedges','Shallow wedges'],geometry:[field('length','Horizontal run',.06,.75,.01,'m'),field('height','Wedge rise',.01,.3,.01,'m')]},
   {type:'hydraulic',label:'Syringes',shortNote:'The same water volume leaves one piston and enters the other. A larger output area gives more force but less travel; a smaller output area gives more travel but less force. Fluid head and friction are ignored.',levels:['Smaller output piston','Equal piston areas','Larger output piston','Much larger output piston'],geometry:[field('areaIn','Input piston area',.25,10,.25,'cm²'),field('areaOut','Output piston area',.25,20,.25,'cm²')]}
@@ -80,24 +81,13 @@ function distanceChoices(R,available,precision){
   return grid(step,available*.75,step).filter(d=>onGrid(d*R,step)&&![1,2,3].some(n=>Math.abs(d*R-n)<1e-8));
 }
 
-// Teeth have a common module; drum radii are independent of gear radii.
-// Enumerate whole-centimeter drums and integer tooth counts that produce
-// the selected overall force/travel ratio exactly, including unequal drums.
+// Equal fixed drums isolate the gear-tooth ratio.
 function gearsFor(targetRatio){
   if(gearChoices.has(targetRatio))return gearChoices.get(targetRatio);
   const options=[];
-  for(const [inputBase,outputBase] of [[1,1],[3,4],[2,3],[1,2],[2,5],[1,3],[1,4],[1,5],[1,6],[4,3],[3,2],[2,1],[3,1],[4,1]]){
-    for(let scale=1;Math.max(inputBase,outputBase)*scale<=96;scale++){
-      const teethIn=inputBase*scale,teethOut=outputBase*scale;
-      if(teethIn<8||teethOut<8)continue;
-      for(let outputCm=3;outputCm<=30;outputCm++){
-        const inputCm=targetRatio*teethIn/teethOut*outputCm;
-        if(inputCm<3-1e-9||inputCm>30+1e-9||Math.abs(inputCm-Math.round(inputCm))>1e-9)continue;
-        // Exclude the core dimensions so the first practice always changes.
-        if(teethIn===24&&teethOut===24*targetRatio&&inputCm===10&&outputCm===10)continue;
-        options.push({teethIn,teethOut,crankRadius:Math.round(inputCm)/100,drumRadius:outputCm/100});
-      }
-    }
+  for(let teethIn=8;teethIn<=96;teethIn++){
+    const teethOut=teethIn*targetRatio;
+    if(teethOut>=8&&teethOut<=96&&onGrid(teethOut,1))options.push({teethIn,teethOut:Math.round(teethOut),crankRadius:.1,drumRadius:.1});
   }
   gearChoices.set(targetRatio,options);
   return options;
@@ -121,7 +111,7 @@ function setup(type,level,variant){
     case 'ramp':c.height=scaleFor(grid(.1,2,.05).filter(h=>bounded(h*targetRatio,.3,5)&&onGrid(h*targetRatio,.1)),version,.5);c.length=c.height*targetRatio;break;
     case 'pulley':{const p=pulleySetups[version?(version-1)%pulleySetups.length:3];c.strands=targetRatio;c.pulleyTravel=p.travel;c.pulleyRadius=p.radius;sublevelLabel=p.label;break;}
     case 'wheel':c.rOut=scaleFor(grid(.015,.5,.005).filter(r=>bounded(r*targetRatio,.015,.5)&&onGrid(r*targetRatio,.005)),version,.05);c.rIn=c.rOut*targetRatio;break;
-    case 'gears':if(version){const options=gearsFor(targetRatio);Object.assign(c,options[(version*137+stage*53)%options.length]);}else{c.teethIn=24;c.teethOut=24*targetRatio;c.crankRadius=c.drumRadius=.1;}break;
+    case 'gears':{const options=gearsFor(targetRatio);Object.assign(c,options[version?(Math.floor((version-1)/band.length)+stage*3)%options.length:Math.floor(options.length/3)]);break;}
     case 'screw':{const circumference=scaleFor([.18,.24,.3,.36,.42,.48,.54,.6].filter(d=>onGrid(d/targetRatio,.001)),version,.3);c.handleRadius=circumference/(2*Math.PI);c.lead=circumference/targetRatio;break;}
     case 'wedge':c.height=scaleFor(grid(.04,.3,.01).filter(h=>bounded(h*targetRatio,.06,.75)&&onGrid(h*targetRatio,.01)),version,.1);c.length=c.height*targetRatio;break;
     case 'hydraulic':{
@@ -139,7 +129,7 @@ function geometrySetup(c){
     case 'ramp':return {num:c.length,den:c.height,ratioLine:`Ideal MA = ramp length / vertical rise = ${f(c.length)} / ${f(c.height)}.`,given:`Ramp length ${f(c.length)} m; vertical rise ${f(c.height)} m`};
     case 'pulley':return {num:c.strands,den:1,ratioLine:`Input travel = ${c.strands} × load rise. Ideal MA = input travel / load rise.`,given:`${c.strands} supporting rope segment${c.strands===1?'':'s'}; input span ${f(c.pulleyTravel)} m; pulley radius ${f(c.pulleyRadius)} m`};
     case 'wheel':return {num:c.rIn,den:c.rOut,ratioLine:`Ideal MA = input radius / output radius = ${f(c.rIn)} / ${f(c.rOut)}.`,given:`Input radius ${f(c.rIn)} m; output radius ${f(c.rOut)} m`};
-    case 'gears':return {num:c.teethOut*c.crankRadius,den:c.teethIn*c.drumRadius,ratioLine:`Ideal MA = (output teeth × input radius) / (input teeth × output radius) = (${c.teethOut} × ${f(c.crankRadius)}) / (${c.teethIn} × ${f(c.drumRadius)}).`,given:`${c.teethIn} → ${c.teethOut} teeth; input/output drum radii ${f(c.crankRadius)}/${f(c.drumRadius)} m`};
+    case 'gears':return {num:c.teethOut,den:c.teethIn,ratioLine:`Equal fixed drum radii cancel. Ideal MA = output teeth / input teeth = ${c.teethOut} / ${c.teethIn}.`,given:`${c.teethIn} → ${c.teethOut} teeth; equal fixed drum radius 0.1 m`};
     case 'screw':return {num:2*Math.PI*c.handleRadius,den:c.lead,ratioLine:`Per turn, input travel = 2πr = ${f(2*Math.PI*c.handleRadius)} m; rise = ${f(c.lead)} m. Ideal MA = input travel / rise.`,given:`Per turn: input rim travel ${f(2*Math.PI*c.handleRadius)} m; rise ${f(c.lead)} m`};
     case 'wedge':return {num:c.length,den:c.height,ratioLine:`Ideal MA = horizontal advance / vertical rise = ${f(c.length)} / ${f(c.height)}.`,given:`Horizontal run ${f(c.length)} m; vertical rise ${f(c.height)} m`};
     case 'hydraulic':return {num:c.areaOut,den:c.areaIn,ratioLine:`A₁d₁ = A₂d₂. Ideal MA = d₁ / d₂ = output area / input area = ${f(c.areaOut)} / ${f(c.areaIn)}.`,given:`Input area ${f(c.areaIn)} cm²; output area ${f(c.areaOut)} cm²`};
@@ -153,6 +143,7 @@ function canonicalTask(task){
 }
 
 export function createChallenge(type,task='force',level=0,variant=0){
+  if(type==='gearArms'){const c={...defaultConfig(type),rIn:.35,rOut:.35,teethIn:24,teethOut:48,inputMass:6,outputMass:20,force:0,damping:0};return {id:`gearArms-balance-${integer(variant)}`,type,task:'balance',level:0,variant:integer(variant),title:'Gear arms · horizontal balance',prompt:'Find the input mass that balances the horizontal arms.',config:c,unknown:'inputMass',unit:'kg',answer:10,ma:2,idealMechanicalAdvantage:2,goalLabel:'Balance horizontally',setupLabel:'24 → 48 teeth; equal 0.35 m arms',balanceForce:40,answerPrecision:1,answerStep:.5,steps:['Start with both arms horizontal.','Equal arm lengths leave output teeth / input teeth as the balancing ratio.','m₁ × output teeth = m₂ × input teeth.','Substitute the two masses and tooth counts, then solve.'],given:['Output mass: 20 kg','Input gear: 24 teeth; output gear: 48 teeth','Equal fixed arms: 0.35 m'],mode:'balance',startFraction:.5,geometryRatio:{numerator:48,denominator:24}};}
   const {machine,stage,version,sublevelLabel,config:c}=setup(type,level,variant);
   task=canonicalTask(task);
   const R=ratio(c);

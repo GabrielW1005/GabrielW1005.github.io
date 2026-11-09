@@ -28,7 +28,7 @@ for(const type of types){
  close(ro.energyResidual,0,type==='lever'?.02:1e-6);
 }
 const ramp=defaultConfig('ramp');ramp.force=0;ramp.inputMass=0;const rstate=makeState(ramp,.5);step(rstate,ramp,.001);close(rstate.v,-10*(ramp.height/ramp.length)*.001);
-const gear=defaultConfig('gears');close(ratio(gear),4);gear.crankRadius=.2;close(ratio(gear),8);
+const gear=defaultConfig('gears');close(ratio(gear),4);gear.crankRadius=.2;close(ratio(gear),4);close(normalizeConfig(gear).crankRadius,.1);close(normalizeConfig(gear).drumRadius,.1);
 const hydraulic=defaultConfig('hydraulic');close(ratio(hydraulic),5);close(equilibriumForce(hydraulic),0);
 const screw=defaultConfig('screw');screw.lead=2*Math.PI*screw.handleRadius;close(ratio(screw),1);
 const lever=defaultConfig('lever'),s=makeState(lever,.4);step(s,{...lever,force:100},.02);const altered={...lever,rIn:2};changeConfig(s,lever,altered);close(s.v,0);close(s.workIn,0);assert(s.q>=limits(altered).min);checks++;

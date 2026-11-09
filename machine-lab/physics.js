@@ -1,7 +1,7 @@
 /**
  * Ideal constrained mechanics, SI units.
  * g = 10 N/kg is rounded Earth gravity for classroom arithmetic.
- * q is input rope/plunger travel (m), except a lever's angle (rad).
+ * q is input rope/plunger travel (m), except a lever or geared arm's input angle (rad).
  * Shafts, ropes, pulleys, wedge and fluid have negligible inertia; the masses
  * shown on the machine supply the inertia. Optional, explicitly configured
  * viscous resistance acts on the output path; dissipated energy is tracked.
@@ -10,10 +10,11 @@ export const GRAVITY = 10;
 export const MAX_FORCE = 1000;
 export const MAX_MASS = 200;
 const STEP = 1 / 240;
-const TYPES = new Set(['lever','ramp','pulley','wheel','gears','screw','wedge','hydraulic']);
+const TYPES = new Set(['lever','ramp','pulley','wheel','gears','gearArms','screw','wedge','hydraulic']);
 const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 const pi2 = 2 * Math.PI;
+export const isAngularMachine = config => ['lever','gearArms'].includes(typeof config==='string'?config:config?.type);
 
 export function defaultConfig(type='lever') {
   if (!TYPES.has(type)) type='lever';
@@ -23,7 +24,7 @@ export function defaultConfig(type='lever') {
   const values={
     lever:{},ramp:{outputMass:18},pulley:{outputMass:14},
     wheel:{rIn:.2,rOut:.04,outputMass:24},
-    gears:{outputMass:16},screw:{outputMass:30},
+    gears:{outputMass:16},gearArms:{rIn:.35,rOut:.35,teethIn:12,teethOut:24,outputMass:20},screw:{outputMass:30},
     wedge:{length:.24,height:.04,outputMass:21},
     hydraulic:{inputMass:4,outputMass:20}
   };
@@ -37,8 +38,8 @@ export function normalizeConfig(config={}) {
   c.damping=clamp(finite(c.damping,0),0,10);
   c.inputMass=clamp(finite(c.inputMass,d.inputMass),0,MAX_MASS);
   c.outputMass=clamp(finite(c.outputMass,d.outputMass),1,MAX_MASS);
-  c.rIn=clamp(finite(c.rIn,d.rIn),type==='lever'?.15:.015,type==='lever'?3:.5);
-  c.rOut=clamp(finite(c.rOut,d.rOut),type==='lever'?.15:.015,type==='lever'?3:.5);
+  c.rIn=clamp(finite(c.rIn,d.rIn),isAngularMachine(type)?.15:.015,isAngularMachine(type)?3:.5);
+  c.rOut=clamp(finite(c.rOut,d.rOut),isAngularMachine(type)?.15:.015,isAngularMachine(type)?3:.5);
   if(type==='wedge') {
     c.length=clamp(finite(c.length,d.length),.06,.75);
     c.height=clamp(finite(c.height,d.height),.01,c.length);
@@ -50,6 +51,8 @@ export function normalizeConfig(config={}) {
   c.teethOut=Math.round(clamp(finite(c.teethOut,d.teethOut),8,96));
   c.crankRadius=clamp(finite(c.crankRadius,d.crankRadius),.03,.3);
   c.drumRadius=clamp(finite(c.drumRadius,d.drumRadius),.03,.3);
+  // Equal fixed drums isolate the gear-tooth ratio from drum leverage.
+  if(type==='gears')c.crankRadius=c.drumRadius=.1;
   c.handleRadius=clamp(finite(c.handleRadius,d.handleRadius),.015,.15);
   c.lead=clamp(finite(c.lead,d.lead),.003,.6);
   const requestedStrands=clamp(finite(c.strands,d.strands),1,6);
@@ -66,7 +69,8 @@ function rawRatio(c) {
     case 'lever': case 'wheel': return c.rIn/c.rOut;
     case 'ramp': case 'wedge': return c.length/c.height;
     case 'pulley': return c.strands;
-    case 'gears': return (c.teethOut/c.teethIn)*(c.crankRadius/c.drumRadius);
+    case 'gears': return c.teethOut/c.teethIn;
+    case 'gearArms': return (c.teethOut/c.teethIn)*(c.rIn/c.rOut);
     case 'screw': return pi2*c.handleRadius/c.lead;
     case 'hydraulic': return c.areaOut/c.areaIn;
     default:return 1;
@@ -76,7 +80,7 @@ export const ratio = config => rawRatio(normalizeConfig(config));
 
 export function limits(config) {
   const c=normalizeConfig(config);
-  if(c.type==='lever') return {min:-.35,max:.35,range:.7,unit:'rad'};
+  if(isAngularMachine(c)) {const max=.35/(c.type==='gearArms'?Math.max(1,c.teethIn/c.teethOut):1);return {min:-max,max,range:2*max,unit:'rad'};}
   let max;
   switch(c.type) {
     case 'ramp': case 'wedge':max=c.length;break;
@@ -91,14 +95,14 @@ export function limits(config) {
 }
 
 /** Additional applied force needed after the hanging input weight; may be negative. */
-export function equilibriumForce(config) {
+export function equilibriumForce(config,q=0) {
   const c=normalizeConfig(config);
-  return c.outputMass*GRAVITY/rawRatio(c)-c.inputMass*GRAVITY;
+  return c.outputMass*GRAVITY/currentMechanicalAdvantage(c,q)-c.inputMass*GRAVITY;
 }
 /** Required hanging input mass at the current applied force; negative means impossible using only a positive mass. */
-export function balancedInputMass(config) {
+export function balancedInputMass(config,q=0) {
   const c=normalizeConfig(config);
-  return c.outputMass/rawRatio(c)-c.force/GRAVITY;
+  return c.outputMass/currentMechanicalAdvantage(c,q)-c.force/GRAVITY;
 }
 
 function massSignature(c) {
@@ -111,21 +115,34 @@ function pointerForces(external={}) {
 }
 function pathJacobian(c,R) {
   if(c.type==='lever')return {input:c.rIn,output:c.rOut};
+  if(c.type==='gearArms')return {input:c.rIn,output:c.rOut*c.teethIn/c.teethOut};
   if(c.type==='ramp')return {input:1,output:1};
   return {input:1,output:1/R};
 }
-/** Actual body-path meters per unit q (q is radians only for a lever). */
+/** Actual body-path meters per unit q (q is radians for angular machines). */
 export function bodyJacobian(config) {
   const c=normalizeConfig(config);
-  return {...pathJacobian(c,rawRatio(c)),coordinateUnit:c.type==='lever'?'rad':'m'};
+  return {...pathJacobian(c,rawRatio(c)),coordinateUnit:isAngularMachine(c)?'rad':'m'};
 }
 function coordinates(q,c,R) {
+  // Both rigid arms initially point LEFT on externally meshed gears.
+  // Input turns +q (counterclockwise in y-up coordinates); output turns -kq.
+  // Thus the input endpoint falls and the output endpoint rises. Outward-
+  // pointing arms would make both masses fall together and could not balance.
+  if(c.type==='gearArms'){const k=c.teethIn/c.teethOut;return {input:c.rIn*Math.sin(q),output:c.rOut*Math.sin(k*q),inJacobian:c.rIn*Math.cos(q),outJacobian:c.rOut*k*Math.cos(k*q)};}
   if(c.type==='lever')return {input:c.rIn*Math.sin(q),output:c.rOut*Math.sin(q),
     inJacobian:c.rIn*Math.cos(q),outJacobian:c.rOut*Math.cos(q)};
   return {input:q,output:q/R,inJacobian:1,outJacobian:1/R};
 }
+/** Signed vertical distances and their derivatives with respect to q. */
+export function verticalCoordinates(config,q=0){const c=normalizeConfig(config);return coordinates(q,c,rawRatio(c));}
+/** Vertical-force mechanical advantage at this angle; ratio(config) is its horizontal value. */
+export function currentMechanicalAdvantage(config,q=0){const c=normalizeConfig(config),v=coordinates(q,c,rawRatio(c));return v.inJacobian/v.outJacobian;}
+function driveAt(c,q){const v=coordinates(q,c,rawRatio(c));return (c.inputMass*GRAVITY+c.force)*v.inJacobian-c.outputMass*GRAVITY*v.outJacobian;}
+/** Gravity plus the regular vertical input force, before tangent pulls or damping. */
+export function generalizedDrive(config,q=0){return driveAt(normalizeConfig(config),q);}
 function inertia(c,R) {
-  if(c.type==='lever')return c.inputMass*c.rIn*c.rIn+c.outputMass*c.rOut*c.rOut;
+  if(isAngularMachine(c)){const J=pathJacobian(c,R);return c.inputMass*J.input*J.input+c.outputMass*J.output*J.output;}
   if(c.type==='ramp')return c.inputMass+c.outputMass;
   return c.inputMass+c.outputMass/(R*R);
 }
@@ -133,10 +150,10 @@ function model(c,external={}) {
   const R=rawRatio(c),M=inertia(c,R),J=pathJacobian(c,R),requested=pointerForces(external);
   const rawRequested={input:finite(external?.input,0),output:finite(external?.output,0)};
   const drive=c.inputMass*GRAVITY+c.force,weight=c.outputMass*GRAVITY;
-  const baseQ=c.type==='lever'?drive*c.rIn-weight*c.rOut:drive-weight/R;
+  const baseQ=driveAt(c,0);
   const requestedQ=requested.input*J.input+requested.output*J.output;
   let pointerForceScale=1;
-  if(c.type!=='lever') {
+  if(!isAngularMachine(c)) {
     // A rope can pull, not push. Its input tension is affine in the two
     // pointer forces, so scaling both preserves direction and prevents slack.
     const baseTension=drive-c.inputMass*baseQ/M;
@@ -147,14 +164,14 @@ function model(c,external={}) {
   const capped=rawRequested.input!==requested.input||rawRequested.output!==requested.output;
   return {R,M,J,requested,rawRequested,pointerForceScale,capped,drive,weight,baseQ,
     type:c.type,inputMass:c.inputMass,damping:c.damping,
-    acceleration:(q,pointerQ=0)=>(baseQ*(c.type==='lever'?Math.cos(q):1)+pointerQ)/M};
+    acceleration:(q,pointerQ=0)=>(driveAt(c,q)+pointerQ)/M};
 }
 // The damper is attached to the output body: F_d,out = D/Jout. A descending
 // output can otherwise be decelerated so strongly that the input rope would
 // need to push. Limit this resistance instead of inventing compressive tension.
 // Accepted pointer forces have priority and already satisfy the taut constraint.
 function dampingCap(m,pointer) {
-  return m.type==='lever'||m.inputMass===0?Infinity:
+  return isAngularMachine(m.type)||m.inputMass===0?Infinity:
     Math.max(0,m.M*(m.drive+pointer.input)/m.inputMass-m.baseQ-pointer.Q);
 }
 function dampingForce(m,v,pointer) {
@@ -170,13 +187,13 @@ function actualPointer(m,q=0,v=0,bound=null) {
   const initialQ=scale*(m.requested.input*m.J.input+m.requested.output*m.J.output);
   const a=m.acceleration(q,initialQ);
   const held=bound&&Math.abs(v)<1e-10&&((q<=bound.min+1e-12&&a<0)||(q>=bound.max-1e-12&&a>0));
-  if(m.type!=='lever'&&held&&m.requested.input<0&&m.drive+scale*m.requested.input<0)
+  if(!isAngularMachine(m.type)&&held&&m.requested.input<0&&m.drive+scale*m.requested.input<0)
     scale=Math.min(scale,clamp(m.drive/(-m.requested.input),0,1));
   const input=m.requested.input*scale,output=m.requested.output*scale;
   return {input,output,Q:input*m.J.input+output*m.J.output,
     scale,forceLimited:m.capped||scale<1-1e-12};
 }
-/** Free acceleration along the output path at rest, with a horizontal lever.
+/** Free acceleration along the output path at rest, with horizontal arms for angular machines.
  * It deliberately ignores end-stop reactions. Caller supplies inputMass=0
  * when an exercise is intended to involve just an applied force and one load.
  */
@@ -185,8 +202,8 @@ export function initialOutputAcceleration(config,external={}) {
   return m.J.output*m.acceleration(0,actualPointer(m).Q);
 }
 
-export function makeState(config,startFraction=.35) {
-  const c=normalizeConfig(config),bound=limits(c),fraction=clamp(finite(startFraction,.35),0,1);
+export function makeState(config,startFraction=undefined) {
+  const c=normalizeConfig(config),bound=limits(c),fraction=clamp(finite(startFraction,c.type==='gearArms'?.5:.35),0,1);
   const q=bound.min+fraction*bound.range;
   return {q,v:0,q0:q,v0:0,time:0,workIn:0,workOut:0,appliedWork:0,inputGravityWork:0,
     pointerWork:0,pathDistanceIn:0,pathDistanceOut:0,
@@ -298,7 +315,7 @@ function leverDampedMotion(m,pointer,q0,v0,h) {
     loss:h*(a.loss+2*b.loss+2*c.loss+d.loss)/6};
 }
 function dampedMotion(m,pointer,q0,v0,h) {
-  return m.type==='lever'?leverDampedMotion(m,pointer,q0,v0,h):linearDampedMotion(m,pointer,q0,v0,h);
+  return isAngularMachine(m.type)?leverDampedMotion(m,pointer,q0,v0,h):linearDampedMotion(m,pointer,q0,v0,h);
 }
 function bisectTime(fn,target,lo,hi,increasing) {
   for(let i=0;i<40;i++) {
@@ -335,7 +352,8 @@ function boundedDampedMotion(m,pointer,q0,v0,h,bound) {
 /**
  * Velocity-Verlet integrates the exact one-degree-of-freedom constraints.
  * With damping, linear machines use the exact piecewise exponential solution
- * and levers use RK4. Lever steps use 1/1200 s; other steps <= 1/240 s.
+ * and angular machines use RK4. Geared arms also use RK4 without damping to resolve
+ * their two-angle torque accurately. Angular steps <= 1/1200 s; other steps <= 1/240 s.
  * The caller may update signed tangent pointer forces each frame. The forces
  * are held constant during this call and the same samples calculate work.
  * Wdrive + Wpointer - gain in gravitational energy = ΔK + stop losses + heat.
@@ -361,8 +379,9 @@ export function step(state,config,dt,external={input:0,output:0}) {
   // A tiny output inertia with a large lever force can cross the whole stroke
   // in milliseconds. Resolve that natural angular time scale, rather than
   // relying only on a fixed frame-rate subdivision.
-  const angularRate=c.type==='lever'?Math.sqrt((Math.abs(m.baseQ)+Math.abs(m.requested.input*m.J.input+m.requested.output*m.J.output))/m.M):0;
-  const maxStep=c.type==='lever'?(m.damping>0?Math.min(1/1200,.05/Math.max(1,angularRate),.05/Math.max(1,Math.abs(state.v))):1/1200):STEP;
+  const angularScale=c.type==='gearArms'?Math.abs(m.drive)*c.rIn+Math.abs(m.weight)*c.rOut*(c.teethIn/c.teethOut)**2:Math.abs(m.baseQ);
+  const angularRate=isAngularMachine(c)?Math.sqrt((angularScale+Math.abs(m.requested.input*m.J.input+m.requested.output*m.J.output))/m.M):0;
+  const maxStep=isAngularMachine(c)?(m.damping>0||c.type==='gearArms'?Math.min(1/1200,.05/Math.max(1,angularRate),.05/Math.max(1,Math.abs(state.v))):1/1200):STEP;
   const count=Math.max(1,Math.ceil(dt/maxStep)),h=dt/count;
   state.atLimit=false;
   for(let i=0;i<count;i++) {
@@ -380,7 +399,7 @@ export function step(state,config,dt,external={input:0,output:0}) {
     if((q0<=bound.min+1e-12&&v0===0&&a0<=0)||(q0>=bound.max-1e-12&&v0===0&&a0>=0)) {
       state.q=q0;state.v=0;state.atLimit=true;state.time+=h;continue;
     }
-    const damped=m.damping>0?boundedDampedMotion(m,pointer,q0,v0,h,bound):null;
+    const damped=m.damping>0||c.type==='gearArms'?boundedDampedMotion(m,pointer,q0,v0,h,bound):null;
     const proposal=damped?damped.q:q0+v0*h+.5*a0*h*h;
     const impact=damped?damped.impact:firstImpact(q0,v0,a0,h,bound);
     const q1=damped?damped.q:impact?impact.q:clamp(proposal,bound.min,bound.max);
@@ -415,22 +434,24 @@ export function readout(state,config,external=undefined) {
   const q=clamp(finite(state.q,bound.min),bound.min,bound.max),v=finite(state.v,0);
   const q0=finite(state.q0,q),now=coordinates(q,c,m.R),start=coordinates(q0,c,m.R);
   const inputWeight=c.inputMass*GRAVITY,outputWeight=m.weight;
-  const inputForce=m.drive,requiredInputForce=outputWeight/m.R;
+  const currentRatio=now.inJacobian/now.outJacobian;
+  const inputForce=m.drive,requiredInputForce=outputWeight/currentRatio;
   const kineticEnergy=.5*m.M*v*v;
   const workIn=finite(state.workIn,0),workOut=finite(state.workOut,0),pointerWork=finite(state.pointerWork,0),stopEnergyLoss=finite(state.stopEnergyLoss,0);
   const dampingEnergyLoss=finite(state.dampingEnergyLoss,0);
   const residual=workIn+pointerWork-workOut-(kineticEnergy-finite(state.initialKineticEnergy,0))-stopEnergyLoss-dampingEnergyLoss;
   const pointer=actualPointer(m,q,v,bound);
   const baseBalanceError=inputForce-requiredInputForce;
-  const balanceError=baseBalanceError+pointer.Q/(c.type==='lever'?c.rIn*Math.cos(q):1);
+  const balanceError=baseBalanceError+pointer.Q/now.inJacobian;
   const inputSpeed=now.inJacobian*v,outputSpeed=now.outJacobian*v;
   const damper=dampingForce(m,v,pointer);
   const freeAcceleration=acceleration(m,q,v,pointer);
   const heldAtStop=Math.abs(v)<1e-10&&((q<=bound.min+1e-12&&freeAcceleration<0)||(q>=bound.max-1e-12&&freeAcceleration>0));
   const a=heldAtStop?0:freeAcceleration;
-  const inputAcceleration=c.type==='lever'?c.rIn*(Math.cos(q)*a-Math.sin(q)*v*v):a;
-  const outputAcceleration=c.type==='lever'?c.rOut*(Math.cos(q)*a-Math.sin(q)*v*v):a/m.R;
-  const inputTension=c.type==='lever'?null:c.force+c.inputMass*(GRAVITY-inputAcceleration)+pointer.input;
+  const k=c.type==='gearArms'?c.teethIn/c.teethOut:1;
+  const inputAcceleration=isAngularMachine(c)?c.rIn*(Math.cos(q)*a-Math.sin(q)*v*v):a;
+  const outputAcceleration=isAngularMachine(c)?c.rOut*(k*Math.cos(k*q)*a-k*k*Math.sin(k*q)*v*v):a/m.R;
+  const inputTension=isAngularMachine(c)?null:c.force+c.inputMass*(GRAVITY-inputAcceleration)+pointer.input;
   const pathDisplacementIn=m.J.input*(q-q0),pathDisplacementOut=m.J.output*(q-q0);
   return {
     q,velocity:v,positionFraction:(q-bound.min)/bound.range,
@@ -452,15 +473,15 @@ export function readout(state,config,external=undefined) {
     dampingOutputForce:damper.actual/m.J.output,dampingLimited:damper.limited,
     inputMass:c.inputMass,outputMass:c.outputMass,requiredInputForce,
     additionalRequiredForce:requiredInputForce-inputWeight,
-    ma:m.R,idealMechanicalAdvantage:m.R,balanceError,baseBalanceError,
+    ma:currentRatio,idealMechanicalAdvantage:currentRatio,nominalMechanicalAdvantage:m.R,balanceError,baseBalanceError,
     balanced:Math.abs(balanceError)<1e-8*Math.max(1,requiredInputForce),
     acceleration:a,freeAcceleration,kineticEnergy,workIn,workOut,pointerWork,
     appliedWork:finite(state.appliedWork,0),inputGravityWork:finite(state.inputGravityWork,0),
     stopEnergyLoss,dampingEnergyLoss,energyResidual:residual,atLimit:heldAtStop||!!state.atLimit,
     direction:Math.abs(outputSpeed)<1e-6?'still':outputSpeed>0?'lifting':'lowering',
     time:finite(state.time,0),gravity:GRAVITY,
-    modelNote:(c.type==='hydraulic'?'Incompressible liquid; fluid inertia and height-pressure differences ignored.':'Massless machine and rope.')+
+    modelNote:(c.type==='gearArms'?'Massless meshed gears and rigid arms; endpoint masses are secured. Balance is tested with horizontal arms.':c.type==='hydraulic'?'Incompressible liquid; fluid inertia and height-pressure differences ignored.':'Massless machine and rope.')+
       (c.damping>0?' Viscous output resistance converts motion energy to heat.'+
-        (c.type==='lever'?'':' Resistance is limited to preserve tension or supported contact.'):' No friction.'),
+        (isAngularMachine(c)?'':' Resistance is limited to preserve tension or supported contact.'):' No friction.'),
   };
 }

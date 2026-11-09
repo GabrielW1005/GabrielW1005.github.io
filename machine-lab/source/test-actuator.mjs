@@ -3,7 +3,7 @@ import {machineCatalog,createChallenge} from '../challenges.js';
 import {ratio,limits,bodyJacobian,makeState,readout,step,MAX_FORCE} from '../physics.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let count=0,maxError=0,maxResidual=0;
-for(const machine of machineCatalog)for(let level=0;level<machine.levels.length;level++)for(const variant of [0,7,15])for(const damping of [0,2.2])for(const factor of [.5,1,1.5])for(const customLoad of [1,1.5]){
+for(const machine of machineCatalog.filter(m=>!m.balanceOnly))for(let level=0;level<machine.levels.length;level++)for(const variant of [0,7,15])for(const damping of [0,2.2])for(const factor of [.5,1,1.5])for(const customLoad of [1,1.5]){
  const p=createChallenge(machine.type,'distance',level,variant),c={...p.config,outputMass:p.config.outputMass*customLoad,damping},s=makeState(c,p.startFraction),bound=limits(c),value=p.answer*factor;
  const raw=c.type==='lever'?Math.asin(clamp(Math.sin(s.q)+value/c.rIn,-1,1)):s.q+value,target=clamp(raw,bound.min,bound.max),R=ratio(c),J=bodyJacobian(c).input;
  const M=c.type==='lever'?c.inputMass*c.rIn**2+c.outputMass*c.rOut**2:c.type==='ramp'?c.inputMass+c.outputMass:c.inputMass+c.outputMass/R**2;

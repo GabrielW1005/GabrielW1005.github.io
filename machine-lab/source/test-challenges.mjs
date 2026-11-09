@@ -18,7 +18,7 @@ const expectedRatio=(type,level,variant)=>{
 const distinct=(list,key)=>new Set(list.map(c=>typeof key==='function'?key(c):c[key])).size;
 let checked=0;
 let tinyDistances=0;
-for(const machine of machineCatalog){
+for(const machine of machineCatalog.filter(m=>!m.balanceOnly)){
   for(const variant of [...Array(40).keys(),97,128,999,65535]){
     const masses=[],advantages=[],liftingForces=[];
     for(let level=0;level<machine.levels.length;level++){
@@ -143,8 +143,8 @@ for(const machine of machineCatalog){
         assert.equal(distinct(configs,c=>(Math.asin(c.height/c.length)).toFixed(9)),3,'ramps vary slope angle within each level');
       }else if(machine.type==='gears'){
         assert.ok(distinct(configs,c=>`${c.teethIn}/${c.teethOut}`)>=10,'gears vary tooth counts');
-        assert.ok(distinct(configs,c=>(c.crankRadius/c.drumRadius).toFixed(9))>=3,'gears vary independent drum ratio');
-        assert.ok(configs.some(c=>c.crankRadius!==c.drumRadius),'gears include unequal drums');
+        assert.ok(configs.every(c=>c.crankRadius===.1&&c.drumRadius===.1),'gears retain equal fixed drums');
+        for(const c of configs)close(ratio(c),c.teethOut/c.teethIn,'gear ratio comes only from tooth counts');
         const equalAdvantage=configs.filter((c,i)=>i%3===1);
         assert.ok(distinct(equalAdvantage,c=>`${c.teethIn}/${c.teethOut}/${c.crankRadius}/${c.drumRadius}`)>=5,'same overall advantage has several gear geometries');
       }else if(machine.type==='pulley'){

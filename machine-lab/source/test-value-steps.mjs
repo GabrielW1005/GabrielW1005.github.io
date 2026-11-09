@@ -40,7 +40,7 @@ for(const m of machineCatalog){
  assert.ok(Math.abs(state.q-q0)<1e-9,m.type);cases++;
 }
 // All clean generated answers are accepted exactly as displayed, including tiny strokes.
-for(const m of machineCatalog)for(let level=0;level<m.levels.length;level++)for(let variant=0;variant<24;variant++)for(const task of ['force','balance','distance','acceleration']){
+for(const m of machineCatalog.filter(m=>!m.balanceOnly))for(let level=0;level<m.levels.length;level++)for(let variant=0;variant<24;variant++)for(const task of ['force','balance','distance','acceleration']){
  const c=createChallenge(m.type,task,level,variant),shown=answerRounding(c.answer,task);
  assert.ok(!shown.approximate,`${m.type}/${task}/${variant}: ${c.answer}`);
  assert.ok(matchesRoundedAnswer(shown.value,c.answer,task));cases++;

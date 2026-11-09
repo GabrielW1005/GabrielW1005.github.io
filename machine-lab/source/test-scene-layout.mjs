@@ -12,6 +12,7 @@ function ropeLength(d){
  while(i<t.length){
   const cmd=t[i++],old=[x,y];
   if(cmd==='M'){x=+t[i++];y=+t[i++];}
+  else if(cmd==='L'){x=+t[i++];y=+t[i++];total+=Math.hypot(x-old[0],y-old[1]);}
   else if(cmd==='V'){y=+t[i++];total+=Math.abs(y-old[1]);}
   else if(cmd==='H'){x=+t[i++];total+=Math.abs(x-old[0]);}
   else if(cmd==='A'){
@@ -51,4 +52,61 @@ for(const [length,height] of [[1,1],[2,.5],[5,.1]]){
  const c=normalizeConfig({...defaultConfig('ramp'),length,height}),svg=renderScene(c,makeState(c));
  const grip=attrs(svg.match(/<g[^>]*data-geo="rampRun"[^>]*>/)[0]);near(Math.hypot(grip.run,grip.height),length);assert.ok(grip.scale>0);
 }
-console.log(`Scene layout checks passed: ${pulleyStates} pulley states, 42 hydraulic area pairs, 3 ramp geometries.`);
+
+
+let rampStates=0;
+for(const [length,height] of [[.3,.1],[1,1],[2,.5],[5,.1],[5,2],[2,1.8]])for(const mass of [1,20,200]){
+ const c=normalizeConfig({...defaultConfig('ramp'),length,height,inputMass:mass,outputMass:mass});let previous;
+ for(const fraction of [0,.25,.5,.75,1]){
+  const state=makeState(c,fraction),svg=renderScene(c,state),start=svg.indexOf('<g data-ramp-rope='),assembly=attrs(svg.slice(start,svg.indexOf('>',start))),d=svg.slice(start).match(/<path d="([^"]+)"/)[1];
+  const measured=ropeLength(d)/assembly['ramp-scale'];near(measured,assembly['rope-length'],1e-6);previous??=measured;near(measured,previous,1e-6);
+  assert.equal((svg.match(/data-ramp-guide=/g)||[]).length,1,'Ramp has exactly one guide');
+  const dx=assembly['entry-x']-assembly['guide-x'],dy=assembly['entry-y']-assembly['guide-y'],tx=Math.sqrt(1-(height/length)**2),ty=-height/length;
+  near(Math.hypot(dx,dy),assembly['guide-radius']);near(dx*tx+dy*ty,0,1e-7);
+  const capture=trajectoryGeometry(c,state);near(capture.input.fullPathDistance,capture.output.fullPathDistance);
+  for(const body of [capture.input,capture.output])for(const point of body.points)assert.ok(point.every(Number.isFinite));
+  rampStates++;
+ }
+}
+let gearStates=0;
+for(const teethIn of [8,24,96])for(const teethOut of [8,24,96])for(const mass of [1,20,200]){
+ const c=normalizeConfig({...defaultConfig('gearArms'),teethIn,teethOut,inputMass:mass,outputMass:mass}),k=teethIn/teethOut;
+ for(const fraction of [0,.25,.5,.75,1]){
+  const state=makeState(c,fraction);state.q0=0;const svg=renderScene(c,state),capture=trajectoryGeometry(c,state),gears=[...svg.matchAll(/<g data-gear="(?:input|output)"[^>]+>/g)].map(m=>attrs(m[0]));
+  assert.equal(gears.length,2);near(Math.hypot(gears[1]['center-x']-gears[0]['center-x'],gears[1]['center-y']-gears[0]['center-y']),gears[0]['pitch-radius']+gears[1]['pitch-radius']);
+  near(gears[0]['pitch-radius']/teethIn,gears[1]['pitch-radius']/teethOut);
+  near(capture.input.pathDistance,c.rIn*Math.abs(state.q));near(capture.output.pathDistance,c.rOut*k*Math.abs(state.q));
+  near(capture.input.signedWorkDistance,c.rIn*Math.sin(state.q));near(capture.output.signedWorkDistance,c.rOut*Math.sin(k*state.q));
+  for(const [i,side] of ['input','output'].entries()){
+   const points=capture[side];assert.ok(points.current[0]<gears[i]['center-x'],'Both bars point left');
+   near((gears[i]['center-x']-points.current[0])/points.pxPerMeter,(side==='input'?c.rIn:c.rOut)*Math.cos(state.q*(side==='input'?1:k)));
+   assert.ok(points.points.every(p=>p.every(Number.isFinite)));
+  }
+  const inputY=capture.input.current[1]-capture.input.start[1],outputY=capture.output.current[1]-capture.output.start[1];assert.ok(inputY*outputY<=1e-10,'Geared bars move masses in opposite vertical directions');
+  gearStates++;
+ }
+}
+for(const type of ['lever','ramp','pulley','wheel','gears','gearArms','screw','wedge','hydraulic']){
+ const c=defaultConfig(type),state=makeState(c,.5),locked=renderScene(c,state,{}, {editableKey:'inputMass'});
+ assert.ok(!locked.includes('data-drag="geometry"'),`${type}: geometry locked`);
+ assert.equal((locked.match(/data-drag="resize"/g)||[]).length,6,`${type}: one mass has resize handles`);
+ assert.ok(!/data-drag="resize" data-side="output"/.test(locked));
+}
+const gears=defaultConfig('gears'),gearSvg=renderScene(gears,makeState(gears));assert.ok(!/data-param="(?:crankRadius|drumRadius)"/.test(gearSvg),'Drums have no resize handles');
+const pulley=defaultConfig('pulley'),pulleySvg=renderScene(pulley,makeState(pulley));assert.ok(!pulleySvg.includes('data-param="strands"'),'Supporting strands have no separate scene slider');
+const arm=defaultConfig('gearArms'),armSvg=renderScene(arm,makeState(arm,.5),{}, {editableKey:'teethOut'});assert.equal((armSvg.match(/data-param="teethOut"/g)||[]).length,2);assert.ok(!armSvg.includes('data-drag="resize"'));
+console.log(`Scene checks passed: ${pulleyStates} pulley states,42 hydraulic pairs,${rampStates} single-guide ramp states,${gearStates} geared-arm states,and balance handle restrictions.`);
+// Height edits preserve the horizontal base's anchor and pixel scale.
+for(const run of [0,.5,1.5,3,4.8])for(const mass of [1,20,200]){
+ let initial;
+ for(const height of [.1,.35,.6,1,1.5,2].filter(h=>Math.hypot(run,h)>=.3&&Math.hypot(run,h)<=5)){
+  const c=normalizeConfig({...defaultConfig('ramp'),length:Math.hypot(run,height),height,inputMass:mass,outputMass:mass}),svg=renderScene(c,makeState(c,.5)),grip=attrs(svg.match(/<g[^>]*data-geo="rampRun"[^>]*>/)[0]);
+  initial??=grip;near(grip.scale,initial.scale);near(grip['base-x'],initial['base-x']);near(grip['base-y'],initial['base-y']);near(grip.run,run);
+  const capture=trajectoryGeometry(c,makeState(c,.5));
+  for(const [side,body] of Object.entries({input:capture.input,output:capture.output})){
+   const half=5*Math.sqrt(mass),angle=Math.atan2(height,run),extent=side==='input'?half:half*(Math.cos(angle)+Math.sin(angle));
+   for(const [x,y] of body.points)assert.ok(x-extent>=0&&x+extent<=900&&y-extent>=0&&y+extent<=540,`Ramp ${run},${height},${mass},${side} stays in view`);
+  }
+ }
+}
+console.log('Ramp height edits retain the base anchor and scale across 15 run/mass combinations.');

@@ -63,7 +63,7 @@ m=buildComparisonModel({config:c,state:{q0:0,q:.2},readout:{pointerWork:3,dampin
 const rendered=renderComparison({config:c,state:{q0:0,q:.2},readout:{pointerWork:3,dampingEnergyLoss:1},phase:2});assert.ok(rendered.includes('accounted for separately'));checks++;
 // Manual step changes must keep the same physical scale, line positions and
 // viewport. The work projection is a separate line, never a replacement path.
-for(const type of ['lever','ramp','gears','pulley']){
+for(const type of ['lever','ramp','gears','gearArms','pulley']){
  const conf=normalizeConfig({...defaultConfig(type),inputMass:5,outputMass:20});
  const lim=limits(conf),snapshot={q0:lim.min+.2*lim.range,q:lim.min+.7*lim.range};
  const model=buildComparisonModel({config:conf,state:snapshot});
@@ -72,7 +72,7 @@ for(const type of ['lever','ramp','gears','pulley']){
  const work=html=>html.match(/<line[^>]*data-comparison-work="[^"]+"[^>]*\/>/g);
  assert.equal(paths(views[0]).length,2);assert.equal(work(views[0]).length,2);checks+=2;
  for(const view of views){
-  assert.ok(view.includes('viewBox="0 0 900 400"'));assert.ok(!view.includes('<animate'));
+  assert.ok(view.includes('viewBox="0 0 900 400"'));assert.ok(!view.includes('<animate'));assert.ok(!/stroke-dasharray|[Dd]ashed|[Dd]otted/.test(view));checks++;
   assert.deepEqual(paths(view),paths(views[0]));assert.deepEqual(work(view),work(views[0]));checks+=4;
  }
  near(model.productDrawIn.width,model.workDrawIn.width);
@@ -80,5 +80,22 @@ for(const type of ['lever','ramp','gears','pulley']){
  near(model.pathDrawIn.width/model.pathIn,model.distanceScale);
  near(model.pathDrawOut.width/model.pathOut,model.distanceScale);
  if(type==='ramp')assert.ok(model.pathDrawOut.width>model.workDrawOut.width);
+}
+// Geared arms balance at one angle. Finite gravitational work uses the sine
+// of each actual angle, rather than multiplying by the horizontal MA.
+for(const [teethIn,teethOut] of [[12,48],[48,12],[24,24]]){
+ const conf=normalizeConfig({...defaultConfig('gearArms'),rIn:.35,rOut:.35,teethIn,teethOut,outputMass:20});
+ conf.inputMass=conf.outputMass/ratio(conf);
+ const k=teethIn/teethOut,lim=limits(conf),turn=lim.max*.7;
+ const model=buildComparisonModel({config:conf,state:{q0:0,q:turn}});
+ near(model.pathIn,.35*turn);near(model.pathOut,.35*k*turn);
+ near(model.distanceIn,.35*Math.sin(turn));near(model.distanceOut,.35*Math.sin(k*turn));
+ near(model.signedWorkIn,conf.inputMass*10*.35*Math.sin(turn));
+ near(model.signedWorkOut,conf.outputMass*10*.35*Math.sin(k*turn));
+ assert.equal(model.equal,k===1);checks++;
+ const html=renderComparison({config:conf,state:{q0:0,q:turn},phase:2});
+ assert.ok(html.includes('Gear arms can balance at one angle'));assert.ok(!html.includes('regular input and load balance'));checks+=2;
+ const reference=buildComparisonModel({config:conf,state:makeState(conf,.5)});
+ assert.ok(reference.reference&&reference.q0===0&&reference.q<=lim.max);checks++;
 }
 console.log(`Comparison checks passed: ${checks}`);

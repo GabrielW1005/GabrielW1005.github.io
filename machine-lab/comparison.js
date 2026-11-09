@@ -1,5 +1,5 @@
 /** Snapshot comparison of real paths, force-aligned distances and work products. */
-import {normalizeConfig, ratio, limits, GRAVITY} from './physics.js';
+import {normalizeConfig, ratio, limits, GRAVITY, isAngularMachine, verticalCoordinates, bodyJacobian} from './physics.js';
 import {trajectoryGeometry} from './scene.js';
 
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
@@ -11,15 +11,14 @@ const positive=n=>Math.max(0,finite(n));
 
 /** Pure numerical model; signed work is retained and drawing lengths are positive. */
 export function buildComparisonModel({config,state={},readout={}}={}) {
- const c=normalizeConfig(config),lim=limits(c),R=ratio(c);
+ const c=normalizeConfig(config),lim=limits(c),R=ratio(c),angular=isAngularMachine(c);
  let q0=clamp(finite(state.q0,finite(state.q,lim.min)),lim.min,lim.max),q=clamp(finite(state.q,q0),lim.min,lim.max);
  const reference=Math.abs(q-q0)<1e-8;
- if(reference){q0=c.type==='lever'?0:lim.min+.15*lim.range;q=c.type==='lever'?Math.min(.22,lim.max):lim.min+.55*lim.range;}
- const dq=q-q0,vertical=c.type==='lever'?Math.sin(q)-Math.sin(q0):dq;
- const signedIn=c.type==='lever'?c.rIn*vertical:dq,signedOut=c.type==='lever'?c.rOut*vertical:dq/R;
+ if(reference){q0=angular?0:lim.min+.15*lim.range;q=angular?Math.min(.22,lim.max):lim.min+.55*lim.range;}
+ const dq=q-q0,start=verticalCoordinates(c,q0),end=verticalCoordinates(c,q),J=bodyJacobian(c);
+ const signedIn=end.input-start.input,signedOut=end.output-start.output;
  const distanceIn=Math.abs(signedIn),distanceOut=Math.abs(signedOut);
- const pathIn=c.type==='lever'?c.rIn*Math.abs(dq):Math.abs(dq);
- const pathOut=c.type==='lever'?c.rOut*Math.abs(dq):c.type==='ramp'?Math.abs(dq):Math.abs(dq)/R;
+ const pathIn=J.input*Math.abs(dq),pathOut=J.output*Math.abs(dq);
  const forceIn=c.inputMass*GRAVITY+c.force,forceOut=c.outputMass*GRAVITY;
  const massMode=c.force<=1e-10;
  const factorIn=massMode?c.inputMass:forceIn,factorOut=massMode?c.outputMass:forceOut;
@@ -40,7 +39,7 @@ export function buildComparisonModel({config,state={},readout={}}={}) {
   productDrawIn:{width:distanceIn*distanceScale,height:factorIn*factorScale},
   productDrawOut:{width:distanceOut*distanceScale,height:factorOut*factorScale},
   sourceLabel:reference?'Reference movement · current and starting positions match':'Measured movement · starting position to current position',
-  workNote:c.type==='lever'?'Lever ends follow arcs. Weight does work through vertical rise or fall, so use the vertical distances.':c.type==='ramp'?'The box travels along the slope. Its weight acts vertically, so output work uses vertical rise.':'Rope or piston travel gives the distance along the applied force.',
+  workNote:angular?'Arm ends follow arcs. Weight does work through vertical rise or fall, so use the vertical distances.':c.type==='ramp'?'The box travels along the slope. Its weight acts vertically, so output work uses vertical rise.':'Rope or piston travel gives the distance along the applied force.',
  };
 }
 
@@ -54,7 +53,7 @@ function svg(body,p,label){return `<svg class="mc-visual" viewBox="${VIEWBOX}" r
 /** Identical path/work bars, coordinates and scale in every manually selected step. */
 function commonDistances(m,p,pathWidth){
  let z=txt(28,27,'Same distance scale in every step',p.ink,22);
- z+=txt(28,48,'Solid = actual path length    ·    Dashed = distance along the force',p.muted,16);
+ z+=txt(28,48,'Actual path length and distance along the force',p.muted,16);
  for(const [side,pathY,workY,col,pathLength,workLength]of[
   ['input',77,106,p.blue,m.pathIn,m.distanceIn],['output',143,172,p.orange,m.pathOut,m.distanceOut]]){
   const name=side==='input'?'Input':'Output',sub=side==='input'?'₁':'₂',pathEnd=BAR_X+pathLength*m.distanceScale,workEnd=BAR_X+workLength*m.distanceScale;
@@ -62,7 +61,7 @@ function commonDistances(m,p,pathWidth){
   z+=txt(28,workY+5,`Work distance d${sub}: ${fmt(workLength)} m`,col,17);
   z+=line(BAR_X,pathY,BAR_X+560,pathY,p.grid,1)+line(BAR_X,workY,BAR_X+560,workY,p.grid,1);
   z+=line(BAR_X,pathY,pathEnd,pathY,col,pathWidth,`stroke-linecap="round" data-comparison-path="${side}" data-distance-m="${pathLength}" data-pixel-length="${pathLength*m.distanceScale}"`);
-  z+=line(BAR_X,workY,workEnd,workY,col,Math.max(1.5,pathWidth*.65),`stroke-dasharray="8 5" stroke-linecap="butt" data-comparison-work="${side}" data-distance-m="${workLength}" data-pixel-length="${workLength*m.distanceScale}"`);
+  z+=line(BAR_X,workY,workEnd,workY,col,Math.max(1.5,pathWidth*.65),`stroke-linecap="butt" data-comparison-work="${side}" data-distance-m="${workLength}" data-pixel-length="${workLength*m.distanceScale}"`);
   z+=line(BAR_X,pathY-8,BAR_X,pathY+8,col,1.5)+line(pathEnd,pathY-8,pathEnd,pathY+8,col,1.5);
   z+=line(BAR_X,workY-6,BAR_X,workY+6,col,1.2)+line(workEnd,workY-6,workEnd,workY+6,col,1.2);
  }
@@ -75,8 +74,8 @@ function pathPanel(m,p,pathWidth){
  if(m.config.type==='ramp'){
   z+=txt(28,274,'The input rope and box travel the same distance.',p.muted,20);
   z+=txt(28,306,'The box’s weight acts vertically: output work uses its vertical rise.',p.muted,20);
- }else if(m.config.type==='lever'){
-  z+=txt(28,274,'Lever ends follow arcs. The weights act vertically.',p.muted,20);
+ }else if(isAngularMachine(m.config)){
+  z+=txt(28,274,'Arm ends follow arcs. The weights act vertically.',p.muted,20);
   z+=txt(28,306,'Work uses vertical rise or fall, not the curved path length.',p.muted,20);
  }else{
   z+=txt(28,274,'The attached masses move along the direction of the driving forces.',p.muted,20);
@@ -96,7 +95,7 @@ function factorsPanel(m,p,pathWidth){
   z+=txt(cx,355,`${fmt(mass)} kg`,col,23,'middle','font-weight="750"');
  }
  z+=txt(28,389,'Twice the mass → twice the square area. Distance bars above have not changed.',p.muted,17);
- const caption=m.massMode?'Next multiplies mass by the dashed work distance. The same gravitational acceleration g appears on both sides.':`There is also ${fmt(m.config.force)} N of applied input force. Next uses total input force × work distance, rather than mass alone.`;
+ const caption=m.massMode?'Next multiplies mass by the work distance. The same gravitational acceleration g appears on both sides.':`There is also ${fmt(m.config.force)} N of applied input force. Next uses total input force × work distance, rather than mass alone.`;
  return {visual:svg(z,p,'Mass squares with proportional areas, beneath the unchanged path and work-distance bars.'),caption};
 }
 function productPanel(m,p,pathWidth){
@@ -110,8 +109,8 @@ function productPanel(m,p,pathWidth){
   z+=line(BAR_X,base,BAR_X+560,base,p.grid,1.5)+line(BAR_X,base,BAR_X,base-70,p.grid,1.5);
   z+=`<rect x="${BAR_X}" y="${y}" width="${draw.width}" height="${draw.height}" fill="${col}" fill-opacity=".28" stroke="${col}" stroke-width="2" data-product="${product}" data-product-area="${draw.width*draw.height}" data-product-width="${draw.width}"/>`;
  }
- const relationship=m.equal?'Equal products: the regular input and load balance.':m.productIn>m.productOut?'Input product is larger: it can raise the load.':'Output product is larger: the load tends to lower.';
- let caption=`${relationship} Rectangle width is the unchanged dashed work distance; height represents ${m.massMode?'mass':'force'}.`;
+ const relationship=m.config.type==='gearArms'?(m.equal?'The products are equal over this turn.':'The products differ over this turn.'):(m.equal?'Equal products: the regular input and load balance.':m.productIn>m.productOut?'Input product is larger: it can raise the load.':'Output product is larger: the load tends to lower.');
+ let caption=m.config.type==='gearArms'?`${relationship} Gear arms can balance at one angle without staying balanced through a finite turn.`:`${relationship} Rectangle width is the unchanged work distance; height represents ${m.massMode?'mass':'force'}.`;
  if(m.extraDynamics)caption+=' Extra pulling work and losses are accounted for separately.';
  else if(m.massMode)caption+=' Multiplying by g gives work in joules.';
  return {visual:svg(z,p,`${word}: input ${fmt(m.productIn)} ${productUnit}, output ${fmt(m.productOut)} ${productUnit}. Product widths use the same physical-distance scale as all other steps.`),caption,equal:m.equal};
