@@ -19,7 +19,7 @@ let custom=false,attempts=0,credited=false,forceCorrect=false,playing=false,fram
 let history=[],bodyInfo={},drag=null,pull=null,pointers=new Map(),pinch=null,pendingResize=null,advanceTimer=0;
 let autoAnimating=false,autoFrame=0,autoStart=0,autoNotice='',distanceDemo=false;
 let camera={zoom:1,cx:450,cy:270},rampView=null;
-const PROGRESS_KEY='machine-lab-progress-v1',RELEASE='progress-v1';
+const PROGRESS_KEY='machine-lab-progress-v1',RELEASE='reset-v1';
 let progressReady=false,saveTimer=0,student='',progressStats={},sharedPreview=null;
 let testedEntry='',movementTest=null,comparisonSnapshot=null,comparisonPhase=0;
 const machine=()=>machineCatalog.find(m=>m.type===type);
@@ -98,15 +98,17 @@ function chooseAdaptive(preferAfter=task){
  const min=Math.min(...remaining.map(k=>s[k]||0));const order=taskIds.slice(taskIds.indexOf(preferAfter)+1).concat(taskIds.slice(0,taskIds.indexOf(preferAfter)+1));
  task=order.find(k=>remaining.includes(k)&&(s[k]||0)===min)||remaining[0];level=Math.min(s[task]||0,maxStage()-1);
 }
-function loadChallenge({newNumbers=false}={}){
+function loadChallenge({newNumbers=false,keepAttempt=false}={}){
  cancelAdvance();stopAuto();stop();pull=null;drag=null;distanceDemo=false;movementTest=null;pointers.clear();pinch=null;pendingResize=null;cancelAnimationFrame(editFrame);editFrame=0;
  if(mode==='balance'){task='balance';if(newNumbers)saved.balanceVariants={...saved.balanceVariants,[type]:balanceVariant()+1};challenge=createBalanceChallenge(type,balanceVariant());level=0;}else{if(newNumbers)saved.serial++;challenge=createChallenge(type,task,level,saved.serial);level=challenge.level;}save();config={...challenge.config};
- custom=false;attempts=0;credited=false;forceCorrect=false;history=[];testedEntry='';
+ custom=false;if(!keepAttempt){attempts=0;credited=false;}forceCorrect=false;history=[];testedEntry='';
  if(mode==='auto'){config={...defaultConfig(type),damping:resistance};balanceAuto();}else config.damping=resistance;
  syncResistance();
  state=makeState(config,challenge.startFraction??.25);$('answerValue').value='';$('feedback').textContent='';$('steps').hidden=true;$('stepsBtn').textContent='Show steps';$('setupNotice').hidden=true;$('nudgeBtn').hidden=true;$('testBtn').textContent='Check & run →';
  buildControls();syncControls();renderQuestion();renderTabs();if(mode==='balance')$('answerValue').value=entryValue(setupValue(config,challenge.key));resetCamera();draw();queueAutoSave();
 }
+// Reset the same problem without erasing earned progress or granting repeat credit.
+function resetProblem(){loadChallenge({keepAttempt:true});}
 function factValues(){
  if(!custom)return challenge.given;
  const dims=machine().geometry.map(f=>`${f.label}: ${fmt(config[f.key])}${f.unit?' '+f.unit:''}`),groups=[];for(let i=0;i<dims.length;i+=2)groups.push(dims.slice(i,i+2).join(' · '));
@@ -320,8 +322,8 @@ $('levels').onclick=e=>{const b=e.target.closest('[data-level]');if(b){level=+b.
 $('answerForm').onsubmit=applyTest;$('nextBtn').onclick=nextProblem;$('practiceBtn').onclick=()=>loadChallenge({newNumbers:true});$('autoAdvance').onchange=cancelAdvance;
 $('stepsBtn').onclick=()=>{$('steps').hidden=!$('steps').hidden;$('stepsBtn').textContent=$('steps').hidden?'Show steps':'Hide steps';$('steps').innerHTML=(custom?['In the ideal setting, F₁d₁ = F₂d₂ at balance or steady speed.','MA = d₁/d₂ from the current machine geometry.','For acceleration, calculate the net force and divide by the mass.','Restore the original problem for its numerical setup.']:challenge.steps).map((s,i)=>`<p><b>${i+1}.</b> ${esc(s)}</p>`).join('');};
 $('playBtn').onclick=()=>{cancelAdvance();if(playing)stop();else if(mode==='balance')applyBalanceTest();else if(mode==='challenge'&&$('answerValue').value.trim()&&testedEntry!==$('answerValue').value){applyTest();}else start();};
-$('resetBtn').onclick=()=>{cancelAdvance();stopAuto();restart();};$('nudgeBtn').onclick=()=>{cancelAdvance();config.force=clamp(currentAnswer()*1.02,0,MAX_FORCE);config.inputMass=0;restart();syncControls();feedback('Testing 2% above the balance threshold. Extra work becomes kinetic energy and, with resistance enabled, heat.',true);start();};
-$('restoreBtn').onclick=()=>loadChallenge();
+$('resetBtn').onclick=resetProblem;$('nudgeBtn').onclick=()=>{cancelAdvance();config.force=clamp(currentAnswer()*1.02,0,MAX_FORCE);config.inputMass=0;restart();syncControls();feedback('Testing 2% above the balance threshold. Extra work becomes kinetic energy and, with resistance enabled, heat.',true);start();};
+$('restoreBtn').onclick=resetProblem;
 for(const id of ['inputMass','outputMass','appliedForce']){const commit=e=>{const key=id==='appliedForce'?'force':id;if(!editable(key))return;const value=parse(e.target.value),isGuess=mode==='challenge'&&((task==='balance'&&key==='inputMass')||(task==='force'&&key==='force'));if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key,mark:!isGuess});e.target.value=answerRounding(config[key]).text;e.target.dataset.renderedValue=e.target.value;if(isGuess)$('answerValue').value=fmt(config[key]);};$(id).onchange=commit;$(id).onblur=commit;$(id).onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit(e);}};}
 function commitGeometry(e){const key=e.target.dataset.geometry;if(!key||!editable(key))return;const value=parse(e.target.value),prior=key==='rampRun'?rampRun():config[key];if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-prior)>1e-8){const next=editSetup(config,key,value);setConfig(next,{edited:key});}e.target.value=fmt(key==='rampRun'?rampRun():config[key]);e.target.dataset.renderedValue=e.target.value;}
 $('geometryControls').onchange=commitGeometry;$('geometryControls').addEventListener('blur',commitGeometry,true);$('geometryControls').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commitGeometry(e);}};
