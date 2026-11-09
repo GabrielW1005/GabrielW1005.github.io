@@ -164,7 +164,7 @@ export function renderScene(c,state,readout={},options={}){
   if(options.accelerations){
    const [ax,ay]=accelerationVectors[side];
    const mag=Math.hypot(ax,ay),acol=dark?'#c4a4ff':'#7643b6';
-   if(mag>1e-5){const length=mag*accelerationScale,start=[b.x,b.y-b.extent-35-Math.max(0,ay/mag*length)],end=[start[0]+ax/mag*length,start[1]+ay/mag*length],anchor=end[0]>730?'end':'start';overlays+=`<g pointer-events="none">${arrow(...start,...end,acol,3.5)}${text(clamp(end[0]+(anchor==='end'?-12:12),70,850),clamp(end[1]-8,78,510),`${c.type==='lever'?'a total':'a'} ${num(mag)} m/s²`,acol,17,anchor)}</g>`;}
+   if(mag>1e-5){const length=mag*accelerationScale,start=[b.x,b.y-b.extent-35-Math.max(0,ay/mag*length)],end=[start[0]+ax/mag*length,start[1]+ay/mag*length],anchor=end[0]>730?'end':'start';overlays+=`<g pointer-events="none">${arrow(...start,...end,acol,3.5)}${text(clamp(end[0]+(anchor==='end'?-12:12),70,850),clamp(Math.min(start[1],end[1])-18,78,510),`${c.type==='lever'?'a total':'a'} ${num(mag)} m/s²`,acol,17,anchor)}</g>`;}
   }
  }
  const pull=options.pull,b=pull&&bodies[pull.side];

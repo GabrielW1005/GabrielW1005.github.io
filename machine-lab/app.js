@@ -19,7 +19,7 @@ function maxStage(){return machine().levels.length;}
 function totalScore(){return Object.values(skills()).reduce((a,b)=>a+Math.min(b,maxStage()),0);}
 function cancelAdvance(){clearTimeout(advanceTimer);advanceTimer=0;$('advanceNotice').textContent='';}
 function stopAuto(){autoAnimating=false;cancelAnimationFrame(autoFrame);$('autoAnimate').textContent='▶ Compare balanced setups';}
-function stop(){playing=false;cancelAnimationFrame(frame);lastTime=0;$('playBtn').textContent='▶ Run';}
+function stop(){playing=false;cancelAnimationFrame(frame);lastTime=0;$('playBtn').textContent='▶ Run';queueDraw();}
 function external(){return pull?pull.force:{input:0,output:0};}
 function start(){if(playing)return;stopAuto();playing=true;lastTime=0;$('playBtn').textContent='Ⅱ Pause';frame=requestAnimationFrame(tick);}
 function tick(t){if(!playing)return;const dt=lastTime?Math.min((t-lastTime)/1000,.05):0;lastTime=t;
