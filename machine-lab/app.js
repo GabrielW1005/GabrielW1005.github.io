@@ -86,7 +86,7 @@ function loadChallenge({newNumbers=false}={}){
  if(newNumbers)saved.serial++;save();
  challenge=createChallenge(type,task,level,saved.serial);level=challenge.level;config={...challenge.config};
  custom=false;attempts=0;credited=false;forceCorrect=false;history=[];testedEntry='';
- if(mode==='auto'){config={...defaultConfig(type),damping:2.2};balanceAuto();}else config.damping=0;
+ if(mode==='auto'){config={...defaultConfig(type),damping:0};balanceAuto();}else config.damping=0;
  $('settling').checked=config.damping>0;
  state=makeState(config,challenge.startFraction??.25);$('answerValue').value='';$('maValue').value='';$('feedback').textContent='';$('steps').hidden=true;$('stepsBtn').textContent='Show steps';$('setupNotice').hidden=true;$('nudgeBtn').hidden=true;$('testBtn').textContent='Check & run →';
  buildControls();syncControls();renderQuestion();renderTabs();resetCamera();draw();
