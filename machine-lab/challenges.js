@@ -146,12 +146,12 @@ export function createChallenge(type,task='force',level=0,variant=0){
       `From rest, apply an input force of ${f(c.force)} N. Find the output's initial upward acceleration and ideal MA.`;
     given.push(`Applied input force F₁: ${f(c.force)} N`,'No hanging input mass; machine and rope are massless.');
     if(c.type==='lever')given.push('Starts horizontal, with zero speed.');
-    explanation='The unbalanced force changes kinetic energy. Input work exceeds the increase in gravitational potential energy; do not set those two amounts equal.'+(c.type==='lever'?' This answer is the initial acceleration; it changes as the lever tilts.':'');
+    explanation='Extra input work changes kinetic energy and, with resistance enabled, also produces heat. Do not set input work equal to the increase in gravitational potential energy while accelerating.'+(c.type==='lever'?' This answer is the initial acceleration; it changes as the lever tilts.':'');
     steps=[
-      'When speed changes: input work − gravitational energy gained = kinetic energy gained.',
+      'Before travel stops: input work − gravitational energy gained = kinetic energy gained + heat (zero with resistance off).',
       geo.ratioLine,
-      c.type==='ramp'?'Along the slope: Fnet = F₁ − mg / ideal MA. Then a = Fnet / m.':
-        'The massless machine delivers force F₁ × ideal MA. Net upward force = F₁ × ideal MA − mg; a = Fnet / m.',
+      c.type==='ramp'?'Initially, with zero drag at rest, along the slope: Fnet = F₁ − mg / ideal MA. Then a = Fnet / m.':
+        'Initially, with zero drag at rest, the massless machine delivers force F₁ × ideal MA. Net upward force = F₁ × ideal MA − mg; a = Fnet / m.',
       c.type==='ramp'?`a = [${f(c.force)} − (${f(c.outputMass)} × ${GRAVITY} × ${f(geo.den)} / ${f(geo.num)})] / ${f(c.outputMass)} m/s².`:
         `a = [${f(c.force)} × (${f(geo.num)} / ${f(geo.den)}) − ${f(c.outputMass)} × ${GRAVITY}] / ${f(c.outputMass)} m/s².`,
       c.type==='lever'?'This expression applies at the horizontal starting position. Calculate the result yourself.':'Do not cancel g from the net-force equation. Calculate the result yourself.'

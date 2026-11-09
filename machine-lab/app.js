@@ -8,6 +8,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const parse=s=>{const t=String(s).trim(),m=t.match(/^([-+]?\d*\.?\d+)\s*\/\s*([-+]?\d*\.?\d+)$/);return m?(+m[2]?+m[1]/+m[2]:NaN):/^[-+]?\d*\.?\d+(?:e[-+]?\d+)?$/i.test(t)?Number(t):NaN;};
 const taskIds=['force','balance','distance','acceleration'];
 let saved={dark:true,skills:{},serial:0,pathWidth:3};try{saved={...saved,...JSON.parse(localStorage.getItem('machine-lab-adaptive-v3')||'{}')};}catch{}
+let resistance=0;
 let type='lever',task='force',topic='mixed',mode='challenge',level=0,challenge,config,state;
 let custom=false,attempts=0,credited=false,forceCorrect=false,playing=false,frame=0,lastTime=0,lastDraw=0,drawFrame=0,editFrame=0;
 let history=[],bodyInfo={},drag=null,pull=null,pointers=new Map(),pinch=null,pendingResize=null,advanceTimer=0;
@@ -86,8 +87,8 @@ function loadChallenge({newNumbers=false}={}){
  if(newNumbers)saved.serial++;save();
  challenge=createChallenge(type,task,level,saved.serial);level=challenge.level;config={...challenge.config};
  custom=false;attempts=0;credited=false;forceCorrect=false;history=[];testedEntry='';
- if(mode==='auto'){config={...defaultConfig(type),damping:0};balanceAuto();}else config.damping=0;
- $('settling').checked=config.damping>0;
+ if(mode==='auto'){config={...defaultConfig(type),damping:resistance};balanceAuto();}else config.damping=resistance;
+ syncResistance();
  state=makeState(config,challenge.startFraction??.25);$('answerValue').value='';$('maValue').value='';$('feedback').textContent='';$('steps').hidden=true;$('stepsBtn').textContent='Show steps';$('setupNotice').hidden=true;$('nudgeBtn').hidden=true;$('testBtn').textContent='Check & run →';
  buildControls();syncControls();renderQuestion();renderTabs();resetCamera();draw();
 }
@@ -263,9 +264,9 @@ $('machines').onclick=e=>{const b=e.target.closest('[data-machine]');if(!b)retur
 $('taskChoices').onclick=e=>{const b=e.target.closest('[data-topic]');if(!b)return;topic=b.dataset.topic;if(topic==='mixed')chooseAdaptive('acceleration');else{task=topic;level=Math.min(skills()[task]||0,maxStage()-1);}loadChallenge();};
 $('levels').onclick=e=>{const b=e.target.closest('[data-level]');if(b){level=+b.dataset.level;loadChallenge();}};
 $('answerForm').onsubmit=applyTest;$('nextBtn').onclick=nextProblem;$('practiceBtn').onclick=()=>loadChallenge({newNumbers:true});$('autoAdvance').onchange=cancelAdvance;
-$('stepsBtn').onclick=()=>{$('steps').hidden=!$('steps').hidden;$('stepsBtn').textContent=$('steps').hidden?'Show steps':'Hide steps';$('steps').innerHTML=(custom?['F₁d₁ = F₂d₂ at balance or steady speed.','MA = d₁/d₂ from the current machine geometry.','For acceleration, calculate the net force and divide by the mass.','Restore the original problem for its numerical setup.']:challenge.steps).map((s,i)=>`<p><b>${i+1}.</b> ${esc(s)}</p>`).join('');};
+$('stepsBtn').onclick=()=>{$('steps').hidden=!$('steps').hidden;$('stepsBtn').textContent=$('steps').hidden?'Show steps':'Hide steps';$('steps').innerHTML=(custom?['In the ideal setting, F₁d₁ = F₂d₂ at balance or steady speed.','MA = d₁/d₂ from the current machine geometry.','For acceleration, calculate the net force and divide by the mass.','Restore the original problem for its numerical setup.']:challenge.steps).map((s,i)=>`<p><b>${i+1}.</b> ${esc(s)}</p>`).join('');};
 $('playBtn').onclick=()=>{cancelAdvance();if(playing)stop();else if(mode==='challenge'&&$('answerValue').value.trim()&&testedEntry!==$('answerValue').value+'|'+$('maValue').value){applyTest();}else start();};
-$('resetBtn').onclick=()=>{cancelAdvance();stopAuto();restart();};$('nudgeBtn').onclick=()=>{cancelAdvance();config.force=clamp(currentAnswer()*1.02,0,MAX_FORCE);config.inputMass=0;restart();syncControls();feedback('Testing 2% above the balance threshold. Extra work becomes kinetic energy.',true);start();};
+$('resetBtn').onclick=()=>{cancelAdvance();stopAuto();restart();};$('nudgeBtn').onclick=()=>{cancelAdvance();config.force=clamp(currentAnswer()*1.02,0,MAX_FORCE);config.inputMass=0;restart();syncControls();feedback('Testing 2% above the balance threshold. Extra work becomes kinetic energy and, with resistance enabled, heat.',true);start();};
 $('restoreBtn').onclick=()=>loadChallenge();
 for(const id of ['inputMass','outputMass','appliedForce']){const commit=e=>{const key=id==='appliedForce'?'force':id,value=parse(e.target.value),isGuess=mode==='challenge'&&((task==='balance'&&key==='inputMass')||(task==='force'&&key==='force'));if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key,mark:!isGuess});e.target.value=fmt(config[key]);e.target.dataset.renderedValue=e.target.value;if(isGuess)$('answerValue').value=fmt(config[key]);};$(id).onchange=commit;$(id).onblur=commit;$(id).onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit(e);}};}
 function commitGeometry(e){const key=e.target.dataset.geometry;if(!key)return;const value=parse(e.target.value);if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key});e.target.value=fmt(config[key]);e.target.dataset.renderedValue=e.target.value;}
@@ -297,6 +298,11 @@ $('comparisonNext').onclick=()=>{clearTimeout(comparisonTimer);comparisonPhase=M
 $('comparisonReplay').onclick=playComparison;$('closeComparison').onclick=()=>$('comparisonDialog').close();$('comparisonDialog').onclose=()=>{clearTimeout(comparisonTimer);comparisonSnapshot=null;};
 $('pathWidth').value=clamp(Number(saved.pathWidth)||3,1,10);$('pathWidthValue').textContent=$('pathWidth').value;
 $('pathWidth').oninput=()=>{$('pathWidthValue').textContent=$('pathWidth').value;saved.pathWidth=Number($('pathWidth').value);save();queueDraw();};
-$('settling').onchange=()=>{const old={...config};config={...config,damping:$('settling').checked?2.2:0};changeConfig(state,old,config);queueDraw();};
+function syncResistance(){
+ const label=resistance===0?'Off · ideal':resistance<=.5?'Light':resistance<=1.5?'Medium':'Strong';
+ $('resistance').value=resistance;$('resistanceValue').textContent=label;
+ $('resistance').setAttribute('aria-valuetext',`${label}; damping rate ${fmt(resistance)} per second`);
+}
+$('resistance').oninput=()=>{const old={...config};resistance=clamp(Number($('resistance').value)||0,0,3);config={...config,damping:resistance};changeConfig(state,old,config);syncResistance();queueDraw();};
 
 const hash=location.hash.match(/machine=(\w+)/);if(hash&&machineCatalog.some(m=>m.type===hash[1]))type=hash[1];level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();theme();
