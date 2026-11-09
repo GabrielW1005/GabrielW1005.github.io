@@ -83,7 +83,7 @@ export function renderScene(c,state,readout={},options={}){
   z+=text(cx,483,'fulcrum',P.muted,14);
   if(paths){const a=ip(lim.min),b=ip(lim.max),d=op(lim.min),e=op(lim.max);z+=dim(105,a[1],105,b[1],'vertical d₁',P.blue,100,(a[1]+b[1])/2-20)+dim(795,d[1],795,e[1],'vertical d₂',P.orange,795,(d[1]+e[1])/2-20);}
  } else if(c.type==='ramp'){
-  const scale=Math.min(260/c.length,220/c.height),run=Math.sqrt(Math.max(0,c.length*c.length-c.height*c.height))*scale,rise=c.height*scale,angle=Math.atan2(c.height,Math.sqrt(Math.max(0,c.length*c.length-c.height*c.height))),tx=Math.cos(angle),ty=-Math.sin(angle),nx=-Math.sin(angle),ny=-Math.cos(angle),x0=155,y0=410;
+  const scale=Number(options.rampScale)>0?Number(options.rampScale):Math.min(260/c.length,220/c.height),runMeters=Math.sqrt(Math.max(0,c.length*c.length-c.height*c.height)),run=runMeters*scale,rise=c.height*scale,angle=Math.atan2(c.height,runMeters),tx=Math.cos(angle),ty=-Math.sin(angle),nx=-Math.sin(angle),ny=-Math.cos(angle),x0=155,y0=410;
   bodyScale=scale;
   const loadHalf=5*Math.sqrt(c.outputMass),point=u=>[x0+u*scale*tx+nx*(loadHalf+2),y0+u*scale*ty+ny*(loadHalf+2)];
   const B=point(q),contact=point(c.length+Math.max(44,loadHalf+28)/scale),upper=[722,90],r1=18,r2=23,wi=u=>[upper[0]+r2,175+u*scale],I=wi(q);
@@ -94,49 +94,71 @@ export function renderScene(c,state,readout={},options={}){
   const first=[guide[0]+r1*wx,guide[1]+r1*wy],second=[upper[0]+turn*r2*wx,upper[1]+turn*r2*wy];
   const arc=(center,r,a,b,sweep)=>{const aa=Math.atan2(a[1]-center[1],a[0]-center[0]),bb=Math.atan2(b[1]-center[1],b[0]-center[0]),delta=((sweep?bb-aa:aa-bb)%TAU+TAU)%TAU;return `A${r},${r} 0 ${delta>Math.PI?1:0} ${sweep} ${b[0]},${b[1]}`;};
   z+=sectionLabels(780,270)+base(430,100,820)+geometrySurface(`<path d="M${x0},${y0} h${run} v${-rise} Z" fill="${P.fill}" stroke="${P.line}" stroke-width="2"/>`+line(x0,y0,x0+run,y0-rise,'transparent',26)+line(x0,y0,x0+run,y0-rise,P.metal,6),'height',-1/scale,'ramp height','y');
-  z+=geometrySurface(line(x0,y0,x0+Math.max(60,run),y0,'transparent',24)+line(x0,y0,x0+run,y0,P.line,3),'length',Math.max(.2,tx)/scale,'ramp length');
+  const runMetadata=`data-geo="rampRun" data-run="${runMeters}" data-height="${c.height}" data-scale="${scale}"`;
+  z+=geometrySurface(line(x0,y0,x0+Math.max(60,run),y0,'transparent',24)+line(x0,y0,x0+run,y0,P.line,3),'length',1/scale,'horizontal ramp run','x',runMetadata);
   z+=path(`M${B[0]},${B[1]} L${contact[0]},${contact[1]} ${arc(guide,r1,contact,first,turn===1?1:0)} L${second[0]},${second[1]} ${arc(upper,r2,second,[upper[0]+r2,upper[1]],1)} V${I[1]-5*Math.sqrt(c.inputMass)}`,P.ink,3);
   z+=pulleyWheel(...guide,r1-2,turn*q*scale/r1)+pulleyWheel(...upper,r2-2,q*scale/r2)+trace(wi,P.blue,'input')+trace(point,P.orange,'output');
   z+=weight(...B,c.outputMass,'output',{pan:false,angle:-angle,tangent:[tx,ty]})+weight(...I,c.inputMass,'input');
   z+=text(555,82,'fixed guides',P.muted,17)+text(x0+Math.max(run/2,45),465,c.height===c.length?'vertical lift':`length ${num(c.length)} m`,P.ink,20)+text(545,370,`height ${num(c.height)} m`,P.orange,20);
-  z+=handle(x0+run,y0,'length',Math.max(.2,tx)/scale,'ramp length')+handle(x0+run,y0-rise,'height',-1/scale,'ramp height','y');
+  const footX=x0+run,gripX=footX+29,gripY=y0+22;
+  const baseGrip=line(footX,y0,gripX,gripY,P.blue,1.7)+rect(gripX-24,gripY-15,48,30,P.bg,P.blue,8)+arrow(gripX-15,gripY,gripX+15,gripY,P.blue,2)+arrow(gripX+15,gripY,gripX-15,gripY,P.blue,2);
+  foregroundHandles.push(geometrySurface(baseGrip,'length',1/scale,'horizontal ramp run','x',runMetadata));
+  z+=text(gripX+8,gripY+39,'extend base',P.blue,14)+handle(x0+run,y0-rise,'height',-1/scale,'ramp height','y');
   if(paths){z+=text(825,265,'rope d₁',P.blue,17)+text(330,505,'Box path = rope travel',P.orange,17)+dim(x0+run+44,y0,x0+run+44,y0-rise,'',P.orange)+text(550,398,'vertical work d₂',P.orange,17);}
   if(forces&&!readout.atLimit){const T=Math.max(0,Number(readout.inputTension)||0),N=c.outputMass*G*Math.sqrt(Math.max(0,1-(c.height/c.length)**2));z+=forceVector(B[0]+nx*(loadHalf+16),B[1]+ny*(loadHalf+16),tx,ty,T,'T',P.orange)+forceVector(B[0],B[1],nx,ny,N,'N',P.muted);}
  } else if(c.type==='pulley'){
-  const n=[1,2,4,6].includes(c.strands)?c.strands:2,scale=120/lim.max,r=(c.pulleyRadius||.06)*scale,top=120,inputX=690,outputX=340;
+  const n=[1,2,4,6].includes(c.strands)?c.strands:2,radius=c.pulleyRadius||.18,top=125,anchorY=36,inputX=730,outputX=340,lowerBase=275;
+  // One scale applies to both rope travel and real sheave radii. Its bounds
+  // reserve room for the whole six-strand tackle and 200 kg square bodies.
+  const scale=Math.min(170/lim.max,193/(radius+lim.max),n===1?94/radius:126/(2*radius+lim.max/n),n===1?Infinity:378/((n+3)*radius),n===1?Infinity:245/((n-1)*radius)),r=radius*scale,inputHalf=5*Math.sqrt(c.inputMass),outputHalf=5*Math.sqrt(c.outputMass);
   bodyScale=scale;
-  const ip=u=>[inputX,245+u*scale],op=u=>[outputX,(n===1?405:410)-u*scale/n],I=ip(q),O=op(q),radiusUnits=1/scale;
-  z+=sectionLabels(inputX,outputX)+rect(190,66,545,12,P.metal,P.line,3);
-  let rope='',wheels='',radiusGrab;
+  const inputRest=top+r+12+inputHalf,outputRest=n===1?top+r+12+outputHalf+lim.max*scale:lowerBase+r+24+outputHalf;
+  const ip=u=>[inputX,inputRest+u*scale],op=u=>[outputX,outputRest-u*scale/n],I=ip(q),O=op(q),inputTop=I[1]-inputHalf,outputTop=O[1]-outputHalf;
+  z+=sectionLabels(inputX,outputX)+rect(85,24,705,12,P.metal,P.line,3)+text(490,47,`radius ${num(radius)} m`,P.muted,17);
+  let rope='',wheels='',radiusGrab,ropeLength=0,supports='';
+  const sheave=(x,y,angle,moving=false)=>`<g data-sheave="${moving?'moving':'fixed'}" data-center-x="${x}" data-center-y="${y}" data-contact-radius="${r}">${pulleyWheel(x,y,r*.96,angle)}</g>`;
+  const support=(index,x,y1,y2)=>{
+   const mid=(y1+y2)/2;
+   supports+=`<line data-support-strand="${index}" x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="none"/>`+circle(x,mid,10,P.bg,P.orange,1.2);
+   text(x,mid+5,String(index),P.orange,14);
+  };
   if(n===1){
    const left=[outputX+r,top],right=[inputX-r,top];radiusGrab=left;
-   rope=`M${outputX},${O[1]-5*Math.sqrt(c.outputMass)} V${top} A${r},${r} 0 0 1 ${left[0]},${top-r} H${right[0]} A${r},${r} 0 0 1 ${inputX},${top} V${I[1]-5*Math.sqrt(c.inputMass)}`;
-   for(const C of [left,right])wheels+=line(C[0],78,C[0],top,P.line,2)+pulleyWheel(...C,r*.92,q*scale/r);
+   rope=`M${outputX},${outputTop} V${top} A${r},${r} 0 0 1 ${left[0]},${top-r} H${right[0]} A${r},${r} 0 0 1 ${inputX},${top} V${inputTop}`;
+   for(const C of [left,right])wheels+=line(C[0],anchorY,C[0],top,P.line,2)+sheave(...C,q*scale/r);
+   support(1,outputX,top,outputTop);
+   ropeLength=outputTop+inputTop-2*top+Math.PI*r+inputX-outputX-2*r;
   } else {
-   const count=n/2,spacing=Math.max(62,4*r+12),first=outputX-(count-1)*spacing/2,my=280-q*scale/n;
-   rope=`M${first-r},78 V${my}`;z+=circle(first-r,78,4,P.ink,P.ink,1);
+   const count=n/2,spacing=4*r,first=outputX-(count-1)*spacing/2,my=lowerBase-q*scale/n;
+   rope=`M${first-r},${anchorY} V${my}`;z+=circle(first-r,anchorY,4,P.ink,P.ink,1);
    for(let j=0;j<count;j++){
-    const x=first+j*spacing,next=first+(j+1)*spacing,leftFixed=[x+2*r,top],rightFixed=[j<count-1?next-2*r:inputX-r,top],ropeSpeed=2*(j+1)/n;
-    if(j===0)radiusGrab=leftFixed;
-    rope+=` A${r},${r} 0 0 0 ${x+r},${my} V${top} A${r},${r} 0 0 1 ${leftFixed[0]},${top-r} H${rightFixed[0]} A${r},${r} 0 0 1 ${j<count-1?next-r:inputX},${top} V${j<count-1?my:I[1]-5*Math.sqrt(c.inputMass)}`;
-    wheels+=line(x,my,x,my+r+14,P.line,2)+pulleyWheel(x,my,r*.92,-(2*j+1)*q*scale/(n*r));
-    for(const C of [leftFixed,rightFixed])wheels+=line(C[0],78,C[0],top,P.line,2)+pulleyWheel(...C,r*.92,ropeSpeed*q*scale/r);
+    const x=first+j*spacing;
+    rope+=` A${r},${r} 0 0 0 ${x+r},${my} V${top}`;
+    wheels+=line(x,my,x,my+r+12,P.line,2)+sheave(x,my,-(2*j+1)*q*scale/(n*r),true);
+    support(2*j+1,x-r,j===0?anchorY:top,my);support(2*j+2,x+r,top,my);
+    if(j<count-1){
+     const fixed=[x+2*r,top];if(j===0)radiusGrab=fixed;
+     rope+=` A${r},${r} 0 0 1 ${x+3*r},${top} V${my}`;
+     wheels+=line(fixed[0],anchorY,fixed[0],top,P.line,2)+sheave(...fixed,2*(j+1)*q*scale/(n*r));
+    } else {
+     const left=[x+2*r,top],right=[inputX-r,top];if(!radiusGrab)radiusGrab=left;
+     rope+=` A${r},${r} 0 0 1 ${left[0]},${top-r} H${right[0]} A${r},${r} 0 0 1 ${inputX},${top} V${inputTop}`;
+     for(const C of [left,right])wheels+=line(C[0],anchorY,C[0],top,P.line,2)+sheave(...C,q*scale/r);
+     ropeLength=n*my+inputTop-anchorY-n*top+n*Math.PI*r+inputX-x-3*r;
+    }
    }
-   const barY=my+r+14;
-   z+=line(first-r-8,barY,first+(count-1)*spacing+r+8,barY,P.metal,6)+line(outputX,barY,outputX,O[1]-5*Math.sqrt(c.outputMass),P.ink,2.5);
-   z+=text(first-r-20,barY+5,`${count} moving ${count===1?'sheave':'sheaves'}`,P.muted,16,'end');
+   const barY=my+r+12;
+   z+=line(first-r-8,barY,first+(count-1)*spacing+r+8,barY,P.metal,6)+line(outputX,barY,outputX,outputTop,P.ink,2.5);
+   z+=text(first-r-18,barY+5,`${count} moving`,P.muted,16,'end');
   }
-  z+=path(rope,P.ink,2.4)+wheels+trace(ip,P.blue,'input')+trace(op,P.orange,'output')+weight(...I,c.inputMass,'input')+weight(...O,c.outputMass,'output');
-  z+=text(155,127,`radius ${num(c.pulleyRadius||.06)} m`,P.muted,18)+text(545,167,n===1?'fixed guides':'fixed return guides',P.muted,16);
-  // Small real sheaves have large transparent grab areas, without enlarging
-  // their physical radius or altering the supporting-rope count.
-  foregroundHandles.push(geometrySurface(circle(...radiusGrab,24,'transparent','transparent',0),'pulleyRadius',radiusUnits,'pulley radius'));
-  z+=handle(radiusGrab[0]+r+17,top,'pulleyRadius',radiusUnits,'pulley radius');
-  let strandControl=rect(505,460,280,63,'transparent','transparent',6)+line(530,485,755,485,P.line,5);
-  for(const value of [1,2,4,6]){const x=530+(value-1)*45;strandControl+=line(x,479,x,491,P.muted,2);z+=text(x,516,String(value),value===n?P.blue:P.muted,18);}
-  strandControl+=circle(530+(n-1)*45,485,13,P.bg,P.blue,3);
-  foregroundHandles.push(geometrySurface(strandControl,'strands',1/45,'supporting strands','x','data-values="1,2,4,6"'));
-  z+=text(645,451,'supporting strands',P.ink,19)+text(245,531,n===1?'One strand supports the load':`${n} strands support the moving block`,P.muted,17);
+  z+=`<g data-pulley-assembly="${n}" data-rope-length="${ropeLength/scale}" data-radius-px="${r}" data-pulley-scale="${scale}">`+path(rope,P.ink,2.6)+wheels+supports+'</g>'+trace(ip,P.blue,'input')+trace(op,P.orange,'output')+weight(...I,c.inputMass,'input')+weight(...O,c.outputMass,'output');
+  foregroundHandles.push(geometrySurface(circle(...radiusGrab,Math.max(24,r+10),'transparent','transparent',0),'pulleyRadius',1/scale,'pulley radius'));
+  z+=handle(radiusGrab[0]+r+17,top,'pulleyRadius',1/scale,'pulley radius');
+  let strandControl=rect(30,460,220,63,'transparent','transparent',6)+line(60,485,220,485,P.line,5);
+  for(const value of [1,2,4,6]){const x=60+(value-1)*32;strandControl+=line(x,479,x,491,P.muted,2);z+=text(x,516,String(value),value===n?P.blue:P.muted,18);}
+  strandControl+=circle(60+(n-1)*32,485,13,P.bg,P.blue,3);
+  foregroundHandles.push(geometrySurface(strandControl,'strands',1/32,'supporting strands','x','data-values="1,2,4,6"'));
+  z+=text(140,451,'supporting strands',P.ink,19)+text(515,531,n===1?'1 numbered strand supports the load':`${n} numbered strands support the moving block`,P.muted,17);
  } else if(c.type==='wheel'){
   const scale=Math.min(112/Math.max(c.rIn,c.rOut),165/lim.max,165/(lim.max/R)),ri=c.rIn*scale,ro=c.rOut*scale,cx=450,cy=190,theta=-q/c.rIn;
   bodyScale=scale;
@@ -183,12 +205,17 @@ export function renderScene(c,state,readout={},options={}){
   const wedgePath=u=>[baseX+u*scale,baseY-12];z+=trace(wedgePath,P.blue,'wedge-path');
   if(paths)z+=text(275,498,'wedge travel = rope travel',P.blue,14);
  } else if(c.type==='hydraulic'){
-  const scale=Math.min(170/lim.max,170/(lim.max/R)),diam1=Math.min(66,160/Math.sqrt(R)),diam2=diam1*Math.sqrt(R),x1=250,x2=650,bottom=455,p1=230+q*scale,p2=400-q*scale/R,sz1=10*Math.sqrt(c.inputMass),sz2=10*Math.sqrt(c.outputMass),ip=u=>[x1,230+u*scale-sz1/2],op=u=>[x2,400-u*scale/R-sz2/2],I=ip(q),O=op(q);
+  // Circular bores: D = 2 sqrt(A / pi). One fixed cross-section scale makes
+  // absolute area changes visible, including equal-ratio configurations.
+  const scale=Math.min(170/lim.max,170/(lim.max/R)),diam1=36*Math.sqrt(c.areaIn),diam2=36*Math.sqrt(c.areaOut),x1=250,x2=650,bottom=455,p1=230+q*scale,p2=400-q*scale/R,sz1=10*Math.sqrt(c.inputMass),sz2=10*Math.sqrt(c.outputMass),ip=u=>[x1,230+u*scale-sz1/2],op=u=>[x2,400-u*scale/R-sz2/2],I=ip(q),O=op(q);
   bodyScale=scale;
   z+=sectionLabels(250,650)+path(`M${x1},${bottom} V470 H${x2} V${bottom}`,P.line,22)+path(`M${x1},${bottom} V470 H${x2} V${bottom}`,P.water,16);
-  z+=rect(x1-diam1/2,120,diam1,bottom-120,P.bg,P.line,3)+rect(x2-diam2/2,120,diam2,bottom-120,P.bg,P.line,3)+rect(x1-diam1/2+3,p1+8,diam1-6,bottom-p1-11,P.water,'transparent',0)+rect(x2-diam2/2+3,p2+8,diam2-6,bottom-p2-11,P.water,'transparent',0)+rect(x1-diam1/2,p1,diam1,9,P.metal,P.blue,1)+rect(x2-diam2/2,p2,diam2,9,P.metal,P.orange,1);
-  z+=trace(ip,P.blue,'input')+trace(op,P.orange,'output')+weight(...I,c.inputMass,'input',{pan:false})+weight(...O,c.outputMass,'output',{pan:false})+text(115,200,`area ${num(c.areaIn)}`,P.blue,20)+text(800,200,`area ${num(c.areaOut)}`,P.orange,20)+handle(x2+diam2/2+18,240,'areaOut',.05,'output piston area');
-  z+=text(450,460,'water',P.muted,14)+text(450,515,'Same water volume moves between the two cylinders',P.muted,15);
+  for(const [side,x,diam,area,piston,col] of [['input',x1,diam1,c.areaIn,p1,P.blue],['output',x2,diam2,c.areaOut,p2,P.orange]]){
+   z+=`<g data-bore="${side}" data-area="${area}" data-diameter-px="${diam}" data-diameter-cm="${2*Math.sqrt(area/Math.PI)}">`+rect(x-diam/2,120,diam,bottom-120,P.bg,P.line,3)+rect(x-diam/2+3,piston+8,diam-6,bottom-piston-11,P.water,'transparent',0)+rect(x-diam/2,piston,diam,9,P.metal,col,1)+line(x-diam/2-10,120,x+diam/2+10,120,P.line,3)+'</g>';
+   z+=handle(x+diam/2+18,240,side==='input'?'areaIn':'areaOut',.05,`${side} piston area`);
+  }
+  z+=trace(ip,P.blue,'input')+trace(op,P.orange,'output')+weight(...I,c.inputMass,'input',{pan:false})+weight(...O,c.outputMass,'output',{pan:false})+text(112,196,`${num(c.areaIn)} cm²`,P.blue,20)+text(810,196,`${num(c.areaOut)} cm²`,P.orange,20);
+  z+=text(450,460,'water',P.muted,14)+text(450,506,'Circular bores: diameter ∝ √area',P.muted,17)+text(450,530,'Same water volume moves through both cylinders',P.muted,16);
  } else z+=text(450,265,'Select a machine',P.muted,22);
  if(options._trajectoryCapture){
   const data={viewBox:[0,0,900,540],input:null,output:null,extras:{}};

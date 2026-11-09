@@ -309,7 +309,8 @@ for(const type of types)for(const side of ['input','output']) {
 const pulley=normalizeConfig({...defaultConfig('pulley'),pulleyTravel:1.7,pulleyRadius:.1});
 near(limits(pulley).max,1.7);near(ratio(pulley),2);
 near(normalizeConfig({...pulley,pulleyTravel:9,pulleyRadius:9}).pulleyTravel,1.8);
-near(normalizeConfig({...pulley,pulleyTravel:0,pulleyRadius:0}).pulleyRadius,.04);
+near(normalizeConfig({...pulley,pulleyTravel:0,pulleyRadius:0}).pulleyRadius,.08);
+near(normalizeConfig({...pulley,pulleyRadius:9}).pulleyRadius,.32);
 near(normalizeConfig({...pulley,strands:3}).strands,2);
 near(normalizeConfig({...pulley,strands:5}).strands,4);
 let dampedExtremeRuns=0;

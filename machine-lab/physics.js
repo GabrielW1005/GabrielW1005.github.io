@@ -19,7 +19,7 @@ export function defaultConfig(type='lever') {
   if (!TYPES.has(type)) type='lever';
   const common={type,inputMass:0,outputMass:20,force:0,damping:0,rIn:1.2,rOut:.3,
     length:2,height:.5,teethIn:12,teethOut:48,crankRadius:.1,drumRadius:.1,
-    handleRadius:.3/pi2,lead:.01,strands:2,pulleyTravel:1.2,pulleyRadius:.06,areaIn:1,areaOut:5};
+    handleRadius:.3/pi2,lead:.01,strands:2,pulleyTravel:1.2,pulleyRadius:.18,areaIn:1,areaOut:5};
   const values={
     lever:{},ramp:{outputMass:18},pulley:{outputMass:14},
     wheel:{rIn:.2,rOut:.04,outputMass:24},
@@ -55,7 +55,7 @@ export function normalizeConfig(config={}) {
   const requestedStrands=clamp(finite(c.strands,d.strands),1,6);
   c.strands=[1,2,4,6].reduce((best,value)=>Math.abs(value-requestedStrands)<Math.abs(best-requestedStrands)?value:best,1);
   c.pulleyTravel=clamp(finite(c.pulleyTravel,d.pulleyTravel),.6,1.8);
-  c.pulleyRadius=clamp(finite(c.pulleyRadius,d.pulleyRadius),.04,.12);
+  c.pulleyRadius=clamp(finite(c.pulleyRadius,d.pulleyRadius),.08,.32);
   c.areaIn=clamp(finite(c.areaIn,d.areaIn),.25,10);
   c.areaOut=clamp(finite(c.areaOut,d.areaOut),.25,20);
   return c;

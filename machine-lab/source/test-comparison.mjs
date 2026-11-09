@@ -61,4 +61,24 @@ for(const type of types)for(const variant of [0,1,2,3]){
 c={...defaultConfig('lever'),inputMass:5,outputMass:20};
 m=buildComparisonModel({config:c,state:{q0:0,q:.2},readout:{pointerWork:3,dampingEnergyLoss:1}});assert.ok(m.equal&&m.extraDynamics&&m.hadPull);near(m.dissipation,1);checks++;
 const rendered=renderComparison({config:c,state:{q0:0,q:.2},readout:{pointerWork:3,dampingEnergyLoss:1},phase:2});assert.ok(rendered.includes('accounted for separately'));checks++;
+// Manual step changes must keep the same physical scale, line positions and
+// viewport. The work projection is a separate line, never a replacement path.
+for(const type of ['lever','ramp','gears','pulley']){
+ const conf=normalizeConfig({...defaultConfig(type),inputMass:5,outputMass:20});
+ const lim=limits(conf),snapshot={q0:lim.min+.2*lim.range,q:lim.min+.7*lim.range};
+ const model=buildComparisonModel({config:conf,state:snapshot});
+ const views=[0,1,2].map(phase=>renderComparison({config:conf,state:snapshot,phase}));
+ const paths=html=>html.match(/<line[^>]*data-comparison-path="[^"]+"[^>]*\/>/g);
+ const work=html=>html.match(/<line[^>]*data-comparison-work="[^"]+"[^>]*\/>/g);
+ assert.equal(paths(views[0]).length,2);assert.equal(work(views[0]).length,2);checks+=2;
+ for(const view of views){
+  assert.ok(view.includes('viewBox="0 0 900 400"'));assert.ok(!view.includes('<animate'));
+  assert.deepEqual(paths(view),paths(views[0]));assert.deepEqual(work(view),work(views[0]));checks+=4;
+ }
+ near(model.productDrawIn.width,model.workDrawIn.width);
+ near(model.productDrawOut.width,model.workDrawOut.width);
+ near(model.pathDrawIn.width/model.pathIn,model.distanceScale);
+ near(model.pathDrawOut.width/model.pathOut,model.distanceScale);
+ if(type==='ramp')assert.ok(model.pathDrawOut.width>model.workDrawOut.width);
+}
 console.log(`Comparison checks passed: ${checks}`);
