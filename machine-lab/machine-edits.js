@@ -1,5 +1,5 @@
 /** Editable setup values. Ramp height and horizontal run are independent. */
-import {normalizeConfig} from './physics.js';
+import {normalizeConfig} from './physics.js?v=balance-v1';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const horizontalRun=c=>Math.sqrt(Math.max(0,c.length*c.length-c.height*c.height));
 export const setupEntry=value=>Number(value.toPrecision(10)).toString();

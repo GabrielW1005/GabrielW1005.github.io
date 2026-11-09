@@ -1,6 +1,6 @@
 /** Snapshot comparison of real paths, force-aligned distances and work products. */
-import {normalizeConfig, ratio, limits, GRAVITY, isAngularMachine, verticalCoordinates, bodyJacobian} from './physics.js';
-import {trajectoryGeometry} from './scene.js';
+import {normalizeConfig, ratio, limits, GRAVITY, isAngularMachine, verticalCoordinates, bodyJacobian} from './physics.js?v=balance-v1';
+import {trajectoryGeometry} from './scene.js?v=balance-v1';
 
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const finite=(n,fallback=0)=>Number.isFinite(Number(n))?Number(n):fallback;

@@ -1,5 +1,5 @@
-import { ratio, limits } from './physics.js';
-import {displayValue} from './value-steps.js';
+import { ratio, limits } from './physics.js?v=balance-v1';
+import {displayValue} from './value-steps.js?v=balance-v1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=n=>Number.isFinite(n)?Number(n.toPrecision(4)).toString():'0';
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));

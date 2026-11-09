@@ -1,6 +1,6 @@
 /** One editable quantity, exact equilibrium targets, no answer-revealing feedback. */
-import {defaultConfig,normalizeConfig,ratio,MAX_MASS} from './physics.js';
-import {machineCatalog} from './challenges.js';
+import {defaultConfig,normalizeConfig,ratio,MAX_MASS} from './physics.js?v=balance-v1';
+import {machineCatalog} from './challenges.js?v=balance-v1';
 const f=n=>Number(n.toPrecision(8)).toString();
 const clean=n=>Number(n.toFixed(10));
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
