@@ -494,3 +494,22 @@ body[data-mode="balance"] .lesson-window #feedback{font-size:14px;line-height:1.
   body[data-mode="balance"] .advance-row{display:flex;width:100%;margin:7px 0 0}
   body[data-mode="balance"] .advance-row button{font-size:11px;min-height:30px}
 }
+
+/* Keep the answer, Run and problem navigation together in the right panel. */
+#answerForm{grid-template-columns:minmax(0,1fr);gap:8px;align-items:stretch}
+#answerForm>button{width:100%;margin:0}
+.lesson-window .problem-actions{display:flex;gap:8px;margin-top:10px}
+.lesson-window .problem-actions>button{flex:1 1 0;min-width:0;min-height:38px;padding:8px 10px;font-size:13px;white-space:nowrap}
+body[data-mode="balance"] .lesson-window .advance-row{display:none}
+#autoPanel #playBtn{min-height:43px;font-size:14px;margin:3px 0 8px}
+@media(max-height:760px) and (min-width:851px){
+  #answerForm{gap:6px}
+  .lesson-window .problem-actions{margin-top:8px}
+  .lesson-window .problem-actions>button{min-height:35px;padding:7px 9px}
+}
+@media(max-width:650px){
+  #answerForm{gap:5px}
+  .lesson-window .problem-actions{margin-top:6px;gap:6px}
+  .lesson-window .problem-actions>button{min-height:31px;font-size:11px;padding:6px 8px}
+  #autoPanel #playBtn{min-height:34px;font-size:12px;margin:3px 0 6px}
+}

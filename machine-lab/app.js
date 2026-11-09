@@ -19,7 +19,7 @@ let custom=false,attempts=0,credited=false,forceCorrect=false,playing=false,fram
 let history=[],bodyInfo={},drag=null,pull=null,pointers=new Map(),pinch=null,pendingResize=null,advanceTimer=0;
 let autoAnimating=false,autoFrame=0,autoStart=0,autoNotice='',distanceDemo=false;
 let camera={zoom:1,cx:450,cy:270},rampView=null;
-const PROGRESS_KEY='machine-lab-progress-v1',RELEASE='reset-v1';
+const PROGRESS_KEY='machine-lab-progress-v1',RELEASE='controls-v1';
 let progressReady=false,saveTimer=0,student='',progressStats={},sharedPreview=null;
 let testedEntry='',movementTest=null,comparisonSnapshot=null,comparisonPhase=0;
 const machine=()=>machineCatalog.find(m=>m.type===type);
@@ -33,7 +33,8 @@ function maxStage(){return machine().levels.length;}
 function totalScore(){return Object.values(skills()).reduce((a,b)=>a+Math.min(b,maxStage()),0);}
 function cancelAdvance(){clearTimeout(advanceTimer);advanceTimer=0;$('advanceNotice').textContent='';}
 function stopAuto(){const changed=autoAnimating;autoAnimating=false;cancelAnimationFrame(autoFrame);$('autoAnimate').textContent='▶ Compare balanced setups';if(changed)queueAutoSave();}
-function stop(){playing=false;cancelAnimationFrame(frame);lastTime=0;$('playBtn').textContent='▶ Run';queueDraw();}
+function syncRunButtons(){for(const id of ['testBtn','playBtn'])$(id).textContent=playing?'Ⅱ Pause':'▶ Run';}
+function stop(){playing=false;cancelAnimationFrame(frame);lastTime=0;syncRunButtons();queueDraw();}
 function external(){
  if(pull)return pull.force;
  if(!movementTest)return {input:0,output:0};
@@ -42,7 +43,7 @@ function external(){
  const Qbase=generalizedDrive(config,state.q);
  return {input:clamp(-Qbase/J+k*error-d*speed,-MAX_FORCE,MAX_FORCE),output:0};
 }
-function start(){if(playing)return;stopAuto();playing=true;lastTime=0;$('playBtn').textContent='Ⅱ Pause';frame=requestAnimationFrame(tick);}
+function start(){if(playing)return;stopAuto();playing=true;lastTime=0;syncRunButtons();frame=requestAnimationFrame(tick);}
 function tick(t){if(!playing)return;const dt=lastTime?Math.min((t-lastTime)/1000,.05):0;lastTime=t;
  if(pull)updatePull();
  const speed=Number($('speed').value);step(state,config,dt*speed,external());
@@ -74,7 +75,7 @@ function setConfig(next,{edited='',mark=true}={}){
  const resume=playing&&mode!=='balance';stopAuto();stop();pull=null;distanceDemo=false;movementTest=null;testedEntry='';cancelAdvance();const old=config;config=normalizeConfig(next);
  if(mode==='auto')balanceAuto(edited);
  const oldBounds=limits(old),fraction=(state.q-oldBounds.min)/oldBounds.range;changeConfig(state,old,config);if(old.force!==config.force)state=makeState(config,fraction);history=[];
- if(mode==='challenge'&&mark){custom=true;forceCorrect=false;$('nudgeBtn').hidden=true;$('setupNotice').hidden=false;$('testBtn').textContent='Test edited machine →';}
+ if(mode==='challenge'&&mark){custom=true;forceCorrect=false;$('nudgeBtn').hidden=true;$('setupNotice').hidden=false;}
  $('feedback').textContent='';syncControls();if(mode==='balance'){$('answerValue').value=entryValue(setupValue(config,challenge.key));}if(custom)renderQuestion();queueDraw();queueAutoSave();if(resume&&!drag)start();
 }
 function resetCamera(){camera={zoom:1,cx:450,cy:270};rampView=null;queueDraw();queueAutoSave();}
@@ -104,7 +105,7 @@ function loadChallenge({newNumbers=false,keepAttempt=false}={}){
  custom=false;if(!keepAttempt){attempts=0;credited=false;}forceCorrect=false;history=[];testedEntry='';
  if(mode==='auto'){config={...defaultConfig(type),damping:resistance};balanceAuto();}else config.damping=resistance;
  syncResistance();
- state=makeState(config,challenge.startFraction??.25);$('answerValue').value='';$('feedback').textContent='';$('steps').hidden=true;$('stepsBtn').textContent='Show steps';$('setupNotice').hidden=true;$('nudgeBtn').hidden=true;$('testBtn').textContent='Check & run →';
+ state=makeState(config,challenge.startFraction??.25);$('answerValue').value='';$('feedback').textContent='';$('steps').hidden=true;$('stepsBtn').textContent='Show steps';$('setupNotice').hidden=true;$('nudgeBtn').hidden=true;
  buildControls();syncControls();renderQuestion();renderTabs();if(mode==='balance')$('answerValue').value=entryValue(setupValue(config,challenge.key));resetCamera();draw();queueAutoSave();
 }
 // Reset the same problem without erasing earned progress or granting repeat credit.
@@ -116,7 +117,7 @@ function factValues(){
 }
 function renderQuestion(){
  if(mode==='balance'){
-  $('problemLabel').textContent='BALANCE';$('score').textContent='';$('taskChoices').innerHTML='';$('levels').innerHTML='';$('challengeTitle').textContent=challenge.title;$('challengeGoal').textContent=type==='gearArms'?'BALANCE AT HORIZONTAL':'MAKE IT BALANCE';$('question').textContent=challenge.prompt;$('challengeFacts').innerHTML=challenge.given.map(s=>`<span>${esc(s)}</span>`).join('');$('answerName').textContent=challenge.label+(challenge.unit?' ('+challenge.unit+')':'');$('answerValue').placeholder='Enter a value';$('answerValue').dataset.step=challenge.step;$('testBtn').textContent='Run & test →';$('setupNotice').hidden=true;$('balanceEditHint').textContent=`Drag the marked ${challenge.kind==='mass'?'mass':'machine handle'} or enter a value. Run tests your setup; it does not show the answer.`;$('machineNote').textContent=machine().shortNote;return;
+  $('problemLabel').textContent='BALANCE';$('score').textContent='';$('taskChoices').innerHTML='';$('levels').innerHTML='';$('challengeTitle').textContent=challenge.title;$('challengeGoal').textContent=type==='gearArms'?'BALANCE AT HORIZONTAL':'MAKE IT BALANCE';$('question').textContent=challenge.prompt;$('challengeFacts').innerHTML=challenge.given.map(s=>`<span>${esc(s)}</span>`).join('');$('answerName').textContent=challenge.label+(challenge.unit?' ('+challenge.unit+')':'');$('answerValue').placeholder='Enter a value';$('answerValue').dataset.step=challenge.step;$('setupNotice').hidden=true;$('balanceEditHint').textContent=`Drag the marked ${challenge.kind==='mass'?'mass':'machine handle'} or enter a value. Run tests your setup; it does not show the answer.`;$('machineNote').textContent=machine().shortNote;return;
  }
  $('problemLabel').textContent=custom?'EDITED MACHINE':'ADAPTIVE PRACTICE';$('score').textContent=`${totalScore()} / ${maxStage()*4}`;
  $('taskChoices').innerHTML=[{id:'mixed',label:'Mixed'},...taskCatalog].map(t=>`<button data-topic="${t.id}" class="${topic===t.id?'selected':''}">${esc(({mixed:'Mixed',force:'Force',balance:'Mass',distance:'Distance',acceleration:'Acceleration'})[t.id]||t.label)}</button>`).join('');
@@ -133,7 +134,7 @@ function renderTabs(){
  document.body.dataset.mode=mode;if(mode==='balance')$('stepsWindow').hidden=true;$('taskChoices').hidden=mode==='balance';$('stepsBtn').hidden=mode==='balance';$('adaptLabel').hidden=mode==='balance';$('balanceEditHint').hidden=mode!=='balance';$('mastery').hidden=mode==='balance';$('advanceNotice').hidden=mode==='balance';$('nextBtn').textContent='Next problem →';document.querySelectorAll('[data-mode]').forEach(b=>{b.disabled=machine().balanceOnly&&b.dataset.mode!=='balance';b.title=b.disabled?'Gear arms is a Balance activity. Choose another machine for this mode.':'';});
  document.querySelectorAll('[data-machine]').forEach(b=>b.classList.toggle('selected',b.dataset.machine===type));
  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('selected',b.dataset.mode===mode));
- $('challengePanel').hidden=mode==='auto';$('autoPanel').hidden=mode!=='auto';
+ $('challengePanel').hidden=mode==='auto';$('autoPanel').hidden=mode!=='auto';$('nextBtn').hidden=mode==='auto';syncRunButtons();
  $('stageTitle').textContent=machine().label+(mode==='auto'?' · Auto balance':'');
  $('restoreBtn').textContent=mode==='auto'?'Reset machine':'Restore this problem';
 }
@@ -245,7 +246,7 @@ function applyBalanceTest(){
  state=makeState(config,challenge.startFraction??.5);history=[];testedEntry=$('answerValue').value;
  const r=readout(state,config),balanced=r.balanced;
  feedback(balanced?(type==='gearArms'?'✓ Balanced at horizontal. Run continues; you can pull an arm to explore.':'✓ Balanced. Neither side starts moving.'):`Not balanced. The output ${r.balanceError>0?'rises':'lowers'}. Adjust ${challenge.label.toLowerCase()} and try again.`,balanced);
- syncControls();$('answerValue').value=entryValue(setupValue(config,challenge.key));recordCurrentTest(balanced);draw();start();
+ syncControls();$('answerValue').value=entryValue(setupValue(config,challenge.key));testedEntry=$('answerValue').value;recordCurrentTest(balanced);draw();start();
 }
 function feedback(text,good,correctValue){
  $('feedback').className=good?'good':'bad';
@@ -319,9 +320,14 @@ $('machines').onclick=e=>{const b=e.target.closest('[data-machine]');if(!b)retur
  document.querySelector('.modes').onclick=e=>{const b=e.target.closest('[data-mode]');if(b&&!b.disabled){mode=b.dataset.mode;task=mode==='balance'?'balance':topic==='mixed'?'force':topic;level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();}};
 $('taskChoices').onclick=e=>{const b=e.target.closest('[data-topic]');if(!b)return;topic=b.dataset.topic;if(topic==='mixed')chooseAdaptive('acceleration');else{task=topic;level=Math.min(skills()[task]||0,maxStage()-1);}loadChallenge();};
 $('levels').onclick=e=>{const b=e.target.closest('[data-level]');if(b){level=+b.dataset.level;loadChallenge();}};
-$('answerForm').onsubmit=applyTest;$('nextBtn').onclick=nextProblem;$('practiceBtn').onclick=()=>loadChallenge({newNumbers:true});$('autoAdvance').onchange=cancelAdvance;
+function runOrPause(e){
+ e?.preventDefault();cancelAdvance();
+ if(playing)stop();else if(mode==='auto'||(testedEntry&&testedEntry===$('answerValue').value))start();else applyTest();
+}
+$('answerForm').onsubmit=runOrPause;$('nextBtn').onclick=nextProblem;$('practiceBtn').onclick=()=>loadChallenge({newNumbers:true});$('autoAdvance').onchange=cancelAdvance;
+$('answerValue').addEventListener('input',()=>{cancelAdvance();if(playing)stop();testedEntry='';});
 $('stepsBtn').onclick=()=>{$('steps').hidden=!$('steps').hidden;$('stepsBtn').textContent=$('steps').hidden?'Show steps':'Hide steps';$('steps').innerHTML=(custom?['In the ideal setting, F₁d₁ = F₂d₂ at balance or steady speed.','MA = d₁/d₂ from the current machine geometry.','For acceleration, calculate the net force and divide by the mass.','Restore the original problem for its numerical setup.']:challenge.steps).map((s,i)=>`<p><b>${i+1}.</b> ${esc(s)}</p>`).join('');};
-$('playBtn').onclick=()=>{cancelAdvance();if(playing)stop();else if(mode==='balance')applyBalanceTest();else if(mode==='challenge'&&$('answerValue').value.trim()&&testedEntry!==$('answerValue').value){applyTest();}else start();};
+$('playBtn').onclick=runOrPause;
 $('resetBtn').onclick=resetProblem;$('nudgeBtn').onclick=()=>{cancelAdvance();config.force=clamp(currentAnswer()*1.02,0,MAX_FORCE);config.inputMass=0;restart();syncControls();feedback('Testing 2% above the balance threshold. Extra work becomes kinetic energy and, with resistance enabled, heat.',true);start();};
 $('restoreBtn').onclick=resetProblem;
 for(const id of ['inputMass','outputMass','appliedForce']){const commit=e=>{const key=id==='appliedForce'?'force':id;if(!editable(key))return;const value=parse(e.target.value),isGuess=mode==='challenge'&&((task==='balance'&&key==='inputMass')||(task==='force'&&key==='force'));if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key,mark:!isGuess});e.target.value=answerRounding(config[key]).text;e.target.dataset.renderedValue=e.target.value;if(isGuess)$('answerValue').value=fmt(config[key]);};$(id).onchange=commit;$(id).onblur=commit;$(id).onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit(e);}};}
@@ -444,9 +450,10 @@ document.addEventListener('change',e=>{if(e.target.closest('.app'))queueAutoSave
 window.addEventListener('pagehide',()=>saveProgressNow());
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveProgressNow();});
 let storedProgress=null;try{const raw=localStorage.getItem(PROGRESS_KEY);if(raw)storedProgress=parseProgress(raw);}catch{}
-if(storedProgress)restoreProgress(storedProgress,false);else{const hash=location.hash.match(/machine=(\w+)/);if(hash&&machineCatalog.some(m=>m.type===hash[1]))type=hash[1];level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();theme();}
+const defaultedToBalance=storedProgress&&storedProgress.session.mode!=='balance';
+if(storedProgress){restoreProgress(storedProgress,false);if(defaultedToBalance){mode='balance';task='balance';level=0;loadChallenge();}}else{const hash=location.hash.match(/machine=(\w+)/);if(hash&&machineCatalog.some(m=>m.type===hash[1]))type=hash[1];level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();theme();}
 initPanels();progressReady=true;
-if(storedProgress)progressStatus('Progress restored on this device. Run starts from rest.');else queueAutoSave();
+if(storedProgress&&!defaultedToBalance)progressStatus('Progress restored on this device. Run starts from rest.');else queueAutoSave();
 function openSharedLink(){
  const sharedToken=new URLSearchParams(location.hash.slice(1)).get('progress');
  if(sharedToken){try{openProgress(decodeProgress(sharedToken),true);}catch{openProgress();$('progressMessage').textContent='This progress link is invalid or incomplete. Your saved work is unchanged.';}}
