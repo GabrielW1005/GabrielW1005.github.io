@@ -3,6 +3,12 @@ import {machineCatalog,taskCatalog,createChallenge} from '../challenges.js';
 import {ratio,limits,equilibriumForce,makeState,readout,step,GRAVITY,MAX_FORCE,MAX_MASS} from '../physics.js';
 
 const close=(a,b,note)=>assert.ok(Math.abs(a-b)<=1e-8*Math.max(1,Math.abs(a),Math.abs(b)),`${note}: ${a} ≠ ${b}`);
+const onGrid=(n,step)=>Math.abs(n/step-Math.round(n/step))<1e-7;
+const assertGrid=(n,step,note)=>assert.ok(onGrid(n,step),`${note}: ${n} is not on step ${step}`);
+function finiteNumbers(value,path){
+  if(typeof value==='number')assert.ok(Number.isFinite(value),`${path} must be finite`);
+  else if(value&&typeof value==='object')for(const [key,item] of Object.entries(value))finiteNumbers(item,`${path}.${key}`);
+}
 const reversible=new Set(['lever','wheel','gears','hydraulic']);
 const expectedRatio=(type,level,variant)=>{
   if(type==='pulley')return [1,2,4,6][level];
@@ -11,8 +17,9 @@ const expectedRatio=(type,level,variant)=>{
 };
 const distinct=(list,key)=>new Set(list.map(c=>typeof key==='function'?key(c):c[key])).size;
 let checked=0;
+let tinyDistances=0;
 for(const machine of machineCatalog){
-  for(let variant=0;variant<40;variant++){
+  for(const variant of [...Array(40).keys(),97,128,999,65535]){
     const masses=[],advantages=[],liftingForces=[];
     for(let level=0;level<machine.levels.length;level++){
       for(const task of taskCatalog){
@@ -26,6 +33,16 @@ for(const machine of machineCatalog){
         assert.ok(c.force>=0&&c.force<=MAX_FORCE,`${p.id} supported force range`);
         assert.ok(c.inputMass>=0&&c.inputMass<=MAX_MASS,`${p.id} supported input mass range`);
         assert.ok(c.outputMass>0&&c.outputMass<=MAX_MASS,`${p.id} supported output mass range`);
+        assertGrid(c.outputMass,.5,`${p.id} editable output mass grid`);
+        assertGrid(c.inputMass,.5,`${p.id} editable input mass grid`);
+        assertGrid(p.answer,p.answerStep,`${p.id} exact answer uses the advertised increment`);
+        for(const field of machine.geometry){
+          assert.ok(c[field.key]>=field.min-1e-9&&c[field.key]<=field.max+1e-9,`${p.id} ${field.key} is within its displayed control range`);
+          if(machine.type==='screw'&&field.key==='handleRadius'){
+            assertGrid(2*Math.PI*c.handleRadius,.01,`${p.id} screw radius derives from a clean circumference`);
+          }else assertGrid(c[field.key]-field.min,field.step,`${p.id} ${field.key} follows its editable control grid`);
+          if(field.values)assert.ok(field.values.includes(c[field.key]),`${p.id} uses a supported discrete geometry option`);
+        }
         assert.equal(c.damping,0,`${p.id} ideal generated exercise`);
         assert.ok(!/\bMA\b|mechanical advantage/i.test(p.prompt),`${p.id} prompt requests only the primary value`);
         assert.ok(p.steps.length>=4&&p.given.length>=3,`${p.id} complete setup`);
@@ -33,10 +50,16 @@ for(const machine of machineCatalog){
         assert.ok(p.steps.every(s=>!s.includes('The answer is')),`${p.id} hints do not state the answer`);
         if(machine.type==='ramp')assert.ok(c.length>c.height,`${p.id} real inclined ramp`);
         const state=makeState(c,p.startFraction),r=readout(state,c);
+        finiteNumbers(p,p.id);
+        finiteNumbers(r,`${p.id}.initialReadout`);
+        assert.ok([...p.given,...p.steps,p.prompt].every(s=>!s.includes('NaN')&&!s.includes('Infinity')),`${p.id} view text has finite numbers`);
         if(task.id==='force'){
           assert.equal(p.mode,'minimum');
           assert.ok(p.prompt.includes('From rest')&&p.prompt.includes('whole-number'),`${p.id} well-defined minimum`);
           assert.equal(c.inputMass,0);
+          assert.equal(c.force,0,`${p.id} starting force does not reveal the answer`);
+          assert.equal(p.answerPrecision,0);
+          assert.equal(p.answerStep,1);
           close(p.balanceForce,equilibriumForce(c),`${p.id} balance threshold`);
           assert.equal(p.answer,Math.floor(p.balanceForce+1e-9)+1,`${p.id} smallest integer above threshold`);
           assert.ok(p.answer<=MAX_FORCE,`${p.id} answer below force cap`);
@@ -51,6 +74,8 @@ for(const machine of machineCatalog){
           assert.ok(readout(makeState(lower,p.startFraction),lower).acceleration<=1e-8,`${p.id} one fewer newton cannot lift from rest`);
           masses.push(c.outputMass);advantages.push(p.ma);liftingForces.push(p.answer);
         }else if(task.id==='balance'){
+          assertGrid(p.answer,.5,`${p.id} exact balance answer is a whole or half kilogram`);
+          assert.equal(p.answerStep,.5);
           close(p.answer*p.ma,c.outputMass,`${p.id} balanced mass`);
           assert.ok(p.answer<=MAX_MASS,`${p.id} balance target is achievable without clipping`);
           assert.equal(c.force,0);
@@ -60,16 +85,31 @@ for(const machine of machineCatalog){
           close(s.q,s.q0,`${p.id} correct weight stays balanced`);
           assert.ok(p.steps.some(s=>s.includes('g cancels')),`${p.id} cancellation is explained`);
         }else if(task.id==='distance'){
+          assert.ok([2,3].includes(p.answerPrecision),`${p.id} distance has at most three decimals`);
+          assertGrid(p.answer,10**-p.answerPrecision,`${p.id} exact input distance precision`);
+          assertGrid(p.motionDistance,10**-p.answerPrecision,`${p.id} supplied output distance precision`);
           close(p.answer,p.motionDistance*p.ma,`${p.id} work-distance ratio`);
           close(equilibriumForce(c),0,`${p.id} balanced demonstration`);
           const b=limits(c);
+          if(p.answerPrecision===3){
+            tinyDistances++;
+            const available=c.type==='lever'?c.rOut*(Math.sin(b.max)-Math.sin(state.q)):(b.max-state.q)/p.ma;
+            const cleanHundredths=Array.from({length:Math.floor(available*.75*100+1e-8)},(_,i)=>(i+1)/100)
+              .filter(d=>onGrid(d*p.ma,.01)&&![1,2,3].some(n=>Math.abs(d*p.ma-n)<1e-8));
+            assert.equal(cleanHundredths.length,0,`${p.id} a third decimal is used only when no two-decimal pair fits`);
+          }
           assert.ok(p.motion.targetQ>b.min&&p.motion.targetQ<b.max,`${p.id} motion remains inside stroke`);
           close(p.motion.qtarget,p.motion.targetQ,`${p.id} target aliases agree`);
           const end=readout({...state,q:p.motion.targetQ},c);
+          finiteNumbers(end,`${p.id}.targetReadout`);
           close(end.displacementIn,p.answer,`${p.id} input work distance`);
           close(end.displacementOut,p.motionDistance,`${p.id} output rise`);
           assert.ok(!p.given.some(s=>s.includes('Input travel:')),`${p.id} does not give unknown input distance`);
         }else{
+          assertGrid(p.answer,.1,`${p.id} acceleration answer has at most one decimal`);
+          assertGrid(c.force,.01,`${p.id} applied force has at most two decimals`);
+          assert.equal(p.answerPrecision,1);
+          assert.equal(p.answerStep,.1);
           const measured=c.type==='ramp'?r.acceleration:r.outputAcceleration;
           close(measured,p.answer,`${p.id} actual initial engine acceleration`);
           assert.equal(c.inputMass,0);
@@ -133,4 +173,5 @@ for(const machine of machineCatalog){
   }
 }
 assert.deepEqual(taskCatalog.map(x=>x.id),['force','balance','distance','acceleration']);
-console.log(`Passed ${checked} single-answer challenge cases: lifting minima, mass/force caps, MA below/equal/above one, syringe area and pulley sublevel variety, geometry progression, stroke bounds, initial acceleration, and optional damping.`);
+assert.ok(tinyDistances>0,'tiny-stroke three-decimal fallback is exercised');
+console.log(`Passed ${checked} single-answer challenge cases: exact clean-number answers, editable geometry grids, finite view data, lifting minima, mass/force caps, geometry variety, stroke bounds, initial acceleration, and optional damping. ${tinyDistances} tiny-stroke cases correctly require three-decimal distances.`);

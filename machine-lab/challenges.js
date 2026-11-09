@@ -4,11 +4,11 @@ import { defaultConfig, normalizeConfig, ratio, GRAVITY, limits } from './physic
 const field=(key,label,min,max,step,unit)=>({key,label,min,max,step,unit});
 export const machineCatalog=[
   {type:'lever',label:'Lever',shortNote:'A longer input arm travels farther and needs less force; a shorter input arm gives more output travel but needs more force. Use vertical rise/fall for work. Loads stay at the arm endpoints.',levels:['Shorter input arm','Equal arms','Longer input arm','Much longer input arm'],geometry:[field('rIn','Input arm',.15,3,.05,'m'),field('rOut','Output arm',.15,3,.05,'m')]},
-  {type:'ramp',label:'Ramp',shortNote:'The input rope travels along the ramp distance. The output work is weight × vertical rise. Acceleration questions measure motion along the slope.',levels:['Short ramp','Gentler slope','Long ramp'],geometry:[field('length','Ramp length',.3,5,.1,'m'),field('height','Ramp height',.1,2,.1,'m')]},
+  {type:'ramp',label:'Ramp',shortNote:'The input rope travels along the ramp distance. The output work is weight × vertical rise. Acceleration questions measure motion along the slope.',levels:['Short ramp','Gentler slope','Long ramp'],geometry:[field('length','Ramp length',.3,5,.1,'m'),field('height','Ramp height',.1,2,.05,'m')]},
   {type:'pulley',label:'Pulley',shortNote:'Count the rope segments supporting the moving load. A fixed pulley changes direction; more supporting segments reduce the balance force and increase input travel. Pulley diameter does not change this ratio.',levels:['Fixed guides · 1 strand','One moving pulley · 2 strands','Two moving pulleys · 4 strands','Three moving pulleys · 6 strands'],geometry:[{...field('strands','Supporting ropes',1,6,1,''),values:[1,2,4,6]},field('pulleyTravel','Input travel span',.6,1.8,.1,'m'),field('pulleyRadius','Pulley radius',.08,.32,.01,'m')]},
   {type:'wheel',label:'Wheel & axle',shortNote:'The wheel and axle turn together. Rope travel equals radius × angle. A larger input radius gives a force advantage; a smaller one gives more output travel.',levels:['Smaller input radius','Equal radii','Larger input radius','Much larger input radius'],geometry:[field('rIn','Input radius',.015,.5,.005,'m'),field('rOut','Output radius',.015,.5,.005,'m')]},
   {type:'gears',label:'Gears',shortNote:'Gear teeth change torque and rotation speed. The drum radii determine the forces; tooth-contact forces are equal.',levels:['More output travel','Equal overall ratio','More output force','High force advantage'],geometry:[field('teethIn','Input teeth',8,96,1,''),field('teethOut','Output teeth',8,96,1,''),field('crankRadius','Input drum radius',.03,.3,.01,'m'),field('drumRadius','Output drum radius',.03,.3,.01,'m')]},
-  {type:'screw',label:'Screw',shortNote:'One turn moves the input rim through a circumference and raises the guided platform by one lead. The screw does not move up or down.',levels:['Coarse lead','Smaller lead','Smallest lead'],geometry:[field('handleRadius','Input drum radius',.015,.15,.005,'m'),field('lead','Rise per turn',.003,.6,.003,'m')]},
+  {type:'screw',label:'Screw',shortNote:'One turn moves the input rim through a circumference and raises the guided platform by one lead. The screw does not move up or down.',levels:['Coarse lead','Smaller lead','Smallest lead'],geometry:[field('handleRadius','Input drum radius',.015,.15,.005,'m'),field('lead','Rise per turn',.003,.6,.001,'m')]},
   {type:'wedge',label:'Wedge',shortNote:'A horizontal push on the moving wedge raises the guided load. Compare horizontal advance with vertical rise.',levels:['Steep wedges','Gentler wedges','Shallow wedges'],geometry:[field('length','Horizontal run',.06,.75,.01,'m'),field('height','Wedge rise',.01,.3,.01,'m')]},
   {type:'hydraulic',label:'Syringes',shortNote:'The same water volume leaves one piston and enters the other. A larger output area gives more force but less travel; a smaller output area gives more travel but less force. Fluid head and friction are ignored.',levels:['Smaller output piston','Equal piston areas','Larger output piston','Much larger output piston'],geometry:[field('areaIn','Input piston area',.25,10,.25,'cm²'),field('areaOut','Output piston area',.25,20,.25,'cm²')]}
 ];
@@ -24,8 +24,10 @@ const integer=n=>Number.isFinite(Number(n))?Math.max(0,Math.floor(Number(n))):0;
 const baseMasses={lever:20,ramp:18,pulley:14,wheel:24,gears:16,screw:30,wedge:21,hydraulic:20};
 const practiceMasses=[12,12.5,14,16,17.5,18,20,22,22.5,24,26,27.5,28,30,32,36,40,44,48,52,56,60];
 const accelerations=[.4,.5,.6,.8,1.2,1.5,1.6,2.4,2.5,3.2,4,4.8,5,6];
-const distances=[.005,.008,.01,.012,.015,.02,.025,.03,.04,.05,.06,.075,.08,.09,.1,.12,.15,.18,.2,.24,.25,.3,.4,.5,.6];
 const defaultDistances={lever:.05,ramp:.2,pulley:.2,wheel:.04,gears:.04,screw:.02,wedge:.02,hydraulic:.02};
+const onGrid=(n,step)=>Math.abs(n/step-Math.round(n/step))<1e-7;
+const grid=(min,max,step)=>Array.from({length:Math.floor((max-min)/step+1e-8)+1},(_,i)=>Number((min+i*step).toFixed(10)));
+const bounded=(n,min,max)=>n>=min-1e-9&&n<=max+1e-9;
 
 // Hash the complete variant identifier. Multiplying a variant by 5 modulo a
 // 15-value pool would repeat masses every three questions; this does not.
@@ -49,7 +51,34 @@ const pulleySetups=[
   {label:'Extended travel',travel:1.6,radius:.22},
   {label:'Longest travel',travel:1.8,radius:.24}
 ];
-const scaleFor=(list,version,core)=>version?list[(version-1)%list.length]:core;
+const scaleFor=(list,version,core)=>{
+  if(!list.length)throw new Error('No compatible geometry on the control grid.');
+  return !version&&list.some(n=>Math.abs(n-core)<1e-9)?core:list[(Math.max(1,version)-1)%list.length];
+};
+
+function forceForAcceleration(c,R,a){
+  return c.type==='ramp'?c.outputMass*(GRAVITY/R+a):c.outputMass*(GRAVITY+a)/R;
+}
+function cleanAccelerations(c,R){
+  return accelerations.filter(a=>onGrid(forceForAcceleration(c,R,a),.01)&&forceForAcceleration(c,R,a)<=1000+1e-9);
+}
+// Choose compatible givens, rather than rounding an answer after solving.
+// Force comparisons retain the same load across levels. Other tasks use
+// nearby half-kilogram loads when needed to make the exact result clean.
+function setCompatibleMass(c,R,task){
+  if(task==='force')return;
+  const accepts=m=>task==='acceleration'?
+    onGrid(m/R,.01)&&cleanAccelerations({...c,outputMass:m},R).length>0:onGrid(m/R,.5);
+  if(accepts(c.outputMass))return;
+  const pool=grid(12,reversibleMachines.has(c.type)?30:60,.5).filter(accepts);
+  if(!pool.length)throw new Error(`No clean mass for ${c.type}, ratio ${R}.`);
+  pool.sort((a,b)=>Math.abs(a-c.outputMass)-Math.abs(b-c.outputMass)||a-b);
+  c.outputMass=pool[0];
+}
+function distanceChoices(R,available,precision){
+  const step=10**-precision;
+  return grid(step,available*.75,step).filter(d=>onGrid(d*R,step)&&![1,2,3].some(n=>Math.abs(d*R-n)<1e-8));
+}
 
 // Teeth have a common module; drum radii are independent of gear radii.
 // Enumerate whole-centimeter drums and integer tooth counts that produce
@@ -88,15 +117,15 @@ function setup(type,level,variant){
   c.outputMass=version?choose(reversible?practiceMasses.filter(m=>m<=30):practiceMasses,rnd):baseMasses[type];
   let sublevelLabel;
   switch(type){
-    case 'lever':c.rOut=scaleFor([.3,.325,.35,.375,.4,.425,.45,.475,.5],version,.5);c.rIn=c.rOut*targetRatio;break;
-    case 'ramp':c.height=version?choose([.2,.25,.3,.35,.4,.5,.6],rnd):.5;c.length=c.height*targetRatio;break;
+    case 'lever':c.rOut=scaleFor(grid(.15,3,.05).filter(r=>bounded(r*targetRatio,.15,3)&&onGrid(r*targetRatio,.05)),version,.5);c.rIn=c.rOut*targetRatio;break;
+    case 'ramp':c.height=scaleFor(grid(.1,2,.05).filter(h=>bounded(h*targetRatio,.3,5)&&onGrid(h*targetRatio,.1)),version,.5);c.length=c.height*targetRatio;break;
     case 'pulley':{const p=pulleySetups[version?(version-1)%pulleySetups.length:3];c.strands=targetRatio;c.pulleyTravel=p.travel;c.pulleyRadius=p.radius;sublevelLabel=p.label;break;}
-    case 'wheel':c.rOut=scaleFor([.03,.035,.04,.045,.05,.06,.065,.075,.08],version,.05);c.rIn=c.rOut*targetRatio;break;
+    case 'wheel':c.rOut=scaleFor(grid(.015,.5,.005).filter(r=>bounded(r*targetRatio,.015,.5)&&onGrid(r*targetRatio,.005)),version,.05);c.rIn=c.rOut*targetRatio;break;
     case 'gears':if(version){const options=gearsFor(targetRatio);Object.assign(c,options[(version*137+stage*53)%options.length]);}else{c.teethIn=24;c.teethOut=24*targetRatio;c.crankRadius=c.drumRadius=.1;}break;
-    case 'screw':{const circumference=version?choose([.18,.24,.3,.36,.42,.48],rnd):.3;c.handleRadius=circumference/(2*Math.PI);c.lead=circumference/targetRatio;break;}
-    case 'wedge':c.height=version?choose([.06,.075,.08,.1,.12],rnd):.1;c.length=c.height*targetRatio;break;
+    case 'screw':{const circumference=scaleFor([.18,.24,.3,.36,.42,.48,.54,.6].filter(d=>onGrid(d/targetRatio,.001)),version,.3);c.handleRadius=circumference/(2*Math.PI);c.lead=circumference/targetRatio;break;}
+    case 'wedge':c.height=scaleFor(grid(.04,.3,.01).filter(h=>bounded(h*targetRatio,.06,.75)&&onGrid(h*targetRatio,.01)),version,.1);c.length=c.height*targetRatio;break;
     case 'hydraulic':{
-      const areas=[[1,2,3,4,5,6,8],[.5,.75,1,1.5,2,3,4,6,8],[.5,.75,1,1.25,1.5,2,2.5,3,4,5,6],[.5,.75,1,1.25,1.5,2,2.5,3]][stage];
+      const areas=grid(.25,10,.25).filter(a=>bounded(a*targetRatio,.25,20)&&onGrid(a*targetRatio,.25));
       c.areaIn=scaleFor(areas,version,stage===0?2:1);c.areaOut=c.areaIn*targetRatio;break;
     }
   }
@@ -126,11 +155,13 @@ function canonicalTask(task){
 export function createChallenge(type,task='force',level=0,variant=0){
   const {machine,stage,version,sublevelLabel,config:c}=setup(type,level,variant);
   task=canonicalTask(task);
-  const R=ratio(c),geo=geometrySetup(c),balance=task==='balance',balanceForce=c.outputMass*GRAVITY/R;
+  const R=ratio(c);
+  setCompatibleMass(c,R,task);
+  const geo=geometrySetup(c),balance=task==='balance',balanceForce=c.outputMass*GRAVITY/R;
   const acceleration=task==='acceleration',distance=task==='distance';
   let answer,unknown,unit,mode,prompt,explanation,steps,goalLabel,startFraction=c.type==='lever'?.5:.15;
   const given=[`Output mass: ${f(c.outputMass)} kg`,geo.given,`g = ${GRAVITY} N/kg`];
-  let motionDistance,accelerationFrame,accelerationLabel,motion;
+  let motionDistance,accelerationFrame,accelerationLabel,motion,answerPrecision=task==='force'?0:1;
 
   if(distance){
     unknown='distance';unit='m';mode='distance';goalLabel='Reach the marked rise';
@@ -138,7 +169,10 @@ export function createChallenge(type,task='force',level=0,variant=0){
     c.inputMass=c.outputMass/R;c.force=0;
     const lim=limits(c),startQ=lim.min+startFraction*lim.range;
     const available=c.type==='lever'?c.rOut*(Math.sin(lim.max)-Math.sin(startQ)):(lim.max-startQ)/R;
-    const fitting=distances.filter(d=>d<=available*.75+1e-10&&![1,2,3].some(n=>Math.abs(d*R-n)<1e-8));
+    const hundredths=distanceChoices(R,available,2);
+    answerPrecision=hundredths.length?2:3;
+    const fitting=hundredths.length?hundredths:distanceChoices(R,available,3);
+    if(!fitting.length)throw new Error(`No clean distance fits ${c.type}, ratio ${R}.`);
     const visible=fitting.filter(d=>d>=available*.25-1e-10),choices=visible.length?visible:fitting.slice(-1);
     const wanted=version?choose(choices,randomFor(c.type,version,`distance-${stage}`)):defaultDistances[c.type];
     motionDistance=choices.includes(wanted)?wanted:choices[Math.floor(choices.length/2)];
@@ -158,8 +192,9 @@ export function createChallenge(type,task='force',level=0,variant=0){
   }else if(acceleration){
     unknown='acceleration';unit='m/s²';mode='acceleration';goalLabel='Find initial acceleration';
     c.inputMass=0;
-    answer=version?choose(accelerations,randomFor(c.type,version,`acceleration-${stage}`)):[2.4,3.2,4.8,6][stage];
-    c.force=c.type==='ramp'?c.outputMass*(GRAVITY/R+answer):c.outputMass*(GRAVITY+answer)/R;
+    const options=cleanAccelerations(c,R),core=[2.4,3.2,4.8,6][stage];
+    answer=!version&&options.includes(core)?core:choose(options,randomFor(c.type,version,`acceleration-${stage}`));
+    c.force=forceForAcceleration(c,R,answer);
     accelerationFrame=c.type==='ramp'?'alongRamp':'vertical';
     accelerationLabel=c.type==='ramp'?'Initial acceleration along the ramp':'Initial vertical output acceleration';
     prompt=c.type==='ramp'?`From rest, an input force of ${f(c.force)} N pulls the load up the ramp. Find its initial acceleration along the ramp.`:
@@ -206,6 +241,7 @@ export function createChallenge(type,task='force',level=0,variant=0){
     title:`${machine.label} · ${machine.levels[stage]}`,
     prompt,config:normalizeConfig(c),unknown,unit,answer,ma:R,idealMechanicalAdvantage:R,
     goalLabel,setupLabel:sublevelLabel?`${sublevelLabel} · ${geo.given}`:geo.given,sublevelLabel,balanceForce,
+    answerPrecision,answerStep:task==='balance'?.5:10**-answerPrecision,
     steps,given,explanation,note:machine.shortNote,mode,startFraction,motionDistance,motion,
     ...(distance?{targetInputDistance:answer,targetOutputDistance:motionDistance}:{}),
     ...(acceleration?{accelerationFrame,accelerationLabel,initialAcceleration:answer}:{}),

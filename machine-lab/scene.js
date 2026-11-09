@@ -1,4 +1,5 @@
 import { ratio, limits } from './physics.js';
+import {displayValue} from './value-steps.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=n=>Number.isFinite(n)?Number(n.toPrecision(4)).toString():'0';
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
@@ -47,7 +48,7 @@ export function renderScene(c,state,readout={},options={}){
   let z='';if(ropeTop!==null)z+=line(x,ropeTop,x,y-half,P.ink,3);
   z+=`<g data-body="${side}" data-drop="${side}" data-side="${side}" data-body-center-x="${x}" data-body-center-y="${y}" data-scale="${bodyScale}" data-tangent-x="${tangent[0]}" data-tangent-y="${tangent[1]}" data-size="${sz}" data-angle="${angle}">`;
   z+=`<g data-drag="pull" data-side="${side}" data-name="${side} mass" role="button" aria-label="${side} mass ${num(m)} kilograms. Drag to pull; resize with the handles." tabindex="0" style="cursor:grab"><g transform="rotate(${angle*180/Math.PI} ${x} ${y})">${rect(x-edge-9,y-edge-9,frame+18,frame+18,'transparent','transparent',4)}${m>0?rect(x-half,y-half,sz,sz,fill,col,3):rect(x-edge,y-edge,frame,frame,'none',col,3)}</g>`;
-  z+=text(x,Math.min(526,y+extent+30),`${num(m)} kg`,col,21,'middle','font-weight="750"')+'</g>';
+  z+=text(x,Math.min(526,y+extent+30),`${displayValue(m)} kg`,col,21,'middle','font-weight="750"')+'</g>';
   let handles=`<g transform="rotate(${angle*180/Math.PI} ${x} ${y})">`;
   for(const [sx,sy,axis] of [[-1,-1,'xy'],[1,-1,'xy'],[-1,1,'xy'],[1,1,'xy'],[1,0,'x'],[0,1,'y']]){
    const hx=x+sx*edge,hy=y+sy*edge;

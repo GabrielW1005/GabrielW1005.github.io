@@ -3,6 +3,7 @@ import {machineCatalog,taskCatalog,createChallenge} from './challenges.js';
 import {renderScene} from './scene.js';
 import {renderComparison} from './comparison.js';
 import {initPanels} from './panels.js';
+import {snapValue,answerRounding,displayValue,matchesRoundedAnswer} from './value-steps.js';
 const $=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>Number.isFinite(n)?(Math.abs(n)<1e-8?'0':Number(n.toPrecision(4)).toString()):'—';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -69,12 +70,13 @@ function setConfig(next,{edited='',mark=true}={}){
 function resetCamera(){camera={zoom:1,cx:450,cy:270};queueDraw();}
 function rampRun(c=config){return Math.sqrt(Math.max(0,c.length*c.length-c.height*c.height));}
 function lengthForRun(run,height){const lo=Math.sqrt(Math.max(0,.3**2-height**2)),hi=Math.sqrt(Math.max(0,5**2-height**2));return Math.hypot(clamp(run,lo,hi),height);}
+function snapGeometry(key,value){const f=machine().geometry.find(f=>f.key===key);if(!f)return value;if(f.values)return f.values.reduce((best,n)=>Math.abs(n-value)<Math.abs(best-value)?n:best,f.values[0]);return snapValue(value,f.step,f.min,f.max);}
 function buildControls(){
- $('geometryControls').innerHTML=machine().geometry.map(f=>`<label class="geometry-row"><span>${esc(f.label)}${f.unit?' ('+esc(f.unit)+')':''}</span>${f.values?`<select data-geometry="${f.key}" aria-label="${esc(f.label)}">${f.values.map(v=>`<option value="${v}">${v}</option>`).join('')}</select>`:`<input type="number" data-geometry="${f.key}" min="${f.min}" max="${f.max}" step="${f.step}" aria-label="${esc(f.label)}">`}</label>`).join('');
+ $('geometryControls').innerHTML=machine().geometry.map(f=>`<label class="geometry-row"><span>${esc(f.label)}${f.unit?' ('+esc(f.unit)+')':''}</span>${f.values?`<select data-geometry="${f.key}" aria-label="${esc(f.label)}">${f.values.map(v=>`<option value="${v}">${v}</option>`).join('')}</select>`:`<input type="number" data-geometry="${f.key}" min="${f.min}" max="${f.max}" step="${f.step}" title="Drag increment: ${f.step}${f.unit?' '+esc(f.unit):''}" aria-label="${esc(f.label)}">`}</label>`).join('');
  if(type==='ramp')$('geometryControls').insertAdjacentHTML('afterbegin','<label class="geometry-row"><span>Horizontal run (m)</span><input type="number" data-geometry="rampRun" min="0" max="5" step="0.1" aria-label="Horizontal ramp run"></label>');
 }
 function syncControls(){
- if(!config)return;const runControl=document.querySelector('[data-geometry="rampRun"]');if(runControl&&document.activeElement!==runControl){runControl.value=fmt(rampRun());runControl.dataset.renderedValue=runControl.value;}for(const[id,key]of[['inputMass','inputMass'],['outputMass','outputMass'],['appliedForce','force']])if(document.activeElement!==$(id)){$(id).value=fmt(config[key]);$(id).dataset.renderedValue=$(id).value;}
+ if(!config)return;const runControl=document.querySelector('[data-geometry="rampRun"]');if(runControl&&document.activeElement!==runControl){runControl.value=fmt(rampRun());runControl.dataset.renderedValue=runControl.value;}for(const[id,key]of[['inputMass','inputMass'],['outputMass','outputMass'],['appliedForce','force']])if(document.activeElement!==$(id)){$(id).value=answerRounding(config[key]).text;$(id).dataset.renderedValue=$(id).value;$(id).title=answerRounding(config[key]).approximate?'Rounded display; the simulation keeps the exact value.':'';}
  $('appliedForce').disabled=mode==='auto';
  for(const f of machine().geometry){const el=document.querySelector(`[data-geometry="${f.key}"]`);if(el&&document.activeElement!==el){el.value=fmt(config[f.key]);el.dataset.renderedValue=el.value;}}
  $('autoNotice').textContent=autoNotice;
@@ -110,6 +112,7 @@ function renderQuestion(){
  $('question').textContent=custom?({force:'Find the smallest whole-number input force that starts lifting from rest.',balance:'Find the input mass that exactly balances this setup.',distance:`Find input work distance d₁ for an output rise of ${fmt(challenge.motionDistance)} m.`,acceleration:type==='ramp'?'Find the initial acceleration along the ramp from rest.':'Find the initial output acceleration from rest.'}[task]):challenge.prompt;
  $('challengeFacts').innerHTML=factValues().map(s=>`<span>${esc(s)}</span>`).join('');
  $('answerName').textContent={force:'Smallest whole-number force (N)',balance:'Input mass (kg)',distance:'Input work distance d₁ (m)',acceleration:type==='ramp'?'Acceleration along ramp (m/s²)':'Initial output acceleration (m/s²)'}[task];
+ const rounded=answerRounding(currentAnswer(),task);if(rounded.approximate)$('question').textContent+=` Round to ${rounded.places} decimal places.`;
  $('machineNote').textContent=machine().shortNote;
 }
 function renderTabs(){
@@ -132,7 +135,7 @@ function draw(){
  updateCompare(r);if($('graphToggle').checked)drawGraph();
  $('accelerationReadout').hidden=!$('accelerations').checked;
  if($('accelerations').checked)$('accelerationReadout').innerHTML=`<b>Mass and motion</b><div class="blue">Input: ${fmt(config.inputMass)} kg · path a = ${fmt(r.inputPathAcceleration)} m/s²</div><div class="orange">Output: ${fmt(config.outputMass)} kg · path a = ${fmt(r.outputPathAcceleration)} m/s²</div><small>Signed acceleration along each path. Lever arrows also include acceleration toward the pivot. Gravity g = 10 m/s² is different from actual acceleration a.</small>`;
- if(mode==='auto'){$('autoExplanation').innerHTML=`<span class="blue">${fmt(config.inputMass)} kg</span> ↔ <span class="orange">${fmt(config.outputMass)} kg</span><br><b>Ideal MA = ${fmt(r.ma)}</b><br><small>m₁g d₁ = m₂g d₂<br>g cancels → m₁d₁ = m₂d₂</small>`;$('autoNotice').textContent=autoNotice;}
+ if(mode==='auto'){$('autoExplanation').innerHTML=`<span class="blue">${displayValue(config.inputMass)} kg</span> ↔ <span class="orange">${displayValue(config.outputMass)} kg</span><br><b>Ideal MA ${displayValue(r.ma).startsWith('≈')?'':'= '}${displayValue(r.ma)}</b><br><small>m₁g d₁ = m₂g d₂<br>g cancels → m₁d₁ = m₂d₂</small>`;$('autoNotice').textContent=autoNotice;}
  let status=r.atLimit?'Resting at travel stop · pull back to move':Math.abs(r.outputPathSpeed)>.0001?(r.outputPathSpeed>0?'Output moving up ↑':'Output moving down ↓'):r.balanced?(config.damping?'Balanced · at rest · pull to disturb':'Balanced · no acceleration'):r.balanceError>0?'Input can lift the load':'Input cannot hold the load';
  if(mode==='challenge'&&!playing&&state.time===0&&!r.balanced&&!forceCorrect)status='Ready · calculate, resize, or pull';
  if(!playing&&state.time>0&&!r.atLimit&&Math.abs(r.velocity)>1e-7)status='Paused · '+status.toLowerCase();if(autoAnimating)status='Comparing balanced setups';else if(playing&&Math.abs(r.outputPathSpeed)<.0001)status='Running · '+status.toLowerCase();
@@ -166,7 +169,7 @@ function drawGraph(){
 }
 function currentAnswer(){
  if(!custom)return challenge.answer;
- const R=ratio(config);if(task==='force'){const threshold=config.outputMass*10/R-config.inputMass*10;return threshold< -1e-9?0:Math.floor(Math.max(0,threshold)+1e-9)+1;}if(task==='balance')return config.outputMass/R-config.force/10;if(task==='distance')return challenge.motionDistance*R;return initialOutputAcceleration(config);
+ const R=ratio(config);if(task==='force'){const threshold=config.outputMass*10/R-config.inputMass*10;return threshold< -1e-9?0:Math.floor(Math.max(0,threshold)+1e-9)+1;}if(task==='balance'){const mass=config.outputMass/R-config.force/10;return Math.abs(mass)<1e-10?0:Math.abs(mass-MAX_MASS)<1e-10?MAX_MASS:mass;}if(task==='distance')return challenge.motionDistance*R;return initialOutputAcceleration(config);
 }
 function markCorrect(){
  if(credited||custom)return;credited=true;
@@ -191,10 +194,11 @@ function applyTest(e){
  const value=parse($('answerValue').value),target=currentAnswer();
  if(!Number.isFinite(value)){feedback('Enter one value, such as 25 or 25/2.',false);return;}
  if(custom&&task==='balance'&&target<0){feedback('No nonnegative input mass can balance this setup. Reduce the applied input force.',false);return;}
+ if(custom&&task==='balance'&&target>MAX_MASS){feedback('This setup needs more than the 200 kg mass limit to balance. Reduce the output load or increase leverage.',false,target);return;}
  const cap=task==='force'?MAX_FORCE:task==='balance'?MAX_MASS:100;
  if(task!=='acceleration'&&(value<0||value>cap)){feedback(`Use a value from 0 to ${cap} ${challenge.unit}.`,false,target);return;}
  testedEntry=$('answerValue').value;stop();distanceDemo=false;
- const valueOK=task==='force'?(Number.isInteger(value)&&value===target):Math.abs(value-target)<=Math.max(task==='distance'?.000001:.005,Math.abs(target)*.001);
+ const valueOK=matchesRoundedAnswer(value,target,task);
  if(task==='force'){config.force=value;if(!custom)config.inputMass=0;}
  else if(task==='balance'){config.inputMass=valueOK?target:value;if(!custom)config.force=0;}
  state=makeState(config,challenge.startFraction);history=[];syncControls();
@@ -213,11 +217,11 @@ function applyTest(e){
   if(attempts===2&&!custom){skills()[task]=Math.max(0,(skills()[task]||0)-1);save();}
   $('advanceNotice').textContent='Correction stays visible. Choose Next problem when ready.';
  }
- draw();if(task==='distance')demonstrateDistance(value);else start();
+ draw();if(task==='distance')demonstrateDistance(valueOK?target:value);else start();
 }
 function feedback(text,good,correctValue){
  $('feedback').className=good?'good':'bad';
- $('feedback').innerHTML=(Number.isFinite(correctValue)?`<strong class="correct-answer">Correct value: ${esc(fmt(correctValue))} ${esc(challenge.unit)}</strong>`:'')+`<span>${esc(text)}</span>`;
+ $('feedback').innerHTML=(Number.isFinite(correctValue)?`<strong class="correct-answer">Correct value: ${esc(displayValue(correctValue,task))} ${esc(challenge.unit)}</strong>`:'')+`<span>${esc(text)}</span>`;
 }
 function screenPoint(x,y){
  const rect=$('scene').getBoundingClientRect(),scale=Math.min(rect.width/900,rect.height/540)*camera.zoom;
@@ -265,17 +269,17 @@ function movePointer(e){
  if(pull){const target={x:p.x-pull.offset.x,y:p.y-pull.offset.y},now=performance.now(),dt=Math.max(.008,(now-pull.time)/1000);pull.velocity={x:(target.x-pull.previous.x)/dt,y:(target.y-pull.previous.y)/dt};pull.previous=target;pull.cursor=target;pull.time=now;return;}
  if(!drag)return;
  if(drag.kind==='pan'){const rect=$('scene').getBoundingClientRect(),s=Math.min(rect.width/900,rect.height/540)*camera.zoom;camera.cx=clamp(drag.camera.cx-(e.clientX-drag.p.x)/s,80,820);camera.cy=clamp(drag.camera.cy-(e.clientY-drag.p.y)/s,30,510);queueDraw();return;}
- if(drag.kind==='rampRun'){pendingResize={next:{...config,height:drag.height,length:lengthForRun(drag.run+(p.x-drag.p.x)/drag.scale,drag.height)},edited:'length'};}
- else if(drag.kind==='geometry'){const delta=drag.axis==='y'?p.y-drag.p.y:p.x-drag.p.x;pendingResize={next:{...config,[drag.key]:drag.value+delta*drag.units},edited:drag.key};}
+ if(drag.kind==='rampRun'){pendingResize={next:{...config,height:drag.height,length:lengthForRun(snapValue(drag.run+(p.x-drag.p.x)/drag.scale,.1,Math.sqrt(Math.max(0,.3**2-drag.height**2)),Math.sqrt(Math.max(0,5**2-drag.height**2))),drag.height)},edited:'length'};}
+ else if(drag.kind==='geometry'){const delta=drag.axis==='y'?p.y-drag.p.y:p.x-drag.p.x;pendingResize={next:{...config,[drag.key]:snapGeometry(drag.key,drag.value+delta*drag.units)},edited:drag.key};}
  else{
   const dx=p.x-drag.p.x,dy=p.y-drag.p.y,c=Math.cos(drag.angle),s=Math.sin(drag.angle),lx=dx*c+dy*s,ly=-dx*s+dy*c;
   const amount=drag.axis==='x'?lx*drag.sx:drag.axis==='y'?ly*drag.sy:(lx*drag.sx+ly*drag.sy)/2;
   const size=clamp(drag.size+2*amount,drag.side==='input'?0:10,10*Math.sqrt(MAX_MASS));const key=drag.side==='input'?'inputMass':'outputMass';
-  pendingResize={next:{...config,[key]:Math.round(size*size)/100},edited:key};
+  pendingResize={next:{...config,[key]:snapValue(size*size/100,.5,drag.side==='input'?0:1,MAX_MASS)},edited:key};
  }
  if(!editFrame)editFrame=requestAnimationFrame(applyPendingEdit);
 }
-function applyPendingEdit(){cancelAnimationFrame(editFrame);editFrame=0;if(!pendingResize)return;const update=pendingResize;pendingResize=null;const isGuess=mode==='challenge'&&task==='balance'&&update.edited==='inputMass';setConfig(update.next,{edited:update.edited,mark:!isGuess});if(isGuess)$('answerValue').value=fmt(config.inputMass);}
+function applyPendingEdit(){cancelAnimationFrame(editFrame);editFrame=0;if(!pendingResize)return;const update=pendingResize;pendingResize=null;if(Object.entries(update.next).every(([key,value])=>value===config[key]))return;const isGuess=mode==='challenge'&&task==='balance'&&update.edited==='inputMass';setConfig(update.next,{edited:update.edited,mark:!isGuess});if(isGuess)$('answerValue').value=fmt(config.inputMass);}
 function endPointer(e){
  pointers.delete(e.pointerId);if(pinch){if(pointers.size<2)pinch=null;return;}
  if(pendingResize)applyPendingEdit();if(pull){pull=null;queueDraw();}const resume=drag?.resume;drag=null;if(resume)start();
@@ -291,7 +295,7 @@ $('stepsBtn').onclick=()=>{$('steps').hidden=!$('steps').hidden;$('stepsBtn').te
 $('playBtn').onclick=()=>{cancelAdvance();if(playing)stop();else if(mode==='challenge'&&$('answerValue').value.trim()&&testedEntry!==$('answerValue').value){applyTest();}else start();};
 $('resetBtn').onclick=()=>{cancelAdvance();stopAuto();restart();};$('nudgeBtn').onclick=()=>{cancelAdvance();config.force=clamp(currentAnswer()*1.02,0,MAX_FORCE);config.inputMass=0;restart();syncControls();feedback('Testing 2% above the balance threshold. Extra work becomes kinetic energy and, with resistance enabled, heat.',true);start();};
 $('restoreBtn').onclick=()=>loadChallenge();
-for(const id of ['inputMass','outputMass','appliedForce']){const commit=e=>{const key=id==='appliedForce'?'force':id,value=parse(e.target.value),isGuess=mode==='challenge'&&((task==='balance'&&key==='inputMass')||(task==='force'&&key==='force'));if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key,mark:!isGuess});e.target.value=fmt(config[key]);e.target.dataset.renderedValue=e.target.value;if(isGuess)$('answerValue').value=fmt(config[key]);};$(id).onchange=commit;$(id).onblur=commit;$(id).onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit(e);}};}
+for(const id of ['inputMass','outputMass','appliedForce']){const commit=e=>{const key=id==='appliedForce'?'force':id,value=parse(e.target.value),isGuess=mode==='challenge'&&((task==='balance'&&key==='inputMass')||(task==='force'&&key==='force'));if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key,mark:!isGuess});e.target.value=answerRounding(config[key]).text;e.target.dataset.renderedValue=e.target.value;if(isGuess)$('answerValue').value=fmt(config[key]);};$(id).onchange=commit;$(id).onblur=commit;$(id).onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit(e);}};}
 function commitGeometry(e){const key=e.target.dataset.geometry;if(!key)return;const value=parse(e.target.value),prior=key==='rampRun'?rampRun():config[key];if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-prior)>1e-8){const next=key==='rampRun'?{...config,length:lengthForRun(value,config.height)}:{...config,[key]:value};setConfig(next,{edited:key==='rampRun'?'length':key});}e.target.value=fmt(key==='rampRun'?rampRun():config[key]);e.target.dataset.renderedValue=e.target.value;}
 $('geometryControls').onchange=commitGeometry;$('geometryControls').addEventListener('blur',commitGeometry,true);$('geometryControls').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commitGeometry(e);}};
 $('autoTarget').onchange=()=>setConfig({...config},{mark:false});
