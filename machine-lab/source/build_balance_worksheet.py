@@ -22,7 +22,7 @@ OUT=parser.parse_args().output
 OUT.parent.mkdir(parents=True,exist_ok=True)
 W,H=612,792
 c=canvas.Canvas(str(OUT),pagesize=(W,H))
-c.setTitle('8th Grade Physical Science - Lever and Ramp Balance')
+c.setTitle('8th Grade Physical Science - Homework 1 - Due November 13, 2026')
 c.setAuthor('Gabriel Woodsum')
 
 @lru_cache(None)
@@ -48,8 +48,9 @@ def text(s,x,y,size=12,bold=False,center=False):
     (c.drawCentredString if center else c.drawString)(x,y,s)
 
 def header(title,page):
-    text('8th Grade Physical Science',42,755,13)
-    text(title,42,726,22,True)
+    text('8th Grade Physical Science - Homework 1',42,755,18,True)
+    text('Due: Friday, November 13, 2026',42,732,14,True)
+    text(title,42,712,15,True)
     text(str(page)+' / 2',570,31,10,center=True)
 
 def line(x1,y1,x2,y2,width=1,color=colors.black):
@@ -139,7 +140,7 @@ def ramp(num,length,height,block,counter,unknown,x,y):
     text(f'h = {height} m',hdx+6,(by+ty)/2-4,13)
 
 header('Lever Balance',1)
-text('Conservation of energy for an ideal machine:',42,700,12)
+text('Conservation of energy for an ideal machine:',42,693,12)
 eq(r'F_1d_1=F_2d_2\quad\Rightarrow\quad m_1g d_1=m_2g d_2',306,674,18)
 eq(r'\frac{m_1g d_1}{g}=\frac{m_2g d_2}{g}\quad\Rightarrow\quad m_1d_1=m_2d_2',306,636,18)
 text('Divide by g, the gravitational acceleration. It is the same on both sides.',306,618,11,center=True)
