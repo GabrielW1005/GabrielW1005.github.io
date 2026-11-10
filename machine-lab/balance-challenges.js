@@ -68,7 +68,7 @@ function targetGeometry(type,n){
 const choices={
  lever:['inputMass','rIn','outputMass','rOut'],
  wheel:['inputMass','rIn','outputMass','rOut'],
- ramp:['inputMass','rampRun','outputMass','height'],
+ ramp:['inputMass','length','outputMass','length'],
  pulley:['inputMass','outputMass'],
  gears:['inputMass','teethOut','outputMass','teethIn'],
  gearArms:['inputMass','teethOut','outputMass','teethIn'],
@@ -78,9 +78,14 @@ const choices={
 };
 const massFields={inputMass:{label:'Input mass',unit:'kg',min:.5,max:MAX_MASS,step:.5},outputMass:{label:'Output mass',unit:'kg',min:1,max:MAX_MASS,step:.5}};
 function fieldFor(c,machine,key){
- if(massFields[key])return {...massFields[key]};
+ if(massFields[key])return {...massFields[key],...(c.type==='ramp'?{label:key==='inputMass'?'Hanging mass':'Mass on ramp'}:{})};
  if(key==='rampRun')return {label:'Horizontal ramp length',unit:'m',min:.1,max:Math.floor(Math.sqrt(25-c.height*c.height)*10+1e-8)/10,step:.1};
  const field={...machine.geometry.find(item=>item.key===key)};
+ if(c.type==='ramp'&&key==='length'){
+  field.label='Ramp length';
+  // Keep the fixed height and a genuine incline for every possible guess.
+  field.min=Math.max(field.min,clean(Math.ceil((c.height+.05)/field.step-1e-8)*field.step));
+ }
  if(c.type==='ramp'&&key==='height')field.max=Math.min(field.max,Math.floor(Math.sqrt(25-horizontalRun(c)**2)/field.step+1e-8)*field.step);
  if(c.type==='wedge'&&key==='height')field.max=Math.min(field.max,c.length);
  if(c.type==='wedge'&&key==='length')field.min=Math.max(field.min,c.height);
@@ -88,13 +93,13 @@ function fieldFor(c,machine,key){
 }
 function givens(c,key){
  const values=[];
- if(key!=='inputMass')values.push(`Input mass: ${f(c.inputMass)} kg`);
- if(key!=='outputMass')values.push(`Output mass: ${f(c.outputMass)} kg`);
+ if(key!=='inputMass')values.push(`${c.type==='ramp'?'Hanging mass':'Input mass'}: ${f(c.inputMass)} kg`);
+ if(key!=='outputMass')values.push(`${c.type==='ramp'?'Mass on ramp':'Output mass'}: ${f(c.outputMass)} kg`);
  const item=(field,label,value,unit)=>{if(key!==field)values.push(`${label}: ${f(value)}${unit?' '+unit:''}`);};
  switch(c.type){
   case 'lever':item('rIn','Input arm',c.rIn,'m');item('rOut','Output arm',c.rOut,'m');break;
   case 'wheel':item('rIn','Input radius',c.rIn,'m');item('rOut','Output radius',c.rOut,'m');break;
-  case 'ramp':item('rampRun','Horizontal length',horizontalRun(c),'m');item('height','Height',c.height,'m');if(key==='inputMass'||key==='outputMass')item('length','Slope length',c.length,'m');break;
+  case 'ramp':item('height','Height',c.height,'m');item('length','Ramp length (diagonal)',c.length,'m');break;
   case 'pulley':values.push(`${c.strands} supporting rope segment${c.strands===1?'':'s'}`);break;
   case 'gears':case 'gearArms':item('teethIn','Input gear',c.teethIn,'teeth');item('teethOut','Output gear',c.teethOut,'teeth');values.push(c.type==='gears'?'Equal fixed drums: radius 0.1 m':`Equal fixed arms: ${f(c.rIn)} m · starts horizontal`);break;
   case 'screw':values.push(`Input travel per turn: ${f(2*Math.PI*c.handleRadius)} m`);item('lead','Rise per turn',c.lead,'m');break;
@@ -104,7 +109,7 @@ function givens(c,key){
  return values;
 }
 function hintsFor(type){
- const ratioHint={lever:'Compare input arm length / output arm length.',ramp:'Compare slope length / vertical height. Slope length² = horizontal length² + height².',pulley:'Count the rope segments that support the moving load.',wheel:'Compare input radius / output radius.',gears:'The drums are equal. Compare output gear teeth / input gear teeth.',gearArms:'Start with both arms horizontal. Equal arm lengths leave the output-teeth / input-teeth ratio.',screw:'Compare input rim travel per turn / rise per turn.',wedge:'Compare horizontal run / vertical rise.',hydraulic:'Compare output piston area / input piston area.'}[type];
+ const ratioHint={lever:'Compare input arm length / output arm length.',ramp:'Hanging mass × ramp length = mass on ramp × vertical height. Use the diagonal ramp length.',pulley:'Count the rope segments that support the moving load.',wheel:'Compare input radius / output radius.',gears:'The drums are equal. Compare output gear teeth / input gear teeth.',gearArms:'Start with both arms horizontal. Equal arm lengths leave the output-teeth / input-teeth ratio.',screw:'Compare input rim travel per turn / rise per turn.',wedge:'Compare horizontal run / vertical rise.',hydraulic:'Compare output piston area / input piston area.'}[type];
  return ['At balance, input weight × input work distance = output weight × output work distance.','Each weight is mass × g. The same g cancels.',ratioHint,'Adjust only the highlighted quantity, then run from rest to test it.'];
 }
 

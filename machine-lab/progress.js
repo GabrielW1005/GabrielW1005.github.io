@@ -42,7 +42,7 @@ function cleanSaved(value){
 }
 function cleanView(value){
  const out={};
- for(const [key,fallback] of Object.entries({paths:true,forces:true,accelerations:false,charts:false,graphToggle:false,pullTool:true,autoAdvance:true}))out[key]=boolean(own(value,key),fallback);
+ for(const [key,fallback] of Object.entries({paths:true,forces:false,accelerations:false,charts:false,graphToggle:false,pullTool:true,autoAdvance:true}))out[key]=boolean(own(value,key),fallback);
  out.compareKind=choice(own(value,'compareKind'),['work','path','force'],'work','comparison view');
  out.plotKind=choice(own(value,'plotKind'),['distance','path','force','acceleration'],'distance','plot view');
  out.autoTarget=choice(own(value,'autoTarget'),['mass','geometry'],'mass','automatic balance target');

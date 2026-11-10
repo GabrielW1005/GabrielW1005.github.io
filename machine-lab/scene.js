@@ -33,7 +33,7 @@ export function trajectoryGeometry(config,state,readout={}){
 
 export function renderScene(c,state,readout={},options={}){
  const dark=!!options.dark, paths=options.paths!==false, forces=!!options.forces;
- const editable=key=>options.editableKey==null||options.editableKey===key;
+ const editable=key=>options.editableKey==null||options.editableKey===key||(c.type==='ramp'&&options.editableKey==='length'&&key==='rampRun');
  const P={bg:dark?'#111b2c':'#ffffff',ink:dark?'#e3eaf6':'#27364c',muted:dark?'#a1b1c8':'#66758a',line:dark?'#74859d':'#b8c3d2',fill:dark?'#28384f':'#e7edf5',metal:dark?'#445a77':'#ccd8e6',blue:dark?'#72afff':'#2563eb',orange:dark?'#ffb16f':'#c65b17',water:dark?'#1f6488':'#bfe6fa'};
  const q=Number(state?.q)||0,q0=Number(state?.q0)||0,lim=limits(c),R=ratio(c),G=10;
  const visibleForces=forces?[c.inputMass*G,c.outputMass*G,c.force,readout.dampingOutputForce,options.actuatorForce]:[];
@@ -112,16 +112,22 @@ export function renderScene(c,state,readout={},options={}){
   const point=u=>[x0+u*scale*tx+nx*(loadHalf+2),y0+u*scale*ty+ny*(loadHalf+2)],B=point(q),contact=point(c.length+pad/scale),guide=[contact[0]-r*nx,contact[1]-r*ny],inputX=guide[0]+r,wi=u=>[inputX,guide[1]+r+inputHalf+18+u*scale],I=wi(q),inputTop=I[1]-inputHalf;
   const arcLength=r*(Math.PI/2+angle),ropeLength=(c.length-q)*scale+pad+arcLength+inputTop-guide[1];
   z+=sectionLabels(inputX,x0+run/2)+base(y0+18,80,x0+run+25)+geometrySurface(`<path d="M${x0},${y0} h${run} v${-rise} Z" fill="${P.fill}" stroke="${P.line}" stroke-width="2"/>`+line(x0,y0,x0+run,y0-rise,'transparent',26)+line(x0,y0,x0+run,y0-rise,P.metal,6),'height',-1/scale,'ramp height','y');
-  const runMetadata=`data-geo="rampRun" data-run="${runMeters}" data-height="${c.height}" data-scale="${scale}" data-base-x="${x0}" data-base-y="${y0}"`;
-  z+=geometrySurface(line(x0,y0,x0+Math.max(60,run),y0,'transparent',24)+line(x0,y0,x0+run,y0,P.line,3),'rampRun',1/scale,'horizontal ramp run','x',runMetadata);
+  const runMetadata=`data-geo="rampRun" data-run="${runMeters}" data-height="${c.height}" data-scale="${scale}" data-base-x="${x0}" data-base-y="${y0}"`,rampDragLabel=options.editableKey==='length'?'ramp length':'horizontal ramp run';
+  z+=geometrySurface(line(x0,y0,x0+Math.max(60,run),y0,'transparent',24)+line(x0,y0,x0+run,y0,P.line,3),'rampRun',1/scale,rampDragLabel,'x',runMetadata);
   const rope=`M${B[0]},${B[1]} L${contact[0]},${contact[1]} A${r},${r} 0 0 1 ${inputX},${guide[1]} V${inputTop}`;
   z+=`<g data-ramp-rope="single-guide" data-rope-length="${ropeLength/scale}" data-ramp-scale="${scale}" data-entry-x="${contact[0]}" data-entry-y="${contact[1]}" data-guide-x="${guide[0]}" data-guide-y="${guide[1]}" data-guide-radius="${r}">`+path(rope,P.ink,3)+`<g data-ramp-guide="fixed">`+pulleyWheel(...guide,r*.96,q*scale/r)+'</g></g>';
   z+=trace(wi,P.blue,'input')+trace(point,P.orange,'output')+weight(...B,c.outputMass,'output',{angle:-angle,tangent:[tx,ty]})+weight(...I,c.inputMass,'input');
-  z+=text(Math.min(810,inputX+65),guide[1]+8,'fixed pulley',P.muted,16)+text(230,21,c.height===c.length?'vertical lift':`slope ${num(c.length)} m`,P.ink,19)+text(650,21,`height ${num(c.height)} m`,P.orange,19);
+  z+=text(Math.min(810,inputX+65),guide[1]+8,'fixed pulley',P.muted,16)+text(250,23,`Ramp length L = ${num(c.length)} m`,P.blue,23,'middle','font-weight="750" data-ramp-dimension="length"')+text(660,23,`Height h = ${num(c.height)} m`,P.orange,23,'middle','font-weight="750" data-ramp-dimension="height"');
+  // The only measured sides are the sloping length L and vertical height h.
+  // Use the same physical endpoints/scale as the ramp, even when paths are off.
+  // Place the diagonal guide inside the triangle, away from the moving box.
+  const diagonalOffset=tx<.2?-24:18,dx=-nx*diagonalOffset,dy=-ny*diagonalOffset,dimensionX=x0+run+28;
+  z+=`<g data-ramp-dimension-guide="length" pointer-events="none">`+dim(x0+dx,y0+dy,x0+run+dx,y0-rise+dy,'',P.blue)+'</g>';
+  z+=`<g data-ramp-dimension-guide="height" pointer-events="none">`+dim(dimensionX,y0,dimensionX,y0-rise,'',P.orange)+'</g>';
   const footX=x0+run,gripX=footX+29,gripY=y0+22;
-  if(editable('rampRun')){const baseGrip=line(footX,y0,gripX,gripY,P.blue,1.7)+rect(gripX-24,gripY-15,48,30,P.bg,P.blue,8)+arrow(gripX-15,gripY,gripX+15,gripY,P.blue,2)+arrow(gripX+15,gripY,gripX-15,gripY,P.blue,2);foregroundHandles.push(geometrySurface(baseGrip,'rampRun',1/scale,'horizontal ramp run','x',runMetadata));z+=text(gripX+8,gripY+39,'extend base',P.blue,14);}
+  if(editable('rampRun')){const baseGrip=line(footX,y0,gripX,gripY,P.blue,1.7)+rect(gripX-24,gripY-15,48,30,P.bg,P.blue,8)+arrow(gripX-15,gripY,gripX+15,gripY,P.blue,2)+arrow(gripX+15,gripY,gripX-15,gripY,P.blue,2);foregroundHandles.push(geometrySurface(baseGrip,'rampRun',1/scale,rampDragLabel,'x',runMetadata));}
   z+=handle(x0+run,y0-rise,'height',-1/scale,'ramp height','y');
-  if(paths){z+=text(Math.min(845,inputX+75),Math.min(445,I[1]+55),'rope d₁',P.blue,17)+text(450,514,'Box path = rope travel · output work uses vertical rise',P.muted,17)+dim(x0+run+28,y0,x0+run+28,y0-rise,'',P.orange);}
+  if(paths){z+=text(Math.min(845,inputX+75),Math.min(445,I[1]+55),'rope d₁',P.blue,17)+text(450,514,'Box path = rope travel · output work uses vertical rise',P.muted,17);}
   if(forces&&!readout.atLimit){const T=Math.max(0,Number(readout.inputTension)||0),N=c.outputMass*G*Math.sqrt(Math.max(0,1-(c.height/c.length)**2));z+=forceVector(B[0]+nx*(loadHalf+16),B[1]+ny*(loadHalf+16),tx,ty,T,'T',P.orange)+forceVector(B[0],B[1],nx,ny,N,'N',P.muted);}
  } else if(c.type==='pulley'){
   const n=[1,2,4,6].includes(c.strands)?c.strands:2,radius=c.pulleyRadius||.18,top=125,anchorY=36,inputX=730,outputX=340,lowerBase=275;

@@ -4,7 +4,7 @@ import { defaultConfig, normalizeConfig, ratio, GRAVITY, limits } from './physic
 const field=(key,label,min,max,step,unit)=>({key,label,min,max,step,unit});
 export const machineCatalog=[
   {type:'lever',label:'Lever',shortNote:'A longer input arm travels farther and needs less force; a shorter input arm gives more output travel but needs more force. Use vertical rise/fall for work. Loads stay at the arm endpoints.',levels:['Shorter input arm','Equal arms','Longer input arm','Much longer input arm'],geometry:[field('rIn','Input arm',.15,3,.05,'m'),field('rOut','Output arm',.15,3,.05,'m')]},
-  {type:'ramp',label:'Ramp',shortNote:'The input rope travels along the ramp distance. The output work is weight × vertical rise. Acceleration questions measure motion along the slope.',levels:['Short ramp','Gentler slope','Long ramp'],geometry:[field('length','Ramp length',.3,5,.1,'m'),field('height','Ramp height',.1,2,.05,'m')]},
+  {type:'ramp',label:'Ramp',shortNote:'For balance, hanging mass × diagonal ramp length = mass on ramp × vertical height. A longer ramp needs a smaller hanging mass.',levels:['Short ramp','Gentler slope','Long ramp'],geometry:[field('length','Ramp length',.3,5,.1,'m'),field('height','Ramp height',.1,2,.05,'m')]},
   {type:'pulley',label:'Pulley',shortNote:'Count the rope segments supporting the moving load. A fixed pulley changes direction; more supporting segments reduce the balance force and increase input travel. Pulley diameter does not change this ratio.',levels:['Fixed guides · 1 strand','One moving pulley · 2 strands','Two moving pulleys · 4 strands','Three moving pulleys · 6 strands'],geometry:[field('pulleyTravel','Input travel span',.6,1.8,.1,'m'),field('pulleyRadius','Pulley radius',.08,.32,.01,'m')]},
   {type:'wheel',label:'Wheel & axle',shortNote:'The wheel and axle turn together. Rope travel equals radius × angle. A larger input radius gives a force advantage; a smaller one gives more output travel.',levels:['Smaller input radius','Equal radii','Larger input radius','Much larger input radius'],geometry:[field('rIn','Input radius',.015,.5,.005,'m'),field('rOut','Output radius',.015,.5,.005,'m')]},
   {type:'gears',label:'Gears',shortNote:'The two drum radii stay equal and fixed. The output/input tooth ratio determines the ideal force and travel advantage.',levels:['More output travel','Equal overall ratio','More output force','High force advantage'],geometry:[field('teethIn','Input teeth',8,96,1,''),field('teethOut','Output teeth',8,96,1,'')]},
@@ -145,7 +145,11 @@ function canonicalTask(task){
 export function createChallenge(type,task='force',level=0,variant=0){
   if(type==='gearArms'){const c={...defaultConfig(type),rIn:.35,rOut:.35,teethIn:24,teethOut:48,inputMass:6,outputMass:20,force:0,damping:0};return {id:`gearArms-balance-${integer(variant)}`,type,task:'balance',level:0,variant:integer(variant),title:'Gear arms · horizontal balance',prompt:'Find the input mass that balances the horizontal arms.',config:c,unknown:'inputMass',unit:'kg',answer:10,ma:2,idealMechanicalAdvantage:2,goalLabel:'Balance horizontally',setupLabel:'24 → 48 teeth; equal 0.35 m arms',balanceForce:40,answerPrecision:1,answerStep:.5,steps:['Start with both arms horizontal.','Equal arm lengths leave output teeth / input teeth as the balancing ratio.','m₁ × output teeth = m₂ × input teeth.','Substitute the two masses and tooth counts, then solve.'],given:['Output mass: 20 kg','Input gear: 24 teeth; output gear: 48 teeth','Equal fixed arms: 0.35 m'],mode:'balance',startFraction:.5,geometryRatio:{numerator:48,denominator:24}};}
   const {machine,stage,version,sublevelLabel,config:c}=setup(type,level,variant);
-  task=canonicalTask(task);
+  // The ramp activity now asks only for a balancing mass or diagonal length.
+  // Its UI uses createBalanceChallenge for both kinds. Keep older callers and
+  // saved task selections on a valid mass question instead of resurfacing a
+  // force, acceleration, or rope-travel question.
+  task=c.type==='ramp'?'balance':canonicalTask(task);
   const R=ratio(c);
   setCompatibleMass(c,R,task);
   const geo=geometrySetup(c),balance=task==='balance',balanceForce=c.outputMass*GRAVITY/R;

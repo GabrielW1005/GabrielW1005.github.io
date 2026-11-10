@@ -125,5 +125,24 @@ console.log('Standard ramps are large and full-stroke geometry remains visible.'
 {
  const c=normalizeConfig({...defaultConfig('ramp'),length:.5,height:.4,inputMass:5,outputMass:5}),svg=renderScene(c,makeState(c,.5)),grip=attrs(svg.match(/<g[^>]*data-geo="rampRun"[^>]*>/)[0]);
  assert.ok(c.length*grip.scale>=300,'Initial steep ramp has at least 300 scene units of slope');
- assert.ok(svg.includes('y="21"'),'Ramp dimension labels sit above the motion area');
+ assert.ok(svg.includes('y="23"'),'Ramp dimension labels sit above the motion area');
 }
+
+// The diagonal and vertical measurements stay visible with paths/forces off.
+// Their arrows use the actual ramp scale; there is no third base measurement.
+for(const [length,height] of [[.5,.3],[.5,.4],[1,1],[5,.1],[2,1.5]])for(const dark of [false,true]){
+ const c=normalizeConfig({...defaultConfig('ramp'),length,height}),svg=renderScene(c,makeState(c,.5),{}, {dark,paths:false,forces:false,editableKey:'length'}),grip=attrs(svg.match(/<g[^>]*data-geo="rampRun"[^>]*>/)[0]);
+ for(const [name,metres] of [['length',length],['height',height]]){
+  const dimension=svg.match(new RegExp(`<g data-ramp-dimension-guide="${name}"[^>]*><line x1="([^"]+)" y1="([^"]+)" x2="([^"]+)" y2="([^"]+)"`));
+  assert.ok(dimension,`${name} dimension arrow present without trajectory overlay`);
+  near(Math.hypot(Number(dimension[3])-Number(dimension[1]),Number(dimension[4])-Number(dimension[2]))/grip.scale,metres);
+  assert.equal((svg.match(new RegExp(`data-ramp-dimension="${name}"`,'g'))||[]).length,1,`${name} value labelled once`);
+ }
+ assert.ok(svg.includes(`Ramp length L = ${length} m`));
+ assert.ok(svg.includes(`Height h = ${height} m`));
+ assert.ok(!svg.includes('extend base'),'No visible base label');
+ assert.ok(svg.includes('aria-label="Drag to change ramp length"'),'Length target has a horizontal resize handle');
+ assert.ok(!svg.includes('data-param="height"'),'Length questions keep height fixed');
+ assert.ok(!svg.includes(' N</text>'),'Force values remain hidden when force overlay is off');
+}
+console.log('Ramp dimensions are clear, unique, to scale, and available with trajectories hidden.');

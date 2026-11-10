@@ -1,12 +1,12 @@
 import {defaultConfig,normalizeConfig,ratio,makeState,step,readout,changeConfig,limits,MAX_FORCE,MAX_MASS,bodyJacobian,initialOutputAcceleration,isAngularMachine,generalizedDrive} from './physics.js?v=progress-v1';
-import {machineCatalog,taskCatalog,createChallenge} from './challenges.js?v=progress-v1';
-import {createBalanceChallenge} from './balance-challenges.js?v=progress-v1';
+import {machineCatalog,taskCatalog,createChallenge} from './challenges.js?v=ramp-v1';
+import {createBalanceChallenge} from './balance-challenges.js?v=ramp-v1';
 import {horizontalRun,setupValue,editSetup,setupEntry as entryValue} from './machine-edits.js?v=progress-v1';
-import {renderScene} from './scene.js?v=progress-v1';
+import {renderScene} from './scene.js?v=ramp-v1';
 import {renderComparison} from './comparison.js?v=progress-v1';
 import {initPanels} from './panels.js?v=progress-v1';
 import {snapValue,answerRounding,displayValue,matchesRoundedAnswer} from './value-steps.js?v=progress-v1';
-import {normalizeProgress,serializeProgress,parseProgress,encodeProgress,decodeProgress,recordAttempt} from './progress.js?v=s2';
+import {normalizeProgress,serializeProgress,parseProgress,encodeProgress,decodeProgress,recordAttempt} from './progress.js?v=ramp-v1';
 const $=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>Number.isFinite(n)?(Math.abs(n)<1e-8?'0':Number(n.toPrecision(4)).toString()):'—';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -19,12 +19,14 @@ let custom=false,attempts=0,credited=false,forceCorrect=false,playing=false,fram
 let history=[],bodyInfo={},drag=null,pull=null,pointers=new Map(),pinch=null,pendingResize=null,advanceTimer=0;
 let autoAnimating=false,autoFrame=0,autoStart=0,autoNotice='',distanceDemo=false;
 let camera={zoom:1,cx:450,cy:270},rampView=null;
-const PROGRESS_KEY='machine-lab-progress-v1',RELEASE='s2';
+const PROGRESS_KEY='machine-lab-progress-v1',RELEASE='ramp-v1',FORCE_DEFAULT_KEY='machine-lab-forces-default-ramp-v1';
 let progressReady=false,saveTimer=0,student='',progressStats={},sharedPreview=null;
 let progressDialogVersion=0,sharedDecodeVersion=0;
 let testedEntry='',movementTest=null,comparisonSnapshot=null,comparisonPhase=0;
 const machine=()=>machineCatalog.find(m=>m.type===type);
-const editable=key=>mode!=='balance'||key===challenge?.key;
+// Ramp practice uses the same single-variable balance activity as Balance mode.
+const isBalanceProblem=()=>mode==='balance'||(mode==='challenge'&&type==='ramp');
+const editable=key=>!isBalanceProblem()||key===challenge?.key;
 const balanceVariant=()=>saved.balanceVariants?.[type]||0;
 function nextBalance(){saved.balanceVariants={...saved.balanceVariants,[type]:balanceVariant()+1};save();loadChallenge();}
 
@@ -73,11 +75,11 @@ function balanceAuto(edited=''){
 }
 function setConfig(next,{edited='',mark=true}={}){
  if(!editable(edited))return;
- const resume=playing&&mode!=='balance';stopAuto();stop();pull=null;distanceDemo=false;movementTest=null;testedEntry='';cancelAdvance();const old=config;config=normalizeConfig(next);
+ const resume=playing&&!isBalanceProblem();stopAuto();stop();pull=null;distanceDemo=false;movementTest=null;testedEntry='';cancelAdvance();const old=config;config=normalizeConfig(next);
  if(mode==='auto')balanceAuto(edited);
  const oldBounds=limits(old),fraction=(state.q-oldBounds.min)/oldBounds.range;changeConfig(state,old,config);if(old.force!==config.force)state=makeState(config,fraction);history=[];
- if(mode==='challenge'&&mark){custom=true;forceCorrect=false;$('nudgeBtn').hidden=true;$('setupNotice').hidden=false;}
- $('feedback').textContent='';syncControls();if(mode==='balance'){$('answerValue').value=entryValue(setupValue(config,challenge.key));}if(custom)renderQuestion();queueDraw();queueAutoSave();if(resume&&!drag)start();
+ if(mode==='challenge'&&!isBalanceProblem()&&mark){custom=true;forceCorrect=false;$('nudgeBtn').hidden=true;$('setupNotice').hidden=false;}
+ $('feedback').textContent='';syncControls();if(isBalanceProblem()){$('answerValue').value=entryValue(setupValue(config,challenge.key));}if(custom)renderQuestion();queueDraw();queueAutoSave();if(resume&&!drag)start();
 }
 function resetCamera(){camera={zoom:1,cx:450,cy:270};rampView=null;queueDraw();queueAutoSave();}
 function rampRun(c=config){return horizontalRun(c);}
@@ -89,7 +91,7 @@ function buildControls(){
 }
 function syncControls(){
  if(!config)return;const runControl=document.querySelector('[data-geometry="rampRun"]');if(runControl&&document.activeElement!==runControl){runControl.value=fmt(rampRun());runControl.dataset.renderedValue=runControl.value;}for(const[id,key]of[['inputMass','inputMass'],['outputMass','outputMass'],['appliedForce','force']])if(document.activeElement!==$(id)){$(id).value=answerRounding(config[key]).text;$(id).dataset.renderedValue=$(id).value;$(id).title=answerRounding(config[key]).approximate?'Rounded display; the simulation keeps the exact value.':'';}
- $('inputMass').disabled=!editable('inputMass');$('outputMass').disabled=!editable('outputMass');$('appliedForce').disabled=mode==='auto'||mode==='balance';if(runControl)runControl.disabled=!editable('rampRun');
+ $('inputMass').disabled=!editable('inputMass');$('outputMass').disabled=!editable('outputMass');$('appliedForce').disabled=mode==='auto'||isBalanceProblem();if(runControl)runControl.disabled=!editable('rampRun');
  for(const f of machine().geometry){const el=document.querySelector(`[data-geometry="${f.key}"]`);if(el)el.disabled=!editable(f.key);if(el&&document.activeElement!==el){el.value=fmt(config[f.key]);el.dataset.renderedValue=el.value;}}
  $('autoNotice').textContent=autoNotice;
 }
@@ -102,12 +104,12 @@ function chooseAdaptive(preferAfter=task){
 }
 function loadChallenge({newNumbers=false,keepAttempt=false}={}){
  cancelAdvance();stopAuto();stop();pull=null;drag=null;distanceDemo=false;movementTest=null;pointers.clear();pinch=null;pendingResize=null;cancelAnimationFrame(editFrame);editFrame=0;
- if(mode==='balance'){task='balance';if(newNumbers)saved.balanceVariants={...saved.balanceVariants,[type]:balanceVariant()+1};challenge=createBalanceChallenge(type,balanceVariant());level=0;}else{if(newNumbers)saved.serial++;challenge=createChallenge(type,task,level,saved.serial);level=challenge.level;}save();config={...challenge.config};
+ if(isBalanceProblem()){task='balance';if(newNumbers)saved.balanceVariants={...saved.balanceVariants,[type]:balanceVariant()+1};challenge=createBalanceChallenge(type,balanceVariant());level=0;}else{if(newNumbers)saved.serial++;challenge=createChallenge(type,task,level,saved.serial);level=challenge.level;}save();config={...challenge.config};
  custom=false;if(!keepAttempt){attempts=0;credited=false;}forceCorrect=false;history=[];testedEntry='';
  if(mode==='auto'){config={...defaultConfig(type),damping:resistance};balanceAuto();}else config.damping=resistance;
  syncResistance();
  state=makeState(config,challenge.startFraction??.25);$('answerValue').value='';$('feedback').textContent='';$('steps').hidden=true;$('stepsBtn').textContent='Show steps';$('setupNotice').hidden=true;$('nudgeBtn').hidden=true;
- buildControls();syncControls();renderQuestion();renderTabs();if(mode==='balance')$('answerValue').value=entryValue(setupValue(config,challenge.key));resetCamera();draw();queueAutoSave();
+ buildControls();syncControls();renderQuestion();renderTabs();if(isBalanceProblem())$('answerValue').value=entryValue(setupValue(config,challenge.key));resetCamera();draw();queueAutoSave();
 }
 // Reset the same problem without erasing earned progress or granting repeat credit.
 function resetProblem(){loadChallenge({keepAttempt:true});}
@@ -117,7 +119,7 @@ function factValues(){
  return [task==='balance'?`Output mass: ${fmt(config.outputMass)} kg`:`Masses: input ${fmt(config.inputMass)} kg · output ${fmt(config.outputMass)} kg`,...groups,task==='force'?'g = 10 m/s²':`Applied force: ${fmt(config.force)} N · g = 10 m/s²`];
 }
 function renderQuestion(){
- if(mode==='balance'){
+ if(isBalanceProblem()){
   $('problemLabel').textContent='BALANCE';$('score').textContent='';$('taskChoices').innerHTML='';$('levels').innerHTML='';$('challengeTitle').textContent=challenge.title;$('challengeGoal').textContent=type==='gearArms'?'BALANCE AT HORIZONTAL':'MAKE IT BALANCE';$('question').textContent=challenge.prompt;$('challengeFacts').innerHTML=challenge.given.map(s=>`<span>${esc(s)}</span>`).join('');$('answerName').textContent=challenge.label+(challenge.unit?' ('+challenge.unit+')':'');$('answerValue').placeholder='Enter a value';$('answerValue').dataset.step=challenge.step;$('setupNotice').hidden=true;$('balanceEditHint').textContent=`Drag the marked ${challenge.kind==='mass'?'mass':'machine handle'} or enter a value. Run tests your setup; it does not show the answer.`;$('machineNote').textContent=machine().shortNote;return;
  }
  $('problemLabel').textContent=custom?'EDITED MACHINE':'ADAPTIVE PRACTICE';$('score').textContent=`${totalScore()} / ${maxStage()*4}`;
@@ -132,7 +134,7 @@ function renderQuestion(){
  $('machineNote').textContent=machine().shortNote;
 }
 function renderTabs(){
- document.body.dataset.mode=mode;if(mode==='balance')$('stepsWindow').hidden=true;$('taskChoices').hidden=mode==='balance';$('stepsBtn').hidden=mode==='balance';$('adaptLabel').hidden=mode==='balance';$('balanceEditHint').hidden=mode!=='balance';$('mastery').hidden=mode==='balance';$('advanceNotice').hidden=mode==='balance';$('nextBtn').textContent='Next problem →';document.querySelectorAll('[data-mode]').forEach(b=>{b.disabled=machine().balanceOnly&&b.dataset.mode!=='balance';b.title=b.disabled?'Gear arms is a Balance activity. Choose another machine for this mode.':'';});
+ document.body.dataset.mode=isBalanceProblem()?'balance':mode;if(isBalanceProblem())$('stepsWindow').hidden=true;$('taskChoices').hidden=isBalanceProblem();$('stepsBtn').hidden=isBalanceProblem();$('adaptLabel').hidden=isBalanceProblem();$('balanceEditHint').hidden=!isBalanceProblem();$('mastery').hidden=isBalanceProblem();$('advanceNotice').hidden=isBalanceProblem();$('nextBtn').textContent='Next problem →';document.querySelectorAll('[data-mode]').forEach(b=>{b.disabled=machine().balanceOnly&&b.dataset.mode!=='balance';b.title=b.disabled?'Gear arms is a Balance activity. Choose another machine for this mode.':'';});
  document.querySelectorAll('[data-machine]').forEach(b=>b.classList.toggle('selected',b.dataset.machine===type));
  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('selected',b.dataset.mode===mode));
  $('challengePanel').hidden=mode==='auto';$('autoPanel').hidden=mode!=='auto';$('nextBtn').hidden=mode==='auto';syncRunButtons();
@@ -146,7 +148,7 @@ function draw(){
  if(!state)return;const r=readout(state,config,external());
  const targetInput=task==='distance'?challenge.motionDistance*ratio(config):0,targetQ=mode==='challenge'&&task==='distance'?(type==='lever'?Math.asin(clamp(Math.sin(state.q0)+targetInput/config.rIn,-1,1)):state.q0+targetInput):null;
  const pullView=pull?{side:pull.side,force:pull.side==='input'?r.externalInputForce:r.externalOutputForce,cursor:pull.cursor}:null;
- $('scene').innerHTML=renderScene(config,state,r,{dark:saved.dark,rampView,rampScale:drag&&(drag.kind==='rampRun'||(type==='ramp'&&drag.key==='height'))?drag.scale:undefined,editableKey:mode==='balance'?challenge.key:null,paths:$('paths').checked,forces:$('forces').checked,accelerations:$('accelerations').checked,pathWidth:Number($('pathWidth').value),pull:pullView,actuatorForce:movementTest?r.externalInputForce:0,targetQ,targetRise:challenge.motionDistance});
+ $('scene').innerHTML=renderScene(config,state,r,{dark:saved.dark,rampView,rampScale:drag&&(drag.kind==='rampRun'||(type==='ramp'&&drag.key==='height'))?drag.scale:undefined,editableKey:isBalanceProblem()?challenge.key:null,paths:$('paths').checked,forces:$('forces').checked,accelerations:$('accelerations').checked,pathWidth:Number($('pathWidth').value),pull:pullView,actuatorForce:movementTest?r.externalInputForce:0,targetQ,targetRise:challenge.motionDistance});
  if(type==='ramp'&&!rampView){const d=$('scene').querySelector('[data-geo="rampRun"]')?.dataset;if(d&&Number(d.scale)>0)rampView={scale:Number(d.scale),x0:Number(d.baseX),baseY:Number(d.baseY)};}
  const svg=$('scene').firstElementChild;if(svg)svg.setAttribute('viewBox',`${camera.cx-450/camera.zoom} ${camera.cy-270/camera.zoom} ${900/camera.zoom} ${540/camera.zoom}`);
  $('zoomReset').textContent=Math.round(camera.zoom*100)+'%';cacheBodyInfo();
@@ -194,7 +196,7 @@ function markCorrect(){
  const expected=Math.min(skills()[task]||0,maxStage()-1);
  if(level===expected&&skills()[task]<maxStage())skills()[task]++;save();renderQuestion();
 }
-function nextProblem(){cancelAdvance();if(mode==='balance'){nextBalance();return;}chooseAdaptive();loadChallenge({newNumbers:true});}
+function nextProblem(){cancelAdvance();if(isBalanceProblem()){nextBalance();return;}chooseAdaptive();loadChallenge({newNumbers:true});}
 function scheduleAdvance(correct){
  if(!$('autoAdvance').checked||custom)return;
  const seconds=correct?6:7;$('advanceNotice').textContent=correct?`Correct. Next adaptive problem in ${seconds} seconds; turn off adaptation to stay.`:`A new ${task==='balance'?'mass':task} problem at the same or easier stage follows in ${seconds} seconds.`;
@@ -208,7 +210,7 @@ function demonstrateDistance(value){
  start();
 }
 function applyTest(e){
- e?.preventDefault();if(mode==='balance'){applyBalanceTest();return;}cancelAdvance();stopAuto();pull=null;movementTest=null;
+ e?.preventDefault();if(isBalanceProblem()){applyBalanceTest();return;}cancelAdvance();stopAuto();pull=null;movementTest=null;
  const value=parse($('answerValue').value),target=currentAnswer();
  if(!Number.isFinite(value)){feedback('Enter one value, such as 25 or 25/2.',false);return;}
  if(custom&&task==='balance'&&target<0){feedback('No nonnegative input mass can balance this setup. Reduce the applied input force.',false);return;}
@@ -281,13 +283,14 @@ function beginPointer(e){
  if(e.button!==undefined&&e.button!==0)return;
  const scene=e.target.closest('#scene');if(!scene)return;e.preventDefault();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
  if(pointers.size===2){pull=null;drag=null;const pts=[...pointers.values()];pinch={dist:Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y),zoom:camera.zoom};return;}
- const handle=e.target.closest('[data-drag]'),p=screenPoint(e.clientX,e.clientY),resume=playing&&mode!=='balance';stopAuto();cancelAdvance();
+ const handle=e.target.closest('[data-drag]'),p=screenPoint(e.clientX,e.clientY),resume=playing&&!isBalanceProblem();stopAuto();cancelAdvance();
  if(handle?.dataset.drag==='resize'&&!editable(handle.dataset.side==='input'?'inputMass':'outputMass'))return;
- if(handle?.dataset.drag==='geometry'&&!editable(handle.dataset.geo==='rampRun'?'rampRun':handle.dataset.param))return;
+ const geometryKey=handle?.dataset.geo==='rampRun'?(isBalanceProblem()&&challenge.key==='length'?'length':'rampRun'):handle?.dataset.param;
+ if(handle?.dataset.drag==='geometry'&&!editable(geometryKey))return;
  if(handle?.dataset.drag==='resize'){
   stop();const d=handle.dataset;drag={kind:'resize',resume,side:d.side,size:Number(d.baseSize||d.size)||bodyInfo[d.side]?.size||0,axis:d.axis||'xy',sx:Number(d.signx??d.signX??1),sy:Number(d.signy??d.signY??1),angle:Number(d.angle)||0,p};
  }else if(handle?.dataset.drag==='geometry'){
-  stop();const d=handle.dataset;if(d.geo==='rampRun'){drag={kind:'rampRun',resume,run:rampRun(),height:config.height,scale:Number(d.scale)||100,p};}else drag={kind:'geometry',resume,key:d.param,axis:d.axis||'x',units:Number(d.unitsPerPx)||.01,scale:1/Math.abs(Number(d.unitsPerPx)||.01),value:config[d.param],p};
+  stop();const d=handle.dataset;if(d.geo==='rampRun'){drag={kind:'rampRun',key:geometryKey,resume,run:rampRun(),height:config.height,scale:Number(d.scale)||100,p};}else drag={kind:'geometry',resume,key:d.param,axis:d.axis||'x',units:Number(d.unitsPerPx)||.01,scale:1/Math.abs(Number(d.unitsPerPx)||.01),value:config[d.param],p};
  }else if(handle?.dataset.drag==='pull'&&$('pullTool').checked){
   const side=handle.dataset.side;if(!bodyInfo[side])return;const offset={x:p.x-bodyInfo[side].x,y:p.y-bodyInfo[side].y},target={x:p.x-offset.x,y:p.y-offset.y};pull={side,cursor:target,offset,velocity:{x:0,y:0},previous:target,time:performance.now(),force:{input:0,output:0}};distanceDemo=false;movementTest=null;start();
  }else drag={kind:'pan',p:{x:e.clientX,y:e.clientY},camera:{...camera}};
@@ -300,7 +303,13 @@ function movePointer(e){
  if(pull){const target={x:p.x-pull.offset.x,y:p.y-pull.offset.y},now=performance.now(),dt=Math.max(.008,(now-pull.time)/1000);pull.velocity={x:(target.x-pull.previous.x)/dt,y:(target.y-pull.previous.y)/dt};pull.previous=target;pull.cursor=target;pull.time=now;return;}
  if(!drag)return;
  if(drag.kind==='pan'){const rect=$('scene').getBoundingClientRect(),s=Math.min(rect.width/900,rect.height/540)*camera.zoom;camera.cx=clamp(drag.camera.cx-(e.clientX-drag.p.x)/s,80,820);camera.cy=clamp(drag.camera.cy-(e.clientY-drag.p.y)/s,30,510);queueDraw();return;}
- if(drag.kind==='rampRun'){pendingResize={next:{...config,...editSetup(config,'rampRun',snapValue(drag.run+(p.x-drag.p.x)/drag.scale,.1,Math.sqrt(Math.max(0,.3**2-drag.height**2)),Math.sqrt(Math.max(0,5**2-drag.height**2))))},edited:'rampRun'};}
+ if(drag.kind==='rampRun'){
+  const run=Math.max(0,drag.run+(p.x-drag.p.x)/drag.scale);
+  if(drag.key==='length'){
+   const length=snapValue(Math.hypot(run,drag.height),challenge.step,challenge.min,challenge.max);
+   pendingResize={next:editSetup(config,'length',length),edited:'length'};
+  }else pendingResize={next:editSetup(config,'rampRun',snapValue(run,.1,Math.sqrt(Math.max(0,.3**2-drag.height**2)),Math.sqrt(Math.max(0,5**2-drag.height**2)))),edited:'rampRun'};
+ }
  else if(drag.kind==='geometry'){const delta=drag.axis==='y'?p.y-drag.p.y:p.x-drag.p.x;pendingResize={next:editSetup(config,drag.key,snapGeometry(drag.key,drag.value+delta*drag.units)),edited:drag.key};}
  else{
   const dx=p.x-drag.p.x,dy=p.y-drag.p.y,c=Math.cos(drag.angle),s=Math.sin(drag.angle),lx=dx*c+dy*s,ly=-dx*s+dy*c;
@@ -310,15 +319,15 @@ function movePointer(e){
  }
  if(!editFrame)editFrame=requestAnimationFrame(applyPendingEdit);
 }
-function applyPendingEdit(){cancelAnimationFrame(editFrame);editFrame=0;if(!pendingResize)return;const update=pendingResize;pendingResize=null;if(Object.entries(update.next).every(([key,value])=>value===config[key]))return;const isGuess=mode==='challenge'&&task==='balance'&&update.edited==='inputMass';setConfig(update.next,{edited:update.edited,mark:!isGuess});if(isGuess)$('answerValue').value=fmt(config.inputMass);}
+function applyPendingEdit(){cancelAnimationFrame(editFrame);editFrame=0;if(!pendingResize)return;const update=pendingResize;pendingResize=null;if(Object.entries(update.next).every(([key,value])=>value===config[key]))return;const isGuess=mode==='challenge'&&!isBalanceProblem()&&task==='balance'&&update.edited==='inputMass';setConfig(update.next,{edited:update.edited,mark:!isGuess});if(isGuess)$('answerValue').value=fmt(config.inputMass);}
 function endPointer(e){
  pointers.delete(e.pointerId);if(pinch){if(pointers.size<2)pinch=null;queueAutoSave();return;}
  if(pendingResize)applyPendingEdit();if(pull){pull=null;queueDraw();}const resume=drag?.resume;drag=null;if(resume)start();
  try{$('scene').releasePointerCapture(e.pointerId);}catch{}queueAutoSave();
 }
 $('machines').innerHTML=machineCatalog.map(m=>`<button data-machine="${m.type}">${esc(m.label)}</button>`).join('');
-$('machines').onclick=e=>{const b=e.target.closest('[data-machine]');if(!b)return;type=b.dataset.machine;if(machine().balanceOnly)mode='balance';task=mode==='balance'?'balance':topic==='mixed'?'force':topic;level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();};
- document.querySelector('.modes').onclick=e=>{const b=e.target.closest('[data-mode]');if(b&&!b.disabled){mode=b.dataset.mode;task=mode==='balance'?'balance':topic==='mixed'?'force':topic;level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();}};
+$('machines').onclick=e=>{const b=e.target.closest('[data-machine]');if(!b)return;type=b.dataset.machine;if(machine().balanceOnly)mode='balance';task=isBalanceProblem()?'balance':topic==='mixed'?'force':topic;level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();};
+ document.querySelector('.modes').onclick=e=>{const b=e.target.closest('[data-mode]');if(b&&!b.disabled){mode=b.dataset.mode;task=isBalanceProblem()?'balance':topic==='mixed'?'force':topic;level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();}};
 $('taskChoices').onclick=e=>{const b=e.target.closest('[data-topic]');if(!b)return;topic=b.dataset.topic;if(topic==='mixed')chooseAdaptive('acceleration');else{task=topic;level=Math.min(skills()[task]||0,maxStage()-1);}loadChallenge();};
 $('levels').onclick=e=>{const b=e.target.closest('[data-level]');if(b){level=+b.dataset.level;loadChallenge();}};
 function runOrPause(e){
@@ -331,7 +340,7 @@ $('stepsBtn').onclick=()=>{$('steps').hidden=!$('steps').hidden;$('stepsBtn').te
 $('playBtn').onclick=runOrPause;
 $('resetBtn').onclick=resetProblem;$('nudgeBtn').onclick=()=>{cancelAdvance();config.force=clamp(currentAnswer()*1.02,0,MAX_FORCE);config.inputMass=0;restart();syncControls();feedback('Testing 2% above the balance threshold. Extra work becomes kinetic energy and, with resistance enabled, heat.',true);start();};
 $('restoreBtn').onclick=resetProblem;
-for(const id of ['inputMass','outputMass','appliedForce']){const commit=e=>{const key=id==='appliedForce'?'force':id;if(!editable(key))return;const value=parse(e.target.value),isGuess=mode==='challenge'&&((task==='balance'&&key==='inputMass')||(task==='force'&&key==='force'));if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key,mark:!isGuess});e.target.value=answerRounding(config[key]).text;e.target.dataset.renderedValue=e.target.value;if(isGuess)$('answerValue').value=fmt(config[key]);};$(id).onchange=commit;$(id).onblur=commit;$(id).onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit(e);}};}
+for(const id of ['inputMass','outputMass','appliedForce']){const commit=e=>{const key=id==='appliedForce'?'force':id;if(!editable(key))return;const value=parse(e.target.value),isGuess=mode==='challenge'&&!isBalanceProblem()&&((task==='balance'&&key==='inputMass')||(task==='force'&&key==='force'));if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-config[key])>1e-8)setConfig({...config,[key]:value},{edited:key,mark:!isGuess});e.target.value=answerRounding(config[key]).text;e.target.dataset.renderedValue=e.target.value;if(isGuess)$('answerValue').value=fmt(config[key]);};$(id).onchange=commit;$(id).onblur=commit;$(id).onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit(e);}};}
 function commitGeometry(e){const key=e.target.dataset.geometry;if(!key||!editable(key))return;const value=parse(e.target.value),prior=key==='rampRun'?rampRun():config[key];if(e.target.value!==e.target.dataset.renderedValue&&Number.isFinite(value)&&Math.abs(value-prior)>1e-8){const next=editSetup(config,key,value);setConfig(next,{edited:key});}e.target.value=fmt(key==='rampRun'?rampRun():config[key]);e.target.dataset.renderedValue=e.target.value;}
 $('geometryControls').onchange=commitGeometry;$('geometryControls').addEventListener('blur',commitGeometry,true);$('geometryControls').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commitGeometry(e);}};
 $('autoTarget').onchange=()=>setConfig({...config},{mark:false});
@@ -373,7 +382,7 @@ const selectViews=['compareKind','plotKind','speed','autoTarget'];
 function progressSnapshot(){
  const view=Object.fromEntries([...checkViews.map(id=>[id,$(id).checked]),...selectViews.map(id=>[id,$(id).value])]);
  return normalizeProgress({schema:'machine-lab-progress',version:1,savedAt:new Date().toISOString(),student,saved,
-  session:{mode,type,task,topic,level,variant:mode==='balance'?balanceVariant():saved.serial,config,answer:$('answerValue').value,custom,attempts,credited,forceCorrect,resistance,camera,rampView,view},stats:progressStats});
+  session:{mode,type,task,topic,level,variant:isBalanceProblem()?balanceVariant():saved.serial,config,answer:$('answerValue').value,custom,attempts,credited,forceCorrect,resistance,camera,rampView,view},stats:progressStats});
 }
 function progressStatus(message,bad=false){$('progressStatus').textContent=message;$('progressStatus').classList.toggle('save-error',bad);$('saveStatus').textContent=message;}
 function queueAutoSave(){
@@ -386,26 +395,27 @@ function saveProgressNow(manual=false){
  catch{progressStatus('Unable to save on this device. Use Share or Download backup.',true);return false;}
 }
 function recordCurrentTest(correct){
- const entry=$('answerValue').value,source=JSON.stringify([mode,type,task,level,mode==='balance'?balanceVariant():saved.serial,config,entry]);
+ const entry=$('answerValue').value,source=JSON.stringify([mode,type,task,level,isBalanceProblem()?balanceVariant():saved.serial,config,entry]);
  let h=2166136261;for(const char of source)h=Math.imul(h^char.charCodeAt(0),16777619);
- progressStats=recordAttempt(progressStats,{type,mode,task,level,custom,variable:mode==='balance'?challenge.key:task,variant:mode==='balance'?balanceVariant():saved.serial,correct,entry,at:new Date().toISOString(),signature:(h>>>0).toString(36)});
+ progressStats=recordAttempt(progressStats,{type,mode,task,level,custom,variable:isBalanceProblem()?challenge.key:task,variant:isBalanceProblem()?balanceVariant():saved.serial,correct,entry,at:new Date().toISOString(),signature:(h>>>0).toString(36)});
  queueAutoSave();
 }
 function restoreProgress(snapshot,persist=true){
- const p=normalizeProgress(snapshot),a=p.session,wasReady=progressReady;progressReady=false;clearTimeout(saveTimer);saveTimer=0;
+ const p=normalizeProgress(snapshot),a=p.session,legacyRampPractice=a.type==='ramp'&&a.mode==='challenge'&&a.task!=='balance',wasReady=progressReady;progressReady=false;clearTimeout(saveTimer);saveTimer=0;
  cancelAdvance();stopAuto();stop();if($('comparisonDialog').open)$('comparisonDialog').close();
  saved=p.saved;student=p.student;progressStats=p.stats;mode=a.mode;type=a.type;task=a.task;topic=a.topic;level=a.level;resistance=a.resistance;
  if(machine().balanceOnly){mode='balance';task='balance';}
- if(mode==='balance')saved.balanceVariants={...saved.balanceVariants,[type]:a.variant};else saved.serial=a.variant;
+ if(isBalanceProblem())saved.balanceVariants={...saved.balanceVariants,[type]:a.variant};else saved.serial=a.variant;
  for(const id of checkViews)$(id).checked=a.view[id];for(const id of selectViews)$(id).value=a.view[id];
  loadChallenge();
- if(mode==='balance')config=editSetup(challenge.config,challenge.key,setupValue(a.config,challenge.key));
+ if(isBalanceProblem()&&!legacyRampPractice)config=editSetup(challenge.config,challenge.key,setupValue(a.config,challenge.key));
+ else if(legacyRampPractice)config={...challenge.config};
  else if(mode==='auto'||a.custom)config=normalizeConfig(a.config);
  else {config={...challenge.config};if(task==='force')config.force=a.config.force;if(task==='balance')config.inputMass=a.config.inputMass;}
- config.damping=resistance;if(mode==='balance')config.force=0;if(mode==='auto')balanceAuto();
- custom=mode==='challenge'&&a.custom;attempts=a.attempts;credited=a.credited;forceCorrect=a.forceCorrect;
+ config.damping=resistance;if(isBalanceProblem())config.force=0;if(mode==='auto')balanceAuto();
+ custom=mode==='challenge'&&!isBalanceProblem()&&a.custom;attempts=a.attempts;credited=a.credited;forceCorrect=a.forceCorrect;
  state=makeState(config,challenge.startFraction??.5);history=[];testedEntry='';camera={...a.camera};rampView=a.rampView;
- $('answerValue').value=a.answer;$('feedback').textContent='';$('pathWidth').value=saved.pathWidth;$('pathWidthValue').textContent=saved.pathWidth;
+ $('answerValue').value=legacyRampPractice?entryValue(setupValue(config,challenge.key)):a.answer;$('feedback').textContent='';$('pathWidth').value=saved.pathWidth;$('pathWidthValue').textContent=saved.pathWidth;
  $('comparePanel').hidden=!$('charts').checked;$('plotPanel').hidden=!$('graphToggle').checked;$('accelerationWindow').hidden=!$('accelerations').checked;
  buildControls();syncControls();syncResistance();renderQuestion();renderTabs();theme();draw();
  progressReady=wasReady;if(persist){progressReady=true;saveProgressNow(true);}return p;
@@ -458,8 +468,10 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)saveProgres
 let storedProgress=null;try{const raw=localStorage.getItem(PROGRESS_KEY);if(raw)storedProgress=parseProgress(raw);}catch{}
 const defaultedToBalance=storedProgress&&storedProgress.session.mode!=='balance';
 if(storedProgress){restoreProgress(storedProgress,false);if(defaultedToBalance){mode='balance';task='balance';level=0;loadChallenge();}}else{const hash=location.hash.match(/machine=(\w+)/);if(hash&&machineCatalog.some(m=>m.type===hash[1]))type=hash[1];level=Math.min(skills()[task]||0,maxStage()-1);loadChallenge();theme();}
+let appliedForceDefault=false;try{if(localStorage.getItem(FORCE_DEFAULT_KEY)!=='1'){$('forces').checked=false;appliedForceDefault=true;localStorage.setItem(FORCE_DEFAULT_KEY,'1');}}catch{$('forces').checked=false;}
 initPanels();progressReady=true;
 if(storedProgress&&!defaultedToBalance)progressStatus('Progress restored on this device. Run starts from rest.');else queueAutoSave();
+if(appliedForceDefault)saveProgressNow();
 async function openSharedLink(){
  const request=++sharedDecodeVersion,hash=location.hash,params=new URLSearchParams(hash.slice(1)),sharedToken=params.get('p')??params.get('progress');
  const current=()=>request===sharedDecodeVersion&&location.hash===hash;

@@ -3,6 +3,8 @@ import {deflateSync} from 'node:zlib';
 import {normalizeProgress,serializeProgress,parseProgress,encodeProgress,decodeProgress,recordAttempt,summarizeProgress,MAX_SHARE_LENGTH} from '../progress.js';
 import {defaultConfig} from '../physics.js';
 let checks=0;
+assert.equal(normalizeProgress({}).session.view.forces,false);
+assert.equal(normalizeProgress({session:{view:{forces:true}}}).session.view.forces,true);checks+=2;
 const at=Date.UTC(2026,10,9,15,30);
 const base={student:'Gabriel 🧪 — 班',savedAt:at,saved:{dark:false,serial:25,pathWidth:4.5,balanceVariants:{ramp:7},skills:{ramp:{force:2,balance:3,distance:1,acceleration:0}}},session:{mode:'balance',type:'ramp',task:'balance',topic:'mixed',variant:7,config:{...defaultConfig('ramp'),inputMass:7.5,height:1.2,length:3},answer:'15/2',camera:{zoom:1.2,cx:430,cy:255},rampView:{scale:150,baseY:370,x0:80},view:{paths:true,forces:false,plotKind:'force',speed:.5},credited:true},stats:{}};
 let stats;

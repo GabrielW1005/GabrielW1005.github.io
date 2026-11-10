@@ -35,6 +35,11 @@ for(const machine of machineCatalog){
   assert.ok(changed.every(k=>allowed.has(k)),`${p.id} only requested value and derived ramp length change`);
   if(machine.type==='ramp'){
    assert.ok(c.length>c.height&&fixed.length>fixed.height&&fixed.length<=5+1e-9,`${p.id} real legal ramp`);
+   assert.ok(['inputMass','outputMass','length'].includes(p.key),`${p.id} only mass or diagonal ramp length is requested`);
+   assert.ok(!p.given.some(s=>/horizontal|base/i.test(s)),`${p.id} no unnecessary base dimension`);
+   assert.ok(p.given.some(s=>s.startsWith('Height:')),`${p.id} height is always supplied`);
+   assert.equal(p.given.some(s=>s.startsWith('Ramp length (diagonal):')),p.key!=='length',`${p.id} known diagonal length is supplied and unknown length is omitted`);
+   if(p.key==='length')close(c.height,fixed.height,`${p.id} solving diagonal length preserves given height`);
    if(p.key==='height')close(horizontalRun(c),horizontalRun(fixed),`${p.id} height edit preserves base`);
    if(p.key==='rampRun')close(c.height,fixed.height,`${p.id} base edit preserves height`);
   }
@@ -52,6 +57,7 @@ for(const machine of machineCatalog){
  assert.ok(geometry.size>=6,`${machine.type} varies machine setups via Next`);
  assert.ok(massTargets.size>=8,`${machine.type} varied clean masses`);
  if(machine.type==='pulley'){assert.deepEqual([...strands].sort((a,b)=>a-b),[1,2,4,6]);assert.equal(pulleyGoals.size,8,'each pulley system varies both mass unknowns');}
+ else if(machine.type==='ramp')assert.deepEqual([...keys].sort(),['inputMass','length','outputMass'],'ramps cycle both masses and diagonal length');
  else assert.ok(keys.size>=3,`${machine.type} includes geometry balance problems`);
 }
 // Independent base/height editing regression, including repeated reversals.

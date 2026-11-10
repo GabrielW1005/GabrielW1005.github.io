@@ -18,7 +18,7 @@ const expectedRatio=(type,level,variant)=>{
 const distinct=(list,key)=>new Set(list.map(c=>typeof key==='function'?key(c):c[key])).size;
 let checked=0;
 let tinyDistances=0;
-for(const machine of machineCatalog.filter(m=>!m.balanceOnly)){
+for(const machine of machineCatalog.filter(m=>!m.balanceOnly&&m.type!=='ramp')){
   for(const variant of [...Array(40).keys(),97,128,999,65535]){
     const masses=[],advantages=[],liftingForces=[];
     for(let level=0;level<machine.levels.length;level++){
@@ -171,6 +171,25 @@ for(const machine of machineCatalog.filter(m=>!m.balanceOnly)){
       }
     }
   }
+}
+// Legacy task selections and direct generator callers may still request any
+// task. Ramps must always return a mass balance problem; the normal ramp UI
+// uses createBalanceChallenge for mass/diagonal-length variety.
+for(const task of [...taskCatalog.map(t=>t.id),'inputMass','d1','a']){
+ for(let level=0;level<3;level++)for(const variant of [...Array(30).keys(),65535]){
+  const p=createChallenge('ramp',task,level,variant),c=p.config;
+  assert.equal(p.task,'balance',`${p.id} normalizes obsolete ramp task`);
+  assert.equal(p.unknown,'inputMass',`${p.id} asks only for a mass`);
+  assert.equal(p.mode,'balance');assert.equal(p.unit,'kg');
+  assertGrid(p.answer,.5,`${p.id} simple mass answer`);
+  close(p.answer*ratio(c),c.outputMass,`${p.id} mass satisfies ramp balance`);
+  assert.ok(c.length>c.height,`${p.id} real inclined ramp`);
+  assert.ok(p.given.every(s=>!/base|horizontal|acceleration|Applied input force/i.test(s)),`${p.id} no unnecessary ramp dimensions or force task`);
+  const balanced={...c,inputMass:p.answer},state=makeState(balanced,p.startFraction);
+  for(let frame=0;frame<30;frame++)step(state,balanced,1/60);
+  close(state.q,state.q0,`${p.id} correct mass remains at rest`);
+  checked++;
+ }
 }
 assert.deepEqual(taskCatalog.map(x=>x.id),['force','balance','distance','acceleration']);
 assert.ok(tinyDistances>0,'tiny-stroke three-decimal fallback is exercised');

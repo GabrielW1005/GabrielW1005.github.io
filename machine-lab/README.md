@@ -26,6 +26,10 @@ Progress, current setup and preferences autosave in this browser on this device;
 
 Both the stage and interface support light and dark themes. Free play and loose weight tokens have been removed.
 
+Force vectors and their labels start hidden. A one-time preference migration also turns off the old automatic-on default; later explicit force-toggle choices are saved. Ramp questions in both Balance and Practice ask only for a hanging mass, a mass on the ramp, or the diagonal ramp length. Next problem varies the geometry and target. The diagram labels only height and diagonal length, and dragging the highlighted length handle keeps height fixed. Auto balance remains available.
+
+The current two-page worksheet has four lever-balance and four ramp-balance problems. Lever arms and ramp geometry are drawn to scale; mass-block area is proportional to mass within each diagram. It shows conservation of energy and cancellation of the shared gravitational acceleration, followed by the appropriate lever and ramp balance equations.
+
 ## Newtonian simulation
 
 `physics.js` numerically integrates a single generalized coordinate constrained by each machine. Newton's second law, or its rotational equivalent, determines acceleration from the actual connected mass inertia and applied forces. Undamped motion uses velocity-Verlet substeps at most 1/240 s (1/1200 s for levers). With viscous settling, linear machines use the exact piecewise exponential solution and levers use fourth-order Runge–Kutta at 1/1200 s or smaller. Gear arms uses fourth-order Runge–Kutta with or without resistance, resolving both coupled angles and their changing gravitational torques. Frame dt is bounded, and travel-stop collisions account for lost kinetic energy. This is a constrained ideal-machine simulator, not a general collision sandbox.
@@ -51,7 +55,7 @@ Forces are capped at 1000 N; each mass is capped at 200 kg. The engine further s
 ### Distance and acceleration distinctions
 
 - Lever: path lengths are circular arcs r*dθ; vertical work distances are r*d(sin θ). Initial vertical-acceleration problems start horizontal and at rest.
-- Ramp: the input weight and box have equal actual path travel. The output work against gravity uses the smaller vertical rise. Acceleration questions ask along the slope.
+- Ramp: the input weight and box have equal actual path travel. The output work against gravity uses the smaller vertical rise. Current problems ask only for mass or diagonal ramp length, using hanging mass × ramp length = mass on ramp × height.
 - Pulley: 1, 2, 4 or 6 supporting strands, with the corresponding rope-travel ratio. Radius and stroke vary independently; Next problem supplies the rope count.
 - Wheel and geared winch: rim paths and hanging-mass paths are separate. The geared winch uses equal fixed drums, so its ideal MA is output teeth / input teeth.
 - Gear arms: endpoint paths are circular arcs with lengths r₁|Δq| and r₂k|Δq|. Gravity work uses each endpoint’s exact vertical change. Horizontal balance is a position-specific condition when the gears have unequal tooth counts.
@@ -67,7 +71,7 @@ Physics advances while Run is active, including at equilibrium and travel stops.
 
 `source/test-balance-challenges.mjs` checks clean, feasible single-edit Balance problems and setup variety. `source/test-gear-arms.mjs` checks coupled angular dynamics, horizontal equilibrium, energy and displaced behavior. `source/test-machine-edits.mjs` checks geometry edit constraints, including ramp run/height preservation. `source/test-value-steps.mjs` checks input grids and rounding. `source/test-challenges.mjs` checks generated ratios, balance, motion limits, initial accelerations, determinism, geometry diversity and value variety. `source/test-actuator.mjs` checks correct and wrong distance entries with both damping settings. `source/test-comparison.mjs` checks path measurements, reference movements, product scaling, inequality and rendering. Physics tests cover signed pointer forces, spring-driven motion, reversals, contact/tension limits and energy accounting. Browser QA covers answer feedback, adaptive progression, zoom, resizing, pulling, numerical controls, all machines and display toggles.
 
-Serve this folder over HTTP. `app.js` owns interaction/adaptation, `balance-challenges.js` and `challenges.js` own problem generation, `scene.js` renders SVG, `comparison.js` produces static manually selected snapshot comparisons, and `physics.js` advances the model. `source/build_worksheet.py` regenerates the unchanged student PDF and worked key after installing `source/requirements.txt`.
+Serve this folder over HTTP. `app.js` owns interaction/adaptation, `balance-challenges.js` and `challenges.js` own problem generation, `scene.js` renders SVG, `comparison.js` produces static manually selected snapshot comparisons, and `physics.js` advances the model. `source/build_balance_worksheet.py` regenerates the current two-page `worksheet.pdf` using Python, ReportLab, Matplotlib and Liberation Serif fonts. Its optional `--output` argument selects another PDF destination. The older `source/build_worksheet.py` remains as the original multi-machine worksheet source.
 
 ## References
 
