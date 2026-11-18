@@ -1,0 +1,151 @@
+.bio-lab {
+  --lab-ink: var(--ink, #182d38);
+  --lab-muted: var(--muted, #4b666e);
+  --lab-paper: var(--panel, #fffdf9);
+  --lab-line: var(--line, #d0dddd);
+  --lab-accent: #145968;
+  --lab-wash: #ecf6f4;
+  color: var(--lab-ink);
+}
+
+.bio-lab [hidden] { display: none !important; }
+.bio-lab h3, .bio-lab p { margin: 0; }
+.bio-lab button, .bio-lab input { font: inherit; }
+.bio-lab h3 { font-size: clamp(1.18rem, 2vw, 1.6rem); line-height: 1.15; }
+.bio-lab p { line-height: 1.52; }
+.bio-lab a { color: var(--lab-accent); }
+.bio-lab a:focus-visible, .bio-lab button:focus-visible, .bio-lab input:focus-visible { outline: 3px solid #16768f; outline-offset: 3px; }
+
+.lab-kicker { color: var(--lab-accent); font-size: .73rem; font-weight: 750; text-transform: uppercase; letter-spacing: .105em; }
+.lab-grid { display: grid; gap: 1rem; align-items: start; }
+.lab-fert-grid { grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 1fr); }
+.lab-inheritance-grid { grid-template-columns: minmax(17rem, 1fr) minmax(0, 1.4fr); }
+.lab-panel { border: 1px solid var(--lab-line); border-radius: 1.1rem; background: var(--lab-paper); }
+.lab-visual-panel, .lab-stage-panel { min-width: 0; padding: clamp(.7rem, 1.6vw, 1.2rem); }
+.lab-stage-panel { display: grid; gap: 1rem; }
+.lab-stage-copy { display: grid; align-content: start; gap: .6rem; }
+.lab-illustration { border-radius: .65rem; overflow: hidden; }
+.lab-illustration svg { display: block; height: auto; width: 100%; }
+.lab-question { border-left: 3px solid #409495; margin-top: .2rem; padding: .65rem .75rem; border-radius: 0 .45rem .45rem 0; background: var(--lab-wash); color: #254953; }
+.lab-question > .lab-kicker { margin-bottom: .15rem; }
+.lab-inherit-question { margin-top: 1rem; }
+.lab-legend { display: flex; flex-wrap: wrap; gap: .5rem .9rem; margin-top: .8rem; font-size: .8rem; color: var(--lab-muted); }
+.lab-legend span { display: inline-flex; gap: .35rem; align-items: center; }
+.lab-key { flex: none; width: .76rem; height: .76rem; border-radius: 50%; border: 1px solid #756273; }
+.lab-key-sperm { background: #bff4ec; border-color: #537074; }
+.lab-key-corona { background: #b672a0; }
+.lab-key-coat { background: #8f5487; }
+.lab-key-membrane { background: #ffdb98; }
+.bio-lab .lab-note { margin-top: .7rem; font-size: .8rem; color: var(--lab-muted); }
+.bio-lab .lab-source { margin-top: .75rem; display: flex; flex-wrap: wrap; gap: .35rem 1rem; font-size: .78rem; }
+.lab-source a { text-decoration: underline; text-underline-offset: .17em; }
+.lab-controls, .lab-chapters, .lab-tabs { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+.lab-button, .lab-chapters button, .lab-tabs button, .lab-allele-option {
+  border: 1px solid #afc7c8;
+  border-radius: .52rem;
+  background: #f7fbfb;
+  color: #22424a;
+  padding: .58rem .83rem;
+  min-height: 2.65rem;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.lab-button:disabled { opacity: .48; cursor: default; }
+.lab-button-primary, .lab-chapters button[aria-current="step"], .lab-tabs button[aria-pressed="true"], .lab-allele-option[aria-pressed="true"] { background: var(--lab-accent); border-color: var(--lab-accent); color: #fff; }
+.lab-button:not(:disabled):hover, .lab-chapters button:hover, .lab-tabs button:hover, .lab-allele-option:hover { box-shadow: inset 0 0 0 1px #459197; }
+.lab-chapters button { min-width: 2.55rem; padding-inline: .4rem; font-size: .86rem; }
+
+.lab-bio-flow { fill: none; stroke: #bba3cc; stroke-opacity: .14; stroke-width: 1.25; }
+.lab-oocyte-coat { fill: #8f5487; stroke: #c691bd; stroke-width: 2; transition: stroke .45s, fill .45s; }
+.lab-oocyte-membrane { fill: #ffdb98; stroke: #fecb9a; stroke-width: 1.5; }
+.lab-corona { fill: #b672a0; stroke: #d990b7; stroke-width: 1.25; }
+.lab-corona-center { fill: #8e507f; stroke: none; }
+.lab-cytoplasm { fill: #ffebb5; opacity: .4; }
+.lab-sperm-head { fill: #bff4ec; stroke: #85c1ba; stroke-width: 1.15; }
+.lab-sperm-cap { fill: #fff2c9; }
+.lab-sperm-tail { fill: none; stroke: #a6e4db; stroke-width: 2; stroke-linecap: round; }
+[data-playing="true"] .lab-sperm-tail { animation: lab-flagellum .55s ease-in-out infinite alternate; }
+.lab-sperm-main, .lab-sperm-secondary { transition: transform .85s cubic-bezier(.28,.55,.3,1), opacity .55s; }
+.lab-sperm-main { transform: translate(173px, 178px) rotate(-5deg); }
+.lab-sperm-secondary { opacity: .58; }
+.lab-sperm-above { transform: translate(173px, 84px) rotate(10deg) scale(.78); }
+.lab-sperm-below { transform: translate(166px, 261px) rotate(-14deg) scale(.82); }
+.lab-fert-pulse, .lab-polar-body, .lab-sperm-chromatin, .lab-pronucleus, .lab-entry-block { opacity: 0; transition: opacity .35s; }
+.lab-fert-pulse circle { fill: none; stroke: #fff2bf; stroke-width: 3; }
+.lab-meiotic-spindle { transition: opacity .35s; }
+.lab-meiotic-spindle ellipse { fill: #a45167; stroke: #842d59; stroke-width: 1.3; }
+.lab-meiotic-spindle path { stroke: #fff0c6; stroke-width: 1.5; stroke-linecap: round; fill: none; }
+.lab-polar-body circle { fill: #fac292; stroke: #763359; stroke-width: 1.5; }
+.lab-polar-body path { fill: none; stroke: #7e365d; stroke-width: 1.2; }
+.lab-sperm-chromatin ellipse { fill: #275968; stroke: #bff4ec; stroke-width: 1.5; }
+.lab-sperm-chromatin path { fill: none; stroke: #bff4ec; stroke-width: 1.2; }
+.lab-pronucleus-shell { fill: #592d54; stroke: #ffe1ad; stroke-width: 2; }
+.lab-pronucleus-sperm .lab-pronucleus-shell { fill: #24515e; stroke: #abebe0; }
+.lab-pronucleus-dna { fill: none; stroke: #ffefca; stroke-width: 2; stroke-linecap: round; }
+.lab-pronucleus-sperm .lab-pronucleus-dna { stroke: #c1fff3; }
+.lab-pronucleus-leader { fill: none; stroke: #fff5df; stroke-width: 1; }
+.lab-pronucleus-label { fill: #fff5df; stroke: #582750; stroke-width: 2.3; paint-order: stroke fill; font-size: 11px; font-weight: 700; }
+.lab-pronucleus-sperm { transform: translate(384px, 157px); }
+.lab-pronucleus-egg { transform: translate(472px, 142px); }
+.lab-entry-block circle { fill: #251f37; stroke: #ffdab0; stroke-width: 2; }
+.lab-entry-block path { fill: none; stroke: #ffdab0; stroke-width: 2; }
+[data-fert-diagram][data-stage="1"] .lab-sperm-main { transform: translate(312px, 176px); }
+[data-fert-diagram][data-stage="2"] .lab-sperm-main { transform: translate(323px, 176px); }
+[data-fert-diagram][data-stage="2"] .lab-fert-pulse { animation: lab-fert-glow 1.1s .65s ease-out both; }
+[data-fert-diagram]:is([data-stage="3"], [data-stage="4"]) .lab-sperm-main { transform: translate(372px, 174px) scale(.65); opacity: 0; }
+[data-fert-diagram]:is([data-stage="3"], [data-stage="4"]) .lab-sperm-above { transform: translate(248px, 104px) rotate(-10deg) scale(.78); }
+[data-fert-diagram]:is([data-stage="3"], [data-stage="4"]) .lab-sperm-below { transform: translate(324px, 252px) rotate(-27deg) scale(.82); }
+[data-fert-diagram]:is([data-stage="3"], [data-stage="4"]) .lab-oocyte-coat { fill: #5d5189; stroke: #d2c1f5; }
+[data-fert-diagram]:is([data-stage="3"], [data-stage="4"]) .lab-meiotic-spindle { opacity: 0; }
+[data-fert-diagram]:is([data-stage="3"], [data-stage="4"]) :is(.lab-polar-body, .lab-entry-block) { opacity: 1; }
+[data-fert-diagram][data-stage="3"] .lab-sperm-chromatin { opacity: 1; }
+[data-fert-diagram][data-stage="4"] .lab-pronucleus { opacity: 1; }
+[data-fert-diagram][data-stage="4"] .lab-pronucleus-sperm { animation: lab-pronucleus-sperm 1.9s .25s both; }
+[data-fert-diagram][data-stage="4"] .lab-pronucleus-egg { animation: lab-pronucleus-egg 1.9s .25s both; }
+
+@keyframes lab-flagellum { from { transform: scaleY(.85); } to { transform: scaleY(-.85); } }
+@keyframes lab-fert-glow { 0%, 100% { opacity: 0; } 38% { opacity: .86; } }
+@keyframes lab-pronucleus-sperm { from { transform: translate(369px, 159px); } to { transform: translate(402px, 154px); } }
+@keyframes lab-pronucleus-egg { from { transform: translate(476px, 130px); } to { transform: translate(455px, 150px); } }
+
+.lab-inheritance-grid h3 { margin-bottom: .47rem; }
+.lab-cross-table { width: auto; margin: .85rem 0 .25rem; border-collapse: collapse; }
+.lab-cross-table :is(thead, tr) { border: none; background: transparent; }
+.lab-cross-table :is(th, td) { min-width: 0; padding: .2rem .25rem; text-align: center; }
+.lab-cross-table th { color: var(--lab-muted); font-size: .78rem; }
+.lab-cross-table th b { display: inline-block; font-size: .95rem; color: var(--lab-ink); }
+.lab-allele-option { min-width: 3.6rem; letter-spacing: .035em; }
+.lab-switch { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; margin-top: 1rem; cursor: pointer; }
+.lab-switch input { accent-color: var(--lab-accent); width: 1.15rem; height: 1.15rem; margin: 0 .22rem 0 0; }
+.lab-environment { min-width: 0; border: none; border-top: 1px solid var(--lab-line); padding: .7rem 0 0; margin: 0; }
+.lab-environment legend { padding: 0 .45rem 0 0; font-size: .82rem; font-weight: 700; }
+.lab-plant-results { display: grid; grid-template-columns: auto 1fr; gap: .7rem 1.55rem; margin-top: .8rem; }
+.lab-plant-results strong { display: block; margin-top: .17rem; font-size: 1.04rem; line-height: 1.25; }
+.lab-plant-soil { fill: #483c50; stroke: #a38280; stroke-width: 2; }
+.lab-plant-roots { fill: none; stroke: #dabca8; stroke-width: 2; stroke-linecap: round; }
+.lab-plant-ruler { fill: none; stroke: #abd1cd; stroke-opacity: .76; stroke-width: 1.5; }
+.lab-plant-guide { fill: none; stroke: #abd1cd; stroke-opacity: .34; stroke-dasharray: 4 5; }
+.lab-ruler-pointer { fill: #ffe691; transition: transform .55s; }
+.lab-plant-stem { fill: none; stroke: #a3d28b; stroke-width: 6; stroke-linecap: round; }
+.lab-plant-leaf { fill: #75ba9a; stroke: #b0dcb0; stroke-width: 1.5; }
+.lab-plant-stem, .lab-plant-leaf { transform-origin: 250px 242px; transition: transform .55s; }
+.lab-blossom { transition: transform .55s; }
+.lab-petals { fill: #bb9af0; stroke: #eedaff; stroke-width: 2; transition: fill .38s, stroke .38s; }
+.lab-flower-center { fill: #ffda7a; stroke: #ffed9f; stroke-width: 2; }
+.lab-flower-dots { fill: none; stroke: #856624; stroke-width: 2.25; stroke-linecap: round; }
+.lab-water-drop { fill: #8adef2; stroke: #b4ecf5; stroke-width: 1; }
+.lab-extra-water { transition: opacity .38s; }
+[data-petal="cream"] .lab-petals { fill: #fff3cd; stroke: #ffe5ac; }
+[data-water="limited"] :is(.lab-plant-stem, .lab-plant-leaf) { transform: scaleY(.5); }
+[data-water="limited"] :is(.lab-blossom, .lab-ruler-pointer) { transform: translateY(66px); }
+[data-water="limited"] .lab-extra-water { opacity: .18; }
+
+@media (max-width: 720px) {
+  .lab-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bio-lab *, .bio-lab *::before, .bio-lab *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; animation-delay: 0ms !important; }
+}

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Explore meiosis, mitosis, fertilization, and inheritance in an interactive classroom lab.">
+<meta name="theme-color" content="#171932">
+<title>Reproduction Lab</title>
+<link rel="icon" type="image/svg+xml" href="cell.svg">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="division.css">
+<link rel="stylesheet" href="interactive.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="wordmark" href="./" aria-label="Reproduction Lab home"><img src="cell.svg" width="34" height="34" alt=""> Reproduction Lab</a>
+    <nav aria-label="Main navigation">
+      <a href="#meiosis">Cell division</a><a href="#fertilization">Fertilization</a><a href="#inheritance">Inheritance</a><a class="nav-chart" href="organisms.html">Organism charts <span aria-hidden="true">↗</span></a>
+    </nav>
+  </div>
+</header>
+<main id="main">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="shell hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Life science · Interactive lesson</p>
+        <h1 id="hero-title">Reproduction<br>Lab</h1>
+        <p>Follow chromosomes through meiosis, watch sperm and egg join, then see how offspring inherit traits.</p>
+        <a class="action action-primary" href="#meiosis">Start with meiosis <span aria-hidden="true">↓</span></a>
+      </div>
+      <figure class="hero-figure">
+        <svg viewBox="0 0 510 300" role="img" aria-labelledby="hero-art-title">
+          <title id="hero-art-title">A cell with paired violet and coral chromosomes under a microscope</title>
+          <defs>
+            <radialGradient id="dish" cx="46%" cy="38%" r="64%"><stop offset="0%" stop-color="#3e406a"/><stop offset="73%" stop-color="#262947"/><stop offset="100%" stop-color="#1b203a"/></radialGradient>
+            <linearGradient id="rim" x2="1" y2="1"><stop stop-color="#b8b0fc" stop-opacity=".86"/><stop offset="100%" stop-color="#726bb1" stop-opacity=".12"/></linearGradient>
+            <pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#aaa4e5" opacity=".27"/></pattern>
+            <filter id="soft"><feGaussianBlur stdDeviation="16"/></filter>
+          </defs>
+          <path d="M25 34H485V269H25Z" fill="url(#dots)" opacity=".42"/>
+          <circle cx="257" cy="150" r="128" fill="#8174dc" opacity=".14" filter="url(#soft)"/>
+          <circle cx="257" cy="150" r="127" fill="none" stroke="#8187be" stroke-width="1" opacity=".43"/>
+          <circle cx="257" cy="150" r="116" fill="url(#dish)" stroke="url(#rim)" stroke-width="1.6"/>
+          <circle cx="257" cy="150" r="103" fill="none" stroke="#686792" stroke-dasharray="2 6" opacity=".75"/>
+          <path d="M86 53H137L164 77M349 214l26 23h46" fill="none" stroke="#888ab6" stroke-width="1.1" opacity=".78"/>
+          <circle cx="86" cy="53" r="3" fill="#f38f6a"/><circle cx="421" cy="237" r="3" fill="#a79cff"/>
+          <g class="hero-chr hero-chr-a" fill="none" stroke="#b8a6ff" stroke-width="14" stroke-linecap="round">
+            <path d="M196 108q5 23 40 48m-5-49q-3 30-33 50"/>
+            <path d="M265 172q3 15 23 28m-2-28q-3 17-18 29" stroke-width="10"/>
+          </g>
+          <g class="hero-chr hero-chr-b" fill="none" stroke="#ff9f7f" stroke-width="14" stroke-linecap="round">
+            <path d="M269 101q5 23 39 46m-4-48q-3 29-33 49"/>
+            <path d="M221 178q3 14 20 25m-2-25q-3 16-17 25" stroke-width="10"/>
+          </g>
+          <g fill="#c7baff" opacity=".65"><circle cx="206" cy="86" r="2"/><circle cx="322" cy="176" r="2.5"/><circle cx="190" cy="189" r="1.6"/><circle cx="304" cy="212" r="2"/><circle cx="240" cy="222" r="1.5"/><circle cx="334" cy="120" r="1.7"/></g>
+          <path d="M75 257h44m-44 0v-6m44 6v-6M400 48h16m-8-8v16" stroke="#9294ba" opacity=".62"/>
+        </svg>
+      </figure>
+    </div>
+  </section>
+  <div class="shell lessons">
+    <section class="lesson" id="meiosis" aria-labelledby="meiosis-title">
+      <div class="lesson-heading">
+        <span class="lesson-mark meiosis-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><path d="M10 11l8 9m0-9l-8 9m10-6l4 5m0-5l-4 5"/></svg></span>
+        <div><h2 id="meiosis-title">Meiosis and mitosis</h2><p>Follow two chromosome pairs. Turn on the comparison to see what separates in each kind of division.</p></div>
+      </div>
+      <div id="division-lab"></div>
+    </section>
+    <section class="lesson" id="fertilization" aria-labelledby="fertilization-title">
+      <div class="lesson-heading">
+        <span class="lesson-mark fertilization-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="19" cy="14" r="9"/><circle cx="19" cy="14" r="3"/><path d="M10 21c-1 5-6 2-7 7m7-7 2-2"/></svg></span>
+        <div><h2 id="fertilization-title">Sperm meets egg</h2><p>Watch human fertilization and track what happens to the chromosomes.</p></div>
+      </div>
+      <div id="fertilization-lab"></div>
+    </section>
+    <aside class="field-link">
+      <div>
+        <p class="eyebrow">Organism charts</p>
+        <h2>Compare how organisms reproduce</h2>
+        <p>Explore human sperm and egg timelines, seahorse pregnancy, clownfish sex change, and how flowering plants make offspring.</p>
+      </div>
+      <a class="action action-light" href="organisms.html">Open the organism charts <span aria-hidden="true">↗</span></a>
+    </aside>
+    <section class="lesson" id="inheritance" aria-labelledby="inheritance-title">
+      <div class="lesson-heading">
+        <span class="lesson-mark inheritance-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 11V8h7v7H7v-4Zm11 10v-4h7v7h-7v-3Zm-4-9h6q2 0 2 2v3M10 15v5q0 2 2 2h6"/></svg></span>
+        <div><h2 id="inheritance-title">Genotype and phenotype</h2><p>Predict a trait, then compare offspring from sexual and asexual reproduction.</p></div>
+      </div>
+      <div id="inheritance-lab"></div>
+    </section>
+    <section class="discussion" aria-labelledby="discussion-title">
+      <h2 id="discussion-title">Why does variation matter?</h2>
+      <p>Imagine a disease spreads through a population. How might genetic variation change which individuals survive?</p>
+      <details><summary>Reveal a possible answer</summary><p>Sexual reproduction can give offspring different combinations of alleles. If some combinations help individuals resist the disease, those individuals may be more likely to survive and reproduce. Asexual reproduction can be faster and can work without finding a mate. Mutation can introduce new alleles in either mode.</p></details>
+    </section>
+  </div>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner"><span>Reproduction Lab</span><a href="organisms.html#sources">Sources and model notes</a></div>
+</footer>
+</body>
+</html>
