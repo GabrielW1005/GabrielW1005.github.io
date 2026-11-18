@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Practice estimating with percents, then reveal the choices and reasoning one step at a time.">
+<title>Percent Bell Work</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f1efe8;
+  --paper: #fffdfa;
+  --ink: #172239;
+  --muted: #4e596b;
+  --line: #dcdedc;
+  --accent: #2745b8;
+  --accent-dark: #1c3391;
+  --accent-light: #edf0ff;
+  --correct: #15583d;
+  --correct-light: #e9f6ef;
+  --correct-line: #9dceba;
+  --type: "Aptos", "Avenir Next", "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  min-width: 0;
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 16px/1.5 var(--type);
+}
+button, a { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+button:focus-visible, a:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+}
+.app {
+  width: min(100%, 1352px);
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: clamp(14px, 2.5vw, 34px) clamp(14px, 4vw, 54px);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: clamp(12px, 2.25vh, 22px);
+}
+.topbar, .controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: clamp(18px, 2.1vw, 26px);
+  font-weight: 730;
+  letter-spacing: -.025em;
+  white-space: nowrap;
+}
+.badge {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--accent);
+  color: white;
+  font-size: 25px;
+  line-height: 1;
+}
+.resources {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 15px;
+}
+.resources a, .fullscreen {
+  color: var(--ink);
+  font-weight: 650;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.resources a {
+  text-decoration: underline;
+  text-decoration-color: #8795b7;
+  text-underline-offset: 4px;
+}
+.resources a:hover { color: var(--accent); }
+.fullscreen {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #c9cdd2;
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: var(--paper);
+}
+.fullscreen:hover { background: var(--accent-light); }
+.fullscreen[hidden] { display: none; }
+.icon { width: 16px; height: 16px; flex: none; }
+.deck {
+  min-width: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: clamp(12px, 2.5vw, 26px);
+  overflow: hidden;
+  box-shadow: 0 8px 30px #15203709;
+  display: flex;
+  flex-direction: column;
+}
+.deck-header {
+  min-width: 0;
+  padding: clamp(12px, 2.1vw, 23px) clamp(16px, 4.1vw, 50px);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 10px 18px;
+  align-items: center;
+  justify-content: space-between;
+}
+.question-count {
+  color: var(--muted);
+  font-size: clamp(13px, 1.45vw, 17px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.stages {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stages li {
+  color: var(--muted);
+  padding: 3px clamp(5px, 1vw, 12px);
+  border-radius: 6px;
+  font-size: clamp(12px, 1.35vw, 15px);
+  font-weight: 650;
+  white-space: nowrap;
+}
+.stages [aria-current="step"] {
+  color: var(--accent-dark);
+  background: var(--accent-light);
+}
+.slide {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(16px, 3.35vw, 42px) clamp(16px, 4.1vw, 50px);
+  gap: clamp(9px, 2vh, 22px);
+}
+h1 {
+  max-width: 27ch;
+  margin: 0;
+  font-size: clamp(29px, min(5.3vw, 8vh), 65px);
+  font-weight: 745;
+  letter-spacing: -.033em;
+  line-height: 1.13;
+  text-wrap: balance;
+}
+.slide.estimate h1 { font-size: clamp(32px, min(6.3vw, 9vh), 76px); }
+.content {
+  display: grid;
+  align-items: center;
+  gap: clamp(10px, 2.4vw, 30px);
+}
+.content.geometry {
+  grid-template-columns: minmax(180px, .72fr) minmax(0, 1fr);
+}
+.estimate .content.geometry { grid-template-columns: minmax(0, 560px); }
+.diagram {
+  display: block;
+  width: 100%;
+  max-height: min(38vh, 280px);
+}
+.estimate .diagram { max-height: min(44vh, 340px); }
+.diagram-body { fill: #fffdfa; stroke: #172239; }
+.diagram-fill { fill: #405bd0; }
+.diagram-outline { fill: none; stroke: #172239; }
+.options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(7px, 1.2vw, 14px);
+}
+.option {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: clamp(7px, 1.1vw, 14px);
+  padding: clamp(7px, 1.1vw, 14px) clamp(8px, 1.3vw, 16px);
+  border: 1px solid #d0d4e0;
+  border-radius: 12px;
+  background: #f9f9fd;
+  font-size: clamp(18px, min(3.25vw, 5.2vh), 41px);
+  font-weight: 650;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.option.correct {
+  color: var(--correct);
+  border-color: var(--correct-line);
+  box-shadow: 0 0 0 1px var(--correct-line);
+  background: var(--correct-light);
+}
+.letter {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: clamp(24px, 3.6vw, 46px);
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: #e9ecf7;
+  color: var(--accent-dark);
+  font-size: .68em;
+}
+.correct .letter { color: white; background: var(--correct); }
+.answer {
+  margin: 0;
+  padding: clamp(8px, 1.3vw, 15px) clamp(10px, 1.7vw, 21px);
+  border-left: 4px solid var(--correct);
+  border-radius: 0 8px 8px 0;
+  background: var(--correct-light);
+  color: #174b38;
+  font-size: clamp(16px, min(2.5vw, 3.65vh), 31px);
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+.controls {
+  justify-content: flex-start;
+}
+.controls button {
+  min-height: 46px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 8px clamp(11px, 1.8vw, 24px);
+  border: 1px solid #c9cdd2;
+  border-radius: 10px;
+  font-weight: 730;
+  background: var(--paper);
+  color: var(--ink);
+}
+.controls button:hover:not(:disabled) { background: var(--accent-light); }
+.controls button:disabled { color: #687181; opacity: .63; }
+.controls .next {
+  margin-left: auto;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.controls .next:hover { background: var(--accent-dark); }
+.keys {
+  color: var(--muted);
+  font-size: 13px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .fullscreen { display: none; }
+  .app { padding: 12px; gap: 12px; }
+  .brand { gap: 7px; }
+  .badge { width: 32px; height: 32px; font-size: 20px; }
+  .resources { gap: 3px 9px; }
+  .resources a { font-size: 12px; }
+  .content.geometry { grid-template-columns: minmax(0, 1fr); }
+  .diagram, .estimate .diagram { max-height: min(29vh, 230px); }
+  .keys { display: none; }
+}
+@media (max-width: 385px) {
+  .topbar { align-items: flex-start; }
+  .resources { flex-direction: column; align-items: flex-end; }
+  .deck-header { padding-inline: 11px; gap: 5px; }
+  .stages li { padding-inline: 5px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="badge" aria-hidden="true">%</span>Percent Bell Work</div>
+    <nav class="resources" aria-label="Teaching materials">
+      <a href="Percent_Bell_Work.pdf">Worksheet PDF</a>
+      <a href="Percent_Bell_Work_Slides.pdf">Slides PDF</a>
+      <a href="Percent_Bell_Work_Slides.pptx" download>PowerPoint</a>
+      <button class="fullscreen" id="fullscreen" type="button" hidden>
+        <svg class="icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8V3h5m4 0h5v5m0 4v5h-5m-4 0H3v-5"/></svg>
+        <span>Full screen</span>
+      </button>
+    </nav>
+  </header>
+  <main class="deck" aria-label="Presentation">
+    <div class="deck-header">
+      <span class="question-count" id="counter"></span>
+      <ol class="stages" aria-label="Question stages">
+        <li>Estimate</li><li>Choices</li><li>Answer</li>
+      </ol>
+    </div>
+    <div class="slide" id="slide" role="region" aria-labelledby="prompt"></div>
+    <p class="sr-only" id="status" aria-live="polite" aria-atomic="true"></p>
+    <noscript><p>This presentation needs JavaScript. The Slides PDF above contains all three stages for every question.</p></noscript>
+  </main>
+  <footer class="controls" aria-label="Presentation controls">
+    <button id="back" type="button">← Back</button>
+    <span class="keys" aria-hidden="true">Use ← or → to move through the slides</span>
+    <button class="next" id="next" type="button"><span></span><span aria-hidden="true">→</span></button>
+  </footer>
+</div>
+<script type="application/json" id="question-data">
+[
+  {
+    "id": 1,
+    "prompt": "Estimate 8% of 250.",
+    "choices": [
+      "20",
+      "125",
+      "230",
+      "270"
+    ],
+    "answer": 0,
+    "reason": "8% is just under 10%. One tenth of 250 is 25, so 20 is a good fit."
+  },
+  {
+    "id": 2,
+    "prompt": "Estimate 85% of 80.",
+    "choices": [
+      "12",
+      "40",
+      "68",
+      "92"
+    ],
+    "answer": 2,
+    "reason": "85% is close to 100%, so look for a number a little below 80."
+  },
+  {
+    "id": 3,
+    "prompt": "Estimate 120% of 150.",
+    "choices": [
+      "120",
+      "180",
+      "300",
+      "450"
+    ],
+    "answer": 1,
+    "reason": "120% is a little more than 100%, so look for a number a little above 150."
+  },
+  {
+    "id": 4,
+    "prompt": "Estimate 350% of 60.",
+    "choices": [
+      "21",
+      "60",
+      "90",
+      "210"
+    ],
+    "answer": 3,
+    "reason": "350% is halfway between 300% and 400%. Look between three and four times 60."
+  },
+  {
+    "id": 5,
+    "prompt": "What is 100% of 72?",
+    "choices": [
+      "72",
+      "7.2",
+      "36",
+      "144"
+    ],
+    "answer": 0,
+    "reason": "100% means the whole amount, so the value stays 72."
+  },
+  {
+    "id": 6,
+    "prompt": "About what percent of the rectangle is shaded?",
+    "choices": [
+      "20%",
+      "80%",
+      "50%",
+      "100%"
+    ],
+    "answer": 1,
+    "reason": "The unshaded strip is about a fifth of the rectangle. The shaded area is about four fifths, or 80%.",
+    "shape": {
+      "type": "rectangle",
+      "fraction": 0.78,
+      "alt": "A rectangle shaded from its left edge to a vertical line near its right edge."
+    }
+  },
+  {
+    "id": 7,
+    "prompt": "About what percent of the circle is shaded?",
+    "choices": [
+      "50%",
+      "75%",
+      "5%",
+      "20%"
+    ],
+    "answer": 3,
+    "reason": "The shaded wedge is a little smaller than a quarter of the circle, so 20% is the closest choice.",
+    "shape": {
+      "type": "circle",
+      "fraction": 0.2,
+      "alt": "A circle with a shaded wedge near the top right."
+    }
+  },
+  {
+    "id": 8,
+    "prompt": "About what percent of the triangle is shaded?",
+    "choices": [
+      "10%",
+      "25%",
+      "50%",
+      "75%"
+    ],
+    "answer": 2,
+    "reason": "The shaded top is narrower than the base. Its area is about half of the whole triangle.",
+    "shape": {
+      "type": "triangle",
+      "fraction": 0.49,
+      "alt": "An upright triangle with a shaded top and an unshaded band along its base."
+    }
+  }
+]
+</script>
+<script>
+"use strict";
+
+const questions = JSON.parse(document.querySelector("#question-data").textContent);
+const stages = [...document.querySelectorAll(".stages li")];
+const slide = document.querySelector("#slide");
+const counter = document.querySelector("#counter");
+const status = document.querySelector("#status");
+const next = document.querySelector("#next");
+const nextLabel = next.querySelector("span");
+const back = document.querySelector("#back");
+const fullscreen = document.querySelector("#fullscreen");
+const labels = ["Show choices", "Reveal answer", "Next question"];
+const letters = "ABCD";
+const stageCount = stages.length;
+let position = 0;
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text) node.textContent = text;
+  return node;
+}
+
+function svgElement(tag, attributes) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  Object.entries(attributes).forEach(([name, value]) => node.setAttribute(name, value));
+  return node;
+}
+
+function makeDiagram({type, fraction, alt}) {
+  const svg = svgElement("svg", {class: "diagram", viewBox: "0 0 260 160", role: "img", "aria-label": alt});
+  const base = {class: "diagram-body", "stroke-width": 2.2};
+  const fill = {class: "diagram-fill"};
+  const edge = {class: "diagram-outline", "stroke-width": 2.2, "stroke-linejoin": "round"};
+
+  if (type === "rectangle") {
+    const rect = {x: 18, y: 24, width: 224, height: 112};
+    svg.append(
+      svgElement("rect", {...rect, ...base}),
+      svgElement("rect", {...rect, width: rect.width * fraction, ...fill}),
+      svgElement("rect", {...rect, ...edge}),
+    );
+  } else if (type === "circle") {
+    const circle = {cx: 130, cy: 80, r: 66};
+    const {cx, cy, r} = circle;
+    const angle = fraction * 2 * Math.PI;
+    const x = cx + r * Math.sin(angle);
+    const y = cy - r * Math.cos(angle);
+    const largeArc = fraction > 0.5 ? 1 : 0;
+    svg.append(
+      svgElement("circle", {...circle, ...base}),
+      svgElement("path", {d: `M ${cx} ${cy} L ${cx} ${cy - r} A ${r} ${r} 0 ${largeArc} 1 ${x} ${y} Z`, ...fill}),
+      svgElement("circle", {...circle, ...edge}),
+    );
+  } else if (type === "triangle") {
+    const apexX = 130;
+    const apexY = 10;
+    const halfWidth = 106;
+    const height = 136;
+    const sideRatio = Math.sqrt(fraction);
+    const points = `${apexX},${apexY} ${apexX - halfWidth},${apexY + height} ${apexX + halfWidth},${apexY + height}`;
+    const shadeY = apexY + height * sideRatio;
+    const shadeHalfWidth = halfWidth * sideRatio;
+    const shadePoints = `${apexX},${apexY} ${apexX - shadeHalfWidth},${shadeY} ${apexX + shadeHalfWidth},${shadeY}`;
+    svg.append(
+      svgElement("polygon", {points, ...base}),
+      svgElement("polygon", {points: shadePoints, ...fill}),
+      svgElement("polygon", {points, ...edge}),
+    );
+  }
+
+  return svg;
+}
+
+function makeOptions(question, reveal) {
+  const options = element("ol", "options");
+  options.setAttribute("aria-label", "Answer choices");
+  question.choices.forEach((choice, index) => {
+    const isCorrect = reveal && index === question.answer;
+    const option = element("li", isCorrect ? "option correct" : "option");
+    option.append(element("span", "letter", letters[index]), element("span", "", choice));
+    if (isCorrect) option.append(element("span", "sr-only", "Correct answer"));
+    options.append(option);
+  });
+  return options;
+}
+
+function render() {
+  const questionIndex = Math.floor(position / stageCount);
+  const stageIndex = position % stageCount;
+  const question = questions[questionIndex];
+  const isLast = position === questions.length * stageCount - 1;
+  const label = `Question ${questionIndex + 1} of ${questions.length}`;
+  const prompt = element("h1", "", question.prompt);
+  prompt.id = "prompt";
+  const content = element("div", question.shape ? "content geometry" : "content");
+  if (question.shape) content.append(makeDiagram(question.shape));
+  if (stageIndex >= 1) content.append(makeOptions(question, stageIndex === 2));
+
+  slide.classList.toggle("estimate", stageIndex === 0);
+  slide.replaceChildren(prompt);
+  if (content.childElementCount > 0) slide.append(content);
+  if (stageIndex === 2) {
+    const answer = element("p", "answer");
+    answer.append(element("strong", "", `${letters[question.answer]}. ${question.choices[question.answer]}. `), question.reason);
+    slide.append(answer);
+  }
+
+  stages.forEach((stage, index) => {
+    if (stageIndex === index) stage.setAttribute("aria-current", "step");
+    else stage.removeAttribute("aria-current");
+  });
+  counter.textContent = label;
+  back.disabled = position === 0;
+  nextLabel.textContent = isLast ? "Start over" : labels[stageIndex];
+
+  const announcement = [label, stages[stageIndex].textContent, question.prompt];
+  if (stageIndex === 1) {
+    announcement.push(...question.choices.map((choice, index) => `${letters[index]}. ${choice}`));
+  }
+  if (stageIndex === 2) {
+    announcement.push(`${letters[question.answer]}. ${question.choices[question.answer]}. ${question.reason}`);
+  }
+  status.textContent = announcement.join(". ");
+}
+
+function move(offset) {
+  const length = questions.length * stageCount;
+  position = (Math.max(0, position + offset)) % length;
+  render();
+}
+
+next.addEventListener("click", () => move(1));
+back.addEventListener("click", () => move(-1));
+
+document.addEventListener("keydown", (event) => {
+  if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  if (event.key === "ArrowRight" || event.key === "PageDown") {
+    event.preventDefault();
+    if (!event.repeat && position < questions.length * stageCount - 1) move(1);
+  } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
+    event.preventDefault();
+    if (!event.repeat && position > 0) move(-1);
+  } else if (event.key === " " && !event.target.closest("button, a")) {
+    event.preventDefault();
+    if (!event.repeat && position < questions.length * stageCount - 1) move(1);
+  }
+});
+
+if (document.fullscreenEnabled) {
+  fullscreen.hidden = false;
+  fullscreen.addEventListener("click", async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch {
+      fullscreen.hidden = true;
+    }
+  });
+  document.addEventListener("fullscreenchange", () => {
+    fullscreen.querySelector("span").textContent = document.fullscreenElement ? "Exit full screen" : "Full screen";
+  });
+}
+
+if (questions.length) render();
+</script>
+</body>
+</html>
