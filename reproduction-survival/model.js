@@ -12,11 +12,10 @@ const SurvivalModel = (() => {
     };
   }
 
-  function fitness(genotype, habitatKey) {
+  function matchingTraits(genotype, habitatKey) {
     const traits = phenotype(genotype);
     const habitat = habitats[habitatKey];
-    const matches = Number(traits.color === habitat.color) + Number(traits.fur === habitat.fur);
-    return { matches, chance: [0.20, 0.55, 0.90][matches] };
+    return Number(traits.color === habitat.color) + Number(traits.fur === habitat.fur);
   }
 
   function pair(first, second) {
@@ -62,18 +61,7 @@ const SurvivalModel = (() => {
     });
   }
 
-  function assess(brood, habitatKey, random = Math.random) {
-    return brood.map(individual => {
-      const survivalRoll = individual.survivalRoll ?? random();
-      return {
-        ...individual,
-        survivalRoll,
-        survived: survivalRoll < fitness(individual.genotype, habitatKey).chance,
-      };
-    });
-  }
-
-  return { habitats, phenotype, fitness, pair, gamete, founders, breed, assess };
+  return { habitats, phenotype, matchingTraits, pair, gamete, founders, breed };
 })();
 
 if (typeof module !== 'undefined') module.exports = SurvivalModel;
