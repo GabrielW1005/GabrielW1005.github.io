@@ -1,17 +1,88 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#06141d"><meta name="description" content="Microcosm — a colorful microscopic survival and colony game grounded in organism-specific biology."><title>Microcosm · Living worlds</title><link rel="stylesheet" href="style.css?v=2.6.0"></head>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#06141d">
+  <meta name="description" content="Microcosm Arcade. Steer an amoeba through a continuous 2D action game with microscope-inspired graphics.">
+  <title>Microcosm Arcade</title>
+  <link rel="stylesheet" href="action.css">
+  <script defer src="engine.js?v=2.6.0"></script>
+  <script defer src="render.js?v=3.0.0"></script>
+  <script defer src="action-engine.js"></script>
+  <script defer src="action.js"></script>
+</head>
 <body>
-<canvas id="world" tabindex="0" aria-label="Microscopic world. Click your cells to select. Drag to select a group. Click elsewhere to move. WASD moves selected cells. Space uses abilities. R divides."></canvas>
-<header><div class="brand"><span class="brand-symbol">◉</span><div>MICROCOSM<small>LIVING WORLDS <span>02</span></small></div></div><div class="vitals" id="vitals"><div class="vital" title="Focused cell health, out of 100"><span>HP</span><div><b id="hp">100</b><i><em id="hpBar"></em></i></div></div><div class="vital energy" title="Energy from food and respiration"><span>ϟ</span><div><b id="energy">90</b><i><em id="energyBar"></em></i></div></div><div class="vital mass" title="Biomass — reach 100 to divide"><span>◒</span><div><b id="mass">72</b><i><em id="massBar"></em></i></div></div></div><nav><button id="saveBtn" title="Save, download, or share a save link" aria-label="Saves">⇩<span id="saveDot"></span></button><button id="helpBtn" title="Survival guide (H)" aria-label="Survival guide">Guide</button><button id="fullscreenBtn" title="Fullscreen" aria-label="Fullscreen">⛶</button><button id="pauseBtn" title="Pause (P)" aria-label="Pause">Ⅱ</button></nav></header>
-<div class="habitat"><span id="habitatMark">✺</span><div id="habitatName">Algal garden</div><small id="environment">O₂ 100% · freshwater</small><button id="worldsBtn" title="Habitats and organisms" aria-label="Habitats and organisms">↗</button></div>
-<div id="survivalReadout" aria-live="off"></div><div id="fps" title="Rendered frames per second; target 30 while playing">FPS —</div>
-<div id="targetInfo" hidden role="status" aria-live="polite"></div>
-<div id="status" role="status" aria-live="polite"></div>
-<div id="selectionInfo"><span id="cellName">Amoeba</span><small id="cellInfo">01 / 01</small></div>
-<aside id="mapPanel"><div><span id="discovered">01 / 04</span><button id="labelsBtn" aria-label="Toggle labels" title="Labels">Aa</button></div><canvas id="map" width="240" height="168" aria-label="World map: click to look, double-click to send selected cells"></canvas><div class="mapControls"><button id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button><button id="followBtn" title="Follow colony" aria-label="Follow colony">◎</button><button id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button></div></aside>
-<div id="colony" aria-label="Your colony"></div>
-<div class="bottom"><div class="tactics"><button id="surgeBtn" title="Brief movement burst; 10 energy (F)">F · Burst <span id="surgeState">10 energy</span></button><button id="recoverBtn" title="Stay still to repair; 18 energy. Moving, attacking or damage interrupts (C)">C · Recover <span id="recoverState">18 energy</span></button></div><div class="hint" id="hint">Click to move · WASD to steer · X to stop</div><div class="dock"><button id="abilityBtn" title="Cell ability (Space)" aria-label="Use cell ability"><strong id="abilityIcon">◉</strong><small id="abilityText">Engulf</small><kbd>SPACE</kbd></button><button id="divideBtn" title="Divide selected cells (R)" aria-label="Divide selected cells"><strong>◉◉</strong><small>Divide</small><kbd>R</kbd><i id="divisionProgress"></i></button><button id="mutateBtn" title="Heritable variants (G)" aria-label="Heritable variants"><strong>⧖</strong><small>Upgrade</small><span class="badge" id="points">2</span><kbd>G</kbd></button><div class="dock-sep"></div><button id="stopBtn" title="Stop selected cells (X)" aria-label="Stop selected cells"><strong>■</strong><small>Stop</small><kbd>X</kbd></button><button id="allBtn" title="Select entire colony (Q)" aria-label="Select entire colony"><strong>⁙</strong><small>All cells</small><kbd>Q</kbd></button><button id="modeBtn" title="Toggle foraging for unselected colony cells" aria-label="Toggle autonomous foraging"><strong>⌁</strong><small id="modeText">Hold</small></button><button id="autoBtn" title="Toggle automatic abilities" aria-pressed="false"><strong>✳</strong><small>Auto</small></button><button id="speedBtn" title="Simulation speed" aria-label="Simulation speed"><strong id="speedValue">1×</strong><small>Speed</small></button><button id="competenceBtn" hidden title="Toggle DNA competence (E)" aria-label="Toggle DNA competence"><strong>⇥</strong><small>DNA uptake</small><kbd>E</kbd></button><button id="mateBtn" hidden title="Pair two selected Paramecia (Z)" aria-label="Conjugate selected cells"><strong>∞</strong><small>Pair</small><kbd>Z</kbd></button></div></div>
-<div id="pauseOverlay" hidden><div><span>Ⅱ</span><h2>Life, paused.</h2><button id="resumeBtn" class="primary">Continue →</button></div></div>
-<div id="modalRoot"></div><input type="file" id="importFile" accept=".json,application/json" hidden>
-<script src="engine.js?v=2.6.0"></script><script src="render.js?v=2.6.0"></script><script src="app.js?v=2.6.0"></script>
-</body></html>
+  <header class="topbar">
+    <div class="wordmark">
+      <svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true"><path d="M10 6c4-4 8-1 10 0 3 2 8 0 10 5 1 3-1 6-1 9-1 4-4 5-8 6-3 1-6 4-11 2-4-2-3-5-5-8-2-4 0-10 5-14Z"/><circle cx="16" cy="17" r="4"/><circle cx="23" cy="12" r="1.3"/></svg>
+      <h1>Microcosm <span>Arcade</span></h1>
+    </div>
+    <nav aria-label="Game controls">
+      <button id="guide-button" type="button">Guide</button>
+      <button id="pause-button" type="button" aria-label="Pause game">Pause</button>
+    </nav>
+  </header>
+
+  <main class="game" id="game">
+    <canvas id="world" tabindex="0" aria-label="Microcosm game field. Move with W A S D or arrows. Space fires at the nearest enemy. Shift dashes. P pauses."></canvas>
+    <div class="hud" aria-label="Run statistics">
+      <div class="health">
+        <span class="hud-label">Health</span>
+        <strong><span id="health-text">100</span><small> / 100 HP</small></strong>
+        <meter id="health-meter" min="0" max="100" low="30" value="100" aria-label="Current health"></meter>
+      </div>
+      <div class="counters">
+        <div><span class="hud-label">Wave</span><strong id="wave">1</strong></div>
+        <div><span class="hud-label">Defeated</span><strong id="defeated">0</strong></div>
+        <div class="remaining-count"><span class="hud-label">Remaining</span><strong id="remaining">2</strong></div>
+      </div>
+      <div class="boost" id="boost-indicator" hidden><span aria-hidden="true">✦</span> 2× Pulse <strong id="boost-time">8s</strong></div>
+    </div>
+    <div class="announcement" id="announcement" role="status" aria-live="polite" hidden>
+      <strong id="event-title"></strong><small id="event-note"></small>
+    </div>
+    <div class="controlbar">
+      <div class="move-pad" aria-label="Movement">
+        <button type="button" data-move="up" aria-label="Move up">▲</button>
+        <button type="button" data-move="left" aria-label="Move left">◀</button>
+        <button type="button" data-move="down" aria-label="Move down">▼</button>
+        <button type="button" data-move="right" aria-label="Move right">▶</button>
+      </div>
+      <p class="key-hints"><kbd>WASD</kbd> or <kbd>↑ ↓ ← →</kbd> Move <span>·</span> Aim with a click or tap</p>
+      <div class="actions">
+        <button class="pulse-button" type="button" id="pulse-button" aria-label="Fire Pulse at the nearest enemy"><span aria-hidden="true">◈</span> Pulse <kbd>Space</kbd></button>
+        <button class="dash-button" type="button" id="dash-button"><span aria-hidden="true">↠</span> Dash <kbd>Shift</kbd><small id="dash-status">Ready</small></button>
+      </div>
+    </div>
+  </main>
+
+  <dialog id="overlay" aria-labelledby="overlay-title">
+    <div class="dialog-inner">
+      <div class="dialog-icon" aria-hidden="true">
+        <svg viewBox="0 0 56 56" width="46" height="46"><path d="M12 13c8-8 14-8 22-2 7 5 13 1 15 12 1 6-4 10-5 15-3 7-11 7-17 6-7-2-15 6-20-3-3-5 0-11-1-16-1-4 2-9 6-12Z"/><circle cx="28" cy="27" r="7"/><circle cx="36" cy="16" r="2"/></svg>
+      </div>
+      <h2 id="overlay-title">Microcosm Arcade</h2>
+      <p id="overlay-text">Steer an amoeba, fire pulses, and survive incoming waves.</p>
+      <section id="game-guide" aria-label="How to play" hidden>
+        <dl class="guide-list">
+          <div><dt><span class="guide-mark" aria-hidden="true">◈</span> Pulse</dt><dd>Press Space to aim at the nearest enemy or click and hold to aim. A hit does 25 damage.</dd></div>
+          <div><dt><span class="guide-mark" aria-hidden="true">↠</span> Dash</dt><dd>Use Shift or F while moving to burst clear of incoming damage. Use WASD, arrows, or the on-screen direction buttons to steer.</dd></div>
+          <div><dt><span class="guide-mark mend-mark" aria-hidden="true">+</span> Mend</dt><dd>Swim over a green cross to restore up to 25 HP.</dd></div>
+          <div><dt><span class="guide-mark boost-mark" aria-hidden="true">✦</span> Boost</dt><dd>Swim over an orange star for double pulse damage for 8 seconds.</dd></div>
+        </dl>
+        <h3>Recognize enemies</h3>
+        <p>Blue Drifters have 50 HP and hurt on contact. Orange Dart Ciliates have 75 HP. Move out of the red line before they charge.</p>
+        <h3>Look inside the cells</h3>
+        <p>The amoeba illustration shows a nucleus and a flexible cell membrane. The Dart Ciliate has bands of short cilia. Pulses, damage points, and power-ups are game rules.</p>
+      </section>
+      <p class="best" id="best-line" hidden></p>
+      <div class="dialog-buttons">
+        <button id="primary-button" class="primary" type="button">Start playing</button>
+        <button id="secondary-button" type="button">How to play</button>
+      </div>
+      <a class="original-link" href="living-worlds.html">Open Living Worlds simulator</a>
+    </div>
+  </dialog>
+</body>
+</html>

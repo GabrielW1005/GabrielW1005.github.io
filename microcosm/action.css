@@ -1,0 +1,113 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+  --ink: #edfff9;
+  --muted: #b1cbd0;
+  --base: #06141d;
+  --line: #315260;
+  --teal: #85f3cb;
+  --ember: #ffc58f;
+  background: var(--base);
+  color: var(--ink);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, a:focus-visible, canvas:focus-visible { outline: 3px solid #bcffe8; outline-offset: -3px; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .65rem clamp(.75rem, 2.4vw, 2rem); border-bottom: 1px solid #24505b; position: relative; z-index: 1; }
+.wordmark, nav { display: flex; align-items: center; gap: .55rem; }
+.wordmark svg { fill: #3bbd8b1f; stroke: var(--teal); stroke-width: 1.5; flex: 0 0 34px; }
+h1 { margin: 0; font-size: clamp(1rem, 2.4vw, 1.35rem); letter-spacing: -.02em; }
+h1 span { color: var(--teal); font-weight: 500; }
+.topbar button, .dialog-buttons button {
+  min-height: 2.6rem; border: 1px solid var(--line); border-radius: .55rem;
+  padding: .4rem .78rem; background: #102730; color: var(--ink); font-weight: 650;
+}
+.topbar button:hover, .dialog-buttons button:hover { background: #213e46; }
+
+.game { position: relative; overflow: hidden; min-width: 0; min-height: 405px; }
+#world { width: 100%; height: 100%; display: block; position: absolute; inset: 0; touch-action: none; cursor: crosshair; }
+.hud { position: absolute; top: 1rem; left: clamp(.75rem, 2vw, 2rem); right: clamp(.75rem, 2vw, 2rem); display: flex; gap: .8rem; align-items: stretch; pointer-events: none; }
+.health, .counters, .boost { background: #071923f5; border: 1px solid var(--line); border-radius: .7rem; padding: .55rem .8rem .62rem; }
+.health { flex: 0 1 10.7rem; display: grid; grid-template-columns: auto 1fr; gap: .23rem .65rem; align-items: center; }
+.health > strong { justify-self: end; white-space: nowrap; }
+.health meter { grid-column: 1 / -1; width: 100%; height: .65rem; appearance: none; }
+.health meter::-webkit-meter-bar { background: #253641; border: 0; border-radius: 999px; }
+.health meter::-webkit-meter-optimum-value { background: #74edbf; border-radius: 999px; }
+.health meter::-webkit-meter-suboptimum-value { background: #ff9baf; border-radius: 999px; }
+.health meter::-moz-meter-bar { background: #74edbf; border-radius: 999px; }
+.health small { color: var(--muted); font-size: .6rem; font-weight: 600; }
+.hud-label { display: block; color: var(--muted); font-size: .66rem; letter-spacing: .045em; font-weight: 700; text-transform: uppercase; }
+.counters { display: flex; gap: clamp(.65rem, 1.7vw, 1.4rem); }
+.counters strong { display: block; margin-top: .1rem; font-size: 1.04rem; }
+.boost { display: flex; align-items: center; gap: .35rem; color: var(--ember); font-size: .83rem; font-weight: 700; }
+.boost strong { margin-left: .15rem; }
+#health-text, .counters strong, #boost-time { font-variant-numeric: tabular-nums; }
+
+.announcement { position: absolute; left: 50%; top: 25%; width: max-content; max-width: calc(100% - 1.5rem); transform: translateX(-50%); pointer-events: none; text-align: center; background: #071923f0; border: 1px solid #486f78; border-radius: .7rem; padding: .4rem 1rem .5rem; }
+.announcement strong, .announcement small { display: block; }
+.announcement strong { color: #e7fff4; font-size: 1.08rem; }
+.announcement small { color: var(--muted); font-size: .74rem; }
+.announcement small:empty { display: none; }
+.controlbar { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-end; gap: .75rem; padding: 1rem clamp(.75rem, 2vw, 2rem) max(.9rem, env(safe-area-inset-bottom)); pointer-events: none; }
+.key-hints { margin: 0; font-size: .83rem; color: var(--muted); padding: .5rem .72rem; background: #071923e6; border-radius: .55rem; }
+.key-hints > span { margin: 0 .25rem; }
+kbd { font-family: inherit; border: 1px solid currentColor; border-radius: .24rem; padding: .035rem .23rem; font-size: .67rem; white-space: nowrap; }
+.actions { display: flex; gap: .6rem; pointer-events: auto; }
+.actions button, .move-pad button { color: var(--ink); background: #112a35; border: 1px solid #426373; border-radius: .6rem; min-height: 3rem; padding: .46rem .75rem; touch-action: none; user-select: none; }
+.actions button { display: grid; grid-template-columns: auto auto; justify-content: center; align-content: center; align-items: center; gap: .15rem .44rem; min-width: 5.4rem; font-weight: 750; }
+.actions button > span { font-size: 1.1em; color: var(--teal); line-height: 1.2; }
+.actions button kbd, .actions button small { grid-column: 1 / -1; justify-self: center; }
+.actions button small { color: var(--muted); display: none; font-size: .66rem; font-weight: 550; }
+.actions .pulse-button { background: #144437; border-color: #50a98a; }
+.actions button:hover, .move-pad button:hover { border-color: #b5f5de; }
+.actions button:active, .move-pad button:active { background: #347a65; }
+.actions .dash-button[data-wait="true"] small { display: block; }
+.actions .dash-button[data-wait="true"] kbd { display: none; }
+.move-pad { display: none; grid-template-columns: repeat(3, 2.5rem); grid-template-rows: repeat(2, 2.5rem); gap: .22rem; pointer-events: auto; }
+.move-pad button { min-height: 2.5rem; padding: 0; font-size: .9rem; }
+.move-pad [data-move="up"] { grid-column: 2; }
+.move-pad [data-move="left"] { grid-column: 1; grid-row: 2; }
+.move-pad [data-move="down"] { grid-column: 2; grid-row: 2; }
+.move-pad [data-move="right"] { grid-column: 3; grid-row: 2; }
+
+dialog { border: 1px solid #477787; border-radius: 1rem; width: min(calc(100% - 1.5rem), 34rem); max-height: calc(100dvh - 1.5rem); color: var(--ink); background: #10282f; padding: 0; box-shadow: 0 1rem 5rem #011016a0; }
+dialog::backdrop { background: #03101799; }
+.dialog-inner { text-align: center; padding: clamp(1.1rem, 4vw, 2.1rem); }
+.dialog-icon { margin: 0 auto .6rem; width: 3.3rem; height: 3.3rem; display: grid; place-items: center; border-radius: .9rem; background: #153d3a; }
+.dialog-icon svg { fill: #40bc9522; stroke: var(--teal); stroke-width: 1.65; }
+.dialog-inner h2 { margin: 0 0 .35rem; font-size: clamp(1.7rem, 6vw, 2.5rem); letter-spacing: -.045em; line-height: 1.05; }
+.dialog-inner p { margin: .45rem 0 .8rem; color: var(--muted); line-height: 1.5; }
+.dialog-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; margin: 1rem 0 .75rem; }
+.dialog-buttons .primary { background: var(--teal); border-color: var(--teal); color: #072822; padding-inline: 1.1rem; }
+.dialog-buttons .primary:hover { background: #b0ffe3; }
+.original-link { color: #b2e3d8; font-size: .82rem; text-underline-offset: .17em; padding: .2rem .25rem; }
+.dialog-inner .best { color: var(--ember); font-weight: 700; }
+#game-guide { text-align: left; margin: 1rem 0; padding: .75rem; background: #071c24; border: 1px solid #345662; border-radius: .64rem; }
+#game-guide h3 { font-size: .92rem; margin: .62rem 0 0; }
+#game-guide p { font-size: .83rem; margin: .22rem 0 .5rem; }
+.guide-list { margin: 0; }
+.guide-list div { display: grid; grid-template-columns: 5.55rem 1fr; gap: .4rem; padding-bottom: .38rem; }
+.guide-list dt { font-weight: 700; font-size: .84rem; }
+.guide-list dd { margin: 0; font-size: .83rem; color: var(--muted); line-height: 1.45; }
+.guide-mark { display: inline-block; width: 1.05rem; color: var(--teal); text-align: center; }
+.boost-mark { color: var(--ember); }
+
+@media (pointer: coarse), (max-width: 630px) {
+  .move-pad { display: grid; }
+  .key-hints { display: none; }
+}
+@media (max-width: 560px) {
+  .hud { top: .6rem; gap: .4rem; flex-wrap: wrap; }
+  .health { padding-inline: .6rem; flex-basis: 8.35rem; }
+  .counters, .boost { padding-inline: .55rem; }
+}
+@media (max-width: 360px) {
+  .remaining-count { display: none; }
+  .controlbar { padding-inline: .5rem; gap: .35rem; }
+  .actions { gap: .3rem; }
+  .actions button { min-width: 4.65rem; padding-inline: .35rem; }
+}

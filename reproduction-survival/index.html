@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#141f35">
+  <title>Reproduction Survival</title>
+  <meta name="description" content="Breed a fictional species, explore inheritance, and see which traits help offspring survive in different habitats.">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="model.js"></script>
+  <script defer src="game.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="Reproduction Survival home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 22 22"><path d="M4 4c9 0 5 14 14 14M18 4C9 4 13 18 4 18M7 7h8M7 15h8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/></svg>
+      </span>
+      Reproduction Survival
+    </a>
+    <button type="button" class="header-link" id="openCells">Cell explorer <span aria-hidden="true">↗</span></button>
+  </header>
+  <main class="page">
+    <section id="scene" class="scene" aria-label="Habitat"></section>
+    <nav class="progress" aria-label="Game progress" id="progress"></nav>
+    <div class="game-grid">
+      <section class="population" id="population" aria-labelledby="populationTitle"></section>
+      <aside class="controls" id="controls" aria-label="Round controls"></aside>
+    </div>
+    <section id="history" class="history" aria-label="Generation record"></section>
+    <p class="footer-note">Nimbles are a fictional species. The game uses simple inheritance and survival rules so you can compare generations.</p>
+  </main>
+  <dialog id="cellsDialog" aria-labelledby="dialogTitle" class="dialog">
+    <div class="dialog-header">
+      <h2 id="dialogTitle">Cell explorer</h2>
+      <button id="closeCells" type="button" class="icon-button" aria-label="Close cell explorer">×</button>
+    </div>
+    <div id="dialogContent"></div>
+  </dialog>
+  <div class="sr-only" id="announcer" aria-live="polite"></div>
+</body>
+</html>

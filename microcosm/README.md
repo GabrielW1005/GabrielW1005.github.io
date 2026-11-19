@@ -1,4 +1,12 @@
-# Microcosm 2.6 — Living worlds
+# Microcosm
+
+[Microcosm Arcade](https://gabrielw1005.github.io/microcosm/) is a continuous 2D action game with the original microscope-inspired cells. Use **WASD**, **arrows**, or the on-screen pad to move, **Space** to fire at the nearest enemy, and **Shift** or **F** to dash. Click or tap the field to aim a pulse. **P** or **Escape** pauses play.
+
+Start at 100 HP. Pulse deals 25 damage. Green Mend pickups restore up to 25 HP and orange Boost pickups double pulse damage for eight seconds. Drifters have 50 HP. Dart Ciliates have 75 HP and show their charge line before attacking. Waves keep coming as soon as the previous set is defeated. The best wave is stored on the current device.
+
+Amoeba and ciliate art show parts of real cells. Damage, attacks, and pickups are fictional game mechanics. The original simulation and old save slots are available in [Living Worlds](living-worlds.html).
+
+## Microcosm 2.6 — Living Worlds
 
 A dependency-free Canvas game at https://gabrielw1005.github.io/microcosm/.
 
