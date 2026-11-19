@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#10202b">
+<title>Nimbles Updated · The living wild</title><meta name="description" content="A live habitat survival game. Guide Nimbles, explore ten wild habitats, watch fertilization, and discover how inherited traits affect survival.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+<header class="topbar">
+  <div class="brand"><span class="brandmark">N<span>✦</span></span><div><h1>Nimbles <em>Updated</em></h1><p>THE LIVING WILD</p></div></div>
+  <div class="world-status"><span class="live-dot"></span><span id="habitatName">Clover Meadow</span><span class="divider">/</span><span id="weatherLabel">Clear · 20°C</span></div>
+  <nav aria-label="Game controls"><button id="pauseBtn" title="Pause or resume (P)">❚❚ <span>Pause</span></button><button id="speedBtn" title="Simulation speed">1×</button><button id="guideBtn">Field guide</button><button id="progressBtn">Save & share</button><button id="fullBtn" title="Fullscreen">⛶</button><button id="settingsBtn" title="Display settings">⚙</button></nav>
+</header>
+<main id="playfield">
+  <canvas id="world" tabindex="0" aria-label="Live habitat. Click a Nimble to inspect. Arrow keys move selected Nimble; F defends; Space dashes. Drag empty ground to pan; scroll to zoom."></canvas>
+  <section class="mission glass" id="missionPanel" aria-label="Expedition objectives">
+    <div class="eyebrow">EXPEDITION <span id="levelNumber">01 / 10</span><button id="collapseMission" class="icon" title="Collapse objectives">−</button></div>
+    <h2 id="levelTitle">Clover Meadow</h2><p class="mission-desc" id="levelDesc"></p><div id="goals"></div>
+    <button class="next-btn" id="nextBtn" hidden>Explore next habitat</button>
+    <button id="habitatsBtn" class="text-btn">Choose expedition</button>
+  </section>
+  <div class="ecosystem-hud glass" aria-label="Population statistics"><div><strong id="population">8</strong><span>Nimbles</span></div><div><strong id="preyCount">0</strong><span>prey</span></div><div><strong id="predatorCount">0</strong><span>predators</span></div><div><strong id="birthCount">0</strong><span>births</span></div><div><strong id="generation">1</strong><span>generation</span></div></div>
+  <section class="inspector glass" id="inspector" aria-label="Selected creature">
+    <div class="eyebrow">CREATURE STUDY <button id="closeInspector" class="icon" title="Hide inspector">×</button></div><div id="inspectContent"></div>
+  </section>
+  <aside class="world-map glass"><div><span id="mapLabel">HABITAT MAP</span><button id="fitBtn" class="icon" title="See whole habitat">⛶</button></div><canvas id="minimap" width="190" height="112" aria-label="Habitat minimap. Click to move camera."></canvas><p><i class="key nimble"></i>Nimbles <i class="key danger"></i>Predators <i class="key refuge"></i>Refuge</p></aside>
+  <div id="weatherAlert" class="weather-alert" role="status" hidden></div>
+  <div id="eventFeed" class="event-feed" aria-live="polite"></div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div class="camera-controls glass"><button id="zoomOut" title="Zoom out">−</button><span id="zoomLabel">65%</span><button id="zoomIn" title="Zoom in">+</button><button id="followBtn" title="Follow selected Nimble">Follow</button></div>
+  <footer class="actionbar glass">
+    <div class="tool-group"><button class="active" id="selectTool" title="Select and inspect a creature">◎ <span>Inspect</span></button><button id="moveTool" title="Choose a Nimble, then click a destination">⌖ <span>Move</span></button><button id="rallyTool" title="Click to guide your colony toward a point">⚑ <span>Rally</span></button></div>
+    <div class="tool-group"><button id="dashBtn" title="Selected Nimble dashes (Space)">ϟ <span>Dash</span></button><button id="defendBtn" title="Horns and claws repel nearby predators (F)">✧ <span>Defend</span></button></div>
+    <div class="breed-controls"><select id="modeSelect" aria-label="Reproduction mode"><option value="sexual">Sexual reproduction</option><option value="asexual">Asexual reproduction</option></select><button id="breedBtn" class="primary">♡ Breed</button><label class="auto-label"><input type="checkbox" id="autoBreed">Auto</label></div>
+  </footer>
+  <div class="control-hint" id="controlHint">Click to inspect · drag ground to explore · scroll to zoom</div>
+</main>
+</div>
+<dialog id="welcomeDialog" class="welcome-dialog">
+  <div class="welcome-art"><span class="small-caps">A NEW CHAPTER IN THE WILD</span><div class="creature-art"><i class="ear left"></i><i class="ear right"></i><i class="horn left"></i><i class="horn right"></i><i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="foot left"></i><i class="foot right"></i></div><div class="art-stars">✦ &nbsp; · &nbsp; ✧ &nbsp; · &nbsp; ✦</div></div>
+  <div class="welcome-copy"><span class="eyebrow">SURVIVE. REPRODUCE. DISCOVER.</span><h2>A little creature.<br>A much wilder world.</h2><p>Guide your Nimbles through ten living habitats. Hunt small prey, escape predators, seek shelter, and pass on the traits that help them survive.</p><div class="welcome-features"><span>10 habitats</span><span>10 inherited traits</span><span>Living food webs</span><span>Storms & seasons</span></div><p class="tiny">Nimbles are fictional organisms. This simplified model lets you compare sexual reproduction with asexual budding.</p><button id="startBtn" class="primary wide">Enter the habitat</button><span class="save-note">Progress saves automatically on this device.</span></div>
+</dialog>
+<dialog id="panelDialog"><div class="dialog-header"><h2 id="panelTitle"></h2><button id="closePanel" class="icon" aria-label="Close dialog">×</button></div><div id="panelBody"></div></dialog>
+<dialog id="breedDialog" class="breed-dialog"><div class="dialog-header"><div><span class="eyebrow">CELL EXPLORER</span><h2 id="breedTitle">A new beginning</h2></div><button id="skipBreed" class="text-btn">Finish animation</button></div><canvas id="reproCanvas" aria-label="Animated reproduction and inheritance"></canvas><div id="breedResult"></div></dialog>
+<input id="saveFile" type="file" accept="application/json,.json" hidden>
+<script type="module" src="main.js"></script>
+</body></html>
