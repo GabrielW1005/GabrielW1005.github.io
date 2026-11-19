@@ -6,9 +6,11 @@
   <meta name="theme-color" content="#141f35">
   <title>Reproduction Survival</title>
   <meta name="description" content="Breed a fictional species, explore inheritance, and see which traits help offspring survive in different habitats.">
-  <link rel="stylesheet" href="styles.css">
-  <script defer src="model.js"></script>
-  <script defer src="game.js"></script>
+  <link rel="stylesheet" href="styles.css?v=20261119">
+  <script defer src="model.js?v=20261119"></script>
+  <script defer src="trial.js?v=20261119"></script>
+  <script defer src="game-save.js?v=20261119"></script>
+  <script defer src="game.js?v=20261119"></script>
 </head>
 <body>
   <header class="site-header">
@@ -18,7 +20,11 @@
       </span>
       Reproduction Survival
     </a>
-    <button type="button" class="header-link" id="openCells">Cell explorer <span aria-hidden="true">↗</span></button>
+    <div class="header-actions">
+      <button type="button" class="header-link" id="openCells">Cell explorer</button>
+      <button type="button" class="header-link" id="openRecord">Record</button>
+      <div id="game-tools"></div>
+    </div>
   </header>
   <main class="page">
     <section id="scene" class="scene" aria-label="Habitat"></section>
@@ -27,8 +33,7 @@
       <section class="population" id="population" aria-labelledby="populationTitle"></section>
       <aside class="controls" id="controls" aria-label="Round controls"></aside>
     </div>
-    <section id="history" class="history" aria-label="Generation record"></section>
-    <p class="footer-note">Nimbles are a fictional species. The game uses simple inheritance and survival rules so you can compare generations.</p>
+
   </main>
   <dialog id="cellsDialog" aria-labelledby="dialogTitle" class="dialog">
     <div class="dialog-header">
@@ -36,6 +41,12 @@
       <button id="closeCells" type="button" class="icon-button" aria-label="Close cell explorer">×</button>
     </div>
     <div id="dialogContent"></div>
+  </dialog>
+  <dialog id="recordDialog" class="dialog" aria-labelledby="recordTitle">
+    <div class="dialog-header"><h2 id="recordTitle">Generation record</h2>
+      <button id="closeRecord" type="button" class="icon-button" aria-label="Close generation record">×</button>
+    </div>
+    <section id="history" class="history"></section>
   </dialog>
   <div class="sr-only" id="announcer" aria-live="polite"></div>
 </body>

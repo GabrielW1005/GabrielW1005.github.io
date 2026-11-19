@@ -11,6 +11,9 @@
   const byId = id => document.getElementById(id);
   const world = byId('world');
   const overlay = byId('overlay');
+  const toolbar = byId('game-navigation');
+  const tools = byId('game-tools');
+  const overlayTools = byId('overlay-tools');
   const primary = byId('primary-button');
   const secondary = byId('secondary-button');
   const directionKeys = {
@@ -117,7 +120,8 @@
         const point = this.screen(enemy);
         if (point.x >= 20 && point.x <= this.width - 20 && point.y >= 18 && point.y <= this.height - 18) continue;
         const x = clamp(point.x, 18, this.width - 18);
-        const y = clamp(point.y, 100, this.height - 108);
+        const verticalInset = Math.min(100, this.height * .24);
+        const y = clamp(point.y, verticalInset, this.height - verticalInset);
         const angle = Math.atan2(point.y - this.height / 2, point.x - this.width / 2);
         context.save();
         context.translate(x, y);
@@ -142,6 +146,9 @@
   let game = new Arcade();
   let state = 'ready';
   let guideFrom = 'ready';
+  let started = false;
+  let progressOpen = false;
+  let persistence;
   let needsRender = true;
   let lastFrame = 0;
   let announcementTime = 0;
@@ -166,6 +173,10 @@
   function recordBest() {
     if (game.wave <= best) return;
     best = game.wave;
+    storeBest();
+  }
+
+  function storeBest() {
     try { localStorage.setItem('microcosm.arcade.best-wave', String(best)); } catch { /* Optional local record. */ }
   }
 
@@ -215,15 +226,22 @@
   function showState(next) {
     state = next;
     if (next === 'playing') {
+      started = true;
+      toolbar.append(tools);
       overlay.close();
       world.focus({ preventScroll: true });
       lastFrame = 0;
       return;
     }
     clearInput();
+    if (next === 'paused' || next === 'ended') {
+      recordBest();
+      persistence?.saveNow();
+    }
+    overlayTools.append(tools);
 
     const screens = {
-      ready: ['Microcosm Arcade', 'Steer an amoeba, fire pulses, and survive incoming waves.', 'Start playing', 'How to play'],
+      ready: ['Microcosm Arcade', started ? `Wave ${game.wave} saved · ${game.focus.hp} HP` : 'Steer an amoeba, fire pulses, and survive incoming waves.', started ? 'Resume run' : 'Start playing', 'How to play'],
       paused: ['Paused', 'Your wave and power-up time are on hold.', 'Resume', 'How to play'],
       guide: ['How to play', 'Defeat the enemies in each wave to keep going.', 'Back', ''],
       ended: ['Run complete', `You reached wave ${game.wave} and defeated ${game.defeated} ${game.defeated === 1 ? 'enemy' : 'enemies'}.`, 'Play again', 'How to play'],
@@ -255,6 +273,28 @@
     byId('announcement').hidden = true;
     updateHud();
     showState('playing');
+    persistence?.saveNow();
+  }
+
+  function restoreProgress(snapshot) {
+    if (!snapshot || typeof snapshot.started !== 'boolean' || !Number.isInteger(snapshot.best) || snapshot.best < 0 || snapshot.best > 1e7) return false;
+    let restored;
+    try {
+      restored = Arcade.restore(snapshot.run);
+    } catch {
+      return false;
+    }
+    game = restored;
+    started = snapshot.started;
+    best = Math.max(best, snapshot.best, started ? game.wave : 0);
+    storeBest();
+    resetCamera();
+    announcementTime = 0;
+    byId('announcement').hidden = true;
+    updateHud();
+    needsRender = true;
+    showState(game.dead ? 'ended' : 'ready');
+    return true;
   }
 
   primary.addEventListener('click', () => {
@@ -272,6 +312,7 @@
   });
 
   document.addEventListener('keydown', event => {
+    if (progressOpen) return;
     if (state === 'paused' && event.code === 'KeyP' && !event.repeat) {
       event.preventDefault();
       showState('playing');
@@ -296,7 +337,7 @@
   document.addEventListener('keyup', event => keyboard.delete(event.code));
   window.addEventListener('blur', clearInput);
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && state === 'playing') showState('paused');
+    if (document.hidden && state === 'playing' && !progressOpen) showState('paused');
   });
 
   function readAim(event) {
@@ -386,7 +427,10 @@
         showState('ended');
         continue;
       }
-      if (event.kind === 'wave') recordBest();
+      if (event.kind === 'wave') {
+        recordBest();
+        persistence?.saveNow();
+      }
       writeText(byId('event-title'), event.text);
       writeText(byId('event-note'), event.note || '');
       banner.hidden = false;
@@ -397,7 +441,7 @@
   function frame(now) {
     const dt = lastFrame ? Math.min((now - lastFrame) / 1000, 1 / 30) : 1 / 60;
     lastFrame = now;
-    if (state === 'playing') {
+    if (state === 'playing' && !progressOpen) {
       game.step(dt, getInput(dt));
       updateHud();
       announce(dt);
@@ -416,5 +460,15 @@
   resetCamera();
   updateHud();
   showState('ready');
+  persistence = window.GameSave?.attach({
+    game: 'microcosm', title: 'Microcosm Arcade', mount: tools,
+    snapshot: () => ({ started, best, run: game.snapshot() }),
+    restore: restoreProgress,
+    onOpenChange(open) {
+      progressOpen = open;
+      clearInput();
+      lastFrame = 0;
+    },
+  });
   requestAnimationFrame(frame);
 })();

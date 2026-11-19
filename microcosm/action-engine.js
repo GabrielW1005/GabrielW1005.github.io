@@ -14,13 +14,21 @@
     boostSeconds: 8,
     dashCooldown: 2,
   };
+  const FIELD = { width: 1920, height: 1400 };
+  const savedNumber = value => Math.round(value * 1000) / 1000;
+  const within = (value, min, max) => typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
+  const integerWithin = (value, min, max) => Number.isInteger(value) && within(value, min, max);
+  const seedIsValid = value => integerWithin(value, -(2 ** 31), 2 ** 31 - 1);
+  const pointIsValid = value => value && within(value.x, 0, FIELD.width) && within(value.y, 0, FIELD.height);
+  const angleIsValid = value => within(value, -1e8, 1e8);
 
   const direction = (from, to) => Math.atan2(to.y - from.y, to.x - from.x);
 
   class Arcade {
     constructor(seed = Date.now()) {
+      this.initialSeed = seed | 0;
       this.s = {
-        w: 1920, h: 1400, time: 0, seed: seed | 0, nextId: 0,
+        w: FIELD.width, h: FIELD.height, time: 0, seed: this.initialSeed, nextId: 0,
         cells: [], food: [], dna: [], clouds: [], rocks: [], hazards: [], effects: [], selection: [],
       };
       // Share the original simulator's cell bodies, organelles and appearance.
@@ -56,6 +64,79 @@
       }
 
       this.advanceWave();
+    }
+
+    snapshot() {
+      const player = this.focus;
+      return {
+        version: 1,
+        seed: this.initialSeed,
+        rng: this.s.seed,
+        time: savedNumber(this.s.time),
+        wave: this.wave,
+        defeated: this.defeated,
+        boost: savedNumber(this.boost),
+        dash: savedNumber(this.dash),
+        dashWait: savedNumber(this.dashWait),
+        dashAngle: savedNumber(this.dashAngle),
+        nextWave: savedNumber(this.nextWave),
+        player: {
+          x: savedNumber(player.x), y: savedNumber(player.y), a: savedNumber(player.a),
+          hp: player.hp, cool: savedNumber(player.cool), invuln: savedNumber(player.invuln),
+        },
+        enemies: this.enemies.map(enemy => ({
+          x: savedNumber(enemy.x), y: savedNumber(enemy.y), a: savedNumber(enemy.a),
+          kind: enemy.kind, hp: enemy.hp, phase: enemy.phase,
+          timer: savedNumber(enemy.timer), windup: savedNumber(enemy.windup),
+          chargeAngle: savedNumber(enemy.chargeAngle ?? 0),
+        })),
+        pickups: this.pickups.map(pickup => ({
+          x: savedNumber(pickup.x), y: savedNumber(pickup.y),
+          kind: pickup.kind, life: savedNumber(pickup.life),
+        })),
+        shots: this.shots.map(shot => ({
+          x: savedNumber(shot.x), y: savedNumber(shot.y), angle: savedNumber(shot.angle),
+          damage: shot.damage, life: savedNumber(shot.life),
+        })),
+      };
+    }
+
+    static restore(data) {
+      const { player, enemies, pickups, shots } = data || {};
+      if (data?.version !== 1 || !seedIsValid(data.seed) || !seedIsValid(data.rng)
+        || !within(data.time, 0, 1e8) || !integerWithin(data.wave, 1, 1e7) || !integerWithin(data.defeated, 0, data.wave * 10)
+        || !within(data.boost, 0, RULES.boostSeconds) || !within(data.dash, 0, .24) || !within(data.dashWait, 0, RULES.dashCooldown)
+        || !angleIsValid(data.dashAngle) || !within(data.nextWave, 0, 1.4)) throw new Error('Invalid or unsupported Microcosm save.');
+      if (!pointIsValid(player) || !angleIsValid(player.a) || !integerWithin(player.hp, 0, RULES.health)
+        || !within(player.cool, 0, .4) || !within(player.invuln, 0, .9)) throw new Error('Invalid Microcosm player state.');
+      if (!Array.isArray(enemies) || enemies.length > 10 || !enemies.every(enemy => pointIsValid(enemy)
+        && Object.hasOwn(ENEMY_TYPES, enemy.kind) && integerWithin(enemy.hp, 1, ENEMY_TYPES[enemy.kind].health)
+        && ['track', 'warn', 'charge'].includes(enemy.phase) && within(enemy.timer, 0, .68)
+        && within(enemy.windup, 0, 2.6) && angleIsValid(enemy.a) && angleIsValid(enemy.chargeAngle))) throw new Error('Invalid Microcosm enemies.');
+      if (!Array.isArray(pickups) || pickups.length > 95 || !pickups.every(pickup => pointIsValid(pickup)
+        && ['mend', 'boost'].includes(pickup.kind) && within(pickup.life, 0, 23))) throw new Error('Invalid Microcosm power-ups.');
+      if (!Array.isArray(shots) || shots.length > 8 || !shots.every(shot => pointIsValid(shot)
+        && [RULES.pulse, RULES.pulse * 2].includes(shot.damage) && within(shot.life, 0, 1.18)
+        && angleIsValid(shot.angle))) throw new Error('Invalid Microcosm pulses.');
+
+      const game = new Arcade(data.seed);
+      game.enemies = [];
+      game.s.cells = [game.focus];
+      for (const key of ['wave', 'defeated', 'boost', 'dash', 'dashWait', 'dashAngle', 'nextWave']) game[key] = data[key];
+      const { x, y, a, hp, cool, invuln } = player;
+      Object.assign(game.focus, { x, y, a, hp, cool, invuln, surge: data.dash });
+      for (const enemy of enemies) {
+        const restored = game.spawnEnemy(enemy.kind, enemy.x, enemy.y);
+        const { a, hp, phase, timer, windup, chargeAngle } = enemy;
+        Object.assign(restored, { a, hp, phase, timer, windup, chargeAngle });
+      }
+      game.pickups = pickups.map(({ x, y, kind, life }) => ({ x, y, kind, life, r: 15 }));
+      game.shots = shots.map(({ x, y, angle, damage, life }) => ({ x, y, angle, damage, life }));
+      game.s.time = data.time;
+      game.s.seed = data.rng;
+      game.dead = hp === 0;
+      game.events = [];
+      return game;
     }
 
     findTarget(_cell, id) {

@@ -4,6 +4,8 @@
 
 Start at 100 HP. Pulse deals 25 damage. Green Mend pickups restore up to 25 HP and orange Boost pickups double pulse damage for eight seconds. Drifters have 50 HP. Dart Ciliates have 75 HP and show their charge line before attacking. Waves keep coming as soon as the previous set is defeated. The best wave is stored on the current device.
 
+Use the on-screen arrows and attack buttons on touchscreens and interactive boards. **Fullscreen** lets the game fill the display. Runs autosave in the browser. Open **Progress** to download a backup, load a save file, or create a link to resume a run on another device.
+
 Amoeba and ciliate art show parts of real cells. Damage, attacks, and pickups are fictional game mechanics. The original simulation and old save slots are available in [Living Worlds](living-worlds.html).
 
 ## Microcosm 2.6 — Living Worlds

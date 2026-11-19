@@ -7,8 +7,20 @@
   const historyPanel = node('history');
   const dialog = node('cellsDialog');
   const dialogContent = node('dialogContent');
+  const recordDialog = node('recordDialog');
+  const trialEngine = FieldTrial;
+  let field = null;
+  let traitCache = [];
+  let fieldView = null;
+  let paused = false;
+  let speed = 1;
+  let sharedSave = null;
+  let frameId = 0;
+  let previousTime = 0;
+  let lastCheckpoint = 0;
+  let balance = 0;
   const saveKey = 'reproduction-survival-v1';
-  const stageLabels = ['Choose parents', 'Inspect offspring', 'Survival results'];
+  const stageLabels = ['Choose parents', 'Inspect & test', 'Survival results'];
   const habitatKeys = Object.keys(model.habitats);
   let explorerTab = 'division';
 
@@ -27,21 +39,101 @@
     };
   }
 
+  function validatedState(input) {
+    if (!input || !Number.isInteger(input.generation) || input.generation < 1 || input.generation > 9999
+      || !['sexual', 'asexual'].includes(input.mode) || !habitatKeys.includes(input.habitat)
+      || ![0, 1, 2].includes(input.stage) || !Array.isArray(input.adults)
+      || !Array.isArray(input.parents) || !Array.isArray(input.brood) || !Array.isArray(input.history)) return null;
+
+    const gene = (cell, copies) => cell && (copies === 2
+      ? /^(CC|Cc|cc)$/.test(cell.color) && /^(FF|Ff|ff)$/.test(cell.fur)
+      : /^(C|c)$/.test(cell.color) && /^(F|f)$/.test(cell.fur));
+    const validIndividual = individual => individual && typeof individual.name === 'string' && /^[A-Za-z]{1,14}$/.test(individual.name)
+      && typeof individual.id === 'string' && /^(founder-[1-6]|[0-9]{1,4}-[0-5])$/.test(individual.id)
+      && gene(individual.genotype, 2);
+    const cleanGene = cell => ({ color: String(cell.color), fur: String(cell.fur) });
+    function cleanIndividual(individual) {
+      return {
+        id: individual.id, name: individual.name,
+        genotype: cleanGene(individual.genotype),
+        sperm: gene(individual.sperm, 1) ? cleanGene(individual.sperm) : null,
+        egg: gene(individual.egg, 1) ? cleanGene(individual.egg) : null,
+        survived: individual.survived === true,
+        energy: Number.isFinite(individual.energy) ? Math.round(Math.max(0, Math.min(100, individual.energy))) : null,
+      };
+    }
+    if (input.adults.length < 1 || input.adults.length > 6 || input.brood.length > 6
+      || !input.adults.every(validIndividual) || !input.brood.every(validIndividual)) return null;
+    const adults = input.adults.map(cleanIndividual);
+    const brood = input.brood.map(cleanIndividual);
+    const parentCount = input.mode === 'sexual' ? 2 : 1;
+    if (input.parents.length > parentCount || new Set(input.parents).size !== input.parents.length
+      || !input.parents.every(id => adults.some(animal => animal.id === id))
+      || (input.stage && (input.parents.length !== parentCount || brood.length !== (input.mode === 'sexual' ? 4 : 6)))
+      || (input.stage && input.mode === 'sexual' && brood.some(animal => !animal.sperm || !animal.egg))) return null;
+    const seenIds = input.stage ? brood : adults;
+    const history = input.history.slice(-60).filter(entry => entry && habitatKeys.includes(entry.habitat)
+      && ['sexual', 'asexual'].includes(entry.mode) && Number.isInteger(entry.generation) && entry.generation >= 1
+      && [4, 6].includes(entry.total) && Number.isInteger(entry.survived) && entry.survived >= 0 && entry.survived <= entry.total)
+      .map(entry => ({
+        habitat: entry.habitat, mode: entry.mode, generation: entry.generation, total: entry.total, survived: entry.survived,
+        traits: typeof entry.traits === 'string' && /^[A-Za-z ,/]{1,130}$/.test(entry.traits) ? entry.traits : '',
+        assisted: entry.assisted === true,
+      }));
+    return {
+      generation: input.generation, mode: input.mode, habitat: input.habitat, stage: input.stage,
+      adults, parents: [...input.parents], brood, history,
+      viewed: seenIds.some(animal => animal.id === input.viewed) ? input.viewed : null,
+      prediction: brood.some(animal => animal.id === input.prediction) ? input.prediction : null,
+    };
+  }
+
+  function restoreField(saved, game) {
+    if (!saved || !saved.field) return null;
+    const running = saved.field;
+    const number = (value, min, max) => typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
+    const inField = actor => actor && number(actor.x, 0, trialEngine.width) && number(actor.y, 0, trialEngine.height);
+    const ids = new Set(game.brood.map(animal => animal.id));
+    const heading = value => [-1, 1].includes(value);
+    if (running.habitat !== game.habitat || !number(running.time, 0, trialEngine.duration)
+      || running.time === trialEngine.duration || !inField(running.shelter)
+      || !Array.isArray(running.animals) || running.animals.length !== game.brood.length
+      || !Array.isArray(running.bushes) || running.bushes.length !== 3) return null;
+    if (running.animals.some((animal, index) => !inField(animal) || animal.id !== game.brood[index].id
+      || !heading(animal.heading) || ![0, 1, 2].includes(animal.target) || !number(animal.energy, 0, 100)
+      || !number(animal.hit, 0, 2) || !number(animal.ate, 0, 2) || !['sheltered', 'fleeing', 'foraging'].includes(animal.zone))) return null;
+    if (running.bushes.some(bush => !inField(bush) || ![0, 1, 2].includes(bush.berries)
+      || !number(bush.regrow, 0, 2.4))) return null;
+    const predator = running.predator;
+    if (!inField(predator) || !heading(predator.heading) || ![0, 1, 2, 3].includes(predator.patrol)
+      || !number(predator.recovery, 0, 2) || (predator.target !== null && !ids.has(predator.target))) return null;
+    const point = object => ({ x: object.x, y: object.y });
+    return {
+      speed: saved.speed === 2 ? 2 : 1,
+      field: {
+        habitat: game.habitat, time: running.time, affected: running.affected === true, shelter: point(running.shelter),
+        animals: running.animals.map(animal => ({
+          ...point(animal), id: animal.id, energy: animal.energy, heading: animal.heading, target: animal.target,
+          hit: animal.hit, ate: animal.ate, zone: animal.zone,
+        })),
+        predator: {
+          ...point(predator), heading: predator.heading, target: predator.target, patrol: predator.patrol, recovery: predator.recovery,
+        },
+        bushes: running.bushes.map(bush => ({ ...point(bush), berries: bush.berries, regrow: bush.regrow })),
+      },
+    };
+  }
+
   function loadState() {
-    try {
-      const progress = JSON.parse(localStorage.getItem(saveKey));
-      if (progress && Array.isArray(progress.adults) && Array.isArray(progress.history)
-          && habitatKeys.includes(progress.habitat) && [0, 1, 2].includes(progress.stage)) {
-        return progress;
-      }
-    } catch { /* Local progress is optional. */ }
-    return newRun();
+    try { return validatedState(JSON.parse(localStorage.getItem(saveKey))) ?? newRun(); }
+    catch { return newRun(); }
   }
 
   let state = loadState();
 
   function saveState() {
     try { localStorage.setItem(saveKey, JSON.stringify(state)); } catch { /* Keep playing without storage. */ }
+    sharedSave?.saveNow();
   }
 
   function announce(text) {
@@ -146,10 +238,15 @@
       <span class="creature-card-name">${individual.name}</span>
       <span class="creature-card-traits">${traits.color} · ${traits.fur.toLowerCase()}</span>
       ${state.stage === 0 || inspected ? '<span class="creature-card-genotype">' + genotype + '</span>' : ''}
+      ${state.stage === 2 && individual.energy !== null && individual.energy !== undefined ? '<span class="creature-card-energy">Final energy ' + individual.energy + '</span>' : ''}
     </button>`;
   }
 
-  function renderPopulation(animate) {
+  function renderPopulation(animate, celebrate) {
+    if (field) {
+      renderField();
+      return;
+    }
     const pool = state.stage === 0 ? state.adults : state.brood;
     const inspected = currentIndividual();
     const descriptions = [
@@ -159,23 +256,212 @@
     ];
     const [heading, detail] = descriptions[state.stage];
     const traits = inspected ? model.phenotype(inspected.genotype) : null;
-    const fit = inspected ? model.fitness(inspected.genotype, state.habitat) : null;
+    const matches = inspected ? model.matchingTraits(inspected.genotype, state.habitat) : null;
     population.innerHTML = `
       <div class="section-heading">
         <div><h2 id="populationTitle" tabindex="-1">${heading}</h2><p>${detail}</p></div>
         <span class="pop-count">${pool.length} ${state.stage ? 'offspring' : 'adults'}</span>
       </div>
-      <div class="creature-grid ${animate ? 'offspring-in' : ''}">${pool.map(critterCard).join('')}</div>
+      <div class="creature-grid ${animate ? 'offspring-in' : ''}">${pool.map(critterCard).join('')}${celebrate ? celebration() : ''}</div>
       ${inspected ? `<div class="detail">
         <div><strong>${inspected.name} · ${formattedGenotype(inspected.genotype)}</strong>
-        <p>${traits.color}, ${traits.fur.toLowerCase()} · ${fit.matches} matching ${fit.matches === 1 ? 'trait' : 'traits'} · ${Math.round(fit.chance * 100)}% survival chance</p></div>
+        <p>${traits.color}, ${traits.fur.toLowerCase()} · ${matches} matching ${matches === 1 ? 'trait' : 'traits'} · ${traits.color === model.habitats[state.habitat].color ? 'Harder for the kite to spot' : 'Easier for the kite to spot'}</p></div>
         <button type="button" class="secondary" data-action="explore-dna">Inspect DNA</button>
       </div>` : ''}`;
+  }
+
+  function renderField() {
+    const habitat = model.habitats[state.habitat];
+    const predator = `<svg class="kite" viewBox="0 0 95 70" aria-hidden="true"><g>
+      <path d="M49 28C33 7 17 6 4 9c5 4 3 11 11 12 4 7 8 12 22 19l-6 11 9-1 7-10 9 11 7 1-4-11c17-5 23-14 32-27l-9 4 5-9C71 6 59 19 49 28Z" fill="#31324c" stroke="#171b30" stroke-width="2"/>
+      <path d="M43 32q7-12 14 0l-2 9-13 1q-3-6 1-10" fill="#67627b"/><path d="m55 32 9 2-8 5" fill="#e0ae69"/><circle cx="52" cy="32" r="2.5" fill="#ffd581"/>
+      </g></svg>`;
+    const fruit = `<svg class="berry-tree" viewBox="0 0 48 47" aria-hidden="true"><path d="M23 35v9" stroke="#463829" stroke-width="4"/><path d="M5 31C-1 24 5 15 12 13 14 1 30 1 35 11 45 13 49 29 40 34c-7 4-30 5-35-3Z" fill="#36735e" stroke="#224e47" stroke-width="2"/><circle class="berry berry-one" cx="16" cy="22" r="3.5" fill="#f5a886"/><circle class="berry berry-two" cx="29" cy="16" r="3.5" fill="#f5a886"/></svg>`;
+    const markers = state.brood.map((animal, index) => `
+      <div data-critter="${index}" class="arena-actor nimble-actor ${state.prediction === animal.id ? 'predicted-actor' : ''}">
+        ${sprite(animal.genotype)}
+        <div class="actor-name">${animal.name}</div>
+        <div class="actor-energy"><span></span></div>
+      </div>`).join('');
+    population.innerHTML = `
+      <div class="field-heading">
+        <h2 id="populationTitle" tabindex="-1">${habitat.name}</h2>
+        <div class="field-stat"><strong id="fieldTemp">0°C</strong><span id="fieldWeather">Temperature</span></div>
+        <div class="field-stat"><strong id="fieldTime">18 s</strong><span>Remaining</span></div>
+      </div>
+      <div class="arena ${habitat.className}" id="arena" tabindex="0" aria-label="Live trial. Tap here or use arrow keys to move shelter.">
+        ${landscape(state.habitat)}
+        <svg class="pursuit-line" viewBox="0 0 100 62" preserveAspectRatio="none" aria-hidden="true"><line id="pursuit" x1="0" y1="0" x2="0" y2="0"/></svg>
+        <div class="shelter-marker" id="shelterMarker"><span>⌂</span><small>Shelter</small></div>
+        ${field.bushes.map((_, index) => `<div class="arena-actor bush" data-bush="${index}">${fruit}</div>`).join('')}
+        <div id="predatorActor" class="arena-actor predator-actor">${predator}<span class="actor-name">Kite</span></div>
+        ${markers}
+        <div id="fieldPaused" class="field-paused" hidden>Trial paused</div>
+      </div>
+      <div class="field-key"><span><i class="key-food"></i>Berries restore energy</span><span><i class="key-kite"></i>Kite hunts Nimbles</span><span><i class="key-energy"></i>Energy stays above zero to survive</span></div>`;
+  }
+
+  function bindField() {
+    fieldView = {
+      arena: node('arena'),
+      predator: node('predatorActor'),
+      shelter: node('shelterMarker'),
+      line: node('pursuit'),
+      temp: node('fieldTemp'),
+      time: node('fieldTime'),
+      weather: node('fieldWeather'),
+      overlay: node('fieldPaused'),
+      bushes: [...population.querySelectorAll('[data-bush]')],
+      animals: [...population.querySelectorAll('[data-critter]')].map(element => ({
+        element,
+        energy: element.querySelector('.actor-energy span'),
+      })),
+      alive: node('fieldAlive'),
+      help: node('fieldHelp'),
+    };
+    paintField();
+  }
+
+  function position(element, location) {
+    element.style.left = location.x + '%';
+    element.style.top = (location.y / trialEngine.height * 100) + '%';
+  }
+
+  function paintField() {
+    if (!fieldView || !field) return;
+    const f = fieldView;
+    f.temp.textContent = trialEngine.temperature(field) + '°C';
+    f.time.textContent = Math.ceil(trialEngine.duration - field.time) + ' s';
+    const weather = trialEngine.fields[state.habitat];
+    const event = Math.abs(trialEngine.temperature(field) - weather.start) >= 2;
+    f.weather.textContent = event ? weather.event : 'Temperature';
+    f.alive.textContent = field.animals.filter(animal => animal.energy > 0).length + '/' + field.animals.length;
+    f.help.textContent = field.affected ? 'Shelter moved · assisted trial' : 'Shelter has stayed in its starting spot';
+    f.overlay.hidden = !paused;
+    position(f.shelter, field.shelter);
+    position(f.predator, field.predator);
+    f.predator.dataset.heading = field.predator.heading;
+    f.bushes.forEach((element, index) => {
+      const bush = field.bushes[index];
+      position(element, bush);
+      element.dataset.berries = bush.berries;
+    });
+    f.animals.forEach(({ element, energy }, index) => {
+      const animal = field.animals[index];
+      position(element, animal);
+      element.dataset.heading = animal.heading;
+      element.dataset.zone = animal.zone;
+      element.dataset.low = animal.energy < 32;
+      element.dataset.out = animal.energy === 0;
+      element.dataset.hit = animal.hit > 1.08;
+      element.dataset.ate = animal.ate > .57;
+      energy.style.width = Math.max(0, animal.energy) + '%';
+    });
+    const prey = field.animals.find(animal => animal.id === field.predator.target);
+    f.line.style.display = prey ? '' : 'none';
+    if (!prey) return;
+    f.line.setAttribute('x1', field.predator.x);
+    f.line.setAttribute('y1', field.predator.y);
+    f.line.setAttribute('x2', prey.x);
+    f.line.setAttribute('y2', prey.y);
+  }
+
+  function startLoop() {
+    if (!field || paused || frameId) return;
+    previousTime = 0;
+    frameId = requestAnimationFrame(advance);
+  }
+
+  function stopLoop() {
+    if (frameId) cancelAnimationFrame(frameId);
+    frameId = 0;
+    previousTime = 0;
+  }
+
+  function advance(now) {
+    frameId = 0;
+    if (!field || paused) return;
+    if (previousTime) {
+      balance += Math.min(.05, (now - previousTime) / 1000) * speed;
+      while (balance >= 1 / 60 && field.time < trialEngine.duration) {
+        balance -= 1 / 60;
+        trialEngine.step(field, traitCache, 1 / 60);
+      }
+    }
+    previousTime = now;
+    if (field.time >= trialEngine.duration) return finishTrial();
+    paintField();
+    if (field.time - lastCheckpoint >= 2) {
+      lastCheckpoint = field.time;
+      sharedSave?.saveNow();
+    }
+    frameId = requestAnimationFrame(advance);
+  }
+
+  function startTrial() {
+    field = trialEngine.create(state.brood, state.habitat);
+    traitCache = state.brood.map(animal => model.phenotype(animal.genotype));
+    paused = false;
+    speed = 1;
+    balance = 0;
+    lastCheckpoint = 0;
+    announce('Live habitat trial started. Nimbles seek food and avoid the kite.');
+    render({ focus: 'stage' });
+    startLoop();
+  }
+
+  function pauseTrial(value) {
+    if (!field || paused === value) return;
+    paused = value;
+    if (paused) stopLoop();
+    else startLoop();
+    const toggle = node('trialToggle');
+    if (toggle) {
+      toggle.textContent = paused ? 'Resume' : 'Pause';
+      toggle.setAttribute('aria-pressed', paused);
+    }
+    paintField();
+    sharedSave?.saveNow();
+  }
+
+  function shelterMove(x, y) {
+    if (!field || paused || document.querySelector('dialog[open]')) return;
+    trialEngine.shelterAt(field, x, y);
+    paintField();
+  }
+
+  function celebration() {
+    const label = state.mode === 'sexual' ? 'Gametes combined' : 'One parent made buds';
+    const hearts = Array.from({ length: 7 }, (_, index) =>
+      `<span style="--i:${index}">♥</span>`).join('');
+    return `<div class="breed-celebration" aria-hidden="true">${hearts}<b>${label}</b></div>`;
   }
 
   function renderControls() {
     const habitat = model.habitats[state.habitat];
     const target = 'Favored here: ' + habitat.color.toLowerCase() + ' coloring and ' + habitat.fur.toLowerCase() + ' fur.';
+    if (field) {
+      controls.innerHTML = `
+        <h2>Live habitat trial</h2>
+        <p class="round-figure"><span id="fieldAlive">—</span> <small>still active</small></p>
+        <p class="round-summary">${target}</p>
+        <div class="action-stack">
+          <button type="button" id="trialToggle" class="primary" data-action="pause" aria-pressed="${paused}">${paused ? 'Resume' : 'Pause'}</button>
+          <button type="button" id="trialSpeed" class="secondary" data-action="speed" aria-pressed="${speed === 2}">Speed ${speed}×</button>
+        </div>
+        <div class="small-rule"></div>
+        <h3 class="move-title">Move shelter</h3>
+        <p class="summary">Use arrow keys, tap the field, or press these controls. Stay hands-off for a fair comparison.</p>
+        <div class="dpad" aria-label="Move shelter buttons">
+          <button type="button" class="choice" data-action="move" data-id="up" aria-label="Move shelter up">↑</button>
+          <button type="button" class="choice" data-action="move" data-id="left" aria-label="Move shelter left">←</button>
+          <button type="button" class="choice" data-action="move" data-id="down" aria-label="Move shelter down">↓</button>
+          <button type="button" class="choice" data-action="move" data-id="right" aria-label="Move shelter right">→</button>
+        </div>
+        <p id="fieldHelp" class="summary"></p>
+        <p class="summary">Fur affects energy loss in hot or cold weather. Camouflage changes how close the kite needs to be to notice a Nimble.</p>`;
+      return;
+    }
     if (state.stage === 0) {
       const p = parents();
       const required = activeParentCount();
@@ -205,9 +491,7 @@
       controls.innerHTML = `
         <h2>Test the habitat</h2>
         <p class="round-summary">${target}</p>
-        <div class="odds-key" aria-label="Modeled chance of survival">
-          <div><strong>20%</strong>0 matches</div><div><strong>55%</strong>1 match</div><div><strong>90%</strong>2 matches</div>
-        </div>
+        <p class="summary">Watch an 18-second trial. Offspring forage for berries, flee a predator, and lose energy in heat or cold.</p>
         <p class="round-summary">${predicted ? 'Your prediction: ' + predicted.name + ' survives.' : 'Choose an offspring and mark your prediction before you test.'}</p>
         <div class="action-stack">
           <button type="button" class="secondary" data-action="prediction" ${inspected && inspected.id !== state.prediction ? '' : 'disabled'}>Mark prediction</button>
@@ -235,27 +519,30 @@
         <button type="button" class="secondary" data-action="compare">Try this brood in another habitat</button>
         ${isExtinct ? '' : '<button type="button" class="text-button" data-action="reset">Restart with founders</button>'}
       </div>
-      <p class="summary">Comparing the same brood keeps each offspring’s chance draw. Changes come from the habitat.</p>`;
+      <p class="summary">For a fair comparison, leave shelter in its starting spot in both trials.</p>`;
   }
 
   function renderHistory() {
     if (state.history.length === 0) {
-      historyPanel.innerHTML = '';
+      historyPanel.innerHTML = '<p class="empty-history">The record fills in after your first habitat trial.</p>';
       return;
     }
-    historyPanel.innerHTML = `<h2>Generation record</h2><div class="table-scroll"><table>
-      <thead><tr><th scope="col">Offspring generation</th><th scope="col">Habitat</th><th scope="col">Route</th><th scope="col">Survived</th><th scope="col">Survivor traits</th></tr></thead>
+    historyPanel.innerHTML = `<div class="table-scroll"><table>
+      <thead><tr><th scope="col">Offspring generation</th><th scope="col">Habitat</th><th scope="col">Route</th><th scope="col">Survived</th><th scope="col">Survivor traits</th><th scope="col">Shelter moved?</th></tr></thead>
       <tbody>${[...state.history].reverse().map(round =>
-        `<tr><td>${round.generation}</td><td>${model.habitats[round.habitat].name}</td><td>${titleCase(round.mode)}</td><td>${round.survived}/${round.total}</td><td>${round.traits || 'None'}</td></tr>`).join('')}
+        `<tr><td>${round.generation}</td><td>${model.habitats[round.habitat].name}</td><td>${titleCase(round.mode)}</td><td>${round.survived}/${round.total}</td><td>${round.traits || 'None'}</td><td>${round.assisted ? 'Yes' : 'No'}</td></tr>`).join('')}
       </tbody></table></div>`;
   }
 
-  function render({ focus = null, animate = false } = {}) {
+  function render({ focus = null, animate = false, celebrate = false } = {}) {
+    document.body.classList.toggle('trial-mode', !!field);
     renderScene();
     renderProgress();
-    renderPopulation(animate);
+    renderPopulation(animate, celebrate);
     renderControls();
     renderHistory();
+    if (field) bindField();
+    else fieldView = null;
     saveState();
     if (focus === 'stage') node('populationTitle').focus({ preventScroll: true });
     else if (focus) document.querySelector(focus)?.focus({ preventScroll: true });
@@ -376,8 +663,9 @@
     state.viewed = id;
   }
 
-  function testSurvival() {
-    state.brood = model.assess(state.brood, state.habitat);
+  function finishTrial() {
+    stopLoop();
+    state.brood = trialEngine.results(field, state.brood);
     const survivors = state.brood.filter(individual => individual.survived);
     const traits = [...new Set(survivors.map(individual => {
       const trait = model.phenotype(individual.genotype);
@@ -385,12 +673,11 @@
     }))].join(', ');
     const record = {
       generation: state.generation + 1, habitat: state.habitat, mode: state.mode,
-      survived: survivors.length, total: state.brood.length, traits,
+      survived: survivors.length, total: state.brood.length, traits, assisted: field.affected,
     };
-    const previous = state.history.findIndex(round => round.generation === record.generation && round.habitat === record.habitat);
-    if (previous < 0) state.history.push(record);
-    else state.history[previous] = record;
+    state.history = [...state.history.slice(-59), record];
     state.stage = 2;
+    field = null;
     announce(survivors.length + ' of ' + state.brood.length + ' offspring survived.');
     render({ focus: 'stage', animate: true });
   }
@@ -446,17 +733,30 @@
       state.stage = 1;
       state.viewed = null;
       announce(state.brood.length + ' offspring arrived.');
-      render({ focus: 'stage', animate: true });
+      render({ focus: 'stage', animate: true, celebrate: true });
       return;
     }
-    if (action === 'test') return testSurvival();
+    if (action === 'test') return startTrial();
+    if (action === 'pause') return pauseTrial(!paused);
+    if (action === 'speed') {
+      speed = speed === 1 ? 2 : 1;
+      const control = node('trialSpeed');
+      control.textContent = 'Speed ' + speed + '×';
+      control.setAttribute('aria-pressed', speed === 2);
+      return;
+    }
+    if (action === 'move' && field) {
+      const shifts = { up: [0, -6], down: [0, 6], left: [-6, 0], right: [6, 0] };
+      const [dx, dy] = shifts[id];
+      return shelterMove(field.shelter.x + dx, field.shelter.y + dy);
+    }
     if (action === 'next') return nextGeneration();
     if (action === 'compare') {
       const keyIndex = habitatKeys.indexOf(state.habitat);
       state.habitat = habitatKeys[(keyIndex + 1) % habitatKeys.length];
       state.stage = 1;
       state.prediction = null;
-      state.brood = state.brood.map(({ survived, ...individual }) => individual);
+      state.brood = state.brood.map(({ survived, energy, ...individual }) => individual);
       announce('Same offspring, new habitat: ' + model.habitats[state.habitat].name + '.');
       render({ focus: 'stage' });
       return;
@@ -474,9 +774,51 @@
   document.addEventListener('click', event => {
     const button = event.target.closest('button[data-action]');
     if (button) handleAction(button.dataset.action, button.dataset.id);
+    else if (fieldView && event.target.closest('#arena')) {
+      const size = fieldView.arena.getBoundingClientRect();
+      shelterMove((event.clientX - size.left) / size.width * trialEngine.width,
+        (event.clientY - size.top) / size.height * trialEngine.height);
+    }
   });
-  node('openCells').addEventListener('click', () => openExplorer('division'));
+  document.addEventListener('keydown', event => {
+    const directions = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+    if (field && directions[event.key] && !document.querySelector('dialog[open]')) {
+      event.preventDefault();
+      handleAction('move', directions[event.key]);
+    }
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') pauseTrial(true);
+  });
+  node('openCells').addEventListener('click', () => { pauseTrial(true); openExplorer('division'); });
   node('closeCells').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  node('openRecord').addEventListener('click', () => { pauseTrial(true); recordDialog.showModal(); });
+  node('closeRecord').addEventListener('click', () => recordDialog.close());
+  recordDialog.addEventListener('click', event => { if (event.target === recordDialog) recordDialog.close(); });
   render();
+  sharedSave = window.GameSave?.attach({
+    game: 'reproduction-survival',
+    title: 'Reproduction Survival',
+    mount: node('game-tools'),
+    snapshot: () => ({ ...state, liveField: field ? { field, speed } : null }),
+    restore(data) {
+      try {
+        const accepted = validatedState(data);
+        if (!accepted) return false;
+        stopLoop();
+        const checkpoint = accepted.stage === 1 ? restoreField(data.liveField, accepted) : null;
+        state = accepted;
+        field = checkpoint?.field ?? null;
+        speed = checkpoint?.speed ?? 1;
+        traitCache = state.brood.map(animal => model.phenotype(animal.genotype));
+        paused = !!field;
+        balance = 0;
+        lastCheckpoint = field?.time ?? 0;
+        render();
+        return true;
+      } catch { return false; }
+    },
+    onOpenChange(open) { if (open) pauseTrial(true); },
+  });
 })();
